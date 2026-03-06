@@ -1,0 +1,19 @@
+{
+  "name": "wisepath-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo build",
+    "clean": "turbo clean && rm -rf node_modules",
+    "lint": "turbo lint"
+  },
+  "devDependencies": {
+    "turbo": "^1.11.3"
+  }
+}

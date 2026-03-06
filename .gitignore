@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+*.pnp
+*.pnp.js
+
+# Turbo
+.turbo
+dist
+
+# Next.js
+.next
+out
+.env.local
+.env.*.local
+
+# Testing
+coverage
+
+# Misc
+.DS_Store
+*.pem
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
