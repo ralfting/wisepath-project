@@ -9,6 +9,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [
+    ConfigModule,
     PrismaModule,
     PassportModule,
     JwtModule.registerAsync({
