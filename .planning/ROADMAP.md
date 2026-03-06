@@ -15,7 +15,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Auth | 0/6 | Not started | - |
+| 1. Foundation & Auth | 2/6 | In progress | 01-01, 01-02 |
 | 2. Core Content | 0/? | Not started | - |
 | 3. Graph & Visualization | 0/? | Not started | - |
 | 4. Sharing & Discovery | 0/? | Not started | - |
