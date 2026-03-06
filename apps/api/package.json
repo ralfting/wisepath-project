@@ -2,6 +2,9 @@
   "name": "@wisepath/api",
   "version": "1.0.0",
   "private": true,
+  "prisma": {
+    "schema": "../../prisma/schema.prisma"
+  },
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
