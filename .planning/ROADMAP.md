@@ -15,7 +15,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Auth | 2/6 | In progress | 01-01, 01-02 |
+| 1. Foundation & Auth | 2/5 | In progress | 01-01, 01-02 |
 | 2. Core Content | 0/? | Not started | - |
 | 3. Graph & Visualization | 0/? | Not started | - |
 | 4. Sharing & Discovery | 0/? | Not started | - |
@@ -28,24 +28,23 @@
 
 **Depends on:** Nothing (first phase)
 
-**Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06
+**Requirements:** AUTH-01, AUTH-02, AUTH-05, AUTH-06
 
 **Success Criteria** (what must be TRUE):
 1. User can sign up with email and password
-2. User can log in with email/password, Google OAuth, or GitHub OAuth
+2. User can log in with email and password
 3. User stays logged in across browser refresh
 4. User can log out from any page
 5. Application is deployed and accessible via web browser
 
-**Plans:** 6 plans
+**Plans:** 5 plans
 
 Plans:
 - [ ] 01-01-PLAN.md — Establish Turborepo monorepo foundation with Next.js, NestJS, and shared types
 - [ ] 01-02-PLAN.md — Set up NestJS backend with Prisma ORM and authentication module foundation
 - [ ] 01-03-PLAN.md — Set up Next.js frontend with Tailwind, shadcn/ui, and authentication pages
 - [ ] 01-04-PLAN.md — Implement email/password authentication with JWT and persistent sessions
-- [ ] 01-05-PLAN.md — Implement Google and GitHub OAuth authentication
-- [ ] 01-06-PLAN.md — Deploy application to production (Vercel + Render)
+- [ ] 01-05-PLAN.md — Deploy application to production (Vercel + Render)
 
 ---
 

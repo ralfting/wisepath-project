@@ -6,7 +6,7 @@
 <domain>
 ## Phase Boundary
 
-Users can securely access their accounts and the application infrastructure is ready. This phase establishes the foundation: monorepo setup, authentication system (email/password, Google OAuth, GitHub OAuth), session management, database connection, and deployment infrastructure. Everything else builds on this foundation.
+Users can securely access their accounts and the application infrastructure is ready. This phase establishes the foundation: monorepo setup, authentication system (email/password only), session management, database connection, and deployment infrastructure. Everything else builds on this foundation.
 
 </domain>
 
@@ -30,14 +30,10 @@ Users can securely access their accounts and the application infrastructure is r
 - **Approach**: JWT token-based authentication
 - **Backend implementation**: NestJS Passport (@nestjs/passport)
   - passport-local for email/password
-  - passport-google-oauth20 for Google OAuth
-  - passport-github2 for GitHub OAuth
 - **Frontend state management**: React Context + custom hooks (AuthContext)
 - **Password requirements**: Minimum 8 characters (standard, user-friendly)
 - **Supported methods**:
-  - Email/password signup and login
-  - Google OAuth
-  - GitHub OAuth
+  - Email/password signup and login only
 
 ### Database & Infrastructure
 - **Database**: PostgreSQL
