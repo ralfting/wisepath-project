@@ -1,7 +1,8 @@
 # Phase 1: Foundation & Auth - Context
 
 **Gathered:** 2026-03-06
-**Status:** Ready for planning
+**Updated:** 2026-03-09
+**Status:** Ready for planning (context refined with Clean Architecture frontend pattern)
 
 <domain>
 ## Phase Boundary
@@ -58,20 +59,37 @@ Users can securely access their accounts and the application infrastructure is r
   - secure: true (production)
   - sameSite: 'strict' or 'lax' (depending on CORS needs)
 
-### UI Styling
+### UI Styling & Architecture
 - **CSS framework**: Tailwind CSS
 - **Component library**: shadcn/ui (Radix UI primitives + Tailwind)
 - **Design system**: Modern minimalist (clean, white space, subtle colors)
 - **Theme support**: Both light and dark modes (light mode default)
 - **Implementation**: Tailwind dark: variant with theme toggle
 
+### Frontend Architecture (Clean Architecture)
+- **Folder structure pattern**: Domain-driven modules with clear responsibilities
+  - `domain/{feature}/`
+    - `entities/` — Core business models (pure, framework-agnostic)
+    - `types/` — Data contracts and DTOs (API responses, form values, service I/O)
+    - `enums/` — Closed set of valid values for domain concepts
+    - `services/` — API communication and data transformation
+    - `hooks/` — Domain logic hooks (using React Query, composition)
+    - `components/` — UI components representing domain concepts
+    - `index.ts` — Public API of the domain module
+- **Validation**: Zod for runtime validation and type generation
+- **Data fetching**: React Query for server state management
+- **Key principles**:
+  - Encapsulation: All domain logic stays within module
+  - Low coupling: Components don't know about pages; services don't know about UI
+  - Separation of concerns: Each folder has one responsibility
+  - Scalability: Each domain evolves independently
+
 ### Claude's Discretion
-- Exact folder structure within apps/web and apps/api
-- Loading states and error handling patterns
-- API endpoint naming conventions
-- Component organization within apps/web
+- Loading states and error handling patterns for non-auth features
+- API endpoint naming conventions (beyond auth endpoints)
 - Environment variable management approach
 - Git commit strategy during implementation
+- Exact Zod schema structure and validation error messages
 
 </decisions>
 
@@ -93,10 +111,11 @@ Users can securely access their accounts and the application infrastructure is r
 This phase creates the core integration points that all future phases depend on:
 - Turborepo workspace configuration
 - NestJS REST API structure
-- Next.js app router setup
+- Next.js app router setup with Clean Architecture domain modules
 - Prisma schema and database connection
 - Auth context and protected route patterns
 - Shared types package structure
+- Domain-driven folder structure pattern for all future features
 
 </code_context>
 
