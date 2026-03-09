@@ -70,6 +70,12 @@
 
 None currently.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | refatorar projeto backend e frontend para se encaixar no Clean architecture documentado no projeto | 2026-03-09 | 90030c3 | [1-refatorar-projeto-backend-e-frontend-par](./quick/1-refatorar-projeto-backend-e-frontend-par/) |
+
 ### Context for Next Session
 
 **What just happened:** Plan 01-03 executed - Next.js frontend with Tailwind CSS, shadcn/ui components, login/signup pages, and global AuthContext created. All pages render correctly.
