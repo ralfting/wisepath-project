@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider } from "@/domain/auth";
 import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {

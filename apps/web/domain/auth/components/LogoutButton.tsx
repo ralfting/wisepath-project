@@ -1,7 +1,12 @@
 'use client';
 
+/**
+ * LogoutButton - Button component for user logout
+ * Handles logout action and loading state
+ */
+
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '../hooks/useAuth';
 
 export function LogoutButton() {
   const { logout, loading } = useAuth();
