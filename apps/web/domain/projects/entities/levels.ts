@@ -1,11 +1,12 @@
-import type { ChartPosition, Page, Project } from '../types/project.types';
+import type { Project } from '../types/project.types';
 import { findPageByTitle } from './project.entity';
 
 /**
  * Levels
  * The project read top-down: level 1 is the start page, level 2 the pages it
  * references with [[Title]] links, level 3 the pages those reference, and so on.
- * Pages the start page never reaches sit apart, beside the descent.
+ * Pages the start page never reaches sit apart. The map's force layout uses
+ * these depths as gravity (see graph-layout.ts).
  */
 
 const WIKILINK = /\[\[([^[\]\n]+)\]\]/g;
@@ -72,52 +73,6 @@ export function computeLevels(project: Project): Levels {
 
   const apart = project.pages.filter((p) => !levelOf.has(p.id)).map((p) => p.id);
   return { levels, apart, levelOf };
-}
-
-export const LEVEL_GAP = 150;
-export const SLOT_GAP = 150;
-const APART_GAP = 80;
-
-export interface LevelLayout extends Levels {
-  positions: Map<string, ChartPosition>;
-  /** Half the width of the widest level, in chart units */
-  halfWidth: number;
-  /** x of the column of pages set apart */
-  apartX: number;
-  /** y where the destination constellation sits */
-  destinationY: number;
-}
-
-/**
- * Places each level on its own row, centred, ordering pages under the pages
- * that reference them to keep lines short. Pages set apart stack in a column
- * to the right.
- */
-export function layoutLevels(project: Project): LevelLayout {
-  const levels = computeLevels(project);
-  const refs = references(project);
-  const positions = new Map<string, ChartPosition>();
-  const byId = new Map(project.pages.map((p) => [p.id, p]));
-  const title = (id: string) => (byId.get(id) as Page).title.toLowerCase();
-
-  let halfWidth = 0;
-  levels.levels.forEach((ids, i) => {
-    // Order by the average x of the pages above that reference each one
-    const parentX = (id: string) => {
-      const xs = refs.filter((r) => r.to === id && positions.has(r.from)).map((r) => positions.get(r.from)!.x);
-      return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0;
-    };
-    const ordered = [...ids].sort((a, b) => parentX(a) - parentX(b) || title(a).localeCompare(title(b)));
-    const width = (ordered.length - 1) * SLOT_GAP;
-    halfWidth = Math.max(halfWidth, width / 2);
-    ordered.forEach((id, j) => positions.set(id, { x: j * SLOT_GAP - width / 2, y: i * LEVEL_GAP }));
-  });
-
-  const apartX = halfWidth + SLOT_GAP * 1.6;
-  levels.apart.forEach((id, j) => positions.set(id, { x: apartX, y: j * APART_GAP }));
-
-  const destinationY = Math.max(levels.levels.length, 1) * LEVEL_GAP + 40;
-  return { ...levels, positions, halfWidth, apartX, destinationY };
 }
 
 /** The subject named in "Now I know …": the project's subject, or its title without a leading "Learn" */
