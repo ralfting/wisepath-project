@@ -22,8 +22,9 @@ export function PageEditor({ pageId }: { pageId: string }) {
   const isFresh = useSearchParams().get('new') === '1';
   const pageHref = (id: string) => `/projects/${project.id}/pages/${id}`;
 
+  // Wait for the saved copy so the editor never starts from stale sample text
+  if (!ready) return null;
   if (!page) {
-    if (!ready) return null;
     return (
       <main className="grid min-h-screen place-items-center px-4">
         <div className="max-w-md space-y-3 text-center">
@@ -46,6 +47,12 @@ export function PageEditor({ pageId }: { pageId: string }) {
       const created = store.createPage(freeSpotNear(project, { x: page.position.x + COLUMN, y: page.position.y }));
       store.connect(fromId, created.id);
       router.push(`${pageHref(created.id)}?new=1`);
+    },
+    createNamedPage: (title, fromId) => {
+      const created = store.createPage(freeSpotNear(project, { x: page.position.x + COLUMN, y: page.position.y }));
+      store.updatePage(created.id, { title });
+      store.connect(fromId, created.id);
+      router.push(pageHref(created.id));
     },
     deletePage: (id) => {
       store.deletePage(id);

@@ -26,9 +26,13 @@ export function PageSheet({ project, page, actions, isFresh, fullPageHref, onClo
   // Esc closes the sheet unless a field is being edited (fields handle Esc themselves)
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
       const active = document.activeElement;
-      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+      if (
+        active instanceof HTMLInputElement ||
+        active instanceof HTMLTextAreaElement ||
+        (active instanceof HTMLElement && active.isContentEditable)
+      ) {
         active.blur();
         return;
       }

@@ -70,10 +70,12 @@ export function ProjectMap() {
     [freshId, project.pages, store, syncUrl],
   );
 
-  const createAt = (position: ChartPosition, connectTo?: string) => {
+  const createAt = (position: ChartPosition, connectTo?: string, title?: string) => {
     const page = store.createPage(freeSpotNear(project, position));
+    if (title) store.updatePage(page.id, { title });
     if (connectTo) store.connect(connectTo, page.id);
-    setFreshId(page.id);
+    // A page created from a [[link]] already has its name; focus goes to its text instead
+    setFreshId(title ? null : page.id);
     setOpenId(page.id);
     syncUrl(page.id);
     setFocusRequest((r) => ({ pageId: page.id, nonce: (r?.nonce ?? 0) + 1, mode: 'reveal' }));
@@ -89,6 +91,10 @@ export function ProjectMap() {
     createConnectedPage: (fromId) => {
       const from = project.pages.find((p) => p.id === fromId);
       if (from) createAt({ x: from.position.x + COLUMN, y: from.position.y }, fromId);
+    },
+    createNamedPage: (title, fromId) => {
+      const from = project.pages.find((p) => p.id === fromId);
+      if (from) createAt({ x: from.position.x + COLUMN, y: from.position.y }, fromId, title);
     },
     deletePage: (pageId) => {
       store.deletePage(pageId);
@@ -215,7 +221,7 @@ export function ProjectMap() {
           )}
         </div>
 
-        {openPage && (
+        {openPage && store.ready && (
           <PageSheet
             project={project}
             page={openPage}

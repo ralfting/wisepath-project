@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import type { Page, Project } from '../types/project.types';
 import { displayTitle } from '../entities/project.entity';
-import { BlockEditor } from './BlockEditor';
+import { MarkdownEditor } from '../editor/MarkdownEditor';
 import { ConnectionsEditor } from './ConnectionsEditor';
 import { PlusIcon, TrashIcon } from './icons';
 
@@ -20,6 +20,8 @@ export interface PageActions {
   disconnect: (pageA: string, pageB: string) => void;
   openPage: (pageId: string) => void;
   createConnectedPage: (fromPageId: string) => void;
+  /** Creates a page with this title next to `fromPageId`, connects and opens it */
+  createNamedPage: (title: string, fromPageId: string) => void;
   deletePage: (pageId: string) => void;
 }
 
@@ -33,7 +35,7 @@ interface PageContentProps {
 }
 
 export function PageContent({ project, page, actions, isFresh = false, titleClassName = 'text-[32px]' }: PageContentProps) {
-  const [startSignal, setStartSignal] = useState(0);
+  const [focusSignal, setFocusSignal] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
@@ -50,17 +52,22 @@ export function PageContent({ project, page, actions, isFresh = false, titleClas
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
-              setStartSignal((n) => n + 1);
+              setFocusSignal((n) => n + 1);
             }
           }}
           placeholder="Untitled page"
           className={`w-full bg-transparent font-star font-medium italic leading-tight outline-none placeholder:text-muted-foreground/60 focus-visible:outline-none ${titleClassName}`}
         />
-        <BlockEditor
+        <MarkdownEditor
           key={page.id}
           content={page.content}
           onChange={(content) => actions.updatePage(page.id, { content })}
-          startSignal={startSignal}
+          pages={project.pages}
+          currentPageId={page.id}
+          onOpenPage={actions.openPage}
+          onLinkPage={(linkedId) => actions.connect(page.id, linkedId)}
+          onCreatePage={(title) => actions.createNamedPage(title, page.id)}
+          focusSignal={focusSignal}
         />
       </div>
 
