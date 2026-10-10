@@ -4,15 +4,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import type { ChartPosition, Page, Project } from '../types/project.types';
 import { displayTitle, pagesInOrder, wordCount } from '../entities/project.entity';
-import { LEVEL_GAP, SLOT_GAP, layoutLevels, references, subjectOf } from '../entities/levels';
+import { references, subjectOf } from '../entities/levels';
+import { graphKey, layoutGraph } from '../entities/graph-layout';
+import type { GraphLayout } from '../entities/graph-layout';
 import { FitIcon, GridIcon, MinusIcon, PlusIcon } from './icons';
 
 /**
  * StarChart
- * The project as a star chart read top-down: the start page on level I, the
- * pages it links with [[Title]] on level II, and so on down to the destination,
- * a constellation that lights up as pages are studied. Pages not reached from
- * the start sit apart on the right.
+ * The project as a star chart that flows downward, Obsidian-style: the start
+ * page sits at the top and the pages it links with [[Title]] settle below it,
+ * clustered by their links, down to the destination, a crown of stars that
+ * lights up as pages are studied. Hovering a star dims everything it does not
+ * link. Pages the start never reaches float apart on the right.
  * Click a star to open it. The + under the open star adds a page one level
  * below: type its name and press Enter (Enter again adds a sibling, Tab goes
  * one level deeper). Each new page is a [[link]] written into the page above.
@@ -52,19 +55,23 @@ interface StarChartProps {
 
 type Gesture = { kind: 'pan'; x: number; y: number; cx: number; cy: number; moved: boolean };
 
-export const COLUMN = SLOT_GAP;
+/** Spacing of the optional background grid, in chart units */
+const GRID = 150;
+/** How long stars take to glide to new places when links change */
+const RELAYOUT_MS = 520;
 const MIN_K = 0.3;
 const MAX_K = 2.5;
-const LABEL_ALL_K = 0.8;
+const LABEL_ALL_K = 0.6;
 /** Below this zoom only selected, searched, linked and studied pages keep labels */
-const LABEL_STUDIED_K = 0.55;
+const LABEL_STUDIED_K = 0.45;
 /** When fitting everything would zoom out past this, open closer in */
-const MIN_FIT_K = 0.55;
+const MIN_FIT_K = 0.5;
 const FINDER_RINGS = [20, 34, 50];
-const DESTINATION_HEIGHT = 270;
+const DESTINATION_HEIGHT = 250;
+/** Space between the deepest page and the destination crown */
+const DESTINATION_GAP = 90;
 /** Screen height of the legend strip, kept clear when fitting */
 const LEGEND_H = 44;
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI'];
 
 const clampK = (k: number) => Math.min(MAX_K, Math.max(MIN_K, k));
 /** Star size follows how much is written on the page */
@@ -98,7 +105,7 @@ export function StarChart({
   const [composer, setComposer] = useState<{ parentId: string | null } | null>(null);
   const [draft, setDraft] = useState('');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
 
   const setCam = useCallback(
     (next: Camera) => {
@@ -110,18 +117,60 @@ export function StarChart({
   );
 
   const pages = useMemo(() => pagesInOrder(project), [project]);
-  const layout = useMemo(() => layoutLevels(project), [project]);
   const refs = useMemo(() => references(project), [project]);
-  const positionOf = useCallback((pageId: string) => layout.positions.get(pageId) ?? { x: 0, y: 0 }, [layout]);
 
-  const hasStart = layout.levels.length > 0;
+  // Layout only changes when pages or links change, not while typing; stars glide to new places
+  const key = useMemo(() => graphKey(project), [project]);
+  const [layout, setLayout] = useState<GraphLayout>(() => layoutGraph(project));
+  const [shown, setShown] = useState<Map<string, ChartPosition>>(layout.positions);
+  const shownRef = useRef(shown);
+  shownRef.current = shown;
+  const firstKey = useRef(key);
+  useEffect(() => {
+    if (key === firstKey.current) return;
+    firstKey.current = key;
+    const next = layoutGraph(project, shownRef.current);
+    setLayout(next);
+    const from = shownRef.current;
+    if (prefersReducedMotion()) {
+      setShown(next.positions);
+      return;
+    }
+    const start = performance.now();
+    let frame = 0;
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / RELAYOUT_MS);
+      const e = 1 - Math.pow(1 - t, 3);
+      const mid = new Map<string, ChartPosition>();
+      next.positions.forEach((to, id) => {
+        const a = from.get(id) ?? to;
+        mid.set(id, { x: a.x + (to.x - a.x) * e, y: a.y + (to.y - a.y) * e });
+      });
+      setShown(mid);
+      if (t < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+    // The key captures every change that matters to the layout
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  const positionOf = useCallback(
+    (pageId: string) => shown.get(pageId) ?? layout.positions.get(pageId) ?? { x: 0, y: 0 },
+    [shown, layout],
+  );
+
+  const hasStart = !!project.startPageId && layout.positions.has(project.startPageId);
   const studiedCount = project.pages.filter((p) => p.studied).length;
 
   /** Chart bounds: the descent, the column set apart and the destination */
   const bounds = useMemo(() => {
-    const right = layout.apart.length ? layout.apartX + 80 : layout.halfWidth + 80;
-    const bottom = hasStart ? layout.destinationY + DESTINATION_HEIGHT : Math.max(layout.apart.length * 80, 200);
-    return { minX: -layout.halfWidth - 110, maxX: right + 30, minY: -130, maxY: bottom };
+    const all = Array.from(layout.positions.values());
+    if (!all.length) return { minX: -300, maxX: 300, minY: -130, maxY: 300 };
+    const xs = all.map((p) => p.x);
+    const ys = all.map((p) => p.y);
+    const bottom = hasStart ? layout.bottomY + DESTINATION_GAP + DESTINATION_HEIGHT : Math.max(...ys) + 100;
+    return { minX: Math.min(...xs, -260) - 100, maxX: Math.max(...xs, 260) + 100, minY: Math.min(...ys) - 110, maxY: bottom };
   }, [layout, hasStart]);
 
   const fitCamera = useCallback(
@@ -312,14 +361,17 @@ export function StarChart({
     }
   };
 
+  // Hovering a star focuses its links (like Obsidian); otherwise the open page does
+  const focusId = hoveredId ?? selectedId;
   const neighborIds = useMemo(() => {
     const ids = new Set<string>();
     for (const r of refs) {
-      if (r.from === selectedId) ids.add(r.to);
-      if (r.to === selectedId) ids.add(r.from);
+      if (r.from === focusId) ids.add(r.to);
+      if (r.to === focusId) ids.add(r.from);
     }
     return ids;
-  }, [refs, selectedId]);
+  }, [refs, focusId]);
+  const inHoverFocus = (id: string) => !hoveredId || id === hoveredId || neighborIds.has(id);
 
   const view = cam && size.w > 0 ? cam : null;
   const toScreen = (p: ChartPosition): [number, number] =>
@@ -329,7 +381,7 @@ export function StarChart({
     if (!view) return [] as number[];
     const halfW = size.w / 2 / view.k;
     const out: number[] = [];
-    for (let v = Math.ceil((view.cx - halfW) / SLOT_GAP) * SLOT_GAP + SLOT_GAP / 2; v <= view.cx + halfW; v += SLOT_GAP) {
+    for (let v = Math.ceil((view.cx - halfW) / GRID) * GRID; v <= view.cx + halfW; v += GRID) {
       out.push(v);
     }
     return out;
@@ -338,7 +390,12 @@ export function StarChart({
   const selectedPos = selectedId && layout.positions.has(selectedId) ? toScreen(positionOf(selectedId)) : null;
   const searchEmpty = matchIds !== null && matchIds.size === 0;
   const cursor = gestureKind === 'pan' ? 'cursor-grabbing' : 'cursor-grab';
-  const separatorX = layout.halfWidth + SLOT_GAP * 0.8;
+  // Label for the pages set apart, above their loose cluster
+  const apartLabel = useMemo(() => {
+    const pts = layout.apart.map((id) => layout.positions.get(id)).filter((p): p is ChartPosition => !!p);
+    if (!pts.length) return null;
+    return { x: pts.reduce((a, p) => a + p.x, 0) / pts.length, y: Math.min(...pts.map((p) => p.y)) - 50 };
+  }, [layout]);
 
   return (
     <div ref={containerRef} className="relative h-full min-h-[420px] overflow-hidden rounded bg-chart text-star">
@@ -360,42 +417,19 @@ export function StarChart({
                 <line key={`v${x}`} x1={sx} x2={sx} y1={0} y2={size.h} className="stroke-chart-grid" strokeWidth={1} opacity={0.6} />
               );
             })}
-            {layout.levels.map((_, i) => {
-              const [, sy] = toScreen({ x: 0, y: i * LEVEL_GAP });
-              return (
-                <g key={`lv${i}`}>
-                  <line x1={0} x2={size.w} y1={sy} y2={sy} className="stroke-chart-grid" strokeWidth={1} />
-                  <text x={12} y={sy - 8} className="fill-star-dim text-[11px]">
-                    Level {ROMAN[i] ?? i + 1}
-                  </text>
-                </g>
-              );
-            })}
           </g>
         )}
 
-        {view && layout.apart.length > 0 && (
-          <g aria-hidden="true">
-            {hasStart && (
-              <line
-                x1={toScreen({ x: separatorX, y: 0 })[0]}
-                x2={toScreen({ x: separatorX, y: 0 })[0]}
-                y1={0}
-                y2={size.h}
-                className="stroke-star-dim"
-                strokeWidth={1}
-                strokeDasharray="2 6"
-              />
-            )}
-            <text
-              x={toScreen({ x: layout.apartX, y: 0 })[0]}
-              y={toScreen({ x: 0, y: -50 })[1]}
-              textAnchor="middle"
-              className="fill-star-dim text-[12px]"
-            >
-              Not linked yet
-            </text>
-          </g>
+        {view && apartLabel && (
+          <text
+            aria-hidden="true"
+            x={toScreen(apartLabel)[0]}
+            y={toScreen(apartLabel)[1]}
+            textAnchor="middle"
+            className="fill-star-dim text-[12px]"
+          >
+            {hasStart ? 'Not linked from the start yet' : 'Pages'}
+          </text>
         )}
 
         {view && hasStart && (
@@ -404,7 +438,7 @@ export function StarChart({
             studied={studiedCount}
             total={project.pages.length}
             subject={subjectOf(project)}
-            origin={toScreen({ x: 0, y: layout.destinationY })}
+            origin={toScreen({ x: 0, y: layout.bottomY + DESTINATION_GAP })}
             k={view.k}
             width={size.w}
           />
@@ -415,8 +449,9 @@ export function StarChart({
             {refs.map((r) => {
               const [x1, y1] = toScreen(positionOf(r.from));
               const [x2, y2] = toScreen(positionOf(r.to));
-              const raised = r.from === selectedId || r.to === selectedId;
-              const dimmed = matchIds !== null && !(matchIds.has(r.from) && matchIds.has(r.to));
+              const raised = r.from === focusId || r.to === focusId;
+              const dimmed =
+                (matchIds !== null && !(matchIds.has(r.from) && matchIds.has(r.to))) || (!!hoveredId && !raised);
               return (
                 <line
                   key={`r-${r.from}-${r.to}`}
@@ -426,7 +461,7 @@ export function StarChart({
                   y2={y2}
                   className={raised ? 'stroke-star-ring' : 'stroke-star-dim'}
                   strokeWidth={raised ? 1.8 : 1.2}
-                  opacity={dimmed ? 0.25 : raised ? 1 : 0.75}
+                  opacity={dimmed ? 0.15 : raised ? 1 : 0.7}
                 />
               );
             })}
@@ -440,7 +475,8 @@ export function StarChart({
             const isSelected = page.id === selectedId;
             const isMatch = matchIds?.has(page.id) ?? false;
             const isStart = page.id === project.startPageId;
-            const dimmed = matchIds !== null && !isMatch;
+            const isApart = !layout.depthOf.has(page.id);
+            const dimmed = (matchIds !== null && !isMatch) || !inHoverFocus(page.id);
             const showLabel =
               view.k >= LABEL_ALL_K ||
               (page.studied && view.k >= LABEL_STUDIED_K) ||
@@ -467,7 +503,7 @@ export function StarChart({
                 aria-label={`${title}${isStart ? ', start page' : ''}, ${page.studied ? 'studied' : 'not studied'}`}
                 transform={`translate(${x} ${y})`}
                 className="group cursor-pointer outline-none transition-opacity duration-200"
-                opacity={dimmed ? 0.3 : 1}
+                opacity={dimmed ? 0.25 : isApart && hasStart ? 0.6 : 1}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => onSelect(page.id)}
                 onKeyDown={(event) => onStarKeyDown(event, page.id)}
