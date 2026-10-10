@@ -210,10 +210,12 @@ export function ProjectMap() {
               matchIds={matchIds}
               focusRequest={focusRequest}
               onSelect={(pageId) => open(pageId, null)}
-              onOpen={(pageId) => open(pageId, null)}
               onCreateAt={(position) => createAt(position)}
-              onMove={store.movePage}
-              onConnect={store.connect}
+              onLink={store.addReference}
+              onResetSample={() => {
+                store.reset();
+                open(null, null);
+              }}
               viewCenterRef={viewCenterRef}
             />
           ) : (
@@ -227,6 +229,8 @@ export function ProjectMap() {
             page={openPage}
             actions={actions}
             isFresh={openPage.id === freshId}
+            isStart={openPage.id === project.startPageId}
+            onToggleStart={() => store.setStartPage(openPage.id === project.startPageId ? null : openPage.id)}
             fullPageHref={fullPageHref(openPage.id)}
             onClose={() => open(null, null)}
           />

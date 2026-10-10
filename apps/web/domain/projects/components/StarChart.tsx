@@ -3,15 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, MouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import type { ChartPosition, Page, Project } from '../types/project.types';
-import { areConnected, displayTitle, pagesInOrder, wordCount } from '../entities/project.entity';
+import { displayTitle, pagesInOrder, wordCount } from '../entities/project.entity';
+import { LEVEL_GAP, SLOT_GAP, layoutLevels, references, subjectOf } from '../entities/levels';
 import { FitIcon, GridIcon, MinusIcon, PlusIcon } from './icons';
 
 /**
  * StarChart
- * The project drawn as a star atlas the author edits: pages are stars on a
- * coordinate grid and connections are lines between related stars.
- * Double-click the sky to add a page, drag a star to move it, drag the
- * selected star's handle onto another star to connect them.
+ * The project as a star chart read top-down: the start page on level I, the
+ * pages it links with [[Title]] on level II, and so on down to the destination,
+ * a constellation that lights up as pages are studied. Pages not reached from
+ * the start sit apart on the right.
+ * Click a star to open it; drag the selected star's red handle onto another
+ * star to link it; double-click empty sky to add a page.
  * Positions are projected to screen space so star sizes and labels stay
  * constant while zoom spreads the chart.
  */
@@ -36,30 +39,32 @@ interface StarChartProps {
   matchIds: Set<string> | null;
   focusRequest: FocusRequest | null;
   onSelect: (pageId: string | null) => void;
-  onOpen: (pageId: string) => void;
   onCreateAt: (position: ChartPosition) => void;
-  onMove: (pageId: string, position: ChartPosition) => void;
-  onConnect: (pageA: string, pageB: string) => void;
+  /** The author dragged from `fromId`'s handle onto `toId`: link it from the first */
+  onLink: (fromId: string, toId: string) => void;
   /** Kept up to date with the chart point at the middle of the view */
   viewCenterRef?: { current: ChartPosition | null };
+  /** Restores the sample project as shipped; shown only for the sample */
+  onResetSample?: () => void;
 }
 
 type Gesture =
   | { kind: 'pan'; x: number; y: number; cx: number; cy: number; moved: boolean }
-  | { kind: 'move'; pageId: string; x: number; y: number; origin: ChartPosition; moved: boolean; position?: ChartPosition }
   | { kind: 'connect'; pageId: string; target: string | null };
 
-export const COLUMN = 140;
-const ROW = 180;
-const MIN_K = 0.35;
+export const COLUMN = SLOT_GAP;
+const MIN_K = 0.3;
 const MAX_K = 2.5;
 const LABEL_ALL_K = 0.8;
 /** Below this zoom only selected, searched, linked and studied pages keep labels */
 const LABEL_STUDIED_K = 0.55;
 /** When fitting everything would zoom out past this, open closer in */
-const MIN_FIT_K = 0.6;
+const MIN_FIT_K = 0.55;
 const FINDER_RINGS = [20, 34, 50];
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV'];
+const DESTINATION_HEIGHT = 270;
+/** Screen height of the legend strip, kept clear when fitting */
+const LEGEND_H = 44;
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI'];
 
 const clampK = (k: number) => Math.min(MAX_K, Math.max(MIN_K, k));
 /** Star size follows how much is written on the page */
@@ -76,11 +81,10 @@ export function StarChart({
   matchIds,
   focusRequest,
   onSelect,
-  onOpen,
   onCreateAt,
-  onMove,
-  onConnect,
+  onLink,
   viewCenterRef,
+  onResetSample,
 }: StarChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -90,7 +94,6 @@ export function StarChart({
   const frameRef = useRef<number>(0);
   const gestureRef = useRef<Gesture | null>(null);
   const [gestureKind, setGestureKind] = useState<Gesture['kind'] | null>(null);
-  const [dragPreview, setDragPreview] = useState<{ pageId: string; position: ChartPosition } | null>(null);
   const [connectPointer, setConnectPointer] = useState<{ x: number; y: number } | null>(null);
   const [connectTarget, setConnectTarget] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -106,31 +109,39 @@ export function StarChart({
   );
 
   const pages = useMemo(() => pagesInOrder(project), [project]);
-  const pageById = useMemo(() => new Map(project.pages.map((p) => [p.id, p])), [project.pages]);
+  const layout = useMemo(() => layoutLevels(project), [project]);
+  const refs = useMemo(() => references(project), [project]);
+  const positionOf = useCallback((pageId: string) => layout.positions.get(pageId) ?? { x: 0, y: 0 }, [layout]);
 
-  const positionOf = useCallback(
-    (page: Page) => (dragPreview?.pageId === page.id ? dragPreview.position : page.position),
-    [dragPreview],
-  );
+  const hasStart = layout.levels.length > 0;
+  const studiedCount = project.pages.filter((p) => p.studied).length;
+
+  /** Chart bounds: the descent, the column set apart and the destination */
+  const bounds = useMemo(() => {
+    const right = layout.apart.length ? layout.apartX + 80 : layout.halfWidth + 80;
+    const bottom = hasStart ? layout.destinationY + DESTINATION_HEIGHT : Math.max(layout.apart.length * 80, 200);
+    return { minX: -layout.halfWidth - 110, maxX: right + 30, minY: -130, maxY: bottom };
+  }, [layout, hasStart]);
 
   const fitCamera = useCallback(
     (w: number, h: number): Camera => {
-      if (pages.length === 0) return { cx: COLUMN * 3, cy: ROW * 2, k: 1 };
-      const xs = pages.map((p) => p.position.x);
-      const ys = pages.map((p) => p.position.y);
-      const [minX, maxX, minY, maxY] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
-      const k = clampK(Math.min(w / (maxX - minX + 220), h / (maxY - minY + 190), 1.2));
-      return { cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 + 10, k };
+      const usable = Math.max(h - LEGEND_H, 100);
+      const k = clampK(Math.min(w / (bounds.maxX - bounds.minX), usable / (bounds.maxY - bounds.minY), 1.2));
+      // Centre the chart in the area above the legend
+      return { cx: (bounds.minX + bounds.maxX) / 2, cy: (bounds.minY + bounds.maxY) / 2 + LEGEND_H / 2 / k, k };
     },
-    [pages],
+    [bounds],
   );
 
+  // Too tall to fit legibly: open at the top of the descent instead
   const openingCamera = useCallback(
     (w: number, h: number): Camera => {
       const fitted = fitCamera(w, h);
-      return fitted.k >= MIN_FIT_K ? fitted : { ...fitted, k: LABEL_ALL_K };
+      if (fitted.k >= MIN_FIT_K) return fitted;
+      const k = LABEL_ALL_K;
+      return { cx: fitted.cx, cy: bounds.minY + h / 2 / k, k };
     },
-    [fitCamera],
+    [fitCamera, bounds.minY],
   );
 
   const animateTo = useCallback(
@@ -177,21 +188,21 @@ export function StarChart({
 
   const focusOn = useCallback(
     (pageId: string, mode: 'center' | 'reveal' = 'center') => {
-      const page = pageById.get(pageId);
       const current = camRef.current;
-      if (!page || !current) return;
+      if (!layout.positions.has(pageId) || !current) return;
+      const p = positionOf(pageId);
       if (mode === 'reveal') {
         const { w, h } = sizeRef.current;
-        const sx = (page.position.x - current.cx) * current.k + w / 2;
-        const sy = (page.position.y - current.cy) * current.k + h / 2;
+        const sx = (p.x - current.cx) * current.k + w / 2;
+        const sy = (p.y - current.cy) * current.k + h / 2;
         const margin = 70;
         if (sx > margin && sx < w - margin && sy > margin && sy < h - margin) return;
-        animateTo({ ...current, cx: page.position.x, cy: page.position.y }, 420);
+        animateTo({ ...current, cx: p.x, cy: p.y }, 420);
         return;
       }
-      animateTo({ cx: page.position.x, cy: page.position.y, k: clampK(Math.max(current.k, 1)) }, 480);
+      animateTo({ cx: p.x, cy: p.y, k: clampK(Math.max(current.k, 1)) }, 480);
     },
-    [animateTo, pageById],
+    [animateTo, layout, positionOf],
   );
 
   useEffect(() => {
@@ -207,9 +218,7 @@ export function StarChart({
     animateTo({ ...current, k: clampK(current.k * factor) }, 220);
   };
 
-  const fit = () => {
-    animateTo(fitCamera(size.w, size.h), 320);
-  };
+  const fit = () => animateTo(fitCamera(size.w, size.h), 320);
 
   const localPoint = (clientX: number, clientY: number) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -262,19 +271,10 @@ export function StarChart({
     startGesture({ kind: 'pan', x: event.clientX, y: event.clientY, cx: current.cx, cy: current.cy, moved: false }, event);
   };
 
-  const onStarPointerDown = (event: ReactPointerEvent, page: Page) => {
+  const onHandlePointerDown = (event: ReactPointerEvent, pageId: string) => {
     if (event.button !== 0) return;
     event.stopPropagation();
-    startGesture(
-      { kind: 'move', pageId: page.id, x: event.clientX, y: event.clientY, origin: page.position, moved: false },
-      event,
-    );
-  };
-
-  const onHandlePointerDown = (event: ReactPointerEvent, page: Page) => {
-    if (event.button !== 0) return;
-    event.stopPropagation();
-    startGesture({ kind: 'connect', pageId: page.id, target: null }, event);
+    startGesture({ kind: 'connect', pageId, target: null }, event);
     setConnectPointer(localPoint(event.clientX, event.clientY));
   };
 
@@ -296,13 +296,7 @@ export function StarChart({
     const dy = event.clientY - gesture.y;
     if (!gesture.moved && Math.hypot(dx, dy) < 4) return;
     gesture.moved = true;
-
-    if (gesture.kind === 'pan') {
-      setCam({ cx: gesture.cx - dx / current.k, cy: gesture.cy - dy / current.k, k: current.k });
-    } else {
-      gesture.position = { x: gesture.origin.x + dx / current.k, y: gesture.origin.y + dy / current.k };
-      setDragPreview({ pageId: gesture.pageId, position: gesture.position });
-    }
+    setCam({ cx: gesture.cx - dx / current.k, cy: gesture.cy - dy / current.k, k: current.k });
   };
 
   const endGesture = (event: ReactPointerEvent<SVGSVGElement>, cancelled = false) => {
@@ -313,13 +307,8 @@ export function StarChart({
     if (svgRef.current?.hasPointerCapture(event.pointerId)) svgRef.current.releasePointerCapture(event.pointerId);
 
     if (gesture.kind === 'pan' && !gesture.moved && !cancelled) onSelect(null);
-    if (gesture.kind === 'move') {
-      if (!gesture.moved && !cancelled) onSelect(gesture.pageId);
-      else if (gesture.position && !cancelled) onMove(gesture.pageId, gesture.position);
-      setDragPreview(null);
-    }
     if (gesture.kind === 'connect') {
-      if (gesture.target && !cancelled) onConnect(gesture.pageId, gesture.target);
+      if (gesture.target && !cancelled) onLink(gesture.pageId, gesture.target);
       setConnectPointer(null);
       setConnectTarget(null);
     }
@@ -327,62 +316,56 @@ export function StarChart({
 
   const onDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
     const target = event.target as Element;
-    if (target.closest('[data-handle]')) return;
-    const star = target.closest('[data-star]');
-    if (star) {
-      onOpen(star.getAttribute('data-star') as string);
-      return;
-    }
+    if (target.closest('[data-handle],[data-star]')) return;
     const point = localPoint(event.clientX, event.clientY);
     onCreateAt(toWorld(point.x, point.y));
   };
 
   const onStarKeyDown = (event: KeyboardEvent<SVGGElement>, pageId: string) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      onOpen(pageId);
+      onSelect(pageId);
     }
   };
 
   const neighborIds = useMemo(() => {
     const ids = new Set<string>();
+    for (const r of refs) {
+      if (r.from === selectedId) ids.add(r.to);
+      if (r.to === selectedId) ids.add(r.from);
+    }
     for (const c of project.connections) {
       if (c.a === selectedId) ids.add(c.b);
       if (c.b === selectedId) ids.add(c.a);
     }
     return ids;
-  }, [project.connections, selectedId]);
+  }, [refs, project.connections, selectedId]);
+
+  // Connections that no [[link]] already draws
+  const looseConnections = useMemo(() => {
+    const linked = new Set(refs.flatMap((r) => [`${r.from}|${r.to}`, `${r.to}|${r.from}`]));
+    return project.connections.filter((c) => !linked.has(`${c.a}|${c.b}`));
+  }, [refs, project.connections]);
 
   const view = cam && size.w > 0 ? cam : null;
   const toScreen = (p: ChartPosition): [number, number] =>
     view ? [(p.x - view.cx) * view.k + size.w / 2, (p.y - view.cy) * view.k + size.h / 2] : [0, 0];
 
-  const gridLines = useMemo(() => {
-    if (!view) return { cols: [] as number[], rows: [] as number[] };
+  const verticals = useMemo(() => {
+    if (!view) return [] as number[];
     const halfW = size.w / 2 / view.k;
-    const halfH = size.h / 2 / view.k;
-    const range = (min: number, max: number, step: number) => {
-      const out: number[] = [];
-      for (let v = Math.ceil(min / step) * step; v <= max; v += step) out.push(v);
-      return out;
-    };
-    return {
-      cols: range(view.cx - halfW, view.cx + halfW, COLUMN),
-      rows: range(view.cy - halfH, view.cy + halfH, ROW),
-    };
-  }, [view, size.w, size.h]);
+    const out: number[] = [];
+    for (let v = Math.ceil((view.cx - halfW) / SLOT_GAP) * SLOT_GAP + SLOT_GAP / 2; v <= view.cx + halfW; v += SLOT_GAP) {
+      out.push(v);
+    }
+    return out;
+  }, [view, size.w]);
 
-  const selected = selectedId ? pageById.get(selectedId) : undefined;
-  const connectFrom = gestureKind === 'connect' && selected ? toScreen(positionOf(selected)) : null;
+  const selectedPos = selectedId && layout.positions.has(selectedId) ? toScreen(positionOf(selectedId)) : null;
+  const connectFrom = gestureKind === 'connect' ? selectedPos : null;
   const searchEmpty = matchIds !== null && matchIds.size === 0;
-  const cursor =
-    gestureKind === 'pan'
-      ? 'cursor-grabbing'
-      : gestureKind === 'move'
-        ? 'cursor-move'
-        : gestureKind === 'connect'
-          ? 'cursor-crosshair'
-          : 'cursor-grab';
+  const cursor = gestureKind === 'pan' ? 'cursor-grabbing' : gestureKind === 'connect' ? 'cursor-crosshair' : 'cursor-grab';
+  const separatorX = layout.halfWidth + SLOT_GAP * 0.8;
 
   return (
     <div ref={containerRef} className="relative h-full min-h-[420px] overflow-hidden rounded bg-chart text-star">
@@ -390,7 +373,7 @@ export function StarChart({
         ref={svgRef}
         className={`absolute inset-0 h-full w-full touch-none select-none ${cursor}`}
         role="group"
-        aria-label={`Chart of ${project.title}. Double-click empty space to add a page. Drag to move, scroll to zoom.`}
+        aria-label={`Chart of ${project.title}, read from the start page down. Double-click empty space to add a page. Drag to move, scroll to zoom.`}
         onPointerDown={onBackgroundPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={(e) => endGesture(e)}
@@ -399,40 +382,90 @@ export function StarChart({
       >
         {view && showGrid && (
           <g aria-hidden="true">
-            {gridLines.cols.map((x) => {
+            {verticals.map((x) => {
               const [sx] = toScreen({ x, y: 0 });
-              const col = Math.round(x / COLUMN);
               return (
-                <g key={`c${x}`}>
-                  <line x1={sx} x2={sx} y1={0} y2={size.h} className="stroke-chart-grid" strokeWidth={1} />
-                  {col >= 0 && col < ROMAN.length && (
-                    <text x={sx + 5} y={66} className="fill-star-dim text-[11px]">
-                      {ROMAN[col]}
-                    </text>
-                  )}
-                </g>
+                <line key={`v${x}`} x1={sx} x2={sx} y1={0} y2={size.h} className="stroke-chart-grid" strokeWidth={1} opacity={0.6} />
               );
             })}
-            {gridLines.rows.map((y) => {
-              const [, sy] = toScreen({ x: 0, y });
-              return <line key={`r${y}`} x1={0} x2={size.w} y1={sy} y2={sy} className="stroke-chart-grid" strokeWidth={1} />;
+            {layout.levels.map((_, i) => {
+              const [, sy] = toScreen({ x: 0, y: i * LEVEL_GAP });
+              return (
+                <g key={`lv${i}`}>
+                  <line x1={0} x2={size.w} y1={sy} y2={sy} className="stroke-chart-grid" strokeWidth={1} />
+                  <text x={12} y={sy - 8} className="fill-star-dim text-[11px]">
+                    Level {ROMAN[i] ?? i + 1}
+                  </text>
+                </g>
+              );
             })}
           </g>
         )}
 
+        {view && layout.apart.length > 0 && (
+          <g aria-hidden="true">
+            {hasStart && (
+              <line
+                x1={toScreen({ x: separatorX, y: 0 })[0]}
+                x2={toScreen({ x: separatorX, y: 0 })[0]}
+                y1={0}
+                y2={size.h}
+                className="stroke-star-dim"
+                strokeWidth={1}
+                strokeDasharray="2 6"
+              />
+            )}
+            <text
+              x={toScreen({ x: layout.apartX, y: 0 })[0]}
+              y={toScreen({ x: 0, y: -50 })[1]}
+              textAnchor="middle"
+              className="fill-star-dim text-[12px]"
+            >
+              Not linked yet
+            </text>
+          </g>
+        )}
+
+        {view && hasStart && (
+          <Destination
+            seed={project.id}
+            studied={studiedCount}
+            total={project.pages.length}
+            subject={subjectOf(project)}
+            origin={toScreen({ x: 0, y: layout.destinationY })}
+            k={view.k}
+            width={size.w}
+          />
+        )}
+
         {view && (
           <g aria-hidden="true">
-            {project.connections.map((c) => {
-              const a = pageById.get(c.a);
-              const b = pageById.get(c.b);
-              if (!a || !b) return null;
-              const [x1, y1] = toScreen(positionOf(a));
-              const [x2, y2] = toScreen(positionOf(b));
+            {looseConnections.map((c) => {
+              const [x1, y1] = toScreen(positionOf(c.a));
+              const [x2, y2] = toScreen(positionOf(c.b));
               const raised = c.a === selectedId || c.b === selectedId;
-              const dimmed = matchIds !== null && !(matchIds.has(c.a) && matchIds.has(c.b));
               return (
                 <line
-                  key={`${c.a}-${c.b}`}
+                  key={`c-${c.a}-${c.b}`}
+                  x1={x1}
+                  y1={y1}
+                  x2={x2}
+                  y2={y2}
+                  className={raised ? 'stroke-star-ring' : 'stroke-star-dim'}
+                  strokeWidth={1}
+                  strokeDasharray="3 5"
+                  opacity={matchIds ? 0.25 : raised ? 0.9 : 0.5}
+                />
+              );
+            })}
+            {refs.map((r) => {
+              const [x1, y1] = toScreen(positionOf(r.from));
+              const [x2, y2] = toScreen(positionOf(r.to));
+              const raised = r.from === selectedId || r.to === selectedId;
+              const dimmed = matchIds !== null && !(matchIds.has(r.from) && matchIds.has(r.to));
+              return (
+                <line
+                  key={`r-${r.from}-${r.to}`}
                   x1={x1}
                   y1={y1}
                   x2={x2}
@@ -461,23 +494,24 @@ export function StarChart({
 
         {view &&
           pages.map((page) => {
-            const [x, y] = toScreen(positionOf(page));
+            const [x, y] = toScreen(positionOf(page.id));
             const r = starRadius(page, view.k);
             const isSelected = page.id === selectedId;
             const isMatch = matchIds?.has(page.id) ?? false;
             const isTarget = page.id === connectTarget;
-            const alreadyLinked = isTarget && selectedId ? areConnected(project, selectedId, page.id) : false;
+            const isStart = page.id === project.startPageId;
             const dimmed = matchIds !== null && !isMatch;
             const showLabel =
               view.k >= LABEL_ALL_K ||
               (page.studied && view.k >= LABEL_STUDIED_K) ||
+              isStart ||
               isSelected ||
               isMatch ||
               isTarget ||
               neighborIds.has(page.id) ||
               hoveredId === page.id;
             const labelClass =
-              page.studied || isSelected || isMatch || isTarget
+              page.studied || isSelected || isMatch || isTarget || isStart
                 ? 'fill-star'
                 : neighborIds.has(page.id)
                   ? 'fill-star-ring'
@@ -491,12 +525,12 @@ export function StarChart({
                 role="button"
                 tabIndex={0}
                 aria-pressed={isSelected}
-                aria-label={`${title}, ${page.studied ? 'studied' : 'not studied'}. Press Enter to open.`}
+                aria-label={`${title}${isStart ? ', start page' : ''}, ${page.studied ? 'studied' : 'not studied'}`}
                 transform={`translate(${x} ${y})`}
                 className="group cursor-pointer outline-none transition-opacity duration-200"
                 opacity={dimmed ? 0.3 : 1}
-                onPointerDown={(event) => onStarPointerDown(event, page)}
-                onFocus={() => onSelect(page.id)}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={() => onSelect(page.id)}
                 onKeyDown={(event) => onStarKeyDown(event, page.id)}
                 onMouseEnter={() => setHoveredId(page.id)}
                 onMouseLeave={() => setHoveredId((id) => (id === page.id ? null : id))}
@@ -506,8 +540,9 @@ export function StarChart({
                   r={r + 6}
                   className={`fill-star/15 transition-opacity duration-150 ${isTarget ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                 />
-                {isTarget && !alreadyLinked && (
-                  <circle r={r + 8} fill="none" className="stroke-finder-glow" strokeWidth={2} />
+                {isTarget && <circle r={r + 8} fill="none" className="stroke-finder-glow" strokeWidth={2} />}
+                {isStart && !isSelected && (
+                  <circle r={r + 6} fill="none" className="stroke-star" strokeWidth={1} strokeDasharray="1 3" />
                 )}
                 <circle
                   r={r + 10}
@@ -538,9 +573,9 @@ export function StarChart({
             );
           })}
 
-        {view && selected && (
-          <g transform={`translate(${toScreen(positionOf(selected)).join(' ')})`}>
-            <g key={selected.id} aria-hidden="true" className="pointer-events-none">
+        {selectedPos && selectedId && (
+          <g transform={`translate(${selectedPos.join(' ')})`}>
+            <g key={selectedId} aria-hidden="true" className="pointer-events-none">
               {FINDER_RINGS.map((r, i) => (
                 <circle
                   key={r}
@@ -552,13 +587,13 @@ export function StarChart({
                 />
               ))}
             </g>
-            {/* Connection handle on the outer ring */}
+            {/* Link handle on the outer ring, pointing down the descent */}
             <g
               data-handle
               aria-hidden="true"
-              transform={`translate(${FINDER_RINGS[2] * Math.SQRT1_2} ${-FINDER_RINGS[2] * Math.SQRT1_2})`}
+              transform={`translate(${FINDER_RINGS[2] * Math.SQRT1_2} ${FINDER_RINGS[2] * Math.SQRT1_2})`}
               className="cursor-crosshair"
-              onPointerDown={(event) => onHandlePointerDown(event, selected)}
+              onPointerDown={(event) => onHandlePointerDown(event, selectedId)}
             >
               <circle r={14} fill="transparent" />
               <circle r={8} className="fill-finder-glow" />
@@ -585,10 +620,17 @@ export function StarChart({
         </ChartButton>
       </div>
 
-      {pages.length > 0 && (
+      {pages.length > 0 && hasStart && (
         <p className="pointer-events-none absolute right-4 top-4 hidden max-w-[40ch] text-right text-[13px] leading-snug text-star-ring md:block">
-          Click a star to open it. Double-click empty sky to add a page. Drag the red handle onto another star to connect.
+          Click a star to open it. Drag its red handle onto another star to link it from the first.
         </p>
+      )}
+
+      {pages.length > 0 && !hasStart && (
+        <div className="pointer-events-none absolute left-1/2 top-16 w-[min(90%,30rem)] -translate-x-1/2 rounded bg-star px-4 py-3 text-center text-sm text-foreground">
+          Choose where this study starts: open a page and mark it <span className="font-bold">Start page</span>. The
+          pages it links become level II, theirs level III, down to the end.
+        </div>
       )}
 
       {searchEmpty && (
@@ -606,8 +648,109 @@ export function StarChart({
         </div>
       )}
 
-      {pages.length > 0 && <ChartLegend isSample={!!project.isSample} />}
+      {pages.length > 0 && <ChartLegend onResetSample={project.isSample ? onResetSample : undefined} />}
     </div>
+  );
+}
+
+/* ---------- Destination: the constellation of what you will know ---------- */
+
+function seededRandom(seed: string) {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  return () => {
+    h = Math.imul(h ^ (h >>> 15), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    return ((h ^= h >>> 16) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * The destination: a crown of stars, one per page, like Corona Borealis.
+ * Stars light from left to right as pages are studied; when every page is
+ * studied the crown is complete and "Now I know <subject>" lights with it.
+ */
+function Destination({
+  seed,
+  studied,
+  total,
+  subject,
+  origin,
+  k,
+  width,
+}: {
+  seed: string;
+  studied: number;
+  total: number;
+  subject: string;
+  origin: [number, number];
+  k: number;
+  width: number;
+}) {
+  const crown = useMemo(() => {
+    const rand = seededRandom(`${seed}:${subject}`);
+    const n = Math.max(total, 3);
+    return Array.from({ length: n }, (_, i) => {
+      const t = i / (n - 1);
+      const angle = Math.PI * (1.12 + 0.76 * t);
+      return {
+        x: Math.cos(angle) * 230 + (rand() - 0.5) * 8,
+        y: 170 + Math.sin(angle) * 95 + (rand() - 0.5) * 8,
+        size: 1.6 + rand() * 1.8,
+      };
+    });
+  }, [seed, subject, total]);
+
+  const complete = total > 0 && studied >= total;
+  const [ox, oy] = origin;
+  const starScale = Math.min(1, Math.max(k, 0.6));
+
+  return (
+    <g role="img" aria-label={complete ? `Now I know ${subject}` : `${studied} of ${total} pages studied toward knowing ${subject}`}>
+      <line x1={0} x2={width} y1={oy} y2={oy} className="stroke-star-dim" strokeWidth={1} strokeDasharray="2 6" />
+      <g transform={`translate(${ox} ${oy})`}>
+        {crown.slice(1).map((p, i) => {
+          const a = crown[i];
+          const lit = i + 1 < studied;
+          return (
+            <line
+              key={`f${i}`}
+              x1={a.x * k}
+              y1={a.y * k}
+              x2={p.x * k}
+              y2={p.y * k}
+              className={lit ? 'stroke-star-ring' : 'stroke-star-dim'}
+              strokeWidth={lit ? 1.4 : 1}
+              opacity={lit ? 1 : 0.35}
+            />
+          );
+        })}
+        {crown.map((p, i) => {
+          const lit = i < studied;
+          return (
+            <circle
+              key={`s${i}`}
+              cx={p.x * k}
+              cy={p.y * k}
+              r={(lit ? p.size + 1.2 : p.size) * starScale}
+              className={lit ? 'fill-star' : 'fill-star-dim'}
+              opacity={lit ? 1 : 0.45}
+            />
+          );
+        })}
+        <text
+          y={205 * k}
+          textAnchor="middle"
+          className={`font-star italic ${complete ? 'fill-star' : 'fill-star-ring'}`}
+          fontSize={Math.max(20, 36 * k)}
+        >
+          Now I know {subject}
+        </text>
+        <text y={205 * k + Math.max(22, 30 * k)} textAnchor="middle" className="fill-star-dim text-[13px]">
+          {complete ? 'Every page studied' : `${studied} of ${total} pages studied`}
+        </text>
+      </g>
+    </g>
   );
 }
 
@@ -639,7 +782,8 @@ function ChartButton({
   );
 }
 
-function ChartLegend({ isSample }: { isSample: boolean }) {
+function ChartLegend({ onResetSample }: { onResetSample?: () => void }) {
+  const [confirming, setConfirming] = useState(false);
   return (
     <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-between gap-x-5 gap-y-1 bg-chart/90 px-4 py-2 text-[13px] text-star-ring">
       <ul className="flex flex-wrap items-center gap-x-5 gap-y-1" aria-label="Legend">
@@ -663,8 +807,45 @@ function ChartLegend({ isSample }: { isSample: boolean }) {
           </svg>
           More written
         </li>
+        <li className="flex items-center gap-1.5">
+          <svg width="22" height="10" aria-hidden="true">
+            <line x1="1" y1="5" x2="21" y2="5" className="stroke-star-ring" strokeWidth="1.2" />
+          </svg>
+          Linked in text
+        </li>
+        <li className="flex items-center gap-1.5">
+          <svg width="22" height="10" aria-hidden="true">
+            <line x1="1" y1="5" x2="21" y2="5" className="stroke-star-ring" strokeWidth="1" strokeDasharray="3 4" />
+          </svg>
+          Connected only
+        </li>
       </ul>
-      {isSample && <span className="text-star-dim">Sample project</span>}
+      {onResetSample && (
+        <span className="flex items-center gap-2 text-star-dim">
+          Sample project
+          {confirming ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  onResetSample();
+                  setConfirming(false);
+                }}
+                className="rounded px-1.5 py-0.5 font-bold text-star hover:bg-star/15"
+              >
+                Discard my edits
+              </button>
+              <button type="button" onClick={() => setConfirming(false)} className="rounded px-1.5 py-0.5 hover:bg-star/15">
+                Keep
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => setConfirming(true)} className="rounded px-1.5 py-0.5 underline underline-offset-4 hover:text-star">
+              Reset
+            </button>
+          )}
+        </span>
+      )}
     </div>
   );
 }

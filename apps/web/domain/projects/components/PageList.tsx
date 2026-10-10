@@ -2,7 +2,8 @@
 
 import type { ReactNode } from 'react';
 import type { Page, Project } from '../types/project.types';
-import { displayTitle, pagesInOrder, relatedPages, wordCount } from '../entities/project.entity';
+import { displayTitle, relatedPages, wordCount } from '../entities/project.entity';
+import { computeLevels } from '../entities/levels';
 
 /**
  * PageList
@@ -19,7 +20,10 @@ interface PageListProps {
 const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short' });
 
 export function PageList({ project, selectedId, matchIds, onOpen }: PageListProps) {
-  const ordered = pagesInOrder(project);
+  // Top-down order: level by level, pages not linked yet last
+  const { levels, apart, levelOf } = computeLevels(project);
+  const byId = new Map(project.pages.map((p) => [p.id, p]));
+  const ordered = [...levels.flat(), ...apart].map((id) => byId.get(id) as Page);
   const rows = matchIds ? ordered.filter((p) => matchIds.has(p.id)) : ordered;
 
   if (project.pages.length === 0) {
@@ -35,6 +39,7 @@ export function PageList({ project, selectedId, matchIds, onOpen }: PageListProp
         <caption className="sr-only">Pages of {project.title}</caption>
         <thead className="sticky top-0 bg-card">
           <tr className="border-b border-border text-[13px] text-muted-foreground">
+            <th scope="col" className="w-20 px-4 py-2.5 font-normal">Level</th>
             <th scope="col" className="px-4 py-2.5 font-normal">Page</th>
             <th scope="col" className="w-32 px-4 py-2.5 font-normal">Studied</th>
             <th scope="col" className="w-28 px-4 py-2.5 text-right font-normal">Words</th>
@@ -48,6 +53,7 @@ export function PageList({ project, selectedId, matchIds, onOpen }: PageListProp
               key={page.id}
               className={`border-b border-border/70 last:border-b-0 ${page.id === selectedId ? 'bg-accent' : 'hover:bg-muted'}`}
             >
+              <td className="px-4 py-2.5 text-muted-foreground">{levelOf.get(page.id) ?? 'Not linked'}</td>
               <td className="px-4 py-2.5">
                 <button
                   type="button"
