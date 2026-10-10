@@ -4,10 +4,14 @@
  */
 
 // Components
-export { ProjectView } from './components/ProjectView';
+export { ProjectMap } from './components/ProjectMap';
+export { PageEditor } from './components/PageEditor';
+
+// Store
+export { ProjectStoreProvider } from './hooks/useProjectStore';
 
 // Data (sample until the projects API exists)
 export { getSampleProject, sampleProject } from './data/sample-project';
 
 // Types (for external consumers)
-export type { Project, Page, Connection, Resource } from './types/project.types';
+export type { Project, Page, Connection } from './types/project.types';
