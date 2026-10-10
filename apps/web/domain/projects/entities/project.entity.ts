@@ -99,10 +99,21 @@ export function disconnectPages(project: Project, pageA: string, pageB: string):
   return { ...project, connections: project.connections.filter((c) => !(c.a === a && c.b === b)) };
 }
 
-/** A free spot for a new page: one column right of the rightmost page */
-export function nextFreePosition(project: Project, column: number): ChartPosition {
-  if (project.pages.length === 0) return { x: 0, y: 360 };
-  const maxX = Math.max(...project.pages.map((p) => p.position.x));
-  const ys = project.pages.map((p) => p.position.y).sort((a, b) => a - b);
-  return { x: maxX + column, y: ys[Math.floor(ys.length / 2)] };
+
+/** The nearest spot to `near` that keeps clear of every existing page */
+export function freeSpotNear(project: Project, near: ChartPosition, clearance = 80): ChartPosition {
+  const isFree = (p: ChartPosition) =>
+    project.pages.every((page) => Math.hypot(page.position.x - p.x, page.position.y - p.y) >= clearance);
+  if (isFree(near)) return near;
+  for (let ring = 1; ring <= 6; ring++) {
+    for (let step = 0; step < 8; step++) {
+      const angle = (step / 8) * Math.PI * 2;
+      const candidate = {
+        x: near.x + Math.cos(angle) * clearance * ring,
+        y: near.y + Math.sin(angle) * clearance * ring,
+      };
+      if (isFree(candidate)) return candidate;
+    }
+  }
+  return { x: near.x + clearance, y: near.y };
 }
