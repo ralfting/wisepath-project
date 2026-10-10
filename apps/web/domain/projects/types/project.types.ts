@@ -1,20 +1,10 @@
 /**
  * Projects Domain Types
- * A project (topic) holds pages (subtopics) connected as a graph.
+ * A project (topic) holds pages (subtopics) of free markdown,
+ * linked by undirected connections between related pages.
  */
 
-export type ResourceKind = 'video' | 'article' | 'book' | 'note';
-
-export interface Resource {
-  id: string;
-  title: string;
-  kind: ResourceKind;
-  url?: string;
-  /** Free-form detail shown next to the kind, e.g. "26 min" */
-  detail?: string;
-}
-
-/** Position on the project chart, in chart units. x grows with learning order. */
+/** Position on the project chart, in chart units */
 export interface ChartPosition {
   x: number;
   y: number;
@@ -23,17 +13,18 @@ export interface ChartPosition {
 export interface Page {
   id: string;
   title: string;
-  description: string;
-  resources: Resource[];
+  /** Free-form markdown: explanations, notes, links, YouTube URLs on their own line */
+  content: string;
   position: ChartPosition;
-  /** ISO date when the page was marked studied, or null */
-  studiedAt: string | null;
+  studied: boolean;
+  /** ISO date of the last edit */
+  updatedAt: string;
 }
 
-/** A directed connection: `from` is studied before `to` */
+/** An undirected link between two related pages; `a` sorts before `b` */
 export interface Connection {
-  from: string;
-  to: string;
+  a: string;
+  b: string;
 }
 
 export interface Project {
