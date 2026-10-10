@@ -1,34 +1,18 @@
-import type { ChartPosition, Connection, Page, Project } from '../types/project.types';
+import type { Page, Project } from '../types/project.types';
 
 /**
  * Project Entity
- * Pure rules for a project's pages and their undirected connections.
+ * Pure rules for a project's pages. Pages relate only through [[Title]] links
+ * written in their markdown: writing a link is what connects two pages.
  */
-
-export function makeConnection(pageA: string, pageB: string): Connection {
-  return pageA < pageB ? { a: pageA, b: pageB } : { a: pageB, b: pageA };
-}
-
-export function areConnected(project: Project, pageA: string, pageB: string): boolean {
-  const { a, b } = makeConnection(pageA, pageB);
-  return project.connections.some((c) => c.a === a && c.b === b);
-}
-
-/** Pages connected to the given page, in chart order */
-export function relatedPages(project: Project, pageId: string): Page[] {
-  const ids = new Set(
-    project.connections.flatMap((c) => (c.a === pageId ? [c.b] : c.b === pageId ? [c.a] : [])),
-  );
-  return pagesInOrder(project).filter((p) => ids.has(p.id));
-}
 
 export function countStudied(project: Project): number {
   return project.pages.filter((p) => p.studied).length;
 }
 
-/** Pages left to right on the chart, then top to bottom */
+/** Pages by title, for stable ordering where the map's levels do not apply */
 export function pagesInOrder(project: Project): Page[] {
-  return [...project.pages].sort((a, b) => a.position.x - b.position.x || a.position.y - b.position.y);
+  return [...project.pages].sort((a, b) => displayTitle(a).localeCompare(displayTitle(b)));
 }
 
 export function wordCount(markdown: string): number {
@@ -43,17 +27,26 @@ export function displayTitle(page: Page): string {
   return page.title.trim() || 'Untitled page';
 }
 
+/** The page a [[Title]] link points at: case-insensitive, ignoring surrounding spaces */
+export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: T[], title: string): T | undefined {
+  const wanted = title.trim().toLowerCase();
+  return wanted ? pages.find((p) => p.title.trim().toLowerCase() === wanted) : undefined;
+}
+
 function newPageId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
   return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function addPage(project: Project, position: ChartPosition, now = new Date()): { project: Project; page: Page } {
+/** Adds a page with this title, or returns the existing page that already has it */
+export function addPage(project: Project, title: string, now = new Date()): { project: Project; page: Page } {
+  const existing = findPageByTitle(project.pages, title);
+  if (existing) return { project, page: existing };
   const page: Page = {
     id: newPageId(),
-    title: '',
+    title: title.trim(),
     content: '',
-    position,
+    position: { x: 0, y: 0 },
     studied: false,
     updatedAt: now.toISOString(),
   };
@@ -77,51 +70,13 @@ export function updatePage(
   };
 }
 
-export function movePage(project: Project, pageId: string, position: ChartPosition): Project {
-  return { ...project, pages: project.pages.map((p) => (p.id === pageId ? { ...p, position } : p)) };
-}
-
+/** Removes the page; links to it stay in other pages and show as missing */
 export function deletePage(project: Project, pageId: string): Project {
   return {
     ...project,
     pages: project.pages.filter((p) => p.id !== pageId),
-    connections: project.connections.filter((c) => c.a !== pageId && c.b !== pageId),
+    startPageId: project.startPageId === pageId ? null : project.startPageId,
   };
-}
-
-export function connectPages(project: Project, pageA: string, pageB: string): Project {
-  if (pageA === pageB || areConnected(project, pageA, pageB)) return project;
-  return { ...project, connections: [...project.connections, makeConnection(pageA, pageB)] };
-}
-
-export function disconnectPages(project: Project, pageA: string, pageB: string): Project {
-  const { a, b } = makeConnection(pageA, pageB);
-  return { ...project, connections: project.connections.filter((c) => !(c.a === a && c.b === b)) };
-}
-
-
-/** The nearest spot to `near` that keeps clear of every existing page */
-export function freeSpotNear(project: Project, near: ChartPosition, clearance = 80): ChartPosition {
-  const isFree = (p: ChartPosition) =>
-    project.pages.every((page) => Math.hypot(page.position.x - p.x, page.position.y - p.y) >= clearance);
-  if (isFree(near)) return near;
-  for (let ring = 1; ring <= 6; ring++) {
-    for (let step = 0; step < 8; step++) {
-      const angle = (step / 8) * Math.PI * 2;
-      const candidate = {
-        x: near.x + Math.cos(angle) * clearance * ring,
-        y: near.y + Math.sin(angle) * clearance * ring,
-      };
-      if (isFree(candidate)) return candidate;
-    }
-  }
-  return { x: near.x + clearance, y: near.y };
-}
-
-/** The page a [[Title]] link points at: case-insensitive, ignoring surrounding spaces */
-export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: T[], title: string): T | undefined {
-  const wanted = title.trim().toLowerCase();
-  return wanted ? pages.find((p) => p.title.trim().toLowerCase() === wanted) : undefined;
 }
 
 export function setStartPage(project: Project, pageId: string | null): Project {
@@ -129,22 +84,55 @@ export function setStartPage(project: Project, pageId: string | null): Project {
 }
 
 /**
- * Makes `fromId` reference `toId`: appends a [[Title]] link to its markdown
- * (as another item when it already ends in a list of links) and connects them.
+ * Writes a [[Title]] link at the end of a page's markdown, as another item
+ * when it already ends in a list of links. No-op if the page links it already
+ * or the title is the page's own.
  */
-export function addReference(project: Project, fromId: string, toId: string, now = new Date()): Project {
+export function linkFrom(project: Project, fromId: string, title: string, now = new Date()): Project {
   const from = project.pages.find((p) => p.id === fromId);
-  const to = project.pages.find((p) => p.id === toId);
-  if (!from || !to || fromId === toId || !to.title.trim()) return connectPages(project, fromId, toId);
-  const link = `[[${to.title.trim()}]]`;
-  if (from.content.toLowerCase().includes(link.toLowerCase())) return connectPages(project, fromId, toId);
+  const name = title.trim();
+  if (!from || !name || findPageByTitle([from], name)) return project;
+  const link = `[[${name}]]`;
+  if (from.content.toLowerCase().includes(link.toLowerCase())) return project;
 
   const trimmed = from.content.trimEnd();
   const lastLine = trimmed.split('\n').pop() ?? '';
   const content = !trimmed
-    ? link
+    ? `- ${link}`
     : /^- \[\[[^\]]+\]\]\s*$/.test(lastLine)
       ? `${trimmed}\n- ${link}`
-      : `${trimmed}\n\n${link}`;
-  return connectPages(updatePage(project, fromId, { content }, now), fromId, toId);
+      : `${trimmed}\n\n- ${link}`;
+  return updatePage(project, fromId, { content }, now);
+}
+
+/**
+ * Adds a page one level below `parentId` by writing its [[link]] into the parent.
+ * With no parent and no start page yet, the new page becomes the start.
+ * A title that already exists links that page instead of duplicating it.
+ */
+export function addChildPage(
+  project: Project,
+  parentId: string | null,
+  title: string,
+): { project: Project; page: Page } {
+  const added = addPage(project, title);
+  let next = added.project;
+  if (parentId) next = linkFrom(next, parentId, added.page.title);
+  else if (!next.startPageId) next = setStartPage(next, added.page.id);
+  return { project: next, page: added.page };
+}
+
+/** Rewrites [[Old]] links to [[New]] across the project after a page is renamed */
+export function renameLinks(project: Project, oldTitle: string, newTitle: string): Project {
+  const from = oldTitle.trim();
+  const to = newTitle.trim();
+  if (!from || !to || from === to) return project;
+  const source = `\\[\\[\\s*${from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\]\\]`;
+  return {
+    ...project,
+    pages: project.pages.map((p) => {
+      const content = p.content.replace(new RegExp(source, 'gi'), `[[${to}]]`);
+      return content === p.content ? p : { ...p, content };
+    }),
+  };
 }

@@ -2,17 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { ChartPosition, Page, Project } from '../types/project.types';
-import {
-  addPage,
-  addReference,
-  setStartPage,
-  connectPages,
-  deletePage,
-  disconnectPages,
-  movePage,
-  updatePage,
-} from '../entities/project.entity';
+import type { Page, Project } from '../types/project.types';
+import { addChildPage, addPage, deletePage, renameLinks, setStartPage, updatePage } from '../entities/project.entity';
 
 /**
  * Project store
@@ -26,14 +17,14 @@ interface ProjectStore {
   project: Project;
   /** False until the saved copy (if any) has been read on the client */
   ready: boolean;
-  createPage: (position: ChartPosition) => Page;
+  /** Adds a page one level below the parent (its [[link]] is written there); no parent makes the start page */
+  addChild: (parentId: string | null, title: string) => Page;
+  /** Adds a page by title without linking it, e.g. from a [[link]] that pointed nowhere yet */
+  addPage: (title: string) => Page;
   updatePage: (pageId: string, patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>) => void;
-  movePage: (pageId: string, position: ChartPosition) => void;
+  /** Rewrites [[Old]] links across the project after a rename */
+  renameLinks: (oldTitle: string, newTitle: string) => void;
   deletePage: (pageId: string) => void;
-  connect: (pageA: string, pageB: string) => void;
-  disconnect: (pageA: string, pageB: string) => void;
-  /** Writes a [[link]] from one page to another and connects them */
-  addReference: (fromId: string, toId: string) => void;
   setStartPage: (pageId: string | null) => void;
   /** Throws away local edits and restores the project as shipped (sample only) */
   reset: () => void;
@@ -46,7 +37,7 @@ function readStored(projectId: string): Project | null {
     const raw = window.localStorage.getItem(storageKey(projectId));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Project;
-    return Array.isArray(parsed.pages) && Array.isArray(parsed.connections) ? parsed : null;
+    return Array.isArray(parsed.pages) ? parsed : null;
   } catch {
     return null;
   }
@@ -65,7 +56,10 @@ export function ProjectStoreProvider({ initialProject, children }: { initialProj
   // Replace the seed with the saved copy once on the client
   useEffect(() => {
     const stored = readStored(initialProject.id);
-    if (stored) setProject(stored);
+    if (stored) {
+      projectRef.current = stored;
+      setProject(stored);
+    }
     loadedRef.current = true;
     setReady(true);
   }, [initialProject.id]);
@@ -83,28 +77,33 @@ export function ProjectStoreProvider({ initialProject, children }: { initialProj
     return () => window.clearTimeout(timer);
   }, [project]);
 
-  const createPage = useCallback((position: ChartPosition) => {
-    const result = addPage(projectRef.current, position);
-    projectRef.current = result.project;
-    setProject(result.project);
-    return result.page;
+  // Every change goes through the ref so back-to-back actions build on each other
+  const commit = useCallback((change: (p: Project) => Project) => {
+    projectRef.current = change(projectRef.current);
+    setProject(projectRef.current);
   }, []);
 
   const store = useMemo<ProjectStore>(
     () => ({
       project,
       ready,
-      createPage,
-      updatePage: (pageId, patch) => setProject((p) => updatePage(p, pageId, patch)),
-      movePage: (pageId, position) => setProject((p) => movePage(p, pageId, position)),
-      deletePage: (pageId) => setProject((p) => deletePage(p, pageId)),
-      connect: (a, b) => setProject((p) => connectPages(p, a, b)),
-      disconnect: (a, b) => setProject((p) => disconnectPages(p, a, b)),
-      addReference: (fromId, toId) => setProject((p) => addReference(p, fromId, toId)),
-      setStartPage: (pageId) => setProject((p) => setStartPage(p, pageId)),
-      reset: () => setProject(initialProject),
+      addChild: (parentId, title) => {
+        const result = addChildPage(projectRef.current, parentId, title);
+        commit(() => result.project);
+        return result.page;
+      },
+      addPage: (title) => {
+        const result = addPage(projectRef.current, title);
+        commit(() => result.project);
+        return result.page;
+      },
+      updatePage: (pageId, patch) => commit((p) => updatePage(p, pageId, patch)),
+      renameLinks: (oldTitle, newTitle) => commit((p) => renameLinks(p, oldTitle, newTitle)),
+      deletePage: (pageId) => commit((p) => deletePage(p, pageId)),
+      setStartPage: (pageId) => commit((p) => setStartPage(p, pageId)),
+      reset: () => commit(() => initialProject),
     }),
-    [project, ready, createPage, initialProject],
+    [project, ready, commit, initialProject],
   );
 
   return <ProjectStoreContext.Provider value={store}>{children}</ProjectStoreContext.Provider>;

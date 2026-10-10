@@ -1,5 +1,4 @@
 import type { ChartPosition, Page, Project } from '../types/project.types';
-import { makeConnection } from '../entities/project.entity';
 
 /**
  * Sample project used until the projects API exists.
@@ -388,7 +387,6 @@ export const sampleProject: Project = {
   startPageId: 'variables',
   isSample: true,
   pages: seedPages.map(toPage),
-  connections: seedConnections.map((c) => makeConnection(c.from, c.to)),
 };
 
 /** Looks up a project by id. Only the sample exists until the projects API lands. */
