@@ -11,6 +11,17 @@
   "dependencies": {
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-slot": "^1.2.4",
+    "@tiptap/extension-bubble-menu": "^2.11.5",
+    "@tiptap/extension-floating-menu": "^2.11.5",
+    "@tiptap/extension-link": "^2.11.5",
+    "@tiptap/extension-placeholder": "^2.11.5",
+    "@tiptap/extension-task-item": "^2.11.5",
+    "@tiptap/extension-task-list": "^2.11.5",
+    "@tiptap/extension-youtube": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
+    "@tiptap/suggestion": "^2.11.5",
     "@wisepath/types": "workspace:*",
     "autoprefixer": "^10.4.0",
     "class-variance-authority": "^0.7.0",
@@ -19,10 +30,9 @@
     "postcss": "^8.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-markdown": "^9.0.1",
-    "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.2.0",
-    "tailwindcss": "^3.4.0"
+    "tailwindcss": "^3.4.0",
+    "tiptap-markdown": "^0.8.10"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -117,3 +117,9 @@ export function freeSpotNear(project: Project, near: ChartPosition, clearance = 
   }
   return { x: near.x + clearance, y: near.y };
 }
+
+/** The page a [[Title]] link points at: case-insensitive, ignoring surrounding spaces */
+export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: T[], title: string): T | undefined {
+  const wanted = title.trim().toLowerCase();
+  return wanted ? pages.find((p) => p.title.trim().toLowerCase() === wanted) : undefined;
+}
