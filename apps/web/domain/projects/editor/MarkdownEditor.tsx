@@ -120,8 +120,14 @@ export function MarkdownEditor({
     onUpdate: ({ editor: e }) => latest.current.onChange(e.storage.markdown.getMarkdown()),
   });
 
+  // Opened through a real anchor: embedded browsers (like Orca's) ignore window.open
   const openUrl = (href: string) => {
-    if (/^https?:/.test(href)) window.open(href, '_blank', 'noopener,noreferrer');
+    if (!/^https?:/.test(href)) return;
+    const a = document.createElement('a');
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.click();
   };
 
   const placeBelow = (el: Element) => {
@@ -129,7 +135,7 @@ export function MarkdownEditor({
     if (!wrapper) return { top: 0, left: 0 };
     const a = el.getBoundingClientRect();
     const w = wrapper.getBoundingClientRect();
-    return { top: a.bottom - w.top + 6, left: Math.max(0, Math.min(a.left - w.left, w.width - 288)) };
+    return { top: a.bottom - w.top, left: Math.max(0, Math.min(a.left - w.left, w.width - 288)) };
   };
 
   const openWikiLink = (title: string, el: Element) => {
@@ -154,7 +160,13 @@ export function MarkdownEditor({
 
   // Hover cards for links
   const onMouseOver = (event: MouseEvent) => {
-    const el = (event.target as HTMLElement).closest('.wp-editor a, .wp-editor span[data-wikilink]');
+    const target = event.target as HTMLElement;
+    // Pointer reached the card: keep it open
+    if (target.closest('[data-link-card]')) {
+      window.clearTimeout(hoverTimer.current);
+      return;
+    }
+    const el = target.closest('.wp-editor a, .wp-editor span[data-wikilink]');
     if (!el || popover?.confirmCreate) return;
     window.clearTimeout(hoverTimer.current);
     hoverTimer.current = window.setTimeout(() => {
@@ -170,7 +182,7 @@ export function MarkdownEditor({
     const to = event.relatedTarget as HTMLElement | null;
     if (popover?.confirmCreate || to?.closest('.wp-editor a, .wp-editor span[data-wikilink], [data-link-card]')) return;
     window.clearTimeout(hoverTimer.current);
-    hoverTimer.current = window.setTimeout(() => setPopover(null), 200);
+    hoverTimer.current = window.setTimeout(() => setPopover(null), 300);
   };
 
   const popoverAction = () => {
@@ -193,40 +205,52 @@ export function MarkdownEditor({
           data-link-card
           role={popover.confirmCreate ? 'dialog' : undefined}
           aria-label={popover.confirmCreate ? 'Create page' : undefined}
-          className="absolute z-20 w-72 rounded border border-border bg-card p-3 shadow-[0_6px_20px_hsl(var(--primary)/0.14)]"
+          className="absolute z-20 w-72 pt-1.5"
           style={{ top: popover.top, left: popover.left }}
         >
-          <LinkPreview target={popover.target} />
-          <div className="mt-2.5 flex items-center gap-2">
-            {popover.target.kind === 'page' && !popover.target.page ? (
-              <>
-                <button
-                  type="button"
-                  autoFocus={popover.confirmCreate}
-                  onClick={popoverAction}
-                  className="h-8 rounded bg-finder px-3 text-[13px] font-bold text-finder-foreground hover:bg-finder/90"
-                >
-                  Create page
-                </button>
-                {popover.confirmCreate && (
+          <div className="rounded border border-border bg-card p-3 shadow-[0_6px_20px_hsl(var(--primary)/0.14)]">
+            <LinkPreview target={popover.target} />
+            <div className="mt-2.5 flex items-center gap-2">
+              {popover.target.kind === 'page' && !popover.target.page ? (
+                <>
                   <button
                     type="button"
-                    onClick={() => setPopover(null)}
-                    className="h-8 rounded px-3 text-[13px] text-foreground hover:bg-accent"
+                    autoFocus={popover.confirmCreate}
+                    onClick={popoverAction}
+                    className="h-8 rounded bg-finder px-3 text-[13px] font-bold text-finder-foreground hover:bg-finder/90"
                   >
-                    Cancel
+                    Create page
                   </button>
-                )}
-              </>
-            ) : (
-              <button
-                type="button"
-                onClick={popoverAction}
-                className="text-[13px] font-bold text-primary hover:underline hover:underline-offset-4"
-              >
-                {popover.target.kind === 'page' ? 'Open page' : 'Open link'}
-              </button>
-            )}
+                  {popover.confirmCreate && (
+                    <button
+                      type="button"
+                      onClick={() => setPopover(null)}
+                      className="h-8 rounded px-3 text-[13px] text-foreground hover:bg-accent"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </>
+              ) : popover.target.kind === 'url' ? (
+                <a
+                  href={popover.target.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setPopover(null)}
+                  className="text-[13px] font-bold text-primary hover:underline hover:underline-offset-4"
+                >
+                  Open link
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={popoverAction}
+                  className="text-[13px] font-bold text-primary hover:underline hover:underline-offset-4"
+                >
+                  Open page
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
