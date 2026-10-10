@@ -26,7 +26,7 @@ interface SeedPage {
 
 const isYouTube = (url?: string) => !!url && /youtube\.com|youtu\.be/.test(url);
 
-function toMarkdown(seed: SeedPage): string {
+function toMarkdown(seed: SeedPage, next: string[]): string {
   const videos = seed.resources.filter((r) => isYouTube(r.url));
   const links = seed.resources.filter((r) => r.url && !isYouTube(r.url));
   const notes = seed.resources.filter((r) => !r.url);
@@ -36,14 +36,20 @@ function toMarkdown(seed: SeedPage): string {
     parts.push('## Resources', links.map((r) => `- [${r.title}](${r.url})${r.detail ? ` (${r.detail})` : ''}`).join('\n'));
   }
   if (notes.length) parts.push('## My notes', notes.map((r) => `- ${r.title}`).join('\n'));
+  if (next.length) parts.push('## Next', next.map((title) => `- [[${title}]]`).join('\n'));
   return parts.join('\n\n');
 }
 
 function toPage(seed: SeedPage): Page {
+  // Each seed connection becomes a [[link]] from the earlier page, which sets the top-down levels
+  const next = seedConnections
+    .filter((c) => c.from === seed.id)
+    .map((c) => seedPages.find((p) => p.id === c.to)?.title)
+    .filter((title): title is string => !!title);
   return {
     id: seed.id,
     title: seed.title,
-    content: toMarkdown(seed),
+    content: toMarkdown(seed, next),
     position: seed.position,
     studied: seed.studiedAt !== null,
     updatedAt: seed.studiedAt ?? '2026-09-20T12:00:00Z',
@@ -378,6 +384,8 @@ const seedConnections = [
 export const sampleProject: Project = {
   id: 'learn-javascript',
   title: 'Learn JavaScript',
+  subject: 'JavaScript',
+  startPageId: 'variables',
   isSample: true,
   pages: seedPages.map(toPage),
   connections: seedConnections.map((c) => makeConnection(c.from, c.to)),

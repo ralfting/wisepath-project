@@ -123,3 +123,28 @@ export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: T[], title
   const wanted = title.trim().toLowerCase();
   return wanted ? pages.find((p) => p.title.trim().toLowerCase() === wanted) : undefined;
 }
+
+export function setStartPage(project: Project, pageId: string | null): Project {
+  return { ...project, startPageId: pageId };
+}
+
+/**
+ * Makes `fromId` reference `toId`: appends a [[Title]] link to its markdown
+ * (as another item when it already ends in a list of links) and connects them.
+ */
+export function addReference(project: Project, fromId: string, toId: string, now = new Date()): Project {
+  const from = project.pages.find((p) => p.id === fromId);
+  const to = project.pages.find((p) => p.id === toId);
+  if (!from || !to || fromId === toId || !to.title.trim()) return connectPages(project, fromId, toId);
+  const link = `[[${to.title.trim()}]]`;
+  if (from.content.toLowerCase().includes(link.toLowerCase())) return connectPages(project, fromId, toId);
+
+  const trimmed = from.content.trimEnd();
+  const lastLine = trimmed.split('\n').pop() ?? '';
+  const content = !trimmed
+    ? link
+    : /^- \[\[[^\]]+\]\]\s*$/.test(lastLine)
+      ? `${trimmed}\n- ${link}`
+      : `${trimmed}\n\n${link}`;
+  return connectPages(updatePage(project, fromId, { content }, now), fromId, toId);
+}

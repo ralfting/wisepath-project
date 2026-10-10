@@ -32,6 +32,10 @@ export interface Project {
   title: string;
   pages: Page[];
   connections: Connection[];
+  /** Level 1 of the top-down map; everything descends from it through [[links]] */
+  startPageId?: string | null;
+  /** What the learner will know at the end, as in "Now I know JavaScript" */
+  subject?: string;
   /** True for demonstration content that is not a real user's project */
   isSample?: boolean;
 }

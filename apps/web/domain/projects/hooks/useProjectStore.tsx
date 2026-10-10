@@ -5,6 +5,8 @@ import type { ReactNode } from 'react';
 import type { ChartPosition, Page, Project } from '../types/project.types';
 import {
   addPage,
+  addReference,
+  setStartPage,
   connectPages,
   deletePage,
   disconnectPages,
@@ -30,6 +32,11 @@ interface ProjectStore {
   deletePage: (pageId: string) => void;
   connect: (pageA: string, pageB: string) => void;
   disconnect: (pageA: string, pageB: string) => void;
+  /** Writes a [[link]] from one page to another and connects them */
+  addReference: (fromId: string, toId: string) => void;
+  setStartPage: (pageId: string | null) => void;
+  /** Throws away local edits and restores the project as shipped (sample only) */
+  reset: () => void;
 }
 
 const ProjectStoreContext = createContext<ProjectStore | null>(null);
@@ -93,8 +100,11 @@ export function ProjectStoreProvider({ initialProject, children }: { initialProj
       deletePage: (pageId) => setProject((p) => deletePage(p, pageId)),
       connect: (a, b) => setProject((p) => connectPages(p, a, b)),
       disconnect: (a, b) => setProject((p) => disconnectPages(p, a, b)),
+      addReference: (fromId, toId) => setProject((p) => addReference(p, fromId, toId)),
+      setStartPage: (pageId) => setProject((p) => setStartPage(p, pageId)),
+      reset: () => setProject(initialProject),
     }),
-    [project, ready, createPage],
+    [project, ready, createPage, initialProject],
   );
 
   return <ProjectStoreContext.Provider value={store}>{children}</ProjectStoreContext.Provider>;
