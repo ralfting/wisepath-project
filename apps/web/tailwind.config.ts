@@ -5,6 +5,7 @@ const config: Config = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './domain/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -42,6 +43,21 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        chart: {
+          DEFAULT: 'hsl(var(--chart))',
+          grid: 'hsl(var(--chart-grid))',
+          tick: 'hsl(var(--chart-tick))',
+        },
+        star: {
+          DEFAULT: 'hsl(var(--star))',
+          dim: 'hsl(var(--star-dim))',
+          ring: 'hsl(var(--star-ring))',
+        },
+        finder: {
+          DEFAULT: 'hsl(var(--finder))',
+          foreground: 'hsl(var(--finder-foreground))',
+          glow: 'hsl(var(--finder-glow))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -50,6 +66,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ['var(--font-sans)', ...defaultTheme.fontFamily.sans],
+        star: ['var(--font-star)', ...defaultTheme.fontFamily.serif],
       },
     },
   },

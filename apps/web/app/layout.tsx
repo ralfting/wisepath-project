@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/domain/auth";
-import { Inter } from "next/font/google";
+import { Atkinson_Hyperlegible, Spectral } from "next/font/google";
 
 export const metadata: Metadata = {
   title: "WisePath",
   description: "Document and share your learning journeys",
 };
 
-const inter = Inter({
+const atkinson = Atkinson_Hyperlegible({
   subsets: ["latin"],
+  weight: ["400", "700"],
   variable: "--font-sans",
+});
+
+// Italic serif for star names on the project chart and page titles
+const spectral = Spectral({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  style: ["italic"],
+  variable: "--font-star",
 });
 
 export default function RootLayout({
@@ -20,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${atkinson.variable} ${spectral.variable} font-sans antialiased`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
