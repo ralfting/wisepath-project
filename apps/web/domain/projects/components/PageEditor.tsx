@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { COLUMN } from './StarChart';
-import { displayTitle, freeSpotNear } from '../entities/project.entity';
+import { displayTitle } from '../entities/project.entity';
 import { useProjectStore } from '../hooks/useProjectStore';
 import { PageContent } from './PageContent';
 import type { PageActions } from './PageContent';
@@ -40,20 +39,12 @@ export function PageEditor({ pageId }: { pageId: string }) {
 
   const actions: PageActions = {
     updatePage: store.updatePage,
-    connect: store.connect,
-    disconnect: store.disconnect,
+    renameLinks: store.renameLinks,
     openPage: (id) => router.push(pageHref(id)),
-    createConnectedPage: (fromId) => {
-      const created = store.createPage(freeSpotNear(project, { x: page.position.x + COLUMN, y: page.position.y }));
-      store.connect(fromId, created.id);
-      router.push(`${pageHref(created.id)}?new=1`);
+    addChild: (parentId, title) => {
+      store.addChild(parentId, title);
     },
-    createNamedPage: (title, fromId) => {
-      const created = store.createPage(freeSpotNear(project, { x: page.position.x + COLUMN, y: page.position.y }));
-      store.updatePage(created.id, { title });
-      store.connect(fromId, created.id);
-      router.push(pageHref(created.id));
-    },
+    createLinkedPage: (title) => router.push(pageHref(store.addPage(title).id)),
     deletePage: (id) => {
       store.deletePage(id);
       router.push(`/projects/${project.id}`);

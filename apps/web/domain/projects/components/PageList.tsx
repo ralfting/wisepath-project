@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react';
 import type { Page, Project } from '../types/project.types';
-import { displayTitle, relatedPages, wordCount } from '../entities/project.entity';
-import { computeLevels } from '../entities/levels';
+import { displayTitle, wordCount } from '../entities/project.entity';
+import { computeLevels, references } from '../entities/levels';
 
 /**
  * PageList
@@ -22,6 +22,7 @@ const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short
 export function PageList({ project, selectedId, matchIds, onOpen }: PageListProps) {
   // Top-down order: level by level, pages not linked yet last
   const { levels, apart, levelOf } = computeLevels(project);
+  const refs = references(project);
   const byId = new Map(project.pages.map((p) => [p.id, p]));
   const ordered = [...levels.flat(), ...apart].map((id) => byId.get(id) as Page);
   const rows = matchIds ? ordered.filter((p) => matchIds.has(p.id)) : ordered;
@@ -43,7 +44,7 @@ export function PageList({ project, selectedId, matchIds, onOpen }: PageListProp
             <th scope="col" className="px-4 py-2.5 font-normal">Page</th>
             <th scope="col" className="w-32 px-4 py-2.5 font-normal">Studied</th>
             <th scope="col" className="w-28 px-4 py-2.5 text-right font-normal">Words</th>
-            <th scope="col" className="px-4 py-2.5 font-normal">Connected to</th>
+            <th scope="col" className="px-4 py-2.5 font-normal">Comes from</th>
             <th scope="col" className="w-24 px-4 py-2.5 text-right font-normal">Edited</th>
           </tr>
         </thead>
@@ -69,7 +70,10 @@ export function PageList({ project, selectedId, matchIds, onOpen }: PageListProp
               </td>
               <td className="px-4 py-2.5 text-right">{wordCount(page.content)}</td>
               <td className="max-w-[28ch] truncate px-4 py-2.5 text-muted-foreground">
-                {relatedPages(project, page.id).map(displayTitle).join(', ') || 'Nothing yet'}
+                {refs
+                  .filter((r) => r.to === page.id)
+                  .map((r) => displayTitle(byId.get(r.from) as Page))
+                  .join(', ') || (page.id === project.startPageId ? 'Start' : 'Nothing yet')}
               </td>
               <td className="px-4 py-2.5 text-right text-muted-foreground">{dateFormat.format(new Date(page.updatedAt))}</td>
             </tr>

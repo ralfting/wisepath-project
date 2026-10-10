@@ -4,10 +4,9 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import type { ChartPosition } from '../types/project.types';
-import { countStudied, displayTitle, freeSpotNear, pagesInOrder } from '../entities/project.entity';
+import { countStudied, displayTitle, pagesInOrder } from '../entities/project.entity';
 import { useProjectStore } from '../hooks/useProjectStore';
-import { COLUMN, StarChart } from './StarChart';
+import { StarChart } from './StarChart';
 import type { FocusRequest } from './StarChart';
 import { PageList } from './PageList';
 import { PageSheet } from './PageSheet';
@@ -36,12 +35,11 @@ export function ProjectMap() {
   const initialPage = searchParams.get('page');
   const [tab, setTab] = useState<Tab>('map');
   const [openId, setOpenId] = useState<string | null>(initialPage);
-  const [freshId, setFreshId] = useState<string | null>(null);
+  const [composeRequest, setComposeRequest] = useState<{ parentId: string | null; nonce: number } | null>(null);
   const [query, setQuery] = useState('');
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(
     initialPage ? { pageId: initialPage, nonce: 1, mode: 'center' } : null,
   );
-  const viewCenterRef = useRef<ChartPosition | null>(null);
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ map: null, list: null });
 
   const total = project.pages.length;
@@ -59,43 +57,29 @@ export function ProjectMap() {
 
   const open = useCallback(
     (pageId: string | null, focus: FocusRequest['mode'] | null = 'reveal') => {
-      // A new page left without a title or text is discarded instead of leaving an empty star
-      const fresh = freshId ? project.pages.find((p) => p.id === freshId) : undefined;
-      if (fresh && fresh.id !== pageId && !fresh.title.trim() && !fresh.content.trim()) store.deletePage(fresh.id);
       setOpenId(pageId);
-      if (pageId !== freshId) setFreshId(null);
       syncUrl(pageId);
       if (pageId && focus) setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1, mode: focus }));
     },
-    [freshId, project.pages, store, syncUrl],
+    [syncUrl],
   );
 
-  const createAt = (position: ChartPosition, connectTo?: string, title?: string) => {
-    const page = store.createPage(freeSpotNear(project, position));
-    if (title) store.updatePage(page.id, { title });
-    if (connectTo) store.connect(connectTo, page.id);
-    // A page created from a [[link]] already has its name; focus goes to its text instead
-    setFreshId(title ? null : page.id);
-    setOpenId(page.id);
-    syncUrl(page.id);
-    setFocusRequest((r) => ({ pageId: page.id, nonce: (r?.nonce ?? 0) + 1, mode: 'reveal' }));
+  /** Opens the name field under the open page, or under the start page, or for the first page */
+  const startAdding = () => {
+    setTab('map');
+    const parentId = openId ?? project.startPageId ?? null;
+    if (parentId && parentId !== openId) open(parentId);
+    setComposeRequest((r) => ({ parentId, nonce: (r?.nonce ?? 0) + 1 }));
   };
-
-  const createInView = () => createAt(viewCenterRef.current ?? { x: COLUMN * 3, y: 360 });
 
   const actions: PageActions = {
     updatePage: store.updatePage,
-    connect: store.connect,
-    disconnect: store.disconnect,
+    renameLinks: store.renameLinks,
     openPage: (pageId) => open(pageId),
-    createConnectedPage: (fromId) => {
-      const from = project.pages.find((p) => p.id === fromId);
-      if (from) createAt({ x: from.position.x + COLUMN, y: from.position.y }, fromId);
+    addChild: (parentId, title) => {
+      store.addChild(parentId, title);
     },
-    createNamedPage: (title, fromId) => {
-      const from = project.pages.find((p) => p.id === fromId);
-      if (from) createAt({ x: from.position.x + COLUMN, y: from.position.y }, fromId, title);
-    },
+    createLinkedPage: (title) => open(store.addPage(title).id),
     deletePage: (pageId) => {
       store.deletePage(pageId);
       open(null, null);
@@ -185,11 +169,11 @@ export function ProjectMap() {
           )}
           <button
             type="button"
-            onClick={createInView}
+            onClick={startAdding}
             className="inline-flex h-9 items-center gap-1.5 rounded bg-finder px-3.5 text-sm font-bold text-finder-foreground transition-colors hover:bg-finder/90 focus-visible:outline-finder"
           >
             <PlusIcon />
-            New page
+            Add page
           </button>
         </div>
       </header>
@@ -210,13 +194,12 @@ export function ProjectMap() {
               matchIds={matchIds}
               focusRequest={focusRequest}
               onSelect={(pageId) => open(pageId, null)}
-              onCreateAt={(position) => createAt(position)}
-              onLink={store.addReference}
+              onAddChild={(parentId, title) => store.addChild(parentId, title).id}
+              composeRequest={composeRequest}
               onResetSample={() => {
                 store.reset();
                 open(null, null);
               }}
-              viewCenterRef={viewCenterRef}
             />
           ) : (
             <PageList project={project} selectedId={openId} matchIds={matchIds} onOpen={(pageId) => open(pageId, null)} />
@@ -228,7 +211,7 @@ export function ProjectMap() {
             project={project}
             page={openPage}
             actions={actions}
-            isFresh={openPage.id === freshId}
+            isFresh={false}
             isStart={openPage.id === project.startPageId}
             onToggleStart={() => store.setStartPage(openPage.id === project.startPageId ? null : openPage.id)}
             fullPageHref={fullPageHref(openPage.id)}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent, MouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import type { KeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import type { ChartPosition, Page, Project } from '../types/project.types';
 import { displayTitle, pagesInOrder, wordCount } from '../entities/project.entity';
 import { LEVEL_GAP, SLOT_GAP, layoutLevels, references, subjectOf } from '../entities/levels';
@@ -13,8 +13,9 @@ import { FitIcon, GridIcon, MinusIcon, PlusIcon } from './icons';
  * pages it links with [[Title]] on level II, and so on down to the destination,
  * a constellation that lights up as pages are studied. Pages not reached from
  * the start sit apart on the right.
- * Click a star to open it; drag the selected star's red handle onto another
- * star to link it; double-click empty sky to add a page.
+ * Click a star to open it. The + under the open star adds a page one level
+ * below: type its name and press Enter (Enter again adds a sibling, Tab goes
+ * one level deeper). Each new page is a [[link]] written into the page above.
  * Positions are projected to screen space so star sizes and labels stay
  * constant while zoom spreads the chart.
  */
@@ -39,18 +40,17 @@ interface StarChartProps {
   matchIds: Set<string> | null;
   focusRequest: FocusRequest | null;
   onSelect: (pageId: string | null) => void;
-  onCreateAt: (position: ChartPosition) => void;
-  /** The author dragged from `fromId`'s handle onto `toId`: link it from the first */
-  onLink: (fromId: string, toId: string) => void;
+  /** Adds a page below `parentId` (null: the start page) and returns its id */
+  onAddChild: (parentId: string | null, title: string) => string;
+  /** Opens the name field under a page (null: under nothing, for the start page) */
+  composeRequest: { parentId: string | null; nonce: number } | null;
   /** Kept up to date with the chart point at the middle of the view */
   viewCenterRef?: { current: ChartPosition | null };
   /** Restores the sample project as shipped; shown only for the sample */
   onResetSample?: () => void;
 }
 
-type Gesture =
-  | { kind: 'pan'; x: number; y: number; cx: number; cy: number; moved: boolean }
-  | { kind: 'connect'; pageId: string; target: string | null };
+type Gesture = { kind: 'pan'; x: number; y: number; cx: number; cy: number; moved: boolean };
 
 export const COLUMN = SLOT_GAP;
 const MIN_K = 0.3;
@@ -81,8 +81,8 @@ export function StarChart({
   matchIds,
   focusRequest,
   onSelect,
-  onCreateAt,
-  onLink,
+  onAddChild,
+  composeRequest,
   viewCenterRef,
   onResetSample,
 }: StarChartProps) {
@@ -94,8 +94,9 @@ export function StarChart({
   const frameRef = useRef<number>(0);
   const gestureRef = useRef<Gesture | null>(null);
   const [gestureKind, setGestureKind] = useState<Gesture['kind'] | null>(null);
-  const [connectPointer, setConnectPointer] = useState<{ x: number; y: number } | null>(null);
-  const [connectTarget, setConnectTarget] = useState<string | null>(null);
+  /** The name field for a new page: open under `parentId` (null: first page) */
+  const [composer, setComposer] = useState<{ parentId: string | null } | null>(null);
+  const [draft, setDraft] = useState('');
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(true);
 
@@ -220,16 +221,32 @@ export function StarChart({
 
   const fit = () => animateTo(fitCamera(size.w, size.h), 320);
 
-  const localPoint = (clientX: number, clientY: number) => {
-    const rect = svgRef.current?.getBoundingClientRect();
-    return rect ? { x: clientX - rect.left, y: clientY - rect.top } : { x: 0, y: 0 };
+  useEffect(() => {
+    if (!composeRequest) return;
+    setDraft('');
+    setComposer({ parentId: composeRequest.parentId });
+  }, [composeRequest]);
+
+  // Close the name field when its page is no longer the open one
+  useEffect(() => {
+    setComposer((c) => (c && c.parentId !== null && c.parentId !== selectedId ? null : c));
+  }, [selectedId]);
+
+  const closeComposer = () => {
+    setComposer(null);
+    setDraft('');
   };
 
-  /** Point relative to the svg, in chart units */
-  const toWorld = (sx: number, sy: number): ChartPosition => {
-    const c = camRef.current;
-    if (!c) return { x: 0, y: 0 };
-    return { x: c.cx + (sx - size.w / 2) / c.k, y: c.cy + (sy - size.h / 2) / c.k };
+  /** Enter adds a sibling (the field stays under the same page); Tab adds it and goes one level deeper */
+  const submitDraft = (descend: boolean) => {
+    const title = draft.trim();
+    if (!composer || !title) return;
+    const id = onAddChild(composer.parentId, title);
+    setDraft('');
+    if (descend || composer.parentId === null) {
+      setComposer({ parentId: id });
+      onSelect(id);
+    }
   };
 
   // Wheel zooms around the pointer; needs a non-passive listener to stop page scroll
@@ -253,11 +270,6 @@ export function StarChart({
     return () => svg.removeEventListener('wheel', onWheel);
   }, [setCam]);
 
-  const starAt = (clientX: number, clientY: number): string | null => {
-    const el = document.elementFromPoint(clientX, clientY)?.closest('[data-star]');
-    return el?.getAttribute('data-star') ?? null;
-  };
-
   const startGesture = (gesture: Gesture, event: ReactPointerEvent) => {
     cancelAnimationFrame(frameRef.current);
     gestureRef.current = gesture;
@@ -267,30 +279,14 @@ export function StarChart({
 
   const onBackgroundPointerDown = (event: ReactPointerEvent<SVGSVGElement>) => {
     const current = camRef.current;
-    if (event.button !== 0 || (event.target as Element).closest('[data-star],[data-handle]') || !current) return;
+    if (event.button !== 0 || (event.target as Element).closest('[data-star]') || !current) return;
     startGesture({ kind: 'pan', x: event.clientX, y: event.clientY, cx: current.cx, cy: current.cy, moved: false }, event);
-  };
-
-  const onHandlePointerDown = (event: ReactPointerEvent, pageId: string) => {
-    if (event.button !== 0) return;
-    event.stopPropagation();
-    startGesture({ kind: 'connect', pageId, target: null }, event);
-    setConnectPointer(localPoint(event.clientX, event.clientY));
   };
 
   const onPointerMove = (event: ReactPointerEvent<SVGSVGElement>) => {
     const gesture = gestureRef.current;
     const current = camRef.current;
     if (!gesture || !current) return;
-
-    if (gesture.kind === 'connect') {
-      setConnectPointer(localPoint(event.clientX, event.clientY));
-      const hit = starAt(event.clientX, event.clientY);
-      // Kept on the gesture too: pointerup can fire before this render commits
-      gesture.target = hit && hit !== gesture.pageId ? hit : null;
-      setConnectTarget(gesture.target);
-      return;
-    }
 
     const dx = event.clientX - gesture.x;
     const dy = event.clientY - gesture.y;
@@ -306,19 +302,7 @@ export function StarChart({
     setGestureKind(null);
     if (svgRef.current?.hasPointerCapture(event.pointerId)) svgRef.current.releasePointerCapture(event.pointerId);
 
-    if (gesture.kind === 'pan' && !gesture.moved && !cancelled) onSelect(null);
-    if (gesture.kind === 'connect') {
-      if (gesture.target && !cancelled) onLink(gesture.pageId, gesture.target);
-      setConnectPointer(null);
-      setConnectTarget(null);
-    }
-  };
-
-  const onDoubleClick = (event: MouseEvent<SVGSVGElement>) => {
-    const target = event.target as Element;
-    if (target.closest('[data-handle],[data-star]')) return;
-    const point = localPoint(event.clientX, event.clientY);
-    onCreateAt(toWorld(point.x, point.y));
+    if (!gesture.moved && !cancelled) onSelect(null);
   };
 
   const onStarKeyDown = (event: KeyboardEvent<SVGGElement>, pageId: string) => {
@@ -334,18 +318,8 @@ export function StarChart({
       if (r.from === selectedId) ids.add(r.to);
       if (r.to === selectedId) ids.add(r.from);
     }
-    for (const c of project.connections) {
-      if (c.a === selectedId) ids.add(c.b);
-      if (c.b === selectedId) ids.add(c.a);
-    }
     return ids;
-  }, [refs, project.connections, selectedId]);
-
-  // Connections that no [[link]] already draws
-  const looseConnections = useMemo(() => {
-    const linked = new Set(refs.flatMap((r) => [`${r.from}|${r.to}`, `${r.to}|${r.from}`]));
-    return project.connections.filter((c) => !linked.has(`${c.a}|${c.b}`));
-  }, [refs, project.connections]);
+  }, [refs, selectedId]);
 
   const view = cam && size.w > 0 ? cam : null;
   const toScreen = (p: ChartPosition): [number, number] =>
@@ -362,9 +336,8 @@ export function StarChart({
   }, [view, size.w]);
 
   const selectedPos = selectedId && layout.positions.has(selectedId) ? toScreen(positionOf(selectedId)) : null;
-  const connectFrom = gestureKind === 'connect' ? selectedPos : null;
   const searchEmpty = matchIds !== null && matchIds.size === 0;
-  const cursor = gestureKind === 'pan' ? 'cursor-grabbing' : gestureKind === 'connect' ? 'cursor-crosshair' : 'cursor-grab';
+  const cursor = gestureKind === 'pan' ? 'cursor-grabbing' : 'cursor-grab';
   const separatorX = layout.halfWidth + SLOT_GAP * 0.8;
 
   return (
@@ -373,12 +346,11 @@ export function StarChart({
         ref={svgRef}
         className={`absolute inset-0 h-full w-full touch-none select-none ${cursor}`}
         role="group"
-        aria-label={`Chart of ${project.title}, read from the start page down. Double-click empty space to add a page. Drag to move, scroll to zoom.`}
+        aria-label={`Chart of ${project.title}, read from the start page down. Drag to move, scroll to zoom.`}
         onPointerDown={onBackgroundPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={(e) => endGesture(e)}
         onPointerCancel={(e) => endGesture(e, true)}
-        onDoubleClick={onDoubleClick}
       >
         {view && showGrid && (
           <g aria-hidden="true">
@@ -440,24 +412,6 @@ export function StarChart({
 
         {view && (
           <g aria-hidden="true">
-            {looseConnections.map((c) => {
-              const [x1, y1] = toScreen(positionOf(c.a));
-              const [x2, y2] = toScreen(positionOf(c.b));
-              const raised = c.a === selectedId || c.b === selectedId;
-              return (
-                <line
-                  key={`c-${c.a}-${c.b}`}
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  className={raised ? 'stroke-star-ring' : 'stroke-star-dim'}
-                  strokeWidth={1}
-                  strokeDasharray="3 5"
-                  opacity={matchIds ? 0.25 : raised ? 0.9 : 0.5}
-                />
-              );
-            })}
             {refs.map((r) => {
               const [x1, y1] = toScreen(positionOf(r.from));
               const [x2, y2] = toScreen(positionOf(r.to));
@@ -479,26 +433,12 @@ export function StarChart({
           </g>
         )}
 
-        {connectFrom && connectPointer && (
-          <line
-            aria-hidden="true"
-            x1={connectFrom[0]}
-            y1={connectFrom[1]}
-            x2={connectPointer.x}
-            y2={connectPointer.y}
-            className="pointer-events-none stroke-finder-glow"
-            strokeWidth={2}
-            strokeDasharray={connectTarget ? undefined : '5 4'}
-          />
-        )}
-
         {view &&
           pages.map((page) => {
             const [x, y] = toScreen(positionOf(page.id));
             const r = starRadius(page, view.k);
             const isSelected = page.id === selectedId;
             const isMatch = matchIds?.has(page.id) ?? false;
-            const isTarget = page.id === connectTarget;
             const isStart = page.id === project.startPageId;
             const dimmed = matchIds !== null && !isMatch;
             const showLabel =
@@ -507,11 +447,10 @@ export function StarChart({
               isStart ||
               isSelected ||
               isMatch ||
-              isTarget ||
               neighborIds.has(page.id) ||
               hoveredId === page.id;
             const labelClass =
-              page.studied || isSelected || isMatch || isTarget || isStart
+              page.studied || isSelected || isMatch || isStart
                 ? 'fill-star'
                 : neighborIds.has(page.id)
                   ? 'fill-star-ring'
@@ -536,11 +475,7 @@ export function StarChart({
                 onMouseLeave={() => setHoveredId((id) => (id === page.id ? null : id))}
               >
                 <circle r={r + 14} fill="transparent" />
-                <circle
-                  r={r + 6}
-                  className={`fill-star/15 transition-opacity duration-150 ${isTarget ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                />
-                {isTarget && <circle r={r + 8} fill="none" className="stroke-finder-glow" strokeWidth={2} />}
+                <circle r={r + 6} className="fill-star/15 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
                 {isStart && !isSelected && (
                   <circle r={r + 6} fill="none" className="stroke-star" strokeWidth={1} strokeDasharray="1 3" />
                 )}
@@ -587,18 +522,6 @@ export function StarChart({
                 />
               ))}
             </g>
-            {/* Link handle on the outer ring, pointing down the descent */}
-            <g
-              data-handle
-              aria-hidden="true"
-              transform={`translate(${FINDER_RINGS[2] * Math.SQRT1_2} ${FINDER_RINGS[2] * Math.SQRT1_2})`}
-              className="cursor-crosshair"
-              onPointerDown={(event) => onHandlePointerDown(event, selectedId)}
-            >
-              <circle r={14} fill="transparent" />
-              <circle r={8} className="fill-finder-glow" />
-              <path d="M-4 0h8M0 -4v8" className="stroke-chart" strokeWidth={1.8} strokeLinecap="round" />
-            </g>
           </g>
         )}
       </svg>
@@ -622,14 +545,89 @@ export function StarChart({
 
       {pages.length > 0 && hasStart && (
         <p className="pointer-events-none absolute right-4 top-4 hidden max-w-[40ch] text-right text-[13px] leading-snug text-star-ring md:block">
-          Click a star to open it. Drag its red handle onto another star to link it from the first.
+          Click a star to open it. Use + under it to add the pages that come next.
         </p>
       )}
 
-      {pages.length > 0 && !hasStart && (
-        <div className="pointer-events-none absolute left-1/2 top-16 w-[min(90%,30rem)] -translate-x-1/2 rounded bg-star px-4 py-3 text-center text-sm text-foreground">
-          Choose where this study starts: open a page and mark it <span className="font-bold">Start page</span>. The
-          pages it links become level II, theirs level III, down to the end.
+      {/* + under the open page, or the name field that replaces it */}
+      {view && selectedPos && !composer && (
+        <button
+          type="button"
+          onClick={() => {
+            setDraft('');
+            setComposer({ parentId: selectedId });
+          }}
+          aria-label="Add a page below"
+          title="Add a page below"
+          className="absolute grid h-7 w-7 -translate-x-1/2 place-items-center rounded-full border border-dashed border-star-ring bg-chart text-star transition-colors hover:border-solid hover:bg-finder-glow hover:text-chart"
+          style={{ left: selectedPos[0], top: selectedPos[1] + FINDER_RINGS[2] + 26 }}
+        >
+          <PlusIcon />
+        </button>
+      )}
+
+      {view && composer && (
+        <div
+          className="absolute w-60 -translate-x-1/2"
+          style={
+            composer.parentId && selectedPos
+              ? { left: selectedPos[0], top: selectedPos[1] + FINDER_RINGS[2] + 24 }
+              : { left: size.w / 2, top: size.h / 2 - 40 }
+          }
+        >
+          <label htmlFor="new-page-name" className="sr-only">
+            {composer.parentId ? 'Name of the page below' : 'Name of the first page'}
+          </label>
+          <input
+            id="new-page-name"
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                submitDraft(false);
+              } else if (e.key === 'Tab' && draft.trim()) {
+                e.preventDefault();
+                submitDraft(true);
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                closeComposer();
+              }
+            }}
+            onBlur={() => {
+              if (draft.trim()) submitDraft(false);
+              closeComposer();
+            }}
+            placeholder={composer.parentId ? 'Name the next page' : 'Name the first page'}
+            className="h-9 w-full rounded border border-star-ring bg-chart px-3 text-center font-star text-[16px] italic text-star placeholder:font-sans placeholder:text-sm placeholder:not-italic placeholder:text-star-dim focus-visible:outline-finder-glow"
+          />
+          <p className="mt-1.5 text-center text-[12px] leading-snug text-star-ring">
+            Enter adds it here{composer.parentId ? ', Tab one level deeper' : ''}. Esc closes.
+          </p>
+        </div>
+      )}
+
+      {view && !composer && !hasStart && (
+        <div className="absolute left-1/2 top-1/2 w-[min(90%,26rem)] -translate-x-1/2 -translate-y-1/2 space-y-3 text-center">
+          <p className="font-star text-2xl italic">{pages.length ? 'Where does this study start?' : 'An empty sky'}</p>
+          <p className="text-sm text-star-ring">
+            {pages.length
+              ? 'Open a page and mark it Start page, or add a new first page. Everything else hangs below it.'
+              : 'Add the first page. The pages it leads to go below it, level by level.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setDraft('');
+              setComposer({ parentId: null });
+            }}
+            className="inline-flex h-9 items-center gap-1.5 rounded bg-finder px-4 text-sm font-bold text-finder-foreground hover:bg-finder/90"
+          >
+            <PlusIcon />
+            Add the first page
+          </button>
         </div>
       )}
 
@@ -637,15 +635,6 @@ export function StarChart({
         <p role="status" className="absolute left-1/2 top-16 -translate-x-1/2 rounded bg-star px-3 py-1.5 text-sm text-foreground">
           No page matches your search. Clear it to see the whole chart.
         </p>
-      )}
-
-      {pages.length === 0 && (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center p-8 text-center">
-          <div className="max-w-sm space-y-2">
-            <p className="font-star text-2xl italic">An empty sky</p>
-            <p className="text-sm text-star-ring">Double-click anywhere, or use New page, to add your first page.</p>
-          </div>
-        </div>
       )}
 
       {pages.length > 0 && <ChartLegend onResetSample={project.isSample ? onResetSample : undefined} />}
@@ -811,13 +800,7 @@ function ChartLegend({ onResetSample }: { onResetSample?: () => void }) {
           <svg width="22" height="10" aria-hidden="true">
             <line x1="1" y1="5" x2="21" y2="5" className="stroke-star-ring" strokeWidth="1.2" />
           </svg>
-          Linked in text
-        </li>
-        <li className="flex items-center gap-1.5">
-          <svg width="22" height="10" aria-hidden="true">
-            <line x1="1" y1="5" x2="21" y2="5" className="stroke-star-ring" strokeWidth="1" strokeDasharray="3 4" />
-          </svg>
-          Connected only
+          Leads to
         </li>
       </ul>
       {onResetSample && (
