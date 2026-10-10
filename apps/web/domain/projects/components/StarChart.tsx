@@ -25,6 +25,8 @@ interface Camera {
 export interface FocusRequest {
   pageId: string;
   nonce: number;
+  /** 'center' glides the star to the middle; 'reveal' moves only if it is out of view */
+  mode?: 'center' | 'reveal';
 }
 
 interface StarChartProps {
@@ -38,6 +40,8 @@ interface StarChartProps {
   onCreateAt: (position: ChartPosition) => void;
   onMove: (pageId: string, position: ChartPosition) => void;
   onConnect: (pageA: string, pageB: string) => void;
+  /** Kept up to date with the chart point at the middle of the view */
+  viewCenterRef?: { current: ChartPosition | null };
 }
 
 type Gesture =
@@ -76,6 +80,7 @@ export function StarChart({
   onCreateAt,
   onMove,
   onConnect,
+  viewCenterRef,
 }: StarChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -83,7 +88,6 @@ export function StarChart({
   const [cam, setCamState] = useState<Camera | null>(null);
   const camRef = useRef<Camera | null>(null);
   const frameRef = useRef<number>(0);
-  const userMovedRef = useRef(false);
   const gestureRef = useRef<Gesture | null>(null);
   const [gestureKind, setGestureKind] = useState<Gesture['kind'] | null>(null);
   const [dragPreview, setDragPreview] = useState<{ pageId: string; position: ChartPosition } | null>(null);
@@ -92,10 +96,14 @@ export function StarChart({
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [showGrid, setShowGrid] = useState(true);
 
-  const setCam = useCallback((next: Camera) => {
-    camRef.current = next;
-    setCamState(next);
-  }, []);
+  const setCam = useCallback(
+    (next: Camera) => {
+      camRef.current = next;
+      if (viewCenterRef) viewCenterRef.current = { x: next.cx, y: next.cy };
+      setCamState(next);
+    },
+    [viewCenterRef],
+  );
 
   const pages = useMemo(() => pagesInOrder(project), [project]);
   const pageById = useMemo(() => new Map(project.pages.map((p) => [p.id, p])), [project.pages]);
@@ -149,14 +157,14 @@ export function StarChart({
     [setCam],
   );
 
-  // Track the chart's size; refit until the author moves the camera themselves
+  // Track the chart's size; fit once, then keep the camera when the page sheet resizes the chart
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const observer = new ResizeObserver(([entry]) => {
       const { width: w, height: h } = entry.contentRect;
       setSize({ w, h });
-      if (!userMovedRef.current || !camRef.current) setCam(openingCamera(w, h));
+      if (!camRef.current) setCam(openingCamera(w, h));
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -164,30 +172,42 @@ export function StarChart({
 
   useEffect(() => () => cancelAnimationFrame(frameRef.current), []);
 
+  const sizeRef = useRef(size);
+  sizeRef.current = size;
+
   const focusOn = useCallback(
-    (pageId: string) => {
+    (pageId: string, mode: 'center' | 'reveal' = 'center') => {
       const page = pageById.get(pageId);
       const current = camRef.current;
       if (!page || !current) return;
-      userMovedRef.current = true;
+      if (mode === 'reveal') {
+        const { w, h } = sizeRef.current;
+        const sx = (page.position.x - current.cx) * current.k + w / 2;
+        const sy = (page.position.y - current.cy) * current.k + h / 2;
+        const margin = 70;
+        if (sx > margin && sx < w - margin && sy > margin && sy < h - margin) return;
+        animateTo({ ...current, cx: page.position.x, cy: page.position.y }, 420);
+        return;
+      }
       animateTo({ cx: page.position.x, cy: page.position.y, k: clampK(Math.max(current.k, 1)) }, 480);
     },
     [animateTo, pageById],
   );
 
   useEffect(() => {
-    if (focusRequest) focusOn(focusRequest.pageId);
+    if (!focusRequest) return;
+    // Wait a frame so a sheet that just opened has resized the chart
+    const id = requestAnimationFrame(() => focusOn(focusRequest.pageId, focusRequest.mode));
+    return () => cancelAnimationFrame(id);
   }, [focusRequest, focusOn]);
 
   const zoomBy = (factor: number) => {
     const current = camRef.current;
     if (!current) return;
-    userMovedRef.current = true;
     animateTo({ ...current, k: clampK(current.k * factor) }, 220);
   };
 
   const fit = () => {
-    userMovedRef.current = false;
     animateTo(fitCamera(size.w, size.h), 320);
   };
 
@@ -212,7 +232,6 @@ export function StarChart({
       if (!current) return;
       event.preventDefault();
       cancelAnimationFrame(frameRef.current);
-      userMovedRef.current = true;
       const rect = svg.getBoundingClientRect();
       const mx = event.clientX - rect.left - rect.width / 2;
       const my = event.clientY - rect.top - rect.height / 2;
@@ -279,7 +298,6 @@ export function StarChart({
     gesture.moved = true;
 
     if (gesture.kind === 'pan') {
-      userMovedRef.current = true;
       setCam({ cx: gesture.cx - dx / current.k, cy: gesture.cy - dy / current.k, k: current.k });
     } else {
       gesture.position = { x: gesture.origin.x + dx / current.k, y: gesture.origin.y + dy / current.k };
@@ -569,7 +587,7 @@ export function StarChart({
 
       {pages.length > 0 && (
         <p className="pointer-events-none absolute right-4 top-4 hidden max-w-[40ch] text-right text-[13px] leading-snug text-star-ring md:block">
-          Double-click empty sky to add a page. Drag a selected star&apos;s red handle onto another star to connect.
+          Click a star to open it. Double-click empty sky to add a page. Drag the red handle onto another star to connect.
         </p>
       )}
 

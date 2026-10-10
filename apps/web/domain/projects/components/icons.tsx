@@ -68,3 +68,9 @@ export const TrashIcon = () => (
     <path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4" />
   </Icon>
 );
+
+export const ExpandIcon = () => (
+  <Icon>
+    <path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9" />
+  </Icon>
+);

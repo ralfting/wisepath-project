@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { Page, Project } from '../types/project.types';
 import { displayTitle, pagesInOrder, relatedPages, wordCount } from '../entities/project.entity';
@@ -14,12 +13,12 @@ interface PageListProps {
   project: Project;
   selectedId: string | null;
   matchIds: Set<string> | null;
-  pageHref: (pageId: string) => string;
+  onOpen: (pageId: string) => void;
 }
 
 const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short' });
 
-export function PageList({ project, selectedId, matchIds, pageHref }: PageListProps) {
+export function PageList({ project, selectedId, matchIds, onOpen }: PageListProps) {
   const ordered = pagesInOrder(project);
   const rows = matchIds ? ordered.filter((p) => matchIds.has(p.id)) : ordered;
 
@@ -50,9 +49,14 @@ export function PageList({ project, selectedId, matchIds, pageHref }: PageListPr
               className={`border-b border-border/70 last:border-b-0 ${page.id === selectedId ? 'bg-accent' : 'hover:bg-muted'}`}
             >
               <td className="px-4 py-2.5">
-                <Link href={pageHref(page.id)} className="font-star text-base italic hover:underline hover:underline-offset-4">
+                <button
+                  type="button"
+                  onClick={() => onOpen(page.id)}
+                  aria-current={page.id === selectedId ? 'true' : undefined}
+                  className="text-left font-star text-base italic hover:underline hover:underline-offset-4"
+                >
                   {displayTitle(page)}
-                </Link>
+                </button>
               </td>
               <td className="px-4 py-2.5">
                 <StudiedCell page={page} />

@@ -1,22 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useRef, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { ChartPosition } from '../types/project.types';
-import { countStudied, displayTitle, nextFreePosition, pagesInOrder } from '../entities/project.entity';
+import { countStudied, displayTitle, freeSpotNear, pagesInOrder } from '../entities/project.entity';
 import { useProjectStore } from '../hooks/useProjectStore';
 import { COLUMN, StarChart } from './StarChart';
 import type { FocusRequest } from './StarChart';
 import { PageList } from './PageList';
-import { SelectionPanel } from './SelectionPanel';
+import { PageSheet } from './PageSheet';
+import type { PageActions } from './PageContent';
 import { PlusIcon, SearchIcon } from './icons';
 
 /**
  * ProjectMap
- * Project shell: top bar with Map/List tabs, page search, New page and progress;
- * the chart or list on the left and the selected page on the right.
+ * Project shell: top bar with Map/List tabs, page search, New page and progress.
+ * Clicking a page opens it beside the map, editable in place.
  */
 
 type Tab = 'map' | 'list';
@@ -27,24 +28,73 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function ProjectMap() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const store = useProjectStore();
   const { project } = store;
 
-  // Returning from a page keeps it selected and in view
-  const returnedTo = searchParams.get('page');
+  const initialPage = searchParams.get('page');
   const [tab, setTab] = useState<Tab>('map');
-  const [selectedId, setSelectedId] = useState<string | null>(returnedTo);
+  const [openId, setOpenId] = useState<string | null>(initialPage);
+  const [freshId, setFreshId] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(
-    returnedTo ? { pageId: returnedTo, nonce: 1 } : null,
+    initialPage ? { pageId: initialPage, nonce: 1, mode: 'center' } : null,
   );
+  const viewCenterRef = useRef<ChartPosition | null>(null);
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ map: null, list: null });
 
   const total = project.pages.length;
   const studied = countStudied(project);
-  const selectedPage = project.pages.find((p) => p.id === selectedId) ?? null;
-  const pageHref = (pageId: string) => `/projects/${project.id}/pages/${pageId}`;
+  const openPage = project.pages.find((p) => p.id === openId) ?? null;
+  const fullPageHref = (pageId: string) => `/projects/${project.id}/pages/${pageId}`;
+
+  // Keep ?page= in the URL so reload and back return to the open page
+  const syncUrl = useCallback(
+    (pageId: string | null) => {
+      router.replace(pageId ? `${pathname}?page=${pageId}` : pathname, { scroll: false });
+    },
+    [router, pathname],
+  );
+
+  const open = useCallback(
+    (pageId: string | null, focus: FocusRequest['mode'] | null = 'reveal') => {
+      // A new page left without a title or text is discarded instead of leaving an empty star
+      const fresh = freshId ? project.pages.find((p) => p.id === freshId) : undefined;
+      if (fresh && fresh.id !== pageId && !fresh.title.trim() && !fresh.content.trim()) store.deletePage(fresh.id);
+      setOpenId(pageId);
+      if (pageId !== freshId) setFreshId(null);
+      syncUrl(pageId);
+      if (pageId && focus) setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1, mode: focus }));
+    },
+    [freshId, project.pages, store, syncUrl],
+  );
+
+  const createAt = (position: ChartPosition, connectTo?: string) => {
+    const page = store.createPage(freeSpotNear(project, position));
+    if (connectTo) store.connect(connectTo, page.id);
+    setFreshId(page.id);
+    setOpenId(page.id);
+    syncUrl(page.id);
+    setFocusRequest((r) => ({ pageId: page.id, nonce: (r?.nonce ?? 0) + 1, mode: 'reveal' }));
+  };
+
+  const createInView = () => createAt(viewCenterRef.current ?? { x: COLUMN * 3, y: 360 });
+
+  const actions: PageActions = {
+    updatePage: store.updatePage,
+    connect: store.connect,
+    disconnect: store.disconnect,
+    openPage: (pageId) => open(pageId),
+    createConnectedPage: (fromId) => {
+      const from = project.pages.find((p) => p.id === fromId);
+      if (from) createAt({ x: from.position.x + COLUMN, y: from.position.y }, fromId);
+    },
+    deletePage: (pageId) => {
+      store.deletePage(pageId);
+      open(null, null);
+    },
+  };
 
   const matchIds = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -52,21 +102,11 @@ export function ProjectMap() {
     return new Set(project.pages.filter((p) => displayTitle(p).toLowerCase().includes(q)).map((p) => p.id));
   }, [project.pages, query]);
 
-  const selectAndFocus = (pageId: string) => {
-    setSelectedId(pageId);
-    setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1 }));
-  };
-
-  const createPageAt = (position: ChartPosition) => {
-    const page = store.createPage(position);
-    router.push(`${pageHref(page.id)}?new=1`);
-  };
-
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') setQuery('');
     if (event.key !== 'Enter' || !matchIds || matchIds.size === 0) return;
     const first = pagesInOrder(project).find((p) => matchIds.has(p.id));
-    if (first) selectAndFocus(first.id);
+    if (first) open(first.id, 'center');
   };
 
   const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -139,7 +179,7 @@ export function ProjectMap() {
           )}
           <button
             type="button"
-            onClick={() => createPageAt(nextFreePosition(project, COLUMN))}
+            onClick={createInView}
             className="inline-flex h-9 items-center gap-1.5 rounded bg-finder px-3.5 text-sm font-bold text-finder-foreground transition-colors hover:bg-finder/90 focus-visible:outline-finder"
           >
             <PlusIcon />
@@ -148,40 +188,43 @@ export function ProjectMap() {
         </div>
       </header>
 
-      <main className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <main
+        className={`grid min-h-0 flex-1 grid-cols-1 ${openPage ? 'lg:grid-cols-[minmax(0,1fr)_560px]' : ''}`}
+      >
         <div
           role="tabpanel"
           id={`panel-${tab}`}
           aria-labelledby={`tab-${tab}`}
-          className="h-[64vh] min-h-0 p-3 sm:p-4 lg:h-auto lg:pr-0"
+          className={`h-[calc(100vh-150px)] min-h-0 p-3 sm:p-4 lg:h-auto ${openPage ? 'lg:pr-4' : ''}`}
         >
           {tab === 'map' ? (
             <StarChart
               project={project}
-              selectedId={selectedId}
+              selectedId={openId}
               matchIds={matchIds}
               focusRequest={focusRequest}
-              onSelect={setSelectedId}
-              onOpen={(pageId) => router.push(pageHref(pageId))}
-              onCreateAt={createPageAt}
+              onSelect={(pageId) => open(pageId, null)}
+              onOpen={(pageId) => open(pageId, null)}
+              onCreateAt={(position) => createAt(position)}
               onMove={store.movePage}
               onConnect={store.connect}
+              viewCenterRef={viewCenterRef}
             />
           ) : (
-            <PageList project={project} selectedId={selectedId} matchIds={matchIds} pageHref={pageHref} />
+            <PageList project={project} selectedId={openId} matchIds={matchIds} onOpen={(pageId) => open(pageId, null)} />
           )}
         </div>
 
-        <SelectionPanel
-          project={project}
-          page={selectedPage}
-          pageHref={pageHref}
-          onSelect={selectAndFocus}
-          onCreatePage={() => createPageAt(nextFreePosition(project, COLUMN))}
-          onSetStudied={(pageId, value) => store.updatePage(pageId, { studied: value })}
-          onConnect={store.connect}
-          onDisconnect={store.disconnect}
-        />
+        {openPage && (
+          <PageSheet
+            project={project}
+            page={openPage}
+            actions={actions}
+            isFresh={openPage.id === freshId}
+            fullPageHref={fullPageHref(openPage.id)}
+            onClose={() => open(null, null)}
+          />
+        )}
       </main>
     </div>
   );
