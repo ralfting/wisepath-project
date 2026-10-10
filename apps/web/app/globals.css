@@ -88,7 +88,110 @@
 }
 
 @layer components {
-  /* Finder rings settle onto the next page whenever it changes */
+  /* Rendered page markdown */
+  .md {
+    font-size: 15px;
+    line-height: 1.65;
+    color: hsl(var(--foreground) / 0.9);
+  }
+  .md > * + * {
+    margin-top: 0.85em;
+  }
+  .md h1,
+  .md h2,
+  .md h3 {
+    color: hsl(var(--foreground));
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: 1.6em;
+  }
+  .md h1 {
+    font-size: 1.35em;
+  }
+  .md h2 {
+    font-size: 1.15em;
+  }
+  .md h3 {
+    font-size: 1em;
+  }
+  .md > :first-child {
+    margin-top: 0;
+  }
+  .md a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--primary) / 0.35);
+  }
+  .md a:hover {
+    text-decoration-color: currentColor;
+  }
+  .md ul,
+  .md ol {
+    padding-left: 1.3em;
+  }
+  .md ul {
+    list-style: disc;
+  }
+  .md ol {
+    list-style: decimal;
+  }
+  .md li + li {
+    margin-top: 0.3em;
+  }
+  .md li::marker {
+    color: hsl(var(--muted-foreground));
+  }
+  .md code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.88em;
+    background: hsl(var(--accent));
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+  .md pre {
+    background: hsl(var(--chart));
+    color: hsl(var(--star));
+    padding: 0.9em 1.1em;
+    border-radius: var(--radius);
+    overflow-x: auto;
+  }
+  .md pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+  }
+  .md blockquote {
+    border-left: 1px solid hsl(var(--border));
+    padding-left: 1em;
+    color: hsl(var(--muted-foreground));
+  }
+  .md hr {
+    border-color: hsl(var(--border));
+  }
+  .md table {
+    border-collapse: collapse;
+    font-size: 0.93em;
+  }
+  .md th,
+  .md td {
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 0.4em 0.8em 0.4em 0;
+    text-align: left;
+  }
+  .md-embed {
+    aspect-ratio: 16 / 9;
+    max-width: 640px;
+    background: hsl(var(--chart));
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .md-embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* Finder rings settle onto the selected page */
   .finder-ring {
     transform-box: fill-box;
     transform-origin: center;
