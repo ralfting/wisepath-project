@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Button, Group, Kbd, Progress, Stack, Tabs, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
+import { ActionIcon, Badge, Button, Center, Group, Kbd, Progress, SegmentedControl, Text, TextInput, ThemeIcon, Title, Tooltip, VisuallyHidden } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconPlayerPlayFilled, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -97,98 +97,126 @@ function MapView({ project }: { project: Project }) {
       value={query}
       onChange={(e) => setQuery(e.currentTarget.value)}
       onKeyDown={onSearchKeyDown}
-      w={{ base: 160, sm: 260, md: 340 }}
+      w={{ sm: 220, lg: 300 }}
+      visibleFrom="sm"
+      style={{ flexShrink: 1 }}
       radius="md"
     />
   );
 
-  return (
-    <AppFrame crumbs={[{ label: 'My maps', href: '/projects' }, { label: project.title }]} tools={search}>
-      <Stack gap="lg" className={classes.page}>
-        <Group justify="space-between" align="center" gap="lg" className={classes.header}>
-          <Group gap="lg" wrap="nowrap" miw={0} style={{ flex: '1 1 340px' }}>
-            <ThemeIcon size={68} radius="xl" variant="light" color={look.color}>
-              <PageGlyph icon={look.icon} size={36} />
-            </ThemeIcon>
-            <Stack gap={4} miw={0}>
-              <Group gap="sm" wrap="nowrap">
-                <Title order={1} fz={{ base: 26, sm: 34 }} lts={-0.6} lh={1.1} lineClamp={1}>
-                  {project.title}
-                </Title>
-                {project.isSample && (
-                  <Badge variant="light" color="gray" radius="sm">
-                    Sample
-                  </Badge>
-                )}
-              </Group>
-              {project.description && (
-                <Text c="dimmed" lineClamp={2}>
-                  {project.description}
-                </Text>
-              )}
-            </Stack>
-          </Group>
+  const viewSwitch = (
+    <SegmentedControl
+      size="xs"
+      value={view}
+      onChange={(v) => setView(v as View)}
+      aria-label="View"
+      className={classes.viewSwitch}
+      data={[
+        {
+          value: 'map',
+          label: (
+            <Center style={{ gap: 6 }}>
+              <IconSitemap size={15} />
+              <span>Map</span>
+            </Center>
+          ),
+        },
+        {
+          value: 'list',
+          label: (
+            <Center style={{ gap: 6 }}>
+              <IconLayoutList size={15} />
+              <span>List</span>
+            </Center>
+          ),
+        },
+      ]}
+    />
+  );
 
-          <Group gap="xl" wrap="nowrap" className={classes.progressBlock}>
-            <Stack gap={6} w={240} visibleFrom="md">
-              <Group gap="sm" wrap="nowrap">
-                <Progress value={percent} size="lg" style={{ flex: 1 }} aria-label="Map progress" classNames={{ section: classes.progress }} />
-                <Text fw={800} fz={20}>
-                  {percent}%
-                </Text>
-              </Group>
-              <Text size="sm" c="dimmed">
-                {studied} of {total} pages studied
-              </Text>
-            </Stack>
-            <Button
-              size="md"
-              leftSection={<IconPlayerPlayFilled size={16} />}
-              disabled={!next}
-              onClick={() => next && select(next.id)}
-              className={classes.continue}
-            >
-              {next ? 'Continue studying' : total ? 'All pages studied' : 'No pages yet'}
-            </Button>
-          </Group>
+  // Title, search, progress and the way on, in one row of the top bar
+  const header = (
+    <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
+      <Group gap="sm" wrap="nowrap" miw={0} style={{ flex: 1 }}>
+        <ThemeIcon size={36} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
+          <PageGlyph icon={look.icon} size={20} />
+        </ThemeIcon>
+        <Tooltip label={project.description} disabled={!project.description} multiline w={320} position="bottom-start" withArrow>
+          <Title order={1} fz={20} lts={-0.3} lh={1.2} lineClamp={1}>
+            {project.title}
+          </Title>
+        </Tooltip>
+        {project.isSample && (
+          <Badge variant="light" color="gray" radius="sm" visibleFrom="sm" style={{ flexShrink: 0 }}>
+            Sample
+          </Badge>
+        )}
+      </Group>
+      {search}
+      <Tooltip label={`${studied} of ${total} pages studied`}>
+        <Group gap={8} wrap="nowrap" visibleFrom="md" style={{ flexShrink: 0 }}>
+          <Progress value={percent} size="md" w={88} aria-label="Map progress" classNames={{ section: classes.progress }} />
+          <Text fw={700} size="sm">
+            {percent}%
+          </Text>
+          <VisuallyHidden>
+            {studied} of {total} pages studied
+          </VisuallyHidden>
         </Group>
+      </Tooltip>
+      <Button
+        size="sm"
+        leftSection={<IconPlayerPlayFilled size={14} />}
+        disabled={!next}
+        onClick={() => next && select(next.id)}
+        className={classes.continue}
+        style={{ flexShrink: 0 }}
+        visibleFrom="sm"
+      >
+        {next ? 'Continue studying' : total ? 'All pages studied' : 'No pages yet'}
+      </Button>
+      {/* On a phone the title needs the room: the same action as an icon */}
+      <ActionIcon
+        size="lg"
+        radius="md"
+        disabled={!next}
+        onClick={() => next && select(next.id)}
+        aria-label="Continue studying"
+        hiddenFrom="sm"
+      >
+        <IconPlayerPlayFilled size={16} />
+      </ActionIcon>
+    </Group>
+  );
 
-        <Tabs value={view} onChange={(v) => setView((v as View) ?? 'map')} variant="pills" classNames={{ tab: classes.viewTab }}>
-          <Tabs.List>
-            <Tabs.Tab value="map" leftSection={<IconSitemap size={16} />}>
-              Map
-            </Tabs.Tab>
-            <Tabs.Tab value="list" leftSection={<IconLayoutList size={16} />}>
-              List
-            </Tabs.Tab>
-          </Tabs.List>
-        </Tabs>
-
-        <div className={classes.workspace}>
-          <div className={classes.canvas}>
-            {view === 'map' ? (
-              <MindMap
-                project={project}
-                selectedId={selectedId}
-                coveredRight={selectedId ? DRAWER_WIDTH : 0}
-                currentId={next?.id ?? null}
-                matchIds={matchIds}
-                focusRequest={focusRequest}
-                onSelect={(pageId) => select(pageId)}
-                onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
-              />
-            ) : (
-              <MapList
-                project={project}
-                selectedId={selectedId}
-                currentId={next?.id ?? null}
-                matchIds={matchIds}
-                onSelect={(pageId) => select(pageId)}
-              />
-            )}
-          </div>
+  return (
+    <AppFrame header={header}>
+      <div className={classes.page}>
+        <div className={classes.canvas}>
+          {view === 'map' ? (
+            <MindMap
+              project={project}
+              selectedId={selectedId}
+              coveredRight={selectedId ? DRAWER_WIDTH : 0}
+              currentId={next?.id ?? null}
+              matchIds={matchIds}
+              focusRequest={focusRequest}
+              onSelect={(pageId) => select(pageId)}
+              onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
+              toolbarStart={viewSwitch}
+            />
+          ) : (
+            <MapList
+              toolbar={viewSwitch}
+              project={project}
+              selectedId={selectedId}
+              currentId={next?.id ?? null}
+              matchIds={matchIds}
+              onSelect={(pageId) => select(pageId)}
+            />
+          )}
         </div>
-      </Stack>
+      </div>
     </AppFrame>
   );
 }

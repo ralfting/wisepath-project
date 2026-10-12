@@ -42,7 +42,8 @@ import classes from './AppFrame.module.css';
 /**
  * AppFrame
  * The signed-in layout: a sidebar with the learner's maps and their account,
- * and a top bar with breadcrumbs and an optional slot (the map's search).
+ * and a top bar with breadcrumbs and an optional slot, or a page's own header
+ * in its place (the map puts its title, search and progress there).
  * On desktop the sidebar can be collapsed to a rail of icons; resting the
  * pointer on the rail floats the full sidebar over the content, where it can
  * be pinned open again.
@@ -78,7 +79,18 @@ function useCollapsed(): [boolean, (collapsed: boolean) => void] {
   return [collapsed, set];
 }
 
-export function AppFrame({ crumbs, tools, children }: { crumbs: Crumb[]; tools?: ReactNode; children: ReactNode }) {
+export function AppFrame({
+  crumbs = [],
+  tools,
+  header,
+  children,
+}: {
+  crumbs?: Crumb[];
+  tools?: ReactNode;
+  /** Replaces the breadcrumbs and tools in the top bar */
+  header?: ReactNode;
+  children: ReactNode;
+}) {
   const [opened, { toggle, close }] = useDisclosure(false);
   const [collapsed, setCollapsed] = useCollapsed();
   const [peeking, setPeeking] = useState(false);
@@ -165,23 +177,27 @@ export function AppFrame({ crumbs, tools, children }: { crumbs: Crumb[]; tools?:
       <AppShell.Main className={classes.main}>
         <Group component="header" className={classes.topbar} gap="md" wrap="nowrap">
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" aria-label="Open navigation" />
-          <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.crumbs} visibleFrom="xs">
-            {crumbs.map((c, i) =>
-              c.href ? (
-                <Anchor key={i} component={Link} href={c.href} size="sm" c="dimmed">
-                  {c.label}
-                </Anchor>
-              ) : (
-                <Text key={i} size="sm" fw={600} aria-current="page" truncate>
-                  {c.label}
-                </Text>
-              ),
-            )}
-          </Breadcrumbs>
-          {tools && (
-            <Group gap="md" ml="auto" wrap="nowrap">
-              {tools}
-            </Group>
+          {header ?? (
+            <>
+              <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.crumbs} visibleFrom="xs">
+                {crumbs.map((c, i) =>
+                  c.href ? (
+                    <Anchor key={i} component={Link} href={c.href} size="sm" c="dimmed">
+                      {c.label}
+                    </Anchor>
+                  ) : (
+                    <Text key={i} size="sm" fw={600} aria-current="page" truncate>
+                      {c.label}
+                    </Text>
+                  ),
+                )}
+              </Breadcrumbs>
+              {tools && (
+                <Group gap="md" ml="auto" wrap="nowrap">
+                  {tools}
+                </Group>
+              )}
+            </>
           )}
         </Group>
         {children}
