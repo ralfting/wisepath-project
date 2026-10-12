@@ -1,19 +1,13 @@
-import type { Page, PageId, Project } from './Project';
+import type { Page, PageColor, PageIcon, PageId, Project } from './Project';
+import { PageColor as PageColors } from './Project';
+import { moduleOf, roleOf, structureOf } from './structure';
 
 /**
- * Project Entity
- * Pure rules for a project's pages. Pages relate only through [[Title]] links
- * written in their markdown: writing a link is what connects two pages.
+ * Rules
+ * Pure changes to a project. The tree (root, modules, topics) comes from each
+ * page's parent; cross references come from [[Title]] links in the markdown,
+ * so titles stay unique within a project.
  */
-
-export function countStudied(project: Project): number {
-  return project.pages.filter((p) => p.studied).length;
-}
-
-/** Pages by title, for stable ordering where the map's levels do not apply */
-export function pagesInOrder(project: Project): Page[] {
-  return [...project.pages].sort((a, b) => displayTitle(a).localeCompare(displayTitle(b)));
-}
 
 export function wordCount(markdown: string): number {
   const words = markdown
@@ -23,7 +17,7 @@ export function wordCount(markdown: string): number {
   return words ? words.split(/\s+/).length : 0;
 }
 
-export function displayTitle(page: Page): string {
+export function displayTitle(page: Pick<Page, 'title'>): string {
   return page.title.trim() || 'Untitled page';
 }
 
@@ -33,18 +27,48 @@ export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: ReadonlyAr
   return wanted ? pages.find((p) => p.title.trim().toLowerCase() === wanted) : undefined;
 }
 
-/** Adds a page with this title (and the given new id), or returns the existing page that already has it */
-export function addPage(project: Project, title: string, id: PageId, now = new Date()): { project: Project; page: Page } {
+/** A new, empty project: just its root page */
+export function newProject(id: Project['id'], title: string, rootId: PageId, now = new Date()): Project {
+  const root: Page = { id: rootId, title: title.trim(), content: '', studied: false, updatedAt: now.toISOString(), parentId: null };
+  return { id, title: root.title, pages: [root], rootPageId: rootId };
+}
+
+/** Adds a page under `parentId`, or returns the page that already has this title */
+function addUnder(
+  project: Project,
+  parentId: PageId,
+  title: string,
+  id: PageId,
+  now: Date,
+  look: Partial<Pick<Page, 'color' | 'icon'>> = {},
+): { project: Project; page: Page } {
   const existing = findPageByTitle(project.pages, title);
   if (existing) return { project, page: existing };
-  const page: Page = {
-    id,
-    title: title.trim(),
-    content: '',
-    studied: false,
-    updatedAt: now.toISOString(),
-  };
+  const page: Page = { id, title: title.trim(), content: '', studied: false, updatedAt: now.toISOString(), parentId, ...look };
   return { project: { ...project, pages: [...project.pages, page] }, page };
+}
+
+/** Adds a module around the root; each new module takes the next colour */
+export function addModule(project: Project, title: string, id: PageId, now = new Date()): { project: Project; page: Page } {
+  const colors = PageColors.literals;
+  const color: PageColor = colors[structureOf(project).modules.length % colors.length];
+  return addUnder(project, project.rootPageId, title, id, now, { color });
+}
+
+/**
+ * Adds a topic to the module of `pageId` (the module itself, or a topic's
+ * module). From the root there is no module yet, so it adds a module instead.
+ * This is also where a page created from a [[link]] goes.
+ */
+export function addTopic(
+  project: Project,
+  pageId: PageId,
+  title: string,
+  id: PageId,
+  now = new Date(),
+): { project: Project; page: Page } {
+  const module = moduleOf(project, pageId);
+  return module ? addUnder(project, module.page.id, title, id, now) : addModule(project, title, id, now);
 }
 
 export function updatePage(
@@ -53,69 +77,41 @@ export function updatePage(
   patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>,
   now = new Date(),
 ): Project {
-  return {
-    ...project,
-    pages: project.pages.map((p) => {
-      if (p.id !== pageId) return p;
-      // Toggling studied is not an edit of the page
-      const edited = patch.title !== undefined || patch.content !== undefined;
-      return { ...p, ...patch, updatedAt: edited ? now.toISOString() : p.updatedAt };
-    }),
-  };
+  const pages = project.pages.map((p) => {
+    if (p.id !== pageId) return p;
+    // Toggling studied is not an edit of the page
+    const edited = patch.title !== undefined || patch.content !== undefined;
+    return { ...p, ...patch, updatedAt: edited ? now.toISOString() : p.updatedAt };
+  });
+  // The root page names the map
+  const title = pageId === project.rootPageId && patch.title !== undefined ? patch.title : project.title;
+  return { ...project, title, pages };
 }
 
-/** Removes the page; links to it stay in other pages and show as missing */
+/** Sets a page's colour or icon on the map */
+export function setLook(project: Project, pageId: PageId, look: { color?: PageColor; icon?: PageIcon }): Project {
+  return { ...project, pages: project.pages.map((p) => (p.id === pageId ? { ...p, ...look } : p)) };
+}
+
+/** Moves a topic to another module; anything else stays put */
+export function moveTopic(project: Project, topicId: PageId, moduleId: PageId): Project {
+  if (roleOf(project, topicId) !== 'topic' || roleOf(project, moduleId) !== 'module') return project;
+  return { ...project, pages: project.pages.map((p) => (p.id === topicId ? { ...p, parentId: moduleId } : p)) };
+}
+
+export function setDescription(project: Project, description: string): Project {
+  return { ...project, description };
+}
+
+/**
+ * Removes a page; a module goes with its topics. The root can't be removed.
+ * [[Links]] to removed pages stay in other pages and show as missing.
+ */
 export function deletePage(project: Project, pageId: PageId): Project {
-  return {
-    ...project,
-    pages: project.pages.filter((p) => p.id !== pageId),
-    startPageId: project.startPageId === pageId ? null : project.startPageId,
-  };
-}
-
-export function setStartPage(project: Project, pageId: PageId | null): Project {
-  return { ...project, startPageId: pageId };
-}
-
-/**
- * Writes a [[Title]] link at the end of a page's markdown, as another item
- * when it already ends in a list of links. No-op if the page links it already
- * or the title is the page's own.
- */
-export function linkFrom(project: Project, fromId: PageId, title: string, now = new Date()): Project {
-  const from = project.pages.find((p) => p.id === fromId);
-  const name = title.trim();
-  if (!from || !name || findPageByTitle([from], name)) return project;
-  const link = `[[${name}]]`;
-  if (from.content.toLowerCase().includes(link.toLowerCase())) return project;
-
-  const trimmed = from.content.trimEnd();
-  const lastLine = trimmed.split('\n').pop() ?? '';
-  const content = !trimmed
-    ? `- ${link}`
-    : /^- \[\[[^\]]+\]\]\s*$/.test(lastLine)
-      ? `${trimmed}\n- ${link}`
-      : `${trimmed}\n\n- ${link}`;
-  return updatePage(project, fromId, { content }, now);
-}
-
-/**
- * Adds a page one level below `parentId` by writing its [[link]] into the parent.
- * With no parent and no start page yet, the new page becomes the start.
- * A title that already exists links that page instead of duplicating it.
- */
-export function addChildPage(
-  project: Project,
-  parentId: PageId | null,
-  title: string,
-  id: PageId,
-  now = new Date(),
-): { project: Project; page: Page } {
-  const added = addPage(project, title, id, now);
-  let next = added.project;
-  if (parentId) next = linkFrom(next, parentId, added.page.title, now);
-  else if (!next.startPageId) next = setStartPage(next, added.page.id);
-  return { project: next, page: added.page };
+  if (pageId === project.rootPageId) return project;
+  const gone = new Set<PageId>([pageId]);
+  if (roleOf(project, pageId) === 'module') for (const p of project.pages) if (p.parentId === pageId) gone.add(p.id);
+  return { ...project, pages: project.pages.filter((p) => !gone.has(p.id)) };
 }
 
 /** Rewrites [[Old]] links to [[New]] across the project after a page is renamed */

@@ -2,11 +2,10 @@ import type { PageId, Project } from './Project';
 import { findPageByTitle } from './rules';
 
 /**
- * Levels
- * The project read top-down: level 1 is the start page, level 2 the pages it
- * references with [[Title]] links, level 3 the pages those reference, and so on.
- * Pages the start page never reaches sit apart. The map's force layout uses
- * these depths as gravity (see graph-layout.ts).
+ * Links
+ * [[Title]] references written in a page's markdown. Any page can reference
+ * any other; the ones that are not already parent and child are the map's
+ * cross references.
  */
 
 const WIKILINK = /\[\[([^[\]\n]+)\]\]/g;
@@ -38,44 +37,15 @@ export function references(project: Project): Reference[] {
   return out;
 }
 
-export interface Levels {
-  /** Page ids per level, level 1 first */
-  levels: PageId[][];
-  /** Pages the start page does not reach */
-  apart: PageId[];
-  levelOf: Map<PageId, number>;
-}
-
-/** Breadth-first descent from the start page along references */
-export function computeLevels(project: Project): Levels {
-  const refs = references(project);
-  const levelOf = new Map<PageId, number>();
-  const levels: PageId[][] = [];
-  const start = project.pages.find((p) => p.id === project.startPageId);
-
-  if (start) {
-    let frontier = [start.id];
-    levelOf.set(start.id, 1);
-    while (frontier.length) {
-      levels.push(frontier);
-      const next: PageId[] = [];
-      for (const id of frontier) {
-        for (const ref of refs) {
-          if (ref.from === id && !levelOf.has(ref.to)) {
-            levelOf.set(ref.to, levels.length + 1);
-            next.push(ref.to);
-          }
-        }
-      }
-      frontier = next;
-    }
-  }
-
-  const apart = project.pages.filter((p) => !levelOf.has(p.id)).map((p) => p.id);
-  return { levels, apart, levelOf };
-}
-
-/** The subject named in "Now I know …": the project's subject, or its title without a leading "Learn" */
-export function subjectOf(project: Project): string {
-  return project.subject?.trim() || project.title.replace(/^learn(ing)?\s+/i, '').trim() || project.title;
+/** References that are not the tree's own parent–child lines, one per pair of pages */
+export function crossReferences(project: Project): Reference[] {
+  const parentOf = new Map(project.pages.map((p) => [p.id, p.parentId ?? null]));
+  const pairs = new Set<string>();
+  return references(project).filter(({ from, to }) => {
+    if (parentOf.get(from) === to || parentOf.get(to) === from) return false;
+    const pair = from < to ? `${from}|${to}` : `${to}|${from}`;
+    if (pairs.has(pair)) return false;
+    pairs.add(pair);
+    return true;
+  });
 }

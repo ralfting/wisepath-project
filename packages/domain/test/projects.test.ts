@@ -3,75 +3,107 @@ import { Effect, Schema } from "effect"
 import {
   PageId,
   Project,
-  addChildPage,
-  computeLevels,
+  ProjectId,
+  addModule,
+  addTopic,
+  crossReferences,
   deletePage,
   findPageByTitle,
-  references,
+  moveTopic,
+  newProject,
+  nextTopic,
+  projectProgress,
   renameLinks,
+  roleOf,
   sampleProject,
-  setStartPage
+  structureOf,
+  updatePage
 } from "../src/projects/index"
 
-const titleOf = (project: Project, id: PageId) => project.pages.find((p) => p.id === id)?.title
+const id = PageId.make
+const titleOf = (project: Project, pageId: PageId) => project.pages.find((p) => p.id === pageId)?.title
 
-describe("project links and levels", () => {
-  it("reads levels top-down from the start page through [[links]]", () => {
-    const { levels, apart } = computeLevels(sampleProject)
-    const named = levels.map((level) => level.map((id) => titleOf(sampleProject, id)).sort())
-    assert.deepStrictEqual(named, [["Variables & Types"], ["Arrays", "Functions"], ["Scope"], ["Closures"]])
-    assert.deepStrictEqual(apart, [])
+describe("project structure", () => {
+  it("reads root, modules and topics from each page's parent", () => {
+    const { root, modules } = structureOf(sampleProject)
+    assert.strictEqual(root.title, "NestJS")
+    assert.strictEqual(modules.length, 8)
+    assert.deepStrictEqual(modules[2].topics.map((t) => t.title), ["What providers are", "Custom providers", "Scopes", "Factory providers"])
+    assert.strictEqual(roleOf(sampleProject, id("providers")), "module")
+    assert.strictEqual(roleOf(sampleProject, id("jwt")), "topic")
   })
 
-  it("skips links to pages that do not exist", () => {
-    const project = { ...sampleProject, pages: sampleProject.pages.map((p) => p.id === "closures" ? { ...p, content: "[[Nowhere]]" } : p) }
-    assert.isFalse(references(project).some((r) => r.from === "closures"))
+  it("counts progress over topics and finds the next one to study", () => {
+    assert.deepStrictEqual(projectProgress(sampleProject), { studied: 7, total: 31 })
+    assert.strictEqual(nextTopic(sampleProject)?.title, "Module system")
   })
 
-  it("adds a child page by writing its [[link]] into the parent", () => {
-    const { project, page } = addChildPage(sampleProject, PageId.make("closures"), "Currying", PageId.make("currying"))
-    const closures = project.pages.find((p) => p.id === "closures")!
-    assert.strictEqual(page.title, "Currying")
-    assert.isTrue(closures.content.endsWith("- [[Currying]]"))
-    assert.strictEqual(computeLevels(project).levelOf.get(page.id), 5)
+  it("draws cross references only between pages that are not parent and child", () => {
+    const named = crossReferences(sampleProject).map((r) => `${titleOf(sampleProject, r.from)} > ${titleOf(sampleProject, r.to)}`)
+    assert.deepStrictEqual(named.sort(), ["Providers > Dependency Injection", "Providers > JWT"])
+  })
+})
+
+describe("project rules", () => {
+  it("starts a new project with just its root, named like the map", () => {
+    const project = newProject(ProjectId.make("p"), " Rust ", id("rust"))
+    assert.strictEqual(project.title, "Rust")
+    assert.strictEqual(structureOf(project).root.id, "rust")
+    assert.strictEqual(structureOf(project).modules.length, 0)
   })
 
-  it("links an existing title instead of creating a duplicate", () => {
-    const { project, page } = addChildPage(sampleProject, PageId.make("arrays"), "scope", PageId.make("dup"))
-    assert.strictEqual(page.id, "scope")
+  it("adds modules with rotating colours and topics under them", () => {
+    let project = newProject(ProjectId.make("p"), "Rust", id("rust"))
+    project = addModule(project, "Ownership", id("own")).project
+    project = addModule(project, "Traits", id("traits")).project
+    project = addTopic(project, id("own"), "Borrowing", id("borrow")).project
+    const { modules } = structureOf(project)
+    assert.notStrictEqual(modules[0].page.color, modules[1].page.color)
+    assert.deepStrictEqual(modules[0].topics.map((t) => t.title), ["Borrowing"])
+  })
+
+  it("puts a page added from a topic in the topic's module, and from the root as a module", () => {
+    const fromTopic = addTopic(sampleProject, id("guards"), "Strategies", id("strategies"))
+    assert.strictEqual(fromTopic.page.parentId, "authentication")
+    const fromRoot = addTopic(sampleProject, sampleProject.rootPageId, "GraphQL", id("graphql"))
+    assert.strictEqual(roleOf(fromRoot.project, id("graphql")), "module")
+  })
+
+  it("returns the existing page instead of duplicating a title", () => {
+    const { project, page } = addTopic(sampleProject, id("testing"), "jwt", id("dup"))
+    assert.strictEqual(page.id, "jwt")
     assert.strictEqual(project.pages.length, sampleProject.pages.length)
   })
 
-  it("makes the first page the start when there is none", () => {
-    const empty = setStartPage({ ...sampleProject, pages: [] }, null)
-    const { project, page } = addChildPage(empty, null, "Intro", PageId.make("intro"))
-    assert.strictEqual(project.startPageId, page.id)
+  it("renaming the root renames the map", () => {
+    assert.strictEqual(updatePage(sampleProject, sampleProject.rootPageId, { title: "Nest" }).title, "Nest")
+  })
+
+  it("moves a topic between modules", () => {
+    const project = moveTopic(sampleProject, id("jwt"), id("providers"))
+    assert.isTrue(structureOf(project).modules[2].topics.some((t) => t.id === "jwt"))
+    assert.strictEqual(moveTopic(sampleProject, id("providers"), id("testing")), sampleProject)
+  })
+
+  it("deleting a module takes its topics; the root can't be deleted", () => {
+    const project = deletePage(sampleProject, id("testing"))
+    assert.isUndefined(findPageByTitle(project.pages, "Unit tests"))
+    assert.strictEqual(project.pages.length, sampleProject.pages.length - 5)
+    assert.strictEqual(deletePage(sampleProject, sampleProject.rootPageId), sampleProject)
   })
 
   it("rewrites [[links]] when a page is renamed, case-insensitively", () => {
-    const renamed = renameLinks(sampleProject, "functions", "Functions in depth")
-    const start = renamed.pages.find((p) => p.id === "variables")!
-    assert.isTrue(start.content.includes("[[Functions in depth]]"))
-    assert.isFalse(start.content.includes("[[Functions]]"))
-  })
-
-  it("deleting the start page clears it and leaves links to it as missing", () => {
-    const project = deletePage(sampleProject, PageId.make("variables"))
-    assert.strictEqual(project.startPageId, null)
-    assert.isUndefined(findPageByTitle(project.pages, "Variables & Types"))
+    const renamed = renameLinks(sampleProject, "jwt", "JSON Web Tokens")
+    const providers = renamed.pages.find((p) => p.id === "providers")!
+    assert.isTrue(providers.content.includes("[[JSON Web Tokens]]"))
   })
 })
 
 describe("project storage format", () => {
-  it.effect("decodes projects saved by earlier versions (extra fields are ignored)", () =>
+  it.effect("round-trips through the schema", () =>
     Effect.gen(function*() {
-      const saved = {
-        ...sampleProject,
-        connections: [],
-        pages: sampleProject.pages.map((p) => ({ ...p, position: { x: 0, y: 0 } }))
-      }
-      const project = yield* Schema.decodeUnknownEffect(Project)(JSON.parse(JSON.stringify(saved)))
-      assert.strictEqual(project.pages.length, 5)
-      assert.isFalse("position" in project.pages[0])
+      const project = yield* Schema.decodeUnknownEffect(Project)(JSON.parse(JSON.stringify(sampleProject)))
+      assert.strictEqual(project.pages.length, 40)
+      assert.strictEqual(project.pages[1].icon, "book")
     }))
 })
