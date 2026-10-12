@@ -45,7 +45,7 @@ Used in a desktop browser alongside the material being studied (video, docs, IDE
 - Progress is a discreet per-page studied flag plus a project counter; the product does not compute a "next" page.
 - Sharing creates a full independent copy; each user owns their own copy and progress.
 - Out of scope for v1: real-time collaboration, nested page hierarchy, built-in templates, social features (likes, comments on others' projects), mobile apps.
-- Stack: Turborepo monorepo — Next.js 14 + Mantine 8 (design system, customised only through `apps/web/theme.ts`) (`apps/web`), NestJS + Prisma (`apps/api`), shared types (`packages/types`).
+- Stack: Turborepo monorepo — Next.js 15 + Mantine 8 (design system, customised only through `apps/web/theme.ts`) + Effect 4 (`apps/web`), NestJS + Prisma (`apps/api`), the domain model (`packages/domain`) and API contract (`packages/contract`).
 - Terminology: "project" = topic, "page" = subtopic, "connection" = undirected link between related pages.
 - Undecided: AI features. The repo name says "WisePath AI", but no AI capability is defined; do not imply one.
 

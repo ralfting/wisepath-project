@@ -6,9 +6,10 @@ Monorepo (pnpm + Turborepo):
 
 | Path | What |
 |---|---|
-| `apps/web` | Next.js 14 front end (Mantine 8, theme in `apps/web/theme.ts`) on port 3000 |
+| `apps/web` | Next.js 15 front end (React 19, Mantine 8, Effect 4) on port 3000 |
 | `apps/api` | NestJS API with Prisma on port 3001 (`/api`) |
-| `packages/types` | Shared TypeScript types |
+| `packages/domain` | `@wisepath/domain`: the model in plain TypeScript and Effect Schema (auth, projects), no React |
+| `packages/contract` | `@wisepath/contract`: the API described with Effect `HttpApi`, used by the web client |
 | `prisma/` | Database schema and migrations (Postgres) |
 
 ## What you need
@@ -69,6 +70,31 @@ pnpm --filter @wisepath/api db:migrate
 pnpm --filter @wisepath/api db:seed
 pnpm --filter @wisepath/api dev             # http://localhost:3001/api, reloads on change
 ```
+
+## Checks
+
+```bash
+pnpm typecheck                         # every package
+pnpm test                              # domain rules and web use cases (Vitest + @effect/vitest)
+pnpm --filter @wisepath/web lint       # ESLint, including the layer boundaries below
+```
+
+## How the web app is organised
+
+The front end is built on [Effect 4](https://effect.website) and split in layers. Each one only imports from the layers below it; ESLint (`apps/web/eslint.config.mjs`) enforces it.
+
+| Layer | Where | What lives there |
+|---|---|---|
+| Domain | `packages/domain` | Schemas, branded ids, tagged errors, pure rules, and service interfaces (`Context.Service`). Plain TypeScript, no React. |
+| Contract | `packages/contract` | The HTTP API as `HttpApi` groups, decoding the NestJS responses into domain types and errors. |
+| Infrastructure | `apps/web/infrastructure` | `Layer`s that implement the domain services: the API client, auth over HTTP, projects in local storage, link previews, and the `/api/link-preview` handler. In-memory versions for tests sit beside them. |
+| Use cases | `apps/web/useCases` | Effect programs plus the hooks the UI calls (`useSession`, `useLogin`, `useProject`, `useProjects`, `useLinkPreview`, …), backed by atoms. Every hook that touches a service lives here, including ones that combine domains. |
+| Features | `apps/web/features` | React components by feature (`auth`, `map`, `page`, `editor`, `projects`). They use hooks from `useCases` and pure rules from the domain, never Effect or infrastructure directly. |
+| Routes | `apps/web/app` | Next.js pages and layouts: read params, render a feature. |
+
+Forms use TanStack Form with the domain schemas (Effect Schema through Standard Schema), so the form and the use case validate with the same rules.
+
+The [Effect language service](https://github.com/Effect-TS/language-service) is enabled in every `tsconfig.json`; in VS Code, pick "Use Workspace Version" of TypeScript to see its diagnostics. From the terminal: `npx effect-language-service diagnostics --project tsconfig.json`.
 
 ## Environment variables
 
