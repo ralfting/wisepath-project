@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Box, Group, Stack, Text } from '@mantine/core';
 
 /**
  * LinkPreview
@@ -48,12 +49,14 @@ export type PreviewTarget = { kind: 'page'; title: string; page: PreviewPage | u
 export function LinkPreview({ target }: { target: PreviewTarget }) {
   if (target.kind === 'page') {
     return (
-      <div className="space-y-1">
-        <p className="font-star text-[15px] italic leading-snug">{target.page?.title || target.title}</p>
-        <p className="line-clamp-2 text-[13px] leading-snug text-muted-foreground">
+      <Stack gap={4}>
+        <Text ff="var(--mantine-font-family-headings)" fs="italic" fz={15} lh={1.3}>
+          {target.page?.title || target.title}
+        </Text>
+        <Text size="xs" c="dimmed" lineClamp={2}>
           {target.page ? plainExcerpt(target.page.content) || 'Nothing written yet.' : "This page doesn't exist yet."}
-        </p>
-      </div>
+        </Text>
+      </Stack>
     );
   }
   return <ExternalLinkPreview href={target.href} />;
@@ -78,22 +81,26 @@ function ExternalLinkPreview({ href }: { href: string }) {
   }, [href]);
 
   return (
-    <div className="flex gap-2.5">
+    <Group gap={10} align="flex-start" wrap="nowrap">
       {preview?.favicon ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={preview.favicon} alt="" width={16} height={16} className="mt-0.5 h-4 w-4 shrink-0 rounded-sm" />
+        <img src={preview.favicon} alt="" width={16} height={16} style={{ marginTop: 2, borderRadius: 2, flexShrink: 0 }} />
       ) : (
-        <span className="mt-0.5 h-4 w-4 shrink-0 rounded-sm bg-accent" aria-hidden="true" />
+        <Box w={16} h={16} mt={2} bg="atlas.1" style={{ borderRadius: 2, flexShrink: 0 }} aria-hidden="true" />
       )}
-      <div className="min-w-0 space-y-0.5">
-        <p className="line-clamp-2 text-sm font-bold leading-snug">
+      <Stack gap={2} miw={0}>
+        <Text size="sm" fw={700} lh={1.3} lineClamp={2}>
           {preview === undefined ? 'Loading preview…' : preview?.title || host}
-        </p>
+        </Text>
         {preview?.description && (
-          <p className="line-clamp-2 text-[13px] leading-snug text-muted-foreground">{preview.description}</p>
+          <Text size="xs" c="dimmed" lineClamp={2}>
+            {preview.description}
+          </Text>
         )}
-        <p className="truncate text-xs text-muted-foreground">{preview?.siteName ?? host}</p>
-      </div>
-    </div>
+        <Text size="xs" c="dimmed" truncate>
+          {preview?.siteName ?? host}
+        </Text>
+      </Stack>
+    </Group>
   );
 }

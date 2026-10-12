@@ -1,0 +1,139 @@
+.wrapper {
+  position: relative;
+}
+
+/* The editor sits on the page itself: no frame, toolbar on the page's ground */
+.root {
+  border: 0;
+  background: transparent;
+}
+
+.toolbar {
+  padding-inline: 0;
+  background: var(--mantine-color-body);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.content {
+  background: transparent;
+
+  & :global(.ProseMirror) {
+    min-height: 14rem;
+    padding-inline: 0;
+    font-size: 15px;
+    line-height: 1.65;
+    caret-color: var(--mantine-color-atlas-7);
+  }
+}
+
+.bubble {
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-md);
+}
+
+/* Link preview card, flush with the link so the pointer can cross onto it */
+.card {
+  position: absolute;
+  z-index: 20;
+  width: 18rem;
+  padding-top: 6px;
+}
+
+.picker {
+  position: fixed;
+  z-index: 40;
+  width: 16rem;
+  overflow: hidden;
+}
+
+.option {
+  display: block;
+  width: 100%;
+  padding: 6px var(--mantine-spacing-sm);
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  &[aria-selected='true'],
+  &:hover {
+    background: var(--mantine-color-atlas-1);
+  }
+}
+
+.starName {
+  font-family: var(--mantine-font-family-headings);
+  font-style: italic;
+}
+
+/* Our own nodes inside the editor */
+
+/* [[Page]] links: italic like star names; dashed when the page does not exist yet */
+.content :global(.wikilink) {
+  font-family: var(--mantine-font-family-headings);
+  font-style: italic;
+  color: var(--mantine-color-atlas-7);
+  text-decoration: underline;
+  text-decoration-color: alpha(var(--mantine-color-atlas-7), 0.35);
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.content :global(.wikilink:hover) {
+  text-decoration-color: currentColor;
+}
+
+.content :global(.wikilink-missing) {
+  color: var(--mantine-color-dimmed);
+  text-decoration-style: dashed;
+  text-decoration-color: currentColor;
+}
+
+.content :global(div[data-youtube-video]) {
+  max-width: 640px;
+}
+
+.content :global(div[data-youtube-video] iframe) {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-atlas-7);
+}
+
+.content :global(.ProseMirror-selectednode) {
+  outline: 2px solid var(--mantine-color-atlas-7);
+  outline-offset: 2px;
+}
+
+.content :global(p.is-empty::before) {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--mantine-color-placeholder);
+}
+
+/* Headings inside notes stay in the UI face; only page titles read like star names */
+.content :global(.ProseMirror :is(h1, h2, h3)) {
+  font-family: var(--mantine-font-family);
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.4em;
+  margin-bottom: 0.5em;
+}
+
+.content :global(.ProseMirror h1) {
+  font-size: 1.35em;
+}
+
+.content :global(.ProseMirror h2) {
+  font-size: 1.15em;
+}
+
+.content :global(.ProseMirror h3) {
+  font-size: 1em;
+}

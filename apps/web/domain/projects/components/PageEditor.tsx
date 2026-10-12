@@ -93,6 +93,7 @@ export function PageEditor({ pageId }: { pageId: string }) {
           actions={actions}
           isFresh={isFresh}
           titleSize={40}
+          toolbarOffset={56}
         />
       </Box>
     </Box>

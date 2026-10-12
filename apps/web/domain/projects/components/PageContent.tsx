@@ -37,9 +37,11 @@ interface PageContentProps {
   isFresh?: boolean;
   /** Title size in px: larger on the full-screen page */
   titleSize?: number;
+  /** Where the editor's sticky toolbar stops, below any sticky header */
+  toolbarOffset?: number;
 }
 
-export function PageContent({ project, page, actions, isFresh = false, titleSize = 32 }: PageContentProps) {
+export function PageContent({ project, page, actions, isFresh = false, titleSize = 32, toolbarOffset = 0 }: PageContentProps) {
   const [focusSignal, setFocusSignal] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [childDraft, setChildDraft] = useState<string | null>(null);
@@ -96,6 +98,7 @@ export function PageContent({ project, page, actions, isFresh = false, titleSize
           onLinkPage={() => {}}
           onCreatePage={actions.createLinkedPage}
           focusSignal={focusSignal}
+          toolbarOffset={toolbarOffset}
         />
       </Stack>
 
