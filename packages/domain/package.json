@@ -1,0 +1,23 @@
+{
+  "name": "@wisepath/domain",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "WisePath domain: Effect Schemas, errors, pure rules and service interfaces. No React, no I/O.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./auth": "./src/auth/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "effect": "4.0.3"
+  },
+  "devDependencies": {
+    "@effect/vitest": "4.0.3",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.4"
+  }
+}
