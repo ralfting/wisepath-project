@@ -11,7 +11,8 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "types": []
+    "types": [],
+    "plugins": [{ "name": "@effect/language-service" }]
   },
   "include": ["src"]
 }

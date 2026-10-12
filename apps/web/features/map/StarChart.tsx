@@ -392,7 +392,6 @@ export function StarChart({
 
   const selectedPos = selectedId && layout.positions.has(selectedId) ? toScreen(positionOf(selectedId)) : null;
   const searchEmpty = matchIds !== null && matchIds.size === 0;
-  const cursor = gestureKind === 'pan' ? 'cursor-grabbing' : 'cursor-grab';
   // Label for the pages set apart, above their loose cluster
   const apartLabel = useMemo(() => {
     const pts = layout.apart.map((id) => layout.positions.get(id)).filter((p): p is ChartPosition => !!p);

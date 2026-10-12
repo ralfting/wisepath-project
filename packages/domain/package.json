@@ -17,6 +17,7 @@
     "effect": "4.0.3"
   },
   "devDependencies": {
+    "@effect/language-service": "0.87.3",
     "@effect/vitest": "4.0.3",
     "typescript": "~5.9.3",
     "vitest": "^5.0.4"

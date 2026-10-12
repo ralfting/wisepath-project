@@ -1,6 +1,6 @@
 import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY } from 'd3-force';
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';
-import type { PageId, Project } from '@wisepath/domain/projects';
+import type { Project } from '@wisepath/domain/projects';
 import { computeLevels, references } from '@wisepath/domain/projects';
 
 /** A point on the chart, in chart units */

@@ -26,7 +26,7 @@ import * as programs from "./programs"
  */
 
 const loadedAtom = Atom.family((id: ProjectId) => appRuntime.atom(programs.loadProject(id)))
-const draftAtom = Atom.family((id: ProjectId) => Atom.keepAlive(Atom.make(Option.none<Project>())))
+const draftAtom = Atom.family((_id: ProjectId) => Atom.keepAlive(Atom.make(Option.none<Project>())))
 const saveAtom = Atom.family((_: ProjectId) =>
   appRuntime.fn(programs.saveProject, { reactivityKeys: [ReactivityKeys.projects] })
 )
@@ -82,7 +82,6 @@ export function useProject(projectId: string): { state: ProjectState; actions: P
       registry.set(draftAtom(id), Option.some(next))
       save(next)
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [registry, id, save]
   )
 
