@@ -7,15 +7,16 @@ import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import {
   PageId,
   ProjectId,
-  addChildPage,
-  addPage,
+  addModule,
+  addTopic,
   deletePage,
   findSampleProject,
+  moveTopic,
   renameLinks,
-  setStartPage,
+  setLook,
   updatePage
 } from "@wisepath/domain/projects"
-import type { LinkPreview, Page, Project } from "@wisepath/domain/projects"
+import type { LinkPreview, Page, PageColor, PageIcon, Project } from "@wisepath/domain/projects"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import * as programs from "./programs"
 
@@ -45,12 +46,14 @@ export interface ProjectActions {
   updatePage: (pageId: string, patch: Partial<Pick<Page, "title" | "content" | "studied">>) => void
   /** Rewrites [[Old]] links across the project after a rename */
   renameLinks: (oldTitle: string, newTitle: string) => void
-  /** Adds a page one level below the parent (its [[link]] is written there); no parent makes the start page */
-  addChild: (parentId: string | null, title: string) => Page
-  /** Adds a page by title without linking it, e.g. from a [[link]] that pointed nowhere yet */
-  addPage: (title: string) => Page
+  /** Adds a module around the root */
+  addModule: (title: string) => Page
+  /** Adds a topic to the module of `pageId`; from the root it adds a module (also used for new [[links]]) */
+  addTopic: (pageId: string, title: string) => Page
+  /** Removes a page; a module goes with its topics, the root stays */
   deletePage: (pageId: string) => void
-  setStartPage: (pageId: string | null) => void
+  setLook: (pageId: string, look: { color?: PageColor; icon?: PageIcon }) => void
+  moveTopic: (topicId: string, moduleId: string) => void
   /** Throws away local edits and restores the shipped sample */
   reset: () => void
 }
@@ -93,18 +96,19 @@ export function useProject(projectId: string): { state: ProjectState; actions: P
   const actions: ProjectActions = {
     updatePage: (pageId, patch) => change((p) => updatePage(p, PageId.make(pageId), patch)),
     renameLinks: (oldTitle, newTitle) => change((p) => renameLinks(p, oldTitle, newTitle)),
-    addChild: (parentId, title) => {
-      const result = addChildPage(current()!, parentId === null ? null : PageId.make(parentId), title, programs.newPageId())
+    addModule: (title) => {
+      const result = addModule(current()!, title, programs.newPageId())
       commit(result.project)
       return result.page
     },
-    addPage: (title) => {
-      const result = addPage(current()!, title, programs.newPageId())
+    addTopic: (pageId, title) => {
+      const result = addTopic(current()!, PageId.make(pageId), title, programs.newPageId())
       commit(result.project)
       return result.page
     },
     deletePage: (pageId) => change((p) => deletePage(p, PageId.make(pageId))),
-    setStartPage: (pageId) => change((p) => setStartPage(p, pageId === null ? null : PageId.make(pageId))),
+    setLook: (pageId, look) => change((p) => setLook(p, PageId.make(pageId), look)),
+    moveTopic: (topicId, moduleId) => change((p) => moveTopic(p, PageId.make(topicId), PageId.make(moduleId))),
     reset: () => {
       const sample = findSampleProject(id)
       if (sample) commit(sample)
