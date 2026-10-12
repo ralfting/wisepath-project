@@ -3,13 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "prisma": {
-    "schema": "../../prisma/schema.prisma"
+    "schema": "../../prisma/schema.prisma",
+    "seed": "node prisma/seed.js"
   },
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
     "start": "node dist/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix"
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
