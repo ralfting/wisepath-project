@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from "@/domain/auth";
+// Mantine after globals.css so its component styles win over Tailwind's preflight while both are loaded
+import "@mantine/core/styles.css";
+import "@mantine/tiptap/styles.css";
+import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
 import { Atkinson_Hyperlegible, Spectral } from "next/font/google";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "WisePath",
@@ -28,9 +32,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${atkinson.variable} ${spectral.variable} font-sans antialiased`}>
-        <AuthProvider>{children}</AuthProvider>
+    // Font variables sit on <html> so the theme's :root font stacks can use them
+    <html lang="en" className={`${atkinson.variable} ${spectral.variable}`} {...mantineHtmlProps}>
+      <head>
+        <ColorSchemeScript defaultColorScheme="light" />
+      </head>
+      <body className="antialiased">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

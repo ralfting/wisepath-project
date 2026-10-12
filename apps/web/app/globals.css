@@ -70,7 +70,7 @@
     scrollbar-color: hsl(var(--border)) transparent;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
     caret-color: hsl(var(--primary));
     font-variant-numeric: tabular-nums;
   }
@@ -273,4 +273,10 @@
       animation: none;
     }
   }
+}
+
+/* The app's pale atlas ground; Mantine surfaces (inputs, cards) keep --mantine-color-body.
+   html body outranks Mantine's own body rule, which loads after this file. */
+html body {
+  background-color: var(--mantine-color-atlas-1);
 }
