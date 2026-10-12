@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import { ProjectMap, getSampleProject } from '@/domain/projects';
 
 interface ProjectPageProps {
-  params: { projectId: string };
+  params: Promise<{ projectId: string }>;
 }
 
-export function generateMetadata({ params }: ProjectPageProps): Metadata {
-  const project = getSampleProject(params.projectId);
+export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
+  const project = getSampleProject((await params).projectId);
   return { title: project ? `${project.title} | WisePath` : 'WisePath' };
 }
 

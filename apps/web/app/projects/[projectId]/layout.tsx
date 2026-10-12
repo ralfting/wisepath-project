@@ -4,11 +4,12 @@ import { ProjectStoreProvider, getSampleProject } from '@/domain/projects';
 
 interface ProjectLayoutProps {
   children: ReactNode;
-  params: { projectId: string };
+  params: Promise<{ projectId: string }>;
 }
 
-export default function ProjectLayout({ children, params }: ProjectLayoutProps) {
-  const project = getSampleProject(params.projectId);
+export default async function ProjectLayout({ children, params }: ProjectLayoutProps) {
+  const { projectId } = await params;
+  const project = getSampleProject(projectId);
   if (!project) notFound();
 
   return <ProjectStoreProvider initialProject={project}>{children}</ProjectStoreProvider>;

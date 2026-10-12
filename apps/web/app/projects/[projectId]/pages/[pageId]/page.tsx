@@ -1,9 +1,10 @@
 import { PageEditor } from '@/domain/projects';
 
 interface PageEditorPageProps {
-  params: { projectId: string; pageId: string };
+  params: Promise<{ projectId: string; pageId: string }>;
 }
 
-export default function PageEditorPage({ params }: PageEditorPageProps) {
-  return <PageEditor key={params.pageId} pageId={params.pageId} />;
+export default async function PageEditorPage({ params }: PageEditorPageProps) {
+  const { pageId } = await params;
+  return <PageEditor key={pageId} pageId={pageId} />;
 }
