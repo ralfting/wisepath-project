@@ -1,11 +1,14 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { Page, Project } from '../types/project.types';
 import { displayTitle } from '../entities/project.entity';
 import { references } from '../entities/levels';
 import { MarkdownEditor } from '../editor/MarkdownEditor';
-import { PlusIcon, TrashIcon } from './icons';
+import { Box, Button, Group, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
+import { IconPlus, IconTrash } from '@tabler/icons-react';
+import classes from './PageContent.module.css';
 
 /**
  * PageContent
@@ -32,10 +35,11 @@ interface PageContentProps {
   actions: PageActions;
   /** Focus the title on mount, for a page just created */
   isFresh?: boolean;
-  titleClassName?: string;
+  /** Title size in px: larger on the full-screen page */
+  titleSize?: number;
 }
 
-export function PageContent({ project, page, actions, isFresh = false, titleClassName = 'text-[32px]' }: PageContentProps) {
+export function PageContent({ project, page, actions, isFresh = false, titleSize = 32 }: PageContentProps) {
   const [focusSignal, setFocusSignal] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [childDraft, setChildDraft] = useState<string | null>(null);
@@ -58,13 +62,12 @@ export function PageContent({ project, page, actions, isFresh = false, titleClas
   };
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <label htmlFor={`title-${page.id}`} className="sr-only">
-          Page title
-        </label>
-        <input
+    <Stack gap="xl">
+      <Stack gap="md">
+        <TextInput
           id={`title-${page.id}`}
+          variant="unstyled"
+          aria-label="Page title"
           value={page.title}
           autoFocus={isFresh}
           onFocus={() => {
@@ -72,7 +75,7 @@ export function PageContent({ project, page, actions, isFresh = false, titleClas
           }}
           // Links to this page follow the new name once editing the title ends
           onBlur={() => actions.renameLinks(titleAtFocus.current, page.title)}
-          onChange={(e) => actions.updatePage(page.id, { title: e.target.value })}
+          onChange={(e) => actions.updatePage(page.id, { title: e.currentTarget.value })}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
               e.preventDefault();
@@ -80,7 +83,8 @@ export function PageContent({ project, page, actions, isFresh = false, titleClas
             }
           }}
           placeholder="Untitled page"
-          className={`w-full bg-transparent font-star font-medium italic leading-tight outline-none placeholder:text-muted-foreground/60 focus-visible:outline-none ${titleClassName}`}
+          classNames={{ input: classes.titleInput }}
+          style={{ '--title-size': `${titleSize}px` } as CSSProperties}
         />
         <MarkdownEditor
           key={page.id}
@@ -93,118 +97,109 @@ export function PageContent({ project, page, actions, isFresh = false, titleClas
           onCreatePage={actions.createLinkedPage}
           focusSignal={focusSignal}
         />
-      </div>
+      </Stack>
 
-      <section className="space-y-3 border-t border-border pt-6" aria-labelledby={`next-${page.id}`}>
-        <h3 id={`next-${page.id}`} className="text-[15px] font-bold">
-          Leads to <span className="font-normal text-muted-foreground">({leadsTo.length})</span>
-        </h3>
+      <Stack component="section" gap="sm" className={classes.section} aria-labelledby={`next-${page.id}`}>
+        <Text id={`next-${page.id}`} fw={700} fz={15}>
+          Leads to{' '}
+          <Text span c="dimmed">
+            ({leadsTo.length})
+          </Text>
+        </Text>
         {leadsTo.length > 0 && <PageLinks pages={leadsTo} onOpen={actions.openPage} />}
 
         {childDraft !== null ? (
-          <div className="space-y-1.5">
-            <label htmlFor={`child-${page.id}`} className="sr-only">
-              Name of the page below
-            </label>
-            <input
-              id={`child-${page.id}`}
-              autoFocus
-              value={childDraft}
-              onChange={(e) => setChildDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addChild();
-                } else if (e.key === 'Escape') {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setChildDraft(null);
-                }
-              }}
-              onBlur={() => {
-                if (childDraft.trim()) actions.addChild(page.id, childDraft.trim());
+          <TextInput
+            id={`child-${page.id}`}
+            autoFocus
+            aria-label="Name of the page below"
+            value={childDraft}
+            onChange={(e) => setChildDraft(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                addChild();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
                 setChildDraft(null);
-              }}
-              placeholder="Name the next page"
-              className="h-9 w-full rounded border border-input bg-card px-3 font-star text-[15px] italic placeholder:font-sans placeholder:text-sm placeholder:not-italic placeholder:text-muted-foreground"
-            />
-            <p className="text-xs text-muted-foreground">Enter adds it and keeps the field open for the next one. Esc closes.</p>
-          </div>
+              }
+            }}
+            onBlur={() => {
+              if (childDraft.trim()) actions.addChild(page.id, childDraft.trim());
+              setChildDraft(null);
+            }}
+            placeholder="Name the next page"
+            description="Enter adds it and keeps the field open for the next one. Esc closes."
+            inputWrapperOrder={['input', 'description']}
+            classNames={{ input: classes.nameInput }}
+          />
         ) : (
-          <button
-            type="button"
-            onClick={() => setChildDraft('')}
-            className="inline-flex h-9 items-center gap-1.5 rounded border border-border bg-card px-3 text-sm font-bold text-foreground transition-colors hover:bg-accent"
-          >
-            <PlusIcon />
+          <Button variant="default" w="fit-content" leftSection={<IconPlus size={16} />} onClick={() => setChildDraft('')}>
             Add a page below
-          </button>
+          </Button>
         )}
 
         {comesFrom.length > 0 && (
-          <div className="space-y-1.5 pt-2">
-            <h3 className="text-[15px] font-bold">
-              Comes from <span className="font-normal text-muted-foreground">({comesFrom.length})</span>
-            </h3>
+          <Stack gap={6} pt="xs">
+            <Text fw={700} fz={15}>
+              Comes from{' '}
+              <Text span c="dimmed">
+                ({comesFrom.length})
+              </Text>
+            </Text>
             <PageLinks pages={comesFrom} onOpen={actions.openPage} />
-          </div>
+          </Stack>
         )}
-        <p className="text-xs text-muted-foreground">To link a page that already exists, type [[ in the text.</p>
-      </section>
+        <Text size="xs" c="dimmed">
+          To link a page that already exists, type [[ in the text.
+        </Text>
+      </Stack>
 
-      <div className="border-t border-border pt-5">
+      <Box className={classes.section}>
         {confirmDelete ? (
-          <div className="space-y-3">
-            <p className="text-sm">
-              Delete <span className="font-star italic">{displayTitle(page)}</span>? Links to it stay in other pages and
+          <Stack gap="sm">
+            <Text size="sm">
+              Delete <span className={classes.starName}>{displayTitle(page)}</span>? Links to it stay in other pages and
               show as missing. This can&apos;t be undone.
-            </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => actions.deletePage(page.id)}
-                className="h-9 rounded bg-destructive px-3.5 text-sm font-bold text-destructive-foreground hover:bg-destructive/90"
-              >
+            </Text>
+            <Group gap="xs">
+              <Button color="red" onClick={() => actions.deletePage(page.id)}>
                 Delete page
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(false)}
-                className="h-9 rounded px-3.5 text-sm text-foreground hover:bg-accent"
-              >
+              </Button>
+              <Button variant="subtle" color="gray" c="var(--mantine-color-text)" onClick={() => setConfirmDelete(false)}>
                 Keep it
-              </button>
-            </div>
-          </div>
+              </Button>
+            </Group>
+          </Stack>
         ) : (
-          <button
-            type="button"
+          <Button
+            variant="subtle"
+            color="red"
+            c="dimmed"
+            size="compact-sm"
+            px={0}
+            leftSection={<IconTrash size={15} />}
             onClick={() => setConfirmDelete(true)}
-            className="inline-flex items-center gap-1.5 rounded py-1 text-sm text-muted-foreground hover:text-destructive"
           >
-            <TrashIcon />
             Delete page
-          </button>
+          </Button>
         )}
-      </div>
-    </div>
+      </Box>
+    </Stack>
   );
 }
 
 function PageLinks({ pages, onOpen }: { pages: Page[]; onOpen: (pageId: string) => void }) {
   return (
-    <ul className="divide-y divide-border border-y border-border">
+    <Box component="ul" p={0} m={0} className={classes.linkList} style={{ listStyle: 'none' }}>
       {pages.map((p) => (
-        <li key={p.id}>
-          <button
-            type="button"
-            onClick={() => onOpen(p.id)}
-            className="block w-full truncate py-1.5 text-left font-star text-[15px] italic hover:underline hover:underline-offset-4"
-          >
+        <li key={p.id} className={classes.linkRow}>
+          <UnstyledButton onClick={() => onOpen(p.id)} className={classes.starName} fz={15} w="100%" ta="left">
             {displayTitle(p)}
-          </button>
+          </UnstyledButton>
         </li>
       ))}
-    </ul>
+    </Box>
   );
 }

@@ -7,7 +7,9 @@ import { useProjectStore } from '../hooks/useProjectStore';
 import { PageContent } from './PageContent';
 import type { PageActions } from './PageContent';
 import { StudiedToggle } from './StudiedToggle';
-import { BackIcon } from './icons';
+import { Anchor, Box, Button, Center, Group, Stack, Text, Title } from '@mantine/core';
+import { IconChevronLeft } from '@tabler/icons-react';
+import classes from './PageEditor.module.css';
 
 /**
  * PageEditor
@@ -25,15 +27,17 @@ export function PageEditor({ pageId }: { pageId: string }) {
   if (!ready) return null;
   if (!page) {
     return (
-      <main className="grid min-h-screen place-items-center px-4">
-        <div className="max-w-md space-y-3 text-center">
-          <h1 className="font-star text-3xl italic">Page not found</h1>
-          <p className="text-[15px] text-muted-foreground">It may have been deleted. The rest of the project is on the map.</p>
-          <Link href={`/projects/${project.id}`} className="inline-block font-bold underline underline-offset-4">
+      <Center component="main" mih="100vh" p="md">
+        <Stack gap="sm" align="center" maw={420} ta="center">
+          <Title order={1} fz={30}>
+            Page not found
+          </Title>
+          <Text c="dimmed">It may have been deleted. The rest of the project is on the map.</Text>
+          <Anchor component={Link} href={`/projects/${project.id}`} fw={700}>
             Back to the map
-          </Link>
-        </div>
-      </main>
+          </Anchor>
+        </Stack>
+      </Center>
     );
   }
 
@@ -52,39 +56,45 @@ export function PageEditor({ pageId }: { pageId: string }) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-4 border-b border-border bg-card px-4 sm:px-6">
-        <Link
+    <Box mih="100vh">
+      <Group component="header" gap="md" wrap="nowrap" className={classes.header}>
+        <Button
+          component={Link}
           href={`/projects/${project.id}?page=${page.id}`}
-          className="inline-flex items-center gap-1 rounded py-1 pr-2 text-sm font-bold text-foreground hover:bg-accent"
+          variant="subtle"
+          color="gray"
+          c="var(--mantine-color-text)"
+          size="compact-sm"
+          leftSection={<IconChevronLeft size={16} />}
         >
-          <BackIcon />
           Map
-        </Link>
-        <nav aria-label="Breadcrumb" className="hidden min-w-0 truncate text-[15px] text-muted-foreground sm:block">
-          <Link href={`/projects/${project.id}`} className="hover:text-foreground hover:underline">
+        </Button>
+        <Text component="nav" aria-label="Breadcrumb" c="dimmed" fz={15} visibleFrom="sm" className={classes.breadcrumb}>
+          <Anchor component={Link} href={`/projects/${project.id}`} c="dimmed">
             {project.title}
-          </Link>
+          </Anchor>
           <span aria-hidden="true"> / </span>
-          <span className="text-foreground" aria-current="page">
+          <Text span c="var(--mantine-color-text)" aria-current="page">
             {displayTitle(page)}
-          </span>
-        </nav>
-        <div className="ml-auto flex items-center gap-4 text-sm text-muted-foreground">
-          <span className="hidden md:inline">Saved on this device</span>
+          </Text>
+        </Text>
+        <Group gap="md" ml="auto" wrap="nowrap">
+          <Text size="sm" c="dimmed" visibleFrom="md">
+            Saved on this device
+          </Text>
           <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />
-        </div>
-      </header>
+        </Group>
+      </Group>
 
-      <main className="mx-auto w-full max-w-[78ch] px-5 pb-20 pt-10 sm:px-8">
+      <Box component="main" maw="78ch" mx="auto" px={{ base: 'lg', sm: 'xl' }} pt={40} pb={80}>
         <PageContent
           project={project}
           page={page}
           actions={actions}
           isFresh={isFresh}
-          titleClassName="text-[40px]"
+          titleSize={40}
         />
-      </main>
-    </div>
+      </Box>
+    </Box>
   );
 }

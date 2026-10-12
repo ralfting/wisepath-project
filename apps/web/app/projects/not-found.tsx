@@ -1,17 +1,18 @@
 import Link from 'next/link';
+import { Anchor, Center, Stack, Text, Title } from '@mantine/core';
 
 export default function ProjectNotFound() {
   return (
-    <main className="grid min-h-screen place-items-center px-4">
-      <div className="max-w-md space-y-3 text-center">
-        <h1 className="font-star text-3xl italic">Project not found</h1>
-        <p className="text-[15px] text-muted-foreground">
-          This project doesn&apos;t exist or the link is wrong. Your projects are listed on the projects page.
-        </p>
-        <Link href="/projects" className="inline-block font-bold underline underline-offset-4">
+    <Center component="main" mih="100vh" p="md">
+      <Stack gap="sm" align="center" maw={420} ta="center">
+        <Title order={1} fz={30}>
+          Project not found
+        </Title>
+        <Text c="dimmed">This project doesn&apos;t exist or the link is wrong. Your projects are listed on the projects page.</Text>
+        <Anchor component={Link} href="/projects" fw={700}>
           Go to your projects
-        </Link>
-      </div>
-    </main>
+        </Anchor>
+      </Stack>
+    </Center>
   );
 }

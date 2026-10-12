@@ -1,6 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Center, Group, Table, Text, UnstyledButton } from '@mantine/core';
+import classes from './PageList.module.css';
 import type { Page, Project } from '../types/project.types';
 import { displayTitle, wordCount } from '../entities/project.entity';
 import { computeLevels, references } from '../entities/levels';
@@ -28,81 +30,81 @@ export function PageList({ project, selectedId, matchIds, onOpen }: PageListProp
   const rows = matchIds ? ordered.filter((p) => matchIds.has(p.id)) : ordered;
 
   if (project.pages.length === 0) {
-    return <EmptyMessage>This project has no pages yet. Use New page to add one.</EmptyMessage>;
+    return <EmptyMessage>This project has no pages yet. Use Add page to add one.</EmptyMessage>;
   }
   if (rows.length === 0) {
     return <EmptyMessage>No page matches your search. Clear it to see every page.</EmptyMessage>;
   }
 
   return (
-    <div className="h-full overflow-auto rounded border border-border bg-card">
-      <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-        <caption className="sr-only">Pages of {project.title}</caption>
-        <thead className="sticky top-0 bg-card">
-          <tr className="border-b border-border text-[13px] text-muted-foreground">
-            <th scope="col" className="w-20 px-4 py-2.5 font-normal">Level</th>
-            <th scope="col" className="px-4 py-2.5 font-normal">Page</th>
-            <th scope="col" className="w-32 px-4 py-2.5 font-normal">Studied</th>
-            <th scope="col" className="w-28 px-4 py-2.5 text-right font-normal">Words</th>
-            <th scope="col" className="px-4 py-2.5 font-normal">Comes from</th>
-            <th scope="col" className="w-24 px-4 py-2.5 text-right font-normal">Edited</th>
-          </tr>
-        </thead>
-        <tbody>
+    <Table.ScrollContainer minWidth={640} h="100%" className={classes.frame}>
+      <Table stickyHeader highlightOnHover verticalSpacing="xs" horizontalSpacing="md" fz="sm">
+        <Table.Caption className={classes.srOnly}>Pages of {project.title}</Table.Caption>
+        <Table.Thead>
+          <Table.Tr c="dimmed" fz={13}>
+            <Table.Th w={80} fw={400}>Level</Table.Th>
+            <Table.Th fw={400}>Page</Table.Th>
+            <Table.Th w={128} fw={400}>Studied</Table.Th>
+            <Table.Th w={112} fw={400} ta="right">Words</Table.Th>
+            <Table.Th fw={400}>Comes from</Table.Th>
+            <Table.Th w={96} fw={400} ta="right">Edited</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
           {rows.map((page) => (
-            <tr
-              key={page.id}
-              className={`border-b border-border/70 last:border-b-0 ${page.id === selectedId ? 'bg-accent' : 'hover:bg-muted'}`}
-            >
-              <td className="px-4 py-2.5 text-muted-foreground">{levelOf.get(page.id) ?? 'Not linked'}</td>
-              <td className="px-4 py-2.5">
-                <button
-                  type="button"
+            <Table.Tr key={page.id} bg={page.id === selectedId ? 'var(--mantine-color-atlas-1)' : undefined}>
+              <Table.Td c="dimmed">{levelOf.get(page.id) ?? 'Not linked'}</Table.Td>
+              <Table.Td>
+                <UnstyledButton
                   onClick={() => onOpen(page.id)}
                   aria-current={page.id === selectedId ? 'true' : undefined}
-                  className="text-left font-star text-base italic hover:underline hover:underline-offset-4"
+                  className={classes.pageName}
                 >
                   {displayTitle(page)}
-                </button>
-              </td>
-              <td className="px-4 py-2.5">
+                </UnstyledButton>
+              </Table.Td>
+              <Table.Td>
                 <StudiedCell page={page} />
-              </td>
-              <td className="px-4 py-2.5 text-right">{wordCount(page.content)}</td>
-              <td className="max-w-[28ch] truncate px-4 py-2.5 text-muted-foreground">
+              </Table.Td>
+              <Table.Td ta="right">{wordCount(page.content)}</Table.Td>
+              <Table.Td c="dimmed" maw={280} className={classes.truncate}>
                 {refs
                   .filter((r) => r.to === page.id)
                   .map((r) => displayTitle(byId.get(r.from) as Page))
                   .join(', ') || (page.id === project.startPageId ? 'Start' : 'Nothing yet')}
-              </td>
-              <td className="px-4 py-2.5 text-right text-muted-foreground">{dateFormat.format(new Date(page.updatedAt))}</td>
-            </tr>
+              </Table.Td>
+              <Table.Td ta="right" c="dimmed">
+                {dateFormat.format(new Date(page.updatedAt))}
+              </Table.Td>
+            </Table.Tr>
           ))}
-        </tbody>
-      </table>
-    </div>
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   );
 }
 
 function StudiedCell({ page }: { page: Page }) {
   return (
-    <span className={`inline-flex items-center gap-2 ${page.studied ? '' : 'text-muted-foreground'}`}>
+    <Group gap={8} c={page.studied ? undefined : 'dimmed'} wrap="nowrap">
       <svg width="12" height="12" aria-hidden="true">
         {page.studied ? (
-          <circle cx="6" cy="6" r="5" className="fill-primary" />
+          <circle cx="6" cy="6" r="5" fill="var(--mantine-color-atlas-7)" />
         ) : (
           <circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
         )}
       </svg>
       {page.studied ? 'Studied' : 'Not yet'}
-    </span>
+    </Group>
   );
 }
 
 function EmptyMessage({ children }: { children: ReactNode }) {
   return (
-    <div className="grid h-full place-items-center rounded border border-dashed border-border bg-card p-8 text-center text-sm text-muted-foreground">
-      {children}
-    </div>
+    <Center h="100%" p="xl" className={classes.empty}>
+      <Text size="sm" c="dimmed" ta="center">
+        {children}
+      </Text>
+    </Center>
   );
 }
