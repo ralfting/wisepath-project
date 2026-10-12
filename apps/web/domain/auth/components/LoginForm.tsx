@@ -29,7 +29,7 @@ export function LoginForm() {
     
     try {
       await login(email, password);
-      router.push('/dashboard');
+      router.push('/projects');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);

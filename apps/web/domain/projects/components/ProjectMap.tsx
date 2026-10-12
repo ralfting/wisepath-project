@@ -110,11 +110,11 @@ export function ProjectMap() {
     <div className="flex min-h-screen flex-col lg:h-screen">
       <header className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-3 border-b border-border bg-card px-4 py-3 sm:px-6 lg:flex lg:h-14 lg:py-0">
         <div className="flex min-w-0 items-center gap-x-5">
-          <Link href="/dashboard" className="text-[17px] font-bold">
+          <Link href="/projects" className="text-[17px] font-bold">
             WisePath
           </Link>
           <nav aria-label="Breadcrumb" className="min-w-0 truncate text-[15px] text-muted-foreground">
-            <Link href="/dashboard" className="hover:text-foreground hover:underline">
+            <Link href="/projects" className="hover:text-foreground hover:underline">
               Projects
             </Link>
             <span aria-hidden="true"> / </span>

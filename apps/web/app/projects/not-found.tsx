@@ -6,10 +6,10 @@ export default function ProjectNotFound() {
       <div className="max-w-md space-y-3 text-center">
         <h1 className="font-star text-3xl italic">Project not found</h1>
         <p className="text-[15px] text-muted-foreground">
-          This project doesn&apos;t exist or the link is wrong. Your projects are listed on the dashboard.
+          This project doesn&apos;t exist or the link is wrong. Your projects are listed on the projects page.
         </p>
-        <Link href="/dashboard" className="inline-block font-bold underline underline-offset-4">
-          Go to dashboard
+        <Link href="/projects" className="inline-block font-bold underline underline-offset-4">
+          Go to your projects
         </Link>
       </div>
     </main>
