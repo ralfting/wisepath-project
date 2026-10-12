@@ -26,10 +26,27 @@
 
 
 
-/* Inside the map: it searches the map, so it lives there */
+/* Inside the map: it searches the map, so it lives there; it unfolds from its icon */
 .search {
   flex-shrink: 1;
   min-width: 0;
+  box-shadow: var(--mantine-shadow-xs);
+  animation: search-open 180ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes search-open {
+  from {
+    opacity: 0.4;
+    max-width: 36px;
+  }
+}
+
+.searchButton {
+  flex-shrink: 0;
   box-shadow: var(--mantine-shadow-xs);
 }
 

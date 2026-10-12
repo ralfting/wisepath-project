@@ -43,14 +43,14 @@ export function ContinueButton({
         aria-label={next ? `Continue studying: ${displayTitle(next)}. ${summary}.` : `${title}. ${summary}.`}
       >
         <RingProgress
-          size={compact ? 30 : 36}
-          thickness={compact ? 3 : 3.5}
+          size={compact ? 30 : 42}
+          thickness={compact ? 3 : 3}
           roundCaps
           rootColor="rgba(255, 255, 255, 0.28)"
           sections={[{ value: percent, color: done ? 'white' : 'teal.2' }]}
           label={
             compact ? null : (
-              <Text ta="center" fz={10} fw={800} c="white" lh={1}>
+              <Text ta="center" fz={10.5} fw={700} c="white" lh={1} lts={-0.2}>
                 {percent}%
               </Text>
             )

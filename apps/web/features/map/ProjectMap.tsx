@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -77,18 +77,33 @@ function MapView({ project }: { project: Project }) {
     return new Set<string>(project.pages.filter((p) => displayTitle(p).toLowerCase().includes(q)).map((p) => p.id));
   }, [project.pages, query]);
 
-  useHotkeys([['mod+K', () => searchRef.current?.focus()]]);
+  // The search stays an icon until it is wanted: a click or ⌘K opens it
+  const [searchOpen, setSearchOpen] = useState(false);
+  const openSearch = () => {
+    setSearchOpen(true);
+    requestAnimationFrame(() => searchRef.current?.focus());
+  };
+  useHotkeys([['mod+K', openSearch]]);
 
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') setQuery('');
+    if (event.key === 'Escape') {
+      // Esc empties it, then closes it; the drawer, if open, is left alone
+      event.stopPropagation();
+      if (query) setQuery('');
+      else {
+        setSearchOpen(false);
+        searchRef.current?.blur();
+      }
+    }
     if (event.key !== 'Enter' || !matchIds || matchIds.size === 0) return;
     const first = [...pagesInMapOrder(project), ...mapTree(project).orphans].find((p) => matchIds.has(p.id));
     if (first) select(first.id);
   };
 
-  const search = (
+  const search = searchOpen ? (
     <TextInput
       ref={searchRef}
+      onBlur={() => !query && setSearchOpen(false)}
       type="search"
       aria-label="Search this map"
       placeholder="Search pages…"
@@ -103,6 +118,12 @@ function MapView({ project }: { project: Project }) {
       className={classes.search}
       radius="md"
     />
+  ) : (
+    <Tooltip label="Search pages (⌘K)">
+      <ActionIcon variant="default" size={36} radius="md" onClick={openSearch} aria-label="Search this map" className={classes.searchButton}>
+        <IconSearch size={17} />
+      </ActionIcon>
+    </Tooltip>
   );
 
   // What the canvas shows: the map or the list
