@@ -13,6 +13,7 @@ import { PageGlyph } from '@/features/shared/look';
 import { PageContent } from './PageContent';
 import type { PageActions } from './PageContent';
 import { StudiedToggle } from './StudiedToggle';
+import classes from './PageEditor.module.css';
 
 /**
  * PageEditor
@@ -70,7 +71,7 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
 
   return (
     <AppFrame crumbs={crumbs}>
-      <Card component="main" maw={880} w="100%" mx="auto" mb="xl" padding="xl">
+      <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="xl" className={classes.sheet}>
         <Group justify="space-between" mb="lg">
           <Group gap="sm">
             <ThemeIcon size={44} radius="xl" variant="light" color={look.color}>

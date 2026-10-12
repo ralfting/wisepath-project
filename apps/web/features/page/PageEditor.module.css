@@ -1,0 +1,4 @@
+/* The page fills the content area, below the top bar */
+.sheet {
+  flex: 1;
+}
