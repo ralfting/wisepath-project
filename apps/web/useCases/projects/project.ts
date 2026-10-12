@@ -10,9 +10,9 @@ import {
   addModule,
   addTopic,
   deletePage,
-  findSampleProject,
   moveTopic,
   renameLinks,
+  setDescription,
   setLook,
   updatePage
 } from "@wisepath/domain/projects"
@@ -54,8 +54,8 @@ export interface ProjectActions {
   deletePage: (pageId: string) => void
   setLook: (pageId: string, look: { color?: PageColor; icon?: PageIcon }) => void
   moveTopic: (topicId: string, moduleId: string) => void
-  /** Throws away local edits and restores the shipped sample */
-  reset: () => void
+  /** The line under the map's title */
+  setDescription: (description: string) => void
 }
 
 export type ProjectState =
@@ -109,10 +109,7 @@ export function useProject(projectId: string): { state: ProjectState; actions: P
     deletePage: (pageId) => change((p) => deletePage(p, PageId.make(pageId))),
     setLook: (pageId, look) => change((p) => setLook(p, PageId.make(pageId), look)),
     moveTopic: (topicId, moduleId) => change((p) => moveTopic(p, PageId.make(topicId), PageId.make(moduleId))),
-    reset: () => {
-      const sample = findSampleProject(id)
-      if (sample) commit(sample)
-    }
+    setDescription: (description) => change((p) => setDescription(p, description))
   }
 
   let state: ProjectState
