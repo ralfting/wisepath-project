@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Box, Group, Kbd, Stack, Tabs, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -105,18 +105,35 @@ function MapView({ project }: { project: Project }) {
     />
   );
 
-  // What the page shows, as small tabs under the title
-  const viewTabs = (
-    <Tabs value={view} onChange={(v) => setView((v as View) ?? 'map')} variant="unstyled" classNames={{ list: classes.viewTabs, tab: classes.viewTab }}>
-      <Tabs.List aria-label="View">
-        <Tabs.Tab value="map" leftSection={<IconSitemap size={14} />}>
-          Map
-        </Tabs.Tab>
-        <Tabs.Tab value="list" leftSection={<IconLayoutList size={14} />}>
-          List
-        </Tabs.Tab>
-      </Tabs.List>
-    </Tabs>
+  // What the page shows, as a toggle under the title
+  const viewSwitch = (
+    <SegmentedControl
+      size="xs"
+      value={view}
+      onChange={(v) => setView(v as View)}
+      aria-label="View"
+      className={classes.viewSwitch}
+      data={[
+        {
+          value: 'map',
+          label: (
+            <Center style={{ gap: 6 }}>
+              <IconSitemap size={14} />
+              <span>Map</span>
+            </Center>
+          ),
+        },
+        {
+          value: 'list',
+          label: (
+            <Center style={{ gap: 6 }}>
+              <IconLayoutList size={14} />
+              <span>List</span>
+            </Center>
+          ),
+        },
+      ]}
+    />
   );
 
   // Title, search, progress and the way on, in one row of the top bar
@@ -126,7 +143,7 @@ function MapView({ project }: { project: Project }) {
         <ThemeIcon size={40} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
           <PageGlyph icon={look.icon} size={22} />
         </ThemeIcon>
-        <Stack gap={2} miw={0}>
+        <Stack gap={4} miw={0} align="flex-start">
           <Group gap="xs" wrap="nowrap" miw={0}>
             <Tooltip label={project.description} disabled={!project.description} multiline w={320} position="bottom-start" withArrow>
               <Title order={1} fz={18} lts={-0.3} lh={1.2} lineClamp={1}>
@@ -139,7 +156,7 @@ function MapView({ project }: { project: Project }) {
               </Badge>
             )}
           </Group>
-          {viewTabs}
+          {viewSwitch}
         </Stack>
       </Group>
       <MapOrphans project={project} selectedId={selectedId} onSelect={select} />

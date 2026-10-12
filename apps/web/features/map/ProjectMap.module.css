@@ -33,28 +33,11 @@
   box-shadow: var(--mantine-shadow-xs);
 }
 
-/* Map / List under the title: small text tabs with an underline */
-.viewTabs {
-  gap: var(--mantine-spacing-md);
-}
+/* Map / List under the title, as a compact toggle */
+.viewSwitch {
+  flex-shrink: 0;
 
-.viewTab {
-  padding: 0 0 2px;
-  border-bottom: 2px solid transparent;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--mantine-color-dimmed);
-
-  &:hover {
-    color: var(--mantine-color-text);
-  }
-
-  &[data-active] {
-    color: var(--mantine-color-blue-filled);
-    border-bottom-color: var(--mantine-color-blue-filled);
-  }
-
-  & :global(.mantine-Tabs-tabSection) {
-    margin-inline-end: 4px;
+  & :global(.mantine-SegmentedControl-label) {
+    padding-block: 2px;
   }
 }
