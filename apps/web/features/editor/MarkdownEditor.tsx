@@ -262,7 +262,7 @@ export function MarkdownEditor({
             <Group gap="xs" mt="sm">
               {card.target.kind === 'page' && !card.target.page ? (
                 <>
-                  <Button size="compact-sm" color="finder.6" autoFocus={card.confirmCreate} onClick={cardAction}>
+                  <Button size="compact-sm" autoFocus={card.confirmCreate} onClick={cardAction}>
                     Create page
                   </Button>
                   {card.confirmCreate && (

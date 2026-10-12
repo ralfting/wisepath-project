@@ -4,26 +4,17 @@ import "./globals.css";
 import "@mantine/core/styles.css";
 import "@mantine/tiptap/styles.css";
 import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
-import { Atkinson_Hyperlegible, Spectral } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "WisePath",
-  description: "Document and share your learning journeys",
+  description: "Map what you are learning: modules, topics and how they connect",
 };
 
-const atkinson = Atkinson_Hyperlegible({
+const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "700"],
   variable: "--font-sans",
-});
-
-// Italic serif for star names on the project chart and page titles
-const spectral = Spectral({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  style: ["italic"],
-  variable: "--font-star",
 });
 
 export default function RootLayout({
@@ -33,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     // Font variables sit on <html> so the theme's :root font stacks can use them
-    <html lang="en" className={`${atkinson.variable} ${spectral.variable}`} {...mantineHtmlProps}>
+    <html lang="en" className={inter.variable} {...mantineHtmlProps}>
       <head>
         <ColorSchemeScript defaultColorScheme="light" />
       </head>

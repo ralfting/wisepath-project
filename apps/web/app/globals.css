@@ -3,16 +3,15 @@
  * component styles live in Mantine or in each component's CSS module.
  */
 
-/* The app's pale atlas ground; Mantine surfaces (inputs, cards) keep --mantine-color-body.
+/* The app's ground; Mantine surfaces (cards, inputs) keep --mantine-color-body.
    html body outranks Mantine's own body rule, which loads after this file. */
 html body {
-  background-color: var(--mantine-color-atlas-1);
-  caret-color: var(--mantine-color-atlas-7);
+  background-color: var(--wp-ground);
   font-variant-numeric: tabular-nums;
 }
 
 ::selection {
-  background: alpha(var(--mantine-color-atlas-7), 0.18);
+  background: alpha(var(--mantine-color-blue-6), 0.18);
   color: var(--mantine-color-text);
 }
 

@@ -22,7 +22,7 @@
     padding-inline: 0;
     font-size: 15px;
     line-height: 1.65;
-    caret-color: var(--mantine-color-atlas-7);
+    caret-color: var(--mantine-color-blue-6);
   }
 }
 
@@ -57,24 +57,22 @@
 
   &[aria-selected='true'],
   &:hover {
-    background: var(--mantine-color-atlas-1);
+    background: var(--mantine-color-blue-0);
   }
 }
 
 .starName {
-  font-family: var(--mantine-font-family-headings);
-  font-style: italic;
+  font-weight: 600;
 }
 
 /* Our own nodes inside the editor */
 
-/* [[Page]] links: italic like star names; dashed when the page does not exist yet */
+/* [[Page]] links: a tinted chip; dashed when the page does not exist yet */
 .content :global(.wikilink) {
-  font-family: var(--mantine-font-family-headings);
-  font-style: italic;
-  color: var(--mantine-color-atlas-7);
+  font-weight: 600;
+  color: var(--mantine-color-blue-6);
   text-decoration: underline;
-  text-decoration-color: alpha(var(--mantine-color-atlas-7), 0.35);
+  text-decoration-color: alpha(var(--mantine-color-blue-6), 0.35);
   text-underline-offset: 0.2em;
   cursor: pointer;
 }
@@ -100,11 +98,11 @@
   aspect-ratio: 16 / 9;
   border: 0;
   border-radius: var(--mantine-radius-sm);
-  background: var(--mantine-color-atlas-7);
+  background: var(--mantine-color-dark-7);
 }
 
 .content :global(.ProseMirror-selectednode) {
-  outline: 2px solid var(--mantine-color-atlas-7);
+  outline: 2px solid var(--mantine-color-blue-6);
   outline-offset: 2px;
 }
 
