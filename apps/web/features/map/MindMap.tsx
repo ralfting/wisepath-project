@@ -78,15 +78,19 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
     [layout.bounds],
   );
 
-  // Track the viewport size; fit the map the first time it is known
+  // Track the viewport size; fit the map the first time it is known. Measure
+  // once right away too: a tab that is not painting yet delays the observer.
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
-    const observer = new ResizeObserver(([entry]) => {
-      const next = { w: entry.contentRect.width, h: entry.contentRect.height };
-      setSize(next);
-      setView((v) => v ?? fit(next.w, next.h, 0.62));
-    });
+    const measure = (w: number, h: number) => {
+      if (!w || !h) return;
+      setSize({ w, h });
+      setView((v) => v ?? fit(w, h, 0.62));
+    };
+    const rect = el.getBoundingClientRect();
+    measure(rect.width, rect.height);
+    const observer = new ResizeObserver(([entry]) => measure(entry.contentRect.width, entry.contentRect.height));
     observer.observe(el);
     return () => observer.disconnect();
   }, [fit]);
@@ -118,8 +122,9 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
       if (sx > margin && sx < size.w - margin && sy > margin && sy < size.h - margin) return v;
       return { k: v.k, x: size.w / 2 - c.x * v.k, y: size.h / 2 - c.y * v.k };
     });
+    // Runs again once the size is known, so a page opened from the URL is brought into view
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focusRequest?.nonce]);
+  }, [focusRequest?.nonce, size !== null]);
 
   // Wheel pans; Ctrl/⌘ + wheel (and trackpad pinch) zooms around the pointer
   useEffect(() => {

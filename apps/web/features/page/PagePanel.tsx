@@ -89,20 +89,29 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
   return (
     <Card padding={0} className={classes.panel} aria-label="Selected page" component="aside">
       <Group justify="space-between" wrap="nowrap" px="lg" pt="md" gap="xs">
-        <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail}>
-          {(isOrphan ? [] : path.slice(0, -1)).map((p) => (
-            <Anchor key={p.id} component="button" type="button" size="sm" c="dimmed" onClick={() => onSelect(p.id)}>
-              {displayTitle(p)}
-            </Anchor>
-          ))}
-          {isOrphan && (
+        {/* Where the page sits; its own title is right below, so the trail stops at its parent */}
+        <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail} aria-label="Path to this page">
+          {isRoot ? (
+            <Text size="sm" fw={600}>
+              Centre of the map
+            </Text>
+          ) : isOrphan ? (
             <Text size="sm" c="dimmed">
               Orphans
             </Text>
+          ) : (
+            trailOf(path.slice(0, -1)).map((p) =>
+              p === null ? (
+                <Text key="gap" size="sm" c="dimmed" aria-label="More pages">
+                  …
+                </Text>
+              ) : (
+                <Anchor key={p.id} component="button" type="button" size="sm" c="dimmed" onClick={() => onSelect(p.id)} truncate maw={160}>
+                  {displayTitle(p)}
+                </Anchor>
+              ),
+            )
           )}
-          <Text size="sm" fw={600} truncate>
-            {displayTitle(page)}
-          </Text>
         </Breadcrumbs>
         <Group gap={2} wrap="nowrap">
           <Tooltip label="Open full screen">
@@ -220,6 +229,11 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
       </Tabs>
     </Card>
   );
+}
+
+/** Root, then the parent; deeper paths fold the middle into an ellipsis */
+function trailOf(ancestors: ReadonlyArray<Page>): ReadonlyArray<Page | null> {
+  return ancestors.length <= 2 ? ancestors : [ancestors[0], null, ancestors[ancestors.length - 1]];
 }
 
 function Settings({ project, page, store }: { project: Project; page: Page; store: ProjectActions }) {
