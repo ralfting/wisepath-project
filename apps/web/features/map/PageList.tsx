@@ -3,9 +3,9 @@
 import type { ReactNode } from 'react';
 import { Center, Group, Table, Text, UnstyledButton } from '@mantine/core';
 import classes from './PageList.module.css';
-import type { Page, Project } from '../types/project.types';
-import { displayTitle, wordCount } from '../entities/project.entity';
-import { computeLevels, references } from '../entities/levels';
+import type { Page, Project } from '@wisepath/domain/projects';
+import { displayTitle, wordCount } from '@wisepath/domain/projects';
+import { computeLevels, references } from '@wisepath/domain/projects';
 
 /**
  * PageList

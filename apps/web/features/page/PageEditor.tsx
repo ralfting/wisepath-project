@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { displayTitle } from '../entities/project.entity';
-import { useProjectStore } from '../hooks/useProjectStore';
+import { displayTitle } from '@wisepath/domain/projects';
+import type { Project } from '@wisepath/domain/projects';
+import type { ProjectActions } from '@/useCases/projects';
+import { ProjectGate } from '@/features/projects/ProjectGate';
 import { PageContent } from './PageContent';
 import type { PageActions } from './PageContent';
 import { StudiedToggle } from './StudiedToggle';
@@ -15,16 +17,20 @@ import classes from './PageEditor.module.css';
  * PageEditor
  * Full-screen page, edited in place like the map's sheet, for longer writing.
  */
-export function PageEditor({ pageId }: { pageId: string }) {
+export function PageEditor({ projectId, pageId }: { projectId: string; pageId: string }) {
+  return (
+    <ProjectGate projectId={projectId}>
+      {(project, store) => <EditorView project={project} store={store} pageId={pageId} />}
+    </ProjectGate>
+  );
+}
+
+function EditorView({ project, store, pageId }: { project: Project; store: ProjectActions; pageId: string }) {
   const router = useRouter();
-  const store = useProjectStore();
-  const { project, ready } = store;
   const page = project.pages.find((p) => p.id === pageId);
   const isFresh = useSearchParams().get('new') === '1';
   const pageHref = (id: string) => `/projects/${project.id}/pages/${id}`;
 
-  // Wait for the saved copy so the editor never starts from stale sample text
-  if (!ready) return null;
   if (!page) {
     return (
       <Center component="main" mih="100vh" p="md">

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
-import { ProjectStoreProvider, getSampleProject } from '@/domain/projects';
+import { findSampleProject } from '@wisepath/domain/projects';
 
 interface ProjectLayoutProps {
   children: ReactNode;
@@ -9,8 +9,6 @@ interface ProjectLayoutProps {
 
 export default async function ProjectLayout({ children, params }: ProjectLayoutProps) {
   const { projectId } = await params;
-  const project = getSampleProject(projectId);
-  if (!project) notFound();
-
-  return <ProjectStoreProvider initialProject={project}>{children}</ProjectStoreProvider>;
+  if (!findSampleProject(projectId)) notFound();
+  return children;
 }

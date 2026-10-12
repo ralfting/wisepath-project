@@ -1,7 +1,13 @@
 import { forceCollide, forceLink, forceManyBody, forceSimulation, forceX, forceY } from 'd3-force';
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3-force';
-import type { ChartPosition, Project } from '../types/project.types';
-import { computeLevels, references } from './levels';
+import type { PageId, Project } from '@wisepath/domain/projects';
+import { computeLevels, references } from '@wisepath/domain/projects';
+
+/** A point on the chart, in chart units */
+export interface ChartPosition {
+  x: number;
+  y: number;
+}
 
 /**
  * Graph layout

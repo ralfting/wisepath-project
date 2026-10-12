@@ -1,15 +1,17 @@
 import type { Metadata } from 'next';
-import { ProjectMap, getSampleProject } from '@/domain/projects';
+import { findSampleProject } from '@wisepath/domain/projects';
+import { ProjectMap } from '@/features/map';
 
 interface ProjectPageProps {
   params: Promise<{ projectId: string }>;
 }
 
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
-  const project = getSampleProject((await params).projectId);
+  const project = findSampleProject((await params).projectId);
   return { title: project ? `${project.title} | WisePath` : 'WisePath' };
 }
 
-export default function ProjectPage() {
-  return <ProjectMap />;
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const { projectId } = await params;
+  return <ProjectMap projectId={projectId} />;
 }

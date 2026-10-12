@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
-import type { Project } from '../types/project.types';
-import { countStudied } from '../entities/project.entity';
-import { references, subjectOf } from '../entities/levels';
-import { layoutGraph } from '../entities/graph-layout';
-import { readStoredProject } from '../hooks/useProjectStore';
+import { useEffect, useMemo } from 'react';
+import type { Project } from '@wisepath/domain/projects';
+import { countStudied } from '@wisepath/domain/projects';
+import { references, subjectOf } from '@wisepath/domain/projects';
+import { layoutGraph } from '@/features/map/graphLayout';
 import { Anchor, Box, Button, Container, Group, Progress, Stack, Text, Title } from '@mantine/core';
 import { useLogout, useSession } from '@/useCases/auth';
+import { useProjects } from '@/useCases/projects';
 import classes from './ProjectsHome.module.css';
 
 /**
@@ -20,17 +20,13 @@ import classes from './ProjectsHome.module.css';
 
 const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric' });
 
-export function ProjectsHome({ projects: shipped }: { projects: Project[] }) {
+export function ProjectsHome() {
   const router = useRouter();
   const session = useSession();
   const logout = useLogout();
   const user = session.status === 'signedIn' ? session.user : null;
-  // Projects live on this device until the projects API exists; prefer the saved copy
-  const [projects, setProjects] = useState(shipped);
-
-  useEffect(() => {
-    setProjects(shipped.map((p) => readStoredProject(p.id) ?? p));
-  }, [shipped]);
+  // Projects live on this device until the projects API exists
+  const projects = useProjects();
 
   // A cookie that no longer opens a session: clear it, then log in again
   useEffect(() => {
@@ -70,7 +66,7 @@ export function ProjectsHome({ projects: shipped }: { projects: Project[] }) {
           Each project is a subject you are learning, mapped page by page.
         </Text>
 
-        {projects.length === 0 ? (
+        {projects === null ? null : projects.length === 0 ? (
           <Text c="dimmed" mt={40}>
             No projects yet.
           </Text>

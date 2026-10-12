@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
-import type { ChartPosition, Page, Project } from '../types/project.types';
-import { displayTitle, pagesInOrder, wordCount } from '../entities/project.entity';
-import { references, subjectOf } from '../entities/levels';
-import { graphKey, layoutGraph } from '../entities/graph-layout';
-import type { GraphLayout } from '../entities/graph-layout';
+import type { Page, Project } from '@wisepath/domain/projects';
+import type { ChartPosition } from './graphLayout';
+import { displayTitle, pagesInOrder, wordCount } from '@wisepath/domain/projects';
+import { references, subjectOf } from '@wisepath/domain/projects';
+import { graphKey, layoutGraph } from './graphLayout';
+import type { GraphLayout } from './graphLayout';
 import { ActionIcon, Box, Button, Group, Paper, Stack, Text, TextInput, Title, UnstyledButton } from '@mantine/core';
 import { IconGrid4x4, IconMaximize, IconMinus, IconPlus } from '@tabler/icons-react';
 import classes from './StarChart.module.css';

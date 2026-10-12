@@ -2,10 +2,10 @@
 
 import { useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import type { Page, Project } from '../types/project.types';
-import { displayTitle } from '../entities/project.entity';
-import { references } from '../entities/levels';
-import { MarkdownEditor } from '../editor/MarkdownEditor';
+import type { Page, Project } from '@wisepath/domain/projects';
+import { displayTitle } from '@wisepath/domain/projects';
+import { references } from '@wisepath/domain/projects';
+import { MarkdownEditor } from '@/features/editor/MarkdownEditor';
 import { Box, Button, Group, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import { IconPlus, IconTrash } from '@tabler/icons-react';
 import classes from './PageContent.module.css';
@@ -49,7 +49,7 @@ export function PageContent({ project, page, actions, isFresh = false, titleSize
 
   const { leadsTo, comesFrom } = useMemo(() => {
     const refs = references(project);
-    const byId = new Map(project.pages.map((p) => [p.id, p]));
+    const byId = new Map<string, Page>(project.pages.map((p) => [p.id, p]));
     const pick = (ids: string[]) => ids.map((id) => byId.get(id)).filter((p): p is Page => !!p);
     return {
       leadsTo: pick(refs.filter((r) => r.from === page.id).map((r) => r.to)),

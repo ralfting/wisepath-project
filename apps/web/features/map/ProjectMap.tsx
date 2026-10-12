@@ -4,13 +4,15 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { countStudied, displayTitle, pagesInOrder } from '../entities/project.entity';
-import { useProjectStore } from '../hooks/useProjectStore';
+import type { Project } from '@wisepath/domain/projects';
+import { countStudied, displayTitle, pagesInOrder } from '@wisepath/domain/projects';
+import type { ProjectActions } from '@/useCases/projects';
+import { ProjectGate } from '@/features/projects/ProjectGate';
 import { StarChart } from './StarChart';
 import type { FocusRequest } from './StarChart';
 import { PageList } from './PageList';
-import { PageSheet } from './PageSheet';
-import type { PageActions } from './PageContent';
+import { PageSheet } from '@/features/page/PageSheet';
+import type { PageActions } from '@/features/page/PageContent';
 import { Anchor, Button, Group, Tabs, Text, TextInput } from '@mantine/core';
 import { IconPlus, IconSearch } from '@tabler/icons-react';
 import classes from './ProjectMap.module.css';
@@ -27,12 +29,14 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'list', label: 'List' },
 ];
 
-export function ProjectMap() {
+export function ProjectMap({ projectId }: { projectId: string }) {
+  return <ProjectGate projectId={projectId}>{(project, store) => <MapView project={project} store={store} />}</ProjectGate>;
+}
+
+function MapView({ project, store }: { project: Project; store: ProjectActions }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const store = useProjectStore();
-  const { project } = store;
 
   const initialPage = searchParams.get('page');
   const [tab, setTab] = useState<Tab>('map');
@@ -90,7 +94,7 @@ export function ProjectMap() {
   const matchIds = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return null;
-    return new Set(project.pages.filter((p) => displayTitle(p).toLowerCase().includes(q)).map((p) => p.id));
+    return new Set<string>(project.pages.filter((p) => displayTitle(p).toLowerCase().includes(q)).map((p) => p.id));
   }, [project.pages, query]);
 
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -174,7 +178,7 @@ export function ProjectMap() {
           )}
         </Tabs.Panel>
 
-        {openPage && store.ready && (
+        {openPage && (
           <PageSheet
             project={project}
             page={openPage}

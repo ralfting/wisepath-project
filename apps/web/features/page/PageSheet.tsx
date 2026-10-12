@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect } from 'react';
-import type { Page, Project } from '../types/project.types';
+import type { Page, Project } from '@wisepath/domain/projects';
 import { PageContent } from './PageContent';
 import type { PageActions } from './PageContent';
 import { StudiedToggle } from './StudiedToggle';

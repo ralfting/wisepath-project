@@ -1,33 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Box, Group, Stack, Text } from '@mantine/core';
+import { useLinkPreview } from '@/useCases/projects';
 
 /**
  * LinkPreview
  * A small card for the link under the pointer: another page's title and
  * opening lines, or an external site's favicon, title and description.
  */
-
-interface ExternalPreview {
-  title: string | null;
-  description: string | null;
-  siteName: string;
-  favicon: string | null;
-}
-
-const cache = new Map<string, Promise<ExternalPreview | null>>();
-
-function loadPreview(href: string): Promise<ExternalPreview | null> {
-  let pending = cache.get(href);
-  if (!pending) {
-    pending = fetch(`/api/link-preview?url=${encodeURIComponent(href)}`)
-      .then((r) => (r.ok ? (r.json() as Promise<ExternalPreview>) : null))
-      .catch(() => null);
-    cache.set(href, pending);
-  }
-  return pending;
-}
 
 function plainExcerpt(markdown: string, max = 150): string {
   const text = markdown
@@ -63,22 +43,14 @@ export function LinkPreview({ target }: { target: PreviewTarget }) {
 }
 
 function ExternalLinkPreview({ href }: { href: string }) {
-  const [preview, setPreview] = useState<ExternalPreview | null | undefined>(undefined);
+  const state = useLinkPreview(href);
+  const preview = state.status === 'ready' ? state.preview : null;
   let host = href;
   try {
     host = new URL(href).hostname.replace(/^www\./, '');
   } catch {
     // Keep the raw text
   }
-
-  useEffect(() => {
-    let alive = true;
-    setPreview(undefined);
-    loadPreview(href).then((p) => alive && setPreview(p));
-    return () => {
-      alive = false;
-    };
-  }, [href]);
 
   return (
     <Group gap={10} align="flex-start" wrap="nowrap">
@@ -90,7 +62,7 @@ function ExternalLinkPreview({ href }: { href: string }) {
       )}
       <Stack gap={2} miw={0}>
         <Text size="sm" fw={700} lh={1.3} lineClamp={2}>
-          {preview === undefined ? 'Loading preview…' : preview?.title || host}
+          {state.status === 'loading' ? 'Loading preview…' : preview?.title || host}
         </Text>
         {preview?.description && (
           <Text size="xs" c="dimmed" lineClamp={2}>

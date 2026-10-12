@@ -12,7 +12,7 @@ import { Box, Button, Group, Paper, Popover, Stack, Text, TextInput, UnstyledBut
 import { IconBrackets, IconBrandYoutube } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
-import { findPageByTitle } from '../entities/project.entity';
+import { findPageByTitle } from '@wisepath/domain/projects';
 import { BulletToChecklist, PageLinkSuggestion, WikiLink, YouTubeVideo, youTubeId } from './extensions';
 import type { PageLinkItem, PageLinkPickerState } from './extensions';
 import { LinkPreview } from './LinkPreview';
@@ -31,7 +31,7 @@ import classes from './MarkdownEditor.module.css';
 interface MarkdownEditorProps {
   content: string;
   onChange: (markdown: string) => void;
-  pages: PreviewPage[];
+  pages: ReadonlyArray<PreviewPage>;
   currentPageId: string;
   onOpenPage: (pageId: string) => void;
   /** Called when a link to an existing page is inserted */
