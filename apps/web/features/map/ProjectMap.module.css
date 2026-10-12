@@ -41,7 +41,7 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--mantine-spacing-lg);
   flex: 1;
   min-height: 0;
@@ -66,10 +66,3 @@
   }
 }
 
-.side {
-  min-height: 0;
-
-  @media (max-width: $mantine-breakpoint-lg) {
-    min-height: 640px;
-  }
-}

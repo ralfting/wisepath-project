@@ -41,6 +41,8 @@ interface MindMapProps {
   /** Pages matching the search; null when not searching */
   matchIds: Set<string> | null;
   focusRequest: FocusRequest | null;
+  /** Width covered on the right (by the page drawer); focusing centres pages in what is left */
+  coveredRight?: number;
   onSelect: (pageId: string) => void;
 }
 
@@ -54,7 +56,7 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.2;
 const clampZoom = (k: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
 
-export function MindMap({ project, selectedId, currentId, matchIds, focusRequest, onSelect }: MindMapProps) {
+export function MindMap({ project, selectedId, currentId, matchIds, focusRequest, coveredRight = 0, onSelect }: MindMapProps) {
   const tree = useMemo(() => mapTree(project), [project]);
   const layout = useMemo(() => layoutMind(tree), [tree]);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -115,12 +117,16 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
     if (!focusRequest || !size) return;
     const c = layout.centres.get(focusRequest.pageId as Page['id']);
     if (!c) return;
+    // The part of the viewport the drawer leaves visible
+    const frameRight = viewportRef.current?.getBoundingClientRect().right ?? 0;
+    const covered = Math.max(0, Math.min(coveredRight - (window.innerWidth - frameRight), size.w - 200));
+    const visibleW = size.w - covered;
     smoothly((v) => {
       const sx = v.x + c.x * v.k;
       const sy = v.y + c.y * v.k;
-      const margin = 120;
-      if (sx > margin && sx < size.w - margin && sy > margin && sy < size.h - margin) return v;
-      return { k: v.k, x: size.w / 2 - c.x * v.k, y: size.h / 2 - c.y * v.k };
+      const margin = 100;
+      if (sx > margin && sx < visibleW - margin && sy > margin && sy < size.h - margin) return v;
+      return { k: v.k, x: visibleW / 2 - c.x * v.k, y: size.h / 2 - c.y * v.k };
     });
     // Runs again once the size is known, so a page opened from the URL is brought into view
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -311,7 +317,7 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
       </div>
 
       {tree.orphans.length > 0 && (
-        <Popover position="bottom-end" width={260} shadow="md">
+        <Popover position="bottom-start" width={260} shadow="md">
           <Popover.Target>
             <Button
               variant="default"

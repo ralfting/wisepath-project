@@ -51,3 +51,19 @@
     outline-offset: 2px;
   }
 }
+
+/* Inside the map's drawer: full height, no card around it */
+.flat {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.drawer {
+  border-left: 1px solid var(--wp-line);
+}
+
+.drawerBody {
+  height: 100%;
+  padding: 0;
+}

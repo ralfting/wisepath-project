@@ -12,6 +12,7 @@ import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import type { Crumb } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
+import { mapWithPageHref } from '@/features/shared/routes';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { PageActions } from './PageContent';
 import { DeletePageModal } from './DeletePageModal';
@@ -62,7 +63,7 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
   const crumbs: Crumb[] = [
     { label: 'My maps', href: '/projects' },
     { label: project.title, href: mapHref },
-    ...between.map((p) => ({ label: displayTitle(p), href: `${mapHref}?page=${p.id}` })),
+    ...between.map((p) => ({ label: displayTitle(p), href: mapWithPageHref(project.id, p.id) })),
     ...(isRoot ? [] : [{ label: displayTitle(page) }]),
   ];
 
@@ -97,7 +98,7 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
             <Tooltip label="See it on the map">
               <ActionIcon
                 component={Link}
-                href={`${mapHref}?page=${page.id}`}
+                href={mapWithPageHref(project.id, page.id)}
                 variant="default"
                 size="lg"
                 radius="md"
@@ -130,7 +131,7 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
           onDelete={() => {
             // Leave first, so this page never renders as "not found" on the way out
             const back = between.at(-1)?.id ?? project.rootPageId;
-            router.push(`${mapHref}?page=${back}`);
+            router.push(mapWithPageHref(project.id, back));
             store.deletePage(page.id);
           }}
         />

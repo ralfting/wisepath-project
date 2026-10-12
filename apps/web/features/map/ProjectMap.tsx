@@ -1,18 +1,18 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Badge, Button, Group, Kbd, Progress, Stack, Tabs, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconPlayerPlayFilled, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
-import type { ProjectActions } from '@/useCases/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
-import { PagePanel } from '@/features/page/PagePanel';
+import { DRAWER_WIDTH } from '@/features/page/PageDrawer';
+import { openPageId, pageHref } from '@/features/shared/routes';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';
 import { MapList } from './MapList';
@@ -20,44 +20,55 @@ import classes from './ProjectMap.module.css';
 
 /**
  * ProjectMap
- * A map's home: its title and progress, the mind map (or the list), and the
- * selected page beside it. ?page= in the URL keeps the selection on reload.
+ * A map's home: its title and progress, and the mind map (or the list) across
+ * the full width. Selecting a page navigates to its URL, which opens it in a
+ * drawer over the map (see app/projects/[projectId]/@drawer); the open page
+ * is read back from the URL.
  */
 
 type View = 'map' | 'list';
 
 export function ProjectMap({ projectId }: { projectId: string }) {
-  return <ProjectGate projectId={projectId}>{(project, store) => <MapView project={project} store={store} />}</ProjectGate>;
+  return <ProjectGate projectId={projectId}>{(project) => <MapView project={project} />}</ProjectGate>;
 }
 
-function MapView({ project, store }: { project: Project; store: ProjectActions }) {
+function MapView({ project }: { project: Project }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const initialPage = searchParams.get('page');
   const [view, setView] = useState<View>('map');
-  const [selectedId, setSelectedId] = useState<string>(initialPage ?? project.rootPageId);
   const [query, setQuery] = useState('');
-  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(
-    initialPage ? { pageId: initialPage, nonce: 1 } : null,
-  );
-
-  const selected = project.pages.find((p) => p.id === selectedId) ?? project.pages.find((p) => p.id === project.rootPageId)!;
+  const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
+  const selectedId = openPageId(pathname, project.id);
   const next = nextPage(project);
   const { studied, total } = projectProgress(project);
   const percent = total ? Math.round((studied / total) * 100) : 0;
   const look = lookOf(project, project.rootPageId);
 
+  // Opening the drawer adds a history entry (back closes it); moving between pages replaces it
   const select = useCallback(
-    (pageId: string, focus = false) => {
-      setSelectedId(pageId);
-      router.replace(pageId === project.rootPageId ? pathname : `${pathname}?page=${pageId}`, { scroll: false });
-      if (focus) setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1 }));
+    (pageId: string) => {
+      const href = pageHref(project.id, pageId);
+      if (selectedId) router.replace(href, { scroll: false });
+      else router.push(href, { scroll: false });
     },
-    [router, pathname, project.rootPageId],
+    [router, project.id, selectedId],
   );
+
+  // Whatever opened the page (a click, search, the drawer's related pages), bring it into view
+  useEffect(() => {
+    if (selectedId) setFocusRequest((r) => ({ pageId: selectedId, nonce: (r?.nonce ?? 0) + 1 }));
+  }, [selectedId]);
+
+  // ?open=<page> from a link outside the map: drop it from this entry, then open the drawer
+  const toOpen = searchParams.get('open');
+  useEffect(() => {
+    if (!toOpen) return;
+    window.history.replaceState(null, '', pathname);
+    router.push(pageHref(project.id, toOpen), { scroll: false });
+  }, [toOpen, pathname, project.id, router]);
 
   const matchIds = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -71,7 +82,7 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
     if (event.key === 'Escape') setQuery('');
     if (event.key !== 'Enter' || !matchIds || matchIds.size === 0) return;
     const first = [...pagesInMapOrder(project), ...mapTree(project).orphans].find((p) => matchIds.has(p.id));
-    if (first) select(first.id, true);
+    if (first) select(first.id);
   };
 
   const search = (
@@ -134,7 +145,7 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
               size="md"
               leftSection={<IconPlayerPlayFilled size={16} />}
               disabled={!next}
-              onClick={() => next && select(next.id, true)}
+              onClick={() => next && select(next.id)}
               className={classes.continue}
             >
               {next ? 'Continue studying' : total ? 'All pages studied' : 'No pages yet'}
@@ -158,7 +169,8 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
             {view === 'map' ? (
               <MindMap
                 project={project}
-                selectedId={selected.id}
+                selectedId={selectedId}
+                coveredRight={selectedId ? DRAWER_WIDTH : 0}
                 currentId={next?.id ?? null}
                 matchIds={matchIds}
                 focusRequest={focusRequest}
@@ -167,22 +179,12 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
             ) : (
               <MapList
                 project={project}
-                selectedId={selected.id}
+                selectedId={selectedId}
                 currentId={next?.id ?? null}
                 matchIds={matchIds}
                 onSelect={(pageId) => select(pageId)}
               />
             )}
-          </div>
-          <div className={classes.side}>
-            <PagePanel
-              key={selected.id}
-              project={project}
-              page={selected}
-              store={store}
-              onSelect={(pageId) => select(pageId, true)}
-              fullPageHref={`/projects/${project.id}/pages/${selected.id}`}
-            />
           </div>
         </div>
       </Stack>

@@ -204,10 +204,11 @@
   line-height: 20px;
 }
 
+/* Beside the zoom controls: the page drawer covers the map's right side */
 .orphansButton {
   position: absolute;
   top: var(--mantine-spacing-md);
-  right: var(--mantine-spacing-md);
+  left: calc(var(--mantine-spacing-md) + 56px);
   box-shadow: var(--mantine-shadow-sm);
 }
 

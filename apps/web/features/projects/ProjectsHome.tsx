@@ -8,6 +8,7 @@ import { lookOf, mapTree, nextPage, projectProgress } from '@wisepath/domain/pro
 import { useProjects } from '@/useCases/projects';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
+import { mapWithPageHref } from '@/features/shared/routes';
 import classes from './ProjectsHome.module.css';
 
 /**
@@ -94,7 +95,7 @@ function ProjectCard({ project }: { project: Project }) {
         </Stack>
         <Button
           component={Link}
-          href={next ? `${href}?page=${next.id}` : href}
+          href={next ? mapWithPageHref(project.id, next.id) : href}
           leftSection={next ? <IconPlayerPlayFilled size={14} /> : undefined}
           variant={next ? 'filled' : 'light'}
           className={classes.action}
