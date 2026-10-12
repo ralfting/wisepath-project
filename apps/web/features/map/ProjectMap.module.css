@@ -33,11 +33,10 @@
   box-shadow: var(--mantine-shadow-xs);
 }
 
-/* Map / List under the title, as a compact toggle */
+/* Map / List, in the canvas beside the search */
 .viewSwitch {
   flex-shrink: 0;
-
-  & :global(.mantine-SegmentedControl-label) {
-    padding-block: 2px;
-  }
+  border: 1px solid var(--wp-line);
+  background: var(--mantine-color-body);
+  box-shadow: var(--mantine-shadow-xs);
 }

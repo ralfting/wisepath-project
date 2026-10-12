@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { Badge, Box, Center, Group, Kbd, SegmentedControl, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -105,10 +105,10 @@ function MapView({ project }: { project: Project }) {
     />
   );
 
-  // What the page shows, as a toggle under the title
+  // What the canvas shows: the map or the list
   const viewSwitch = (
     <SegmentedControl
-      size="xs"
+      size="sm"
       value={view}
       onChange={(v) => setView(v as View)}
       aria-label="View"
@@ -140,24 +140,19 @@ function MapView({ project }: { project: Project }) {
   const header = (
     <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
       <Group gap="sm" wrap="nowrap" miw={0} style={{ flex: 1 }}>
-        <ThemeIcon size={40} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
-          <PageGlyph icon={look.icon} size={22} />
+        <ThemeIcon size={36} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
+          <PageGlyph icon={look.icon} size={20} />
         </ThemeIcon>
-        <Stack gap={4} miw={0} align="flex-start">
-          <Group gap="xs" wrap="nowrap" miw={0}>
-            <Tooltip label={project.description} disabled={!project.description} multiline w={320} position="bottom-start" withArrow>
-              <Title order={1} fz={18} lts={-0.3} lh={1.2} lineClamp={1}>
-                {project.title}
-              </Title>
-            </Tooltip>
-            {project.isSample && (
-              <Badge variant="light" color="gray" radius="sm" size="sm" visibleFrom="sm" style={{ flexShrink: 0 }}>
-                Sample
-              </Badge>
-            )}
-          </Group>
-          {viewSwitch}
-        </Stack>
+        <Tooltip label={project.description} disabled={!project.description} multiline w={320} position="bottom-start" withArrow>
+          <Title order={1} fz={20} lts={-0.3} lh={1.2} lineClamp={1}>
+            {project.title}
+          </Title>
+        </Tooltip>
+        {project.isSample && (
+          <Badge variant="light" color="gray" radius="sm" visibleFrom="sm" style={{ flexShrink: 0 }}>
+            Sample
+          </Badge>
+        )}
       </Group>
       <MapOrphans project={project} selectedId={selectedId} onSelect={select} />
       {/* Progress and the way on, as one control */}
@@ -184,11 +179,21 @@ function MapView({ project }: { project: Project }) {
               focusRequest={focusRequest}
               onSelect={(pageId) => select(pageId)}
               onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
-              topLeft={search}
+              topLeft={
+                <>
+                  {viewSwitch}
+                  {search}
+                </>
+              }
             />
           ) : (
             <MapList
-              header={search}
+              header={
+                <Group gap="xs" wrap="nowrap">
+                  {viewSwitch}
+                  {search}
+                </Group>
+              }
               project={project}
               selectedId={selectedId}
               currentId={next?.id ?? null}
