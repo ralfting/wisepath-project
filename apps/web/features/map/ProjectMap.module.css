@@ -24,9 +24,7 @@
 }
 
 .viewSwitch {
-  box-shadow: var(--mantine-shadow-sm);
-  border: 1px solid var(--wp-line);
-  background: var(--mantine-color-body);
+  flex-shrink: 0;
 }
 
 .continue {

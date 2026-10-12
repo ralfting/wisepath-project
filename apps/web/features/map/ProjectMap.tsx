@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { ActionIcon, Badge, Button, Center, Group, Kbd, Progress, SegmentedControl, Text, TextInput, ThemeIcon, Title, Tooltip, VisuallyHidden } from '@mantine/core';
+import { ActionIcon, Badge, Box, Button, Center, Group, Kbd, Progress, SegmentedControl, Text, TextInput, ThemeIcon, Title, Tooltip, VisuallyHidden } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconPlayerPlayFilled, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -111,13 +111,16 @@ function MapView({ project }: { project: Project }) {
       onChange={(v) => setView(v as View)}
       aria-label="View"
       className={classes.viewSwitch}
+      ml={{ base: 0, sm: 'xs' }}
       data={[
         {
           value: 'map',
           label: (
             <Center style={{ gap: 6 }}>
               <IconSitemap size={15} />
-              <span>Map</span>
+              <Box component="span" visibleFrom="sm">
+                Map
+              </Box>
             </Center>
           ),
         },
@@ -126,7 +129,9 @@ function MapView({ project }: { project: Project }) {
           label: (
             <Center style={{ gap: 6 }}>
               <IconLayoutList size={15} />
-              <span>List</span>
+              <Box component="span" visibleFrom="sm">
+                List
+              </Box>
             </Center>
           ),
         },
@@ -151,6 +156,8 @@ function MapView({ project }: { project: Project }) {
             Sample
           </Badge>
         )}
+        {/* What the page shows: the map or the list */}
+        {viewSwitch}
       </Group>
       {search}
       <Tooltip label={`${studied} of ${total} pages studied`}>
@@ -203,11 +210,9 @@ function MapView({ project }: { project: Project }) {
               focusRequest={focusRequest}
               onSelect={(pageId) => select(pageId)}
               onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
-              toolbarStart={viewSwitch}
             />
           ) : (
             <MapList
-              toolbar={viewSwitch}
               project={project}
               selectedId={selectedId}
               currentId={next?.id ?? null}

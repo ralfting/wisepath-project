@@ -205,11 +205,6 @@
   line-height: 20px;
 }
 
-/* In the top-left toolbar: the page drawer covers the map's right side */
-.orphansButton {
-  box-shadow: var(--mantine-shadow-sm);
-}
-
 .orphan {
   display: flex;
   align-items: center;
@@ -229,19 +224,11 @@
 
 /* Overlays */
 
-.toolbar {
+/* Viewing tools: one pill at the bottom left */
+.tools {
   position: absolute;
-  top: var(--mantine-spacing-sm);
   left: var(--mantine-spacing-sm);
-  right: var(--mantine-spacing-sm);
-  pointer-events: none;
-
-  & > * {
-    pointer-events: auto;
-  }
-}
-
-.controls {
+  bottom: var(--mantine-spacing-sm);
   padding: 2px;
   border: 1px solid var(--wp-line);
   border-radius: var(--mantine-radius-md);
@@ -249,9 +236,44 @@
   box-shadow: var(--mantine-shadow-sm);
 }
 
-.legend {
+.toolsDivider {
+  align-self: stretch;
+  margin: 6px 2px;
+}
+
+.zoomValue {
+  min-width: 48px;
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--mantine-color-dimmed);
+  border-radius: var(--mantine-radius-sm);
+  font-variant-numeric: tabular-nums;
+
+  &:hover {
+    background: var(--mantine-color-gray-0);
+    color: var(--mantine-color-text);
+  }
+}
+
+/* Orphans: a notice about the content, not a tool */
+.orphansNotice {
   position: absolute;
+  top: var(--mantine-spacing-sm);
   left: var(--mantine-spacing-sm);
-  bottom: var(--mantine-spacing-sm);
-  box-shadow: var(--mantine-shadow-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--mantine-color-orange-2);
+  border-radius: 999px;
+  background: var(--mantine-color-orange-0);
+  color: var(--mantine-color-orange-9);
+  font-size: 13px;
+  font-weight: 500;
+
+  &:hover {
+    border-color: var(--mantine-color-orange-4);
+  }
 }

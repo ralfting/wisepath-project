@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
-import { ActionIcon, Badge, Button, Group, HoverCard, Popover, ScrollArea, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
+import { ActionIcon, Divider, Group, HoverCard, Popover, ScrollArea, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import {
   IconCircle,
   IconCircleCheckFilled,
   IconCircleDotFilled,
+  IconChevronRight,
   IconFocusCentered,
   IconInfoCircle,
   IconMaximize,
@@ -47,8 +48,6 @@ interface MindMapProps {
   onSelect: (pageId: string) => void;
   /** The pointer or focus rests on a page: a good moment to load it ahead of the click */
   onIntent?: (pageId: string) => void;
-  /** Put first in the map's top-left toolbar */
-  toolbarStart?: ReactNode;
 }
 
 interface View {
@@ -70,7 +69,6 @@ export function MindMap({
   coveredRight = 0,
   onSelect,
   onIntent,
-  toolbarStart,
 }: MindMapProps) {
   const tree = useMemo(() => mapTree(project), [project]);
   const layout = useMemo(() => layoutMind(tree), [tree]);
@@ -126,6 +124,8 @@ export function MindMap({
     });
 
   const recentre = () => size && smoothly(() => fit(size.w, size.h));
+  /** Keeps the zoom and brings the root to the middle */
+  const centreOnRoot = () => size && smoothly((v) => ({ ...v, x: size.w / 2, y: size.h / 2 }));
 
   // Bring a page into view when asked from outside the map (search, related pages)
   useEffect(() => {
@@ -336,97 +336,95 @@ export function MindMap({
         )}
       </div>
 
-      {/* Top-left toolbar: whatever the page adds (the Map/List switch), zoom and view controls, orphans */}
-      <Group gap="xs" className={classes.toolbar} wrap="nowrap">
-        {toolbarStart}
-        <Group gap={0} className={classes.controls}>
-          <Tooltip label="Zoom in" position="bottom">
-            <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1.2)} aria-label="Zoom in">
-              <IconPlus size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Zoom out" position="bottom">
-            <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1 / 1.2)} aria-label="Zoom out">
-              <IconMinus size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Fit the map" position="bottom">
-            <ActionIcon variant="subtle" color="gray" size="lg" onClick={recentre} aria-label="Fit the map">
-              <IconFocusCentered size={18} />
-            </ActionIcon>
-          </Tooltip>
-          <Tooltip label="Full screen" position="bottom">
-            <ActionIcon variant="subtle" color="gray" size="lg" onClick={fullscreen} aria-label="Full screen">
-              <IconMaximize size={18} />
-            </ActionIcon>
-          </Tooltip>
-        </Group>
-        {tree.orphans.length > 0 && (
-          <Popover position="bottom-start" width={260} shadow="md">
-            <Popover.Target>
-              <Button
-                variant="default"
-                size="xs"
-                leftSection={<IconUnlink size={15} />}
-                rightSection={
-                  <Badge size="sm" variant="light" color="orange" circle>
-                    {tree.orphans.length}
-                  </Badge>
-                }
-                className={classes.orphansButton}
-              >
-                Orphans
-              </Button>
-            </Popover.Target>
-            <Popover.Dropdown p="xs">
-              <Text size="xs" c="dimmed" px={6} pb={6}>
-                No link reaches these pages from {displayTitle(tree.root.page)}. Link them with [[Title]] in any page on the map.
-              </Text>
-              <ScrollArea.Autosize mah={260}>
-                {tree.orphans.map((p) => (
-                  <UnstyledButton
-                    key={p.id}
-                    className={classes.orphan}
-                    data-selected={selectedId === p.id || undefined}
-                    onClick={() => onSelect(p.id)}
-                  >
-                    <StatusIcon status={p.studied ? 'done' : 'todo'} size={16} />
-                    <Text size="sm" truncate>
-                      {displayTitle(p)}
-                    </Text>
-                  </UnstyledButton>
-                ))}
-              </ScrollArea.Autosize>
-            </Popover.Dropdown>
-          </Popover>
-        )}
-      </Group>
+      {/* Pages no link reaches: a notice about the content, apart from the tools */}
+      {tree.orphans.length > 0 && (
+        <Popover position="bottom-start" width={280} shadow="md">
+          <Popover.Target>
+            <UnstyledButton className={classes.orphansNotice}>
+              <IconUnlink size={15} />
+              <span>
+                {tree.orphans.length === 1 ? "1 page isn't on the map" : `${tree.orphans.length} pages aren't on the map`}
+              </span>
+              <IconChevronRight size={14} />
+            </UnstyledButton>
+          </Popover.Target>
+          <Popover.Dropdown p="xs">
+            <Text size="xs" c="dimmed" px={6} pb={6}>
+              No link reaches these pages from {displayTitle(tree.root.page)}. Link them with [[Title]] in any page on the map.
+            </Text>
+            <ScrollArea.Autosize mah={260}>
+              {tree.orphans.map((p) => (
+                <UnstyledButton
+                  key={p.id}
+                  className={classes.orphan}
+                  data-selected={selectedId === p.id || undefined}
+                  onClick={() => onSelect(p.id)}
+                >
+                  <StatusIcon status={p.studied ? 'done' : 'todo'} size={16} />
+                  <Text size="sm" truncate>
+                    {displayTitle(p)}
+                  </Text>
+                </UnstyledButton>
+              ))}
+            </ScrollArea.Autosize>
+          </Popover.Dropdown>
+        </Popover>
+      )}
 
-      {/* The legend stays out of the way until asked for */}
-      <HoverCard position="top-start" shadow="md" openDelay={80}>
-        <HoverCard.Target>
-          <Button variant="default" size="xs" leftSection={<IconInfoCircle size={15} />} className={classes.legend}>
-            Legend
-          </Button>
-        </HoverCard.Target>
-        <HoverCard.Dropdown>
-          <Stack gap={8} aria-label="Legend">
-            {(['done', 'current', 'todo'] as const).map((s) => (
-              <Group key={s} gap={8} wrap="nowrap">
-                <StatusIcon status={s} />
-                <Text size="sm">{STATUS_LABEL[s]}</Text>
+      {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
+      <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label="Map view">
+        <Tooltip label="Zoom out">
+          <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1 / 1.2)} aria-label="Zoom out">
+            <IconMinus size={17} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="Fit the map to the screen">
+          <UnstyledButton className={classes.zoomValue} onClick={recentre} aria-label="Fit the map to the screen">
+            {view ? Math.round(view.k * 100) : 100}%
+          </UnstyledButton>
+        </Tooltip>
+        <Tooltip label="Zoom in">
+          <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1.2)} aria-label="Zoom in">
+            <IconPlus size={17} />
+          </ActionIcon>
+        </Tooltip>
+        <Divider orientation="vertical" className={classes.toolsDivider} />
+        <Tooltip label={`Centre on ${displayTitle(tree.root.page)}`}>
+          <ActionIcon variant="subtle" color="gray" size="lg" onClick={centreOnRoot} aria-label={`Centre on ${displayTitle(tree.root.page)}`}>
+            <IconFocusCentered size={17} />
+          </ActionIcon>
+        </Tooltip>
+        <Tooltip label="Full screen">
+          <ActionIcon variant="subtle" color="gray" size="lg" onClick={fullscreen} aria-label="Full screen">
+            <IconMaximize size={17} />
+          </ActionIcon>
+        </Tooltip>
+        <Divider orientation="vertical" className={classes.toolsDivider} />
+        <HoverCard position="top-start" shadow="md" openDelay={80}>
+          <HoverCard.Target>
+            <ActionIcon variant="subtle" color="gray" size="lg" aria-label="Legend">
+              <IconInfoCircle size={17} />
+            </ActionIcon>
+          </HoverCard.Target>
+          <HoverCard.Dropdown>
+            <Stack gap={8} aria-label="Legend">
+              {(['done', 'current', 'todo'] as const).map((s) => (
+                <Group key={s} gap={8} wrap="nowrap">
+                  <StatusIcon status={s} />
+                  <Text size="sm">{STATUS_LABEL[s]}</Text>
+                </Group>
+              ))}
+              <Group gap={8} wrap="nowrap">
+                <svg width="26" height="10" aria-hidden="true">
+                  <path d="M1,5 L19,5" stroke="var(--mantine-color-blue-6)" strokeWidth="2.2" />
+                  <path d="M17,1 L25,5 L17,9 z" fill="var(--mantine-color-blue-6)" />
+                </svg>
+                <Text size="sm">Link between pages on different branches</Text>
               </Group>
-            ))}
-            <Group gap={8} wrap="nowrap">
-              <svg width="26" height="10" aria-hidden="true">
-                <path d="M1,5 L19,5" stroke="var(--mantine-color-blue-6)" strokeWidth="2.2" />
-                <path d="M17,1 L25,5 L17,9 z" fill="var(--mantine-color-blue-6)" />
-              </svg>
-              <Text size="sm">Link between pages on different branches</Text>
-            </Group>
-          </Stack>
-        </HoverCard.Dropdown>
-      </HoverCard>
+            </Stack>
+          </HoverCard.Dropdown>
+        </HoverCard>
+      </Group>
     </div>
   );
 }

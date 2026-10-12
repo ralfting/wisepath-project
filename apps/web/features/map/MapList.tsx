@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties } from 'react';
 import { ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
 import type { MapNode, Project } from '@wisepath/domain/projects';
 import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
@@ -16,8 +16,6 @@ import classes from './MapList.module.css';
  */
 
 interface MapListProps {
-  /** Shown above the list (the Map/List switch) */
-  toolbar?: ReactNode;
   project: Project;
   selectedId: string | null;
   currentId: string | null;
@@ -25,7 +23,7 @@ interface MapListProps {
   onSelect: (pageId: string) => void;
 }
 
-export function MapList({ toolbar, project, selectedId, currentId, matchIds, onSelect }: MapListProps) {
+export function MapList({ project, selectedId, currentId, matchIds, onSelect }: MapListProps) {
   const tree = mapTree(project);
   const visible = (node: MapNode): boolean =>
     matchIds === null || matchIds.has(node.page.id) || node.children.some(visible);
@@ -68,8 +66,7 @@ export function MapList({ toolbar, project, selectedId, currentId, matchIds, onS
 
   return (
     <ScrollArea h="100%">
-      <Stack gap="lg" p="lg" pt="sm">
-        {toolbar && <div>{toolbar}</div>}
+      <Stack gap="lg" p="lg">
         {tree.root.children.length === 0 ? (
           <Text c="dimmed">
             Nothing on the map yet. Select {displayTitle(tree.root.page)} and type [[ in its content to start a branch.
