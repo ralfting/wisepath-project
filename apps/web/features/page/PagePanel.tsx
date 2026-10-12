@@ -5,9 +5,7 @@ import { useState } from 'react';
 import {
   ActionIcon,
   Anchor,
-  Box,
   Breadcrumbs,
-  Button,
   Card,
   ColorSwatch,
   Group,
@@ -32,12 +30,14 @@ import {
   lookOf,
   mapTree,
   pathTo,
+  projectProgress,
   relatedPages,
 } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { PageGlyph, shade } from '@/features/shared/look';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { PageActions } from './PageContent';
+import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
 import classes from './PagePanel.module.css';
 
@@ -136,30 +136,17 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
         </Group>
       </Group>
 
-      {confirmDelete && (
-        <Box mx="lg" mt="sm" p="sm" className={classes.confirm}>
-          <Text size="sm">
-            Delete <b>{displayTitle(page)}</b>? Links to it stay in other pages and show as missing
-            {below && below.total > 0 ? ', and pages only it reaches become orphans' : ''}. This can&apos;t be undone.
-          </Text>
-          <Group gap="xs" mt="sm">
-            <Button
-              color="red"
-              size="xs"
-              onClick={() => {
-                setConfirmDelete(false);
-                store.deletePage(page.id);
-                onSelect(branchFrom?.id ?? project.rootPageId);
-              }}
-            >
-              Delete
-            </Button>
-            <Button variant="default" size="xs" onClick={() => setConfirmDelete(false)}>
-              Keep it
-            </Button>
-          </Group>
-        </Box>
-      )}
+      <DeletePageModal
+        opened={confirmDelete}
+        title={displayTitle(page)}
+        orphansPages={!!below && below.total > 0}
+        onClose={() => setConfirmDelete(false)}
+        onDelete={() => {
+          setConfirmDelete(false);
+          store.deletePage(page.id);
+          onSelect(branchFrom?.id ?? project.rootPageId);
+        }}
+      />
 
       <Group gap="md" wrap="nowrap" align="flex-start" px="lg" pt="md">
         <ThemeIcon size={60} radius="xl" variant="light" color={look.color} className={classes.icon}>
@@ -175,7 +162,11 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
 
       {!isRoot && (
         <Group gap="xs" px="lg" pt="md">
-          <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />
+          <StudiedToggle
+            studied={page.studied}
+            onChange={(studied) => store.updatePage(page.id, { studied })}
+            progress={{ map: project.title, ...projectProgress(project) }}
+          />
         </Group>
       )}
 

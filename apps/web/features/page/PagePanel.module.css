@@ -15,12 +15,6 @@
   flex-shrink: 0;
 }
 
-.confirm {
-  border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-red-0);
-  border: 1px solid var(--mantine-color-red-2);
-}
-
 .tabs {
   display: flex;
   flex-direction: column;

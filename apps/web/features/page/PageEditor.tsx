@@ -1,12 +1,12 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ActionIcon, Anchor, Box, Card, Center, Group, Stack, Text, ThemeIcon, Title, Tooltip } from '@mantine/core';
-import { IconSitemap } from '@tabler/icons-react';
+import { ActionIcon, Anchor, Box, Card, Center, Group, Menu, Stack, Text, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Project } from '@wisepath/domain/projects';
-import { displayTitle, lookOf, pathTo } from '@wisepath/domain/projects';
+import { branchProgress, displayTitle, lookOf, pathTo, projectProgress } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
@@ -14,6 +14,7 @@ import type { Crumb } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { PageActions } from './PageContent';
+import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
 import classes from './PageEditor.module.css';
 
@@ -33,6 +34,7 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
   const router = useRouter();
   const page = project.pages.find((p) => p.id === pageId);
   const isFresh = useSearchParams().get('new') === '1';
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const mapHref = `/projects/${project.id}`;
   const pageHref = (id: string) => `/projects/${project.id}/pages/${id}`;
 
@@ -86,7 +88,11 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
           <Group gap="sm" wrap="nowrap">
             <SavedAt updatedAt={page.updatedAt} />
             {!isRoot && (
-              <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />
+              <StudiedToggle
+                studied={page.studied}
+                onChange={(studied) => store.updatePage(page.id, { studied })}
+                progress={{ map: project.title, ...projectProgress(project) }}
+              />
             )}
             <Tooltip label="See it on the map">
               <ActionIcon
@@ -100,8 +106,34 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
                 <IconSitemap size={18} />
               </ActionIcon>
             </Tooltip>
+            {!isRoot && (
+              <Menu position="bottom-end">
+                <Menu.Target>
+                  <ActionIcon variant="default" size="lg" radius="md" aria-label="More">
+                    <IconDotsVertical size={18} />
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
+                    Delete page
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )}
           </Group>
         </Group>
+        <DeletePageModal
+          opened={confirmDelete}
+          title={displayTitle(page)}
+          orphansPages={(branchProgress(project, page.id)?.total ?? 0) > 0}
+          onClose={() => setConfirmDelete(false)}
+          onDelete={() => {
+            // Leave first, so this page never renders as "not found" on the way out
+            const back = between.at(-1)?.id ?? project.rootPageId;
+            router.push(`${mapHref}?page=${back}`);
+            store.deletePage(page.id);
+          }}
+        />
         <PageContent project={project} page={page} actions={actions} showTitle={false} toolbarOffset={0} />
       </Card>
     </AppFrame>
