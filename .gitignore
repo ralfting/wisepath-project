@@ -27,3 +27,11 @@ coverage
 *.swp
 *.swo
 *~
+
+# TypeScript incremental build cache
+*.tsbuildinfo
+
+# Impeccable design tooling: keep surface briefs and decision sketches, skip session state
+.impeccable/review/
+.impeccable/questions/
+.impeccable/decision-payload.json
