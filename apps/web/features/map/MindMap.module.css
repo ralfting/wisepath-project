@@ -9,10 +9,6 @@
   background-image: radial-gradient(var(--mantine-color-gray-2) 1px, transparent 1px);
   background-size: 22px 22px;
   overflow: hidden;
-
-  &:fullscreen {
-    border-radius: 0;
-  }
 }
 
 .viewport {

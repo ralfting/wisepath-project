@@ -9,7 +9,6 @@ import {
   IconCircleDotFilled,
   IconFocusCentered,
   IconInfoCircle,
-  IconMaximize,
   IconMinus,
   IconPlus,
 } from '@tabler/icons-react';
@@ -73,7 +72,6 @@ export function MindMap({
 }: MindMapProps) {
   const tree = useMemo(() => mapTree(project), [project]);
   const layout = useMemo(() => layoutMind(tree), [tree]);
-  const frameRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [view, setView] = useState<View | null>(null);
@@ -187,13 +185,6 @@ export function MindMap({
     drag.current = null;
   };
 
-  const fullscreen = () => {
-    const el = frameRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void el.requestFullscreen?.();
-  };
-
   const dimmed = (id: string) => matchIds !== null && !matchIds.has(id);
   const touchesSelection = (from: string, to: string) => selectedId !== null && (from === selectedId || to === selectedId);
   const { minX, minY, maxX, maxY } = layout.bounds;
@@ -208,7 +199,7 @@ export function MindMap({
   };
 
   return (
-    <div ref={frameRef} className={classes.frame}>
+    <div className={classes.frame}>
       <div
         ref={viewportRef}
         className={classes.viewport}
@@ -361,11 +352,6 @@ export function MindMap({
         <Tooltip label={`Centre on ${displayTitle(tree.root.page)}`}>
           <ActionIcon variant="subtle" color="gray" size="lg" onClick={centreOnRoot} aria-label={`Centre on ${displayTitle(tree.root.page)}`}>
             <IconFocusCentered size={17} />
-          </ActionIcon>
-        </Tooltip>
-        <Tooltip label="Full screen">
-          <ActionIcon variant="subtle" color="gray" size="lg" onClick={fullscreen} aria-label="Full screen">
-            <IconMaximize size={17} />
           </ActionIcon>
         </Tooltip>
         <Divider orientation="vertical" className={classes.toolsDivider} />

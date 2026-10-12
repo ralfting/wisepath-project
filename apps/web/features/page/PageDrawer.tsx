@@ -18,7 +18,9 @@ import classes from './PagePanel.module.css';
  * page switches the drawer to it.
  */
 
-export const DRAWER_WIDTH = 460;
+export const DRAWER_WIDTH = 560;
+/** Gap between the floating drawer and the window's edges */
+export const DRAWER_GAP = 12;
 
 /** Closes the drawer with its exit animation, then leaves its URL */
 const CloseDrawer = createContext<() => void>(() => {});

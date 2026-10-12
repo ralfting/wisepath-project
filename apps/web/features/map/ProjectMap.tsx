@@ -11,7 +11,7 @@ import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgre
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
-import { DRAWER_WIDTH } from '@/features/page/PageDrawer';
+import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
 import { openPageId, pageHref } from '@/features/shared/routes';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';
@@ -205,7 +205,7 @@ function MapView({ project }: { project: Project }) {
             <MindMap
               project={project}
               selectedId={selectedId}
-              coveredRight={selectedId ? DRAWER_WIDTH : 0}
+              coveredRight={selectedId ? DRAWER_WIDTH + DRAWER_GAP * 2 : 0}
               currentId={next?.id ?? null}
               matchIds={matchIds}
               focusRequest={focusRequest}
