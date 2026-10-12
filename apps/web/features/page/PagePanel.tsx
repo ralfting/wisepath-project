@@ -19,7 +19,7 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import { IconArrowRight, IconArrowsDiagonal, IconArrowsDiagonalMinimize2, IconCheck, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
+import { IconArrowRight, IconArrowsDiagonal, IconCheck, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Page, Project, Relation } from '@wisepath/domain/projects';
 import {
   PageColor,
@@ -51,9 +51,8 @@ interface PagePanelProps {
   page: Page;
   store: ProjectActions;
   onSelect: (pageId: string) => void;
-  /** The drawer fills the window; the content gets a reading width */
-  expanded?: boolean;
-  onToggleExpanded?: () => void;
+  /** Grows the drawer into the full page, in place */
+  onExpand?: () => void;
   onClose?: () => void;
   /** Without the card frame, inside the drawer */
   flat?: boolean;
@@ -68,7 +67,7 @@ const RELATION_LABEL: Record<Relation, string> = {
   linkedFrom: 'References this page',
 };
 
-export function PagePanel({ project, page, store, onSelect, expanded = false, onToggleExpanded, onClose, flat = false }: PagePanelProps) {
+export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isRoot = page.id === project.rootPageId;
@@ -94,7 +93,6 @@ export function PagePanel({ project, page, store, onSelect, expanded = false, on
     <Card
       padding={0}
       className={`${classes.panel} ${flat ? classes.flat : ''}`}
-      data-expanded={expanded || undefined}
       aria-label="Selected page"
       component="aside"
     >
@@ -124,16 +122,10 @@ export function PagePanel({ project, page, store, onSelect, expanded = false, on
           )}
         </Breadcrumbs>
         <Group gap={2} wrap="nowrap">
-          {onToggleExpanded && (
-            <Tooltip label={expanded ? 'Back to the side' : 'Expand'}>
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                onClick={onToggleExpanded}
-                aria-label={expanded ? 'Back to the side' : 'Expand'}
-                aria-pressed={expanded}
-              >
-                {expanded ? <IconArrowsDiagonalMinimize2 size={17} /> : <IconArrowsDiagonal size={17} />}
+          {onExpand && (
+            <Tooltip label="Open as a full page">
+              <ActionIcon variant="subtle" color="gray" onClick={onExpand} aria-label="Expand">
+                <IconArrowsDiagonal size={17} />
               </ActionIcon>
             </Tooltip>
           )}

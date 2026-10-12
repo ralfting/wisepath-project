@@ -69,8 +69,8 @@
   transition: inset 320ms cubic-bezier(0.22, 1, 0.36, 1);
 
   :global([data-expanded]) & {
-    inset: 0;
-    width: 100%;
+    inset: 0 0 0 var(--drawer-left, 0);
+    width: auto;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -86,7 +86,10 @@
     border-radius 320ms ease;
 
   :global([data-expanded]) & {
+    border-width: 0;
     border-radius: 0;
+    box-shadow: none;
+    background: var(--wp-ground);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -124,22 +127,23 @@
 .drawerBody {
   height: 100%;
   padding: 0;
+  overflow-y: auto;
 }
 
-/* Expanded: the page reads at a comfortable width in the middle of the window */
-.panel[data-expanded] {
-  --reading-inset: max(var(--mantine-spacing-lg), calc((100% - 880px) / 2));
+/* Expanded: laid out like the page route (top bar, then the sheet) */
+.expanded {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  animation: expanded-in 220ms ease 80ms both;
 
-  /* The header rows set their padding inline, hence the !important */
-  & > *:not(.tabs) {
-    padding-inline: var(--reading-inset) !important;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
   }
+}
 
-  & .tabs :global(.mantine-Tabs-list) {
-    padding-inline: var(--reading-inset) !important;
-  }
-
-  & .body {
-    padding-inline: var(--reading-inset);
+@keyframes expanded-in {
+  from {
+    opacity: 0;
   }
 }

@@ -179,19 +179,7 @@ export function AppFrame({
           <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" aria-label="Open navigation" />
           {header ?? (
             <>
-              <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.crumbs} visibleFrom="xs">
-                {crumbs.map((c, i) =>
-                  c.href ? (
-                    <Anchor key={i} component={Link} href={c.href} size="sm" c="dimmed">
-                      {c.label}
-                    </Anchor>
-                  ) : (
-                    <Text key={i} size="sm" fw={600} aria-current="page" truncate>
-                      {c.label}
-                    </Text>
-                  ),
-                )}
-              </Breadcrumbs>
+              <CrumbTrail crumbs={crumbs} />
               {tools && (
                 <Group gap="md" ml="auto" wrap="nowrap">
                   {tools}
@@ -203,6 +191,34 @@ export function AppFrame({
         {children}
       </AppShell.Main>
     </AppShell>
+  );
+}
+
+/** The breadcrumbs of the top bar */
+export function CrumbTrail({ crumbs }: { crumbs: Crumb[] }) {
+  return (
+    <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.crumbs} visibleFrom="xs">
+      {crumbs.map((c, i) =>
+        c.href ? (
+          <Anchor key={i} component={Link} href={c.href} size="sm" c="dimmed">
+            {c.label}
+          </Anchor>
+        ) : (
+          <Text key={i} size="sm" fw={600} aria-current="page" truncate>
+            {c.label}
+          </Text>
+        ),
+      )}
+    </Breadcrumbs>
+  );
+}
+
+/** A top bar like the frame's, for content that draws its own (the expanded page drawer) */
+export function TopBar({ children }: { children: ReactNode }) {
+  return (
+    <Group component="header" className={classes.topbar} gap="md" wrap="nowrap">
+      {children}
+    </Group>
   );
 }
 

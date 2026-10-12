@@ -2,12 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
 import { Anchor, Drawer, Stack, Text, Title } from '@mantine/core';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { pageHref } from '@/features/shared/routes';
 import { PagePanel } from './PagePanel';
+import { PageSheet, pageCrumbs } from './PageEditor';
+import { CrumbTrail, TopBar } from '@/features/shell/AppFrame';
 import classes from './PagePanel.module.css';
 
 /**
@@ -45,6 +47,12 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   const reduceMotion = useReducedMotion();
   const [leaving, setLeaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  // Expanded, the drawer stops at the sidebar, so it lands exactly where the full page sits
+  const [sidebarEdge, setSidebarEdge] = useState(0);
+  const toggleExpanded = () => {
+    setSidebarEdge(document.querySelector('.mantine-AppShell-navbar')?.getBoundingClientRect().right ?? 0);
+    setExpanded((e) => !e);
+  };
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -108,9 +116,10 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       classNames={{ inner: classes.drawerInner, content: classes.drawer, body: classes.drawerBody }}
       data-leaving={leaving || undefined}
       data-expanded={expanded || undefined}
+      style={{ '--drawer-left': `${sidebarEdge}px` } as CSSProperties}
       aria-label="Page"
     >
-      <DrawerContext.Provider value={{ close, expanded, toggleExpanded: () => setExpanded((e) => !e) }}>
+      <DrawerContext.Provider value={{ close, expanded, toggleExpanded }}>
         {children}
       </DrawerContext.Provider>
     </Drawer>
@@ -137,6 +146,27 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
             </Stack>
           );
         }
+        // Expanded: the full page itself (top bar and sheet), not a stretched panel
+        if (expanded) {
+          return (
+            <div className={classes.expanded}>
+              <TopBar>
+                <CrumbTrail crumbs={pageCrumbs(project, page)} />
+              </TopBar>
+              <PageSheet
+                project={project}
+                page={page}
+                store={store}
+                onOpenPage={(id) => router.replace(pageHref(project.id, id), { scroll: false })}
+                showOnMap={{ onClick: toggleExpanded }}
+                onDeleted={(back) => {
+                  toggleExpanded();
+                  router.replace(pageHref(project.id, back), { scroll: false });
+                }}
+              />
+            </div>
+          );
+        }
         return (
           <PagePanel
             project={project}
@@ -144,8 +174,7 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
             store={store}
             // Moving between pages replaces the entry, so back still closes the drawer in one step
             onSelect={(id) => router.replace(pageHref(project.id, id), { scroll: false })}
-            expanded={expanded}
-            onToggleExpanded={toggleExpanded}
+            onExpand={toggleExpanded}
             onClose={close}
             flat
           />
