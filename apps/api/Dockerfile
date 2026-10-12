@@ -14,11 +14,9 @@ WORKDIR /repo
 # Install dependencies first so they are cached until a manifest or the lockfile changes
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps/api/package.json apps/api/
-COPY packages/types/package.json packages/types/
 RUN pnpm install --frozen-lockfile --filter "@wisepath/api..."
 
 COPY prisma prisma
-COPY packages/types packages/types
 COPY apps/api apps/api
 
 WORKDIR /repo/apps/api
