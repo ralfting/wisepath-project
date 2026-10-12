@@ -1,0 +1,213 @@
+{
+ "title": "Choose the visual world for WisePath",
+ "question": "Sketches now show a 25-page project. The roll assigned Star Atlas; the transit diagram beat it at 9 pages. Keep, switch, or re-roll.",
+ "options": [
+  {
+   "id": "assigned",
+   "label": "Star Atlas",
+   "kicker": "THE ROLL",
+   "lineage": "Printed star atlases (Norton, Tirion Sky Atlas 2000)",
+   "thesis": "Your path as a chart of the sky you are mapping: studied pages shine, the next one sits in the finder rings.",
+   "palette": [
+    "#1B3A6B",
+    "#F4F7FB",
+    "#3B5A8C",
+    "#E5483A",
+    "#E9EEF5",
+    "#16233A"
+   ],
+   "materials": [
+    "atlas-blue chart field",
+    "porcelain star ink",
+    "coordinate grid hairlines",
+    "red finder rings"
+   ],
+   "viewport": "Top bar with Map/List, search and progress; atlas-blue chart with 25 pages as stars, Focus next / Fit / zoom; side panel with the next page.",
+   "risk": "Label collisions past ~30 pages need a hover/zoom label rule; astronomy is less familiar than transit.",
+   "raised": [
+    {
+     "from": "challenger-monochrome",
+     "raise": "Finder red is spent only on the next page and the primary action, never as decoration."
+    },
+    {
+     "from": "challenger-saville",
+     "raise": "State is encoded once: the star symbol is the only completion marker on the chart, no extra badges."
+    },
+    {
+     "from": "challenger-crouwel",
+     "raise": "The coordinate grid is the real layout armature: stars snap to it, and it can be toggled off."
+    },
+    {
+     "from": "challenger-labanotation",
+     "raise": "One directional law: learning order runs left to right across the chart."
+    },
+    {
+     "from": "challenger-splitflap",
+     "raise": "In List view the columns never move; only the state cell changes."
+    }
+   ],
+   "html": ".impeccable/mocks/decision/assigned.html"
+  },
+  {
+   "id": "challenger-transit",
+   "label": "Midnight Transit Diagram",
+   "verdict": "competitive",
+   "lineage": "Metropolitan rail diagrams (Beck's Underground map)",
+   "thesis": "Your path as a metro line: pages are stations, completed stops filled, the next stop marked where you are.",
+   "palette": [
+    "#13224A",
+    "#F2F0EA",
+    "#D9352B",
+    "#2F5FD0",
+    "#F0A830",
+    "#2E9E5B"
+   ],
+   "materials": [
+    "midnight enamel map field",
+    "porcelain station ticks",
+    "coloured line inks at 45 and 90 degrees"
+   ],
+   "viewport": "Same shell; the map field draws each branch of the path as a coloured line, stations filled when completed, a 'you are here' ring on the next station.",
+   "case": "Still the most familiar form, but at 25 pages, forcing the graph into lines drops real links and invents false ones, and drag-to-reorder fights octilinear routing.",
+   "risk": "Auto octilinear layout of an arbitrary graph has no solid library; the map stops telling the truth about connections.",
+   "html": ".impeccable/mocks/decision/challenger-transit.html",
+   "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram-hero.webp",
+   "board": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram.webp"
+  },
+  {
+   "id": "challenger-monochrome",
+   "label": "Monochrome Product Canon",
+   "verdict": "declined",
+   "lineage": "Software product marketing in one neutral scale",
+   "thesis": "Near-black on near-white with one accent used four times.",
+   "palette": [
+    "#FAFAFA",
+    "#18181B",
+    "#71717A",
+    "#2563EB"
+   ],
+   "materials": [
+    "neutral scale",
+    "hairline borders"
+   ],
+   "viewport": "Neutral shell, grey graph canvas, one blue accent.",
+   "case": "Reads as a working product but gives learners nothing to identify with; it is the category default.",
+   "kept": "Scarce accent: one colour, spent only where it carries meaning.",
+   "risk": "Indistinguishable from every node editor.",
+   "hero": "https://impeccable.style/worlds/cards/digital-design-canon-monochrome-product-marketing-hero.webp"
+  },
+  {
+   "id": "challenger-saville",
+   "label": "Factory Catalog Sleeve",
+   "verdict": "declined",
+   "lineage": "Peter Saville's Factory Records sleeves",
+   "thesis": "Every page a catalog number, names coded as colour strips.",
+   "palette": [
+    "#111111",
+    "#FFFFFF",
+    "#E63B2E",
+    "#2B6CB0"
+   ],
+   "materials": [
+    "matte black",
+    "white hairline plot"
+   ],
+   "viewport": "Black field, pages as coded entries.",
+   "case": "Hiding names behind codes fights a study tool where the page title is the point.",
+   "kept": "Nothing labelled twice: state lives in one mark.",
+   "risk": "Cryptic for a task screen.",
+   "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp"
+  },
+  {
+   "id": "challenger-crouwel",
+   "label": "Crouwel Grid Specimen",
+   "verdict": "declined",
+   "lineage": "Wim Crouwel's gridded type specimens",
+   "thesis": "Pages built cell by cell on a visible construction grid.",
+   "palette": [
+    "#FFFFFF",
+    "#9DB7E0",
+    "#111111",
+    "#E8412C"
+   ],
+   "materials": [
+    "graph-paper grid",
+    "constructed letterforms"
+   ],
+   "viewport": "White grid sheet, pages as grid cells.",
+   "case": "A strong system but it reads as a poster, not a map of connected concepts.",
+   "kept": "The grid as a real, toggleable armature.",
+   "risk": "Connections get lost in the cells.",
+   "hero": "https://impeccable.style/worlds/cards/crouwel-grid-specimen-hero.webp"
+  },
+  {
+   "id": "challenger-labanotation",
+   "label": "Labanotation Score",
+   "verdict": "declined",
+   "lineage": "Rudolf Laban's dance notation",
+   "thesis": "A vertical staff read upward, the future always above.",
+   "palette": [
+    "#FFFFFF",
+    "#111111",
+    "#BDBDBD"
+   ],
+   "materials": [
+    "score paper",
+    "shaded symbol blocks"
+   ],
+   "viewport": "Centre staff with pages as shaped blocks.",
+   "case": "Too foreign for learners; the notation needs its own lesson.",
+   "kept": "One directional law for order.",
+   "risk": "Unreadable without training.",
+   "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-labanotation-hero.webp"
+  },
+  {
+   "id": "challenger-splitflap",
+   "label": "Split-flap Concourse",
+   "verdict": "declined",
+   "lineage": "Rail station departure boards",
+   "thesis": "Pages as departures, state cascading flap by flap.",
+   "palette": [
+    "#1A1A1A",
+    "#FFFFFF",
+    "#F2A900",
+    "#B3261E"
+   ],
+   "materials": [
+    "flap faces",
+    "brushed steel"
+   ],
+   "viewport": "A board of page rows ranked by order.",
+   "case": "A table, not a map; it loses the connections the product exists for.",
+   "kept": "Fixed columns; only state cells change.",
+   "risk": "Costume of a signal board.",
+   "hero": "https://impeccable.style/worlds/cards/signals-instruments-split-flap-concourse-hero.webp"
+  }
+ ],
+ "reroll": {
+  "registers": [
+   "safer",
+   "bolder"
+  ]
+ },
+ "canon": true,
+ "canonCard": {
+  "label": "The category standard",
+  "thesis": "A node-editor canvas: rounded page cards, bezier edges, minimap, side panel.",
+  "palette": [
+   "#FFFFFF",
+   "#F4F4F5",
+   "#111827",
+   "#2563EB"
+  ],
+  "materials": [
+   "dot-grid canvas",
+   "rounded cards",
+   "soft shadows"
+  ],
+  "viewport": "Top bar, dotted canvas with page cards and a minimap, details panel on the right.",
+  "risk": "At 25 pages the cards shrink to illegible titles and the minimap becomes mandatory.",
+  "html": ".impeccable/mocks/decision/canon.html"
+ },
+ "steer": true
+}
