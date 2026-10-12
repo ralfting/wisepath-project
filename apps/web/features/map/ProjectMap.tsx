@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Box, Center, Group, Kbd, SegmentedControl, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -136,7 +136,18 @@ function MapView({ project }: { project: Project }) {
     />
   );
 
-  // Title, search, progress and the way on, in one row of the top bar
+  // Top left of the canvas: what it shows and the search, then pages left off the map
+  const canvasTools = (
+    <Stack gap={6} align="flex-start">
+      <Group gap="xs" wrap="nowrap" w="100%">
+        {viewSwitch}
+        {search}
+      </Group>
+      <MapOrphans project={project} selectedId={selectedId} onSelect={select} />
+    </Stack>
+  );
+
+  // Title and the way on, in one row of the top bar
   const header = (
     <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
       <Group gap="sm" wrap="nowrap" miw={0} style={{ flex: 1 }}>
@@ -154,7 +165,6 @@ function MapView({ project }: { project: Project }) {
           </Badge>
         )}
       </Group>
-      <MapOrphans project={project} selectedId={selectedId} onSelect={select} />
       {/* Progress and the way on, as one control */}
       <Box visibleFrom="sm">
         <ContinueButton next={next} studied={studied} total={total} onContinue={() => next && select(next.id)} />
@@ -179,21 +189,11 @@ function MapView({ project }: { project: Project }) {
               focusRequest={focusRequest}
               onSelect={(pageId) => select(pageId)}
               onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
-              topLeft={
-                <>
-                  {viewSwitch}
-                  {search}
-                </>
-              }
+              topLeft={canvasTools}
             />
           ) : (
             <MapList
-              header={
-                <Group gap="xs" wrap="nowrap">
-                  {viewSwitch}
-                  {search}
-                </Group>
-              }
+              header={canvasTools}
               project={project}
               selectedId={selectedId}
               currentId={next?.id ?? null}

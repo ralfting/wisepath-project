@@ -338,9 +338,7 @@ export function MindMap({
       </div>
 
       {/* Top left: what the page puts here (the search) */}
-      <Group gap="xs" wrap="nowrap" className={classes.topLeft}>
-        {topLeft}
-      </Group>
+      <div className={classes.topLeft}>{topLeft}</div>
 
       {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
       <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label="Map view">

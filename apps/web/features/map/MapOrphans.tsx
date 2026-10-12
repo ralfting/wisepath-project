@@ -1,6 +1,6 @@
 'use client';
 
-import { Popover, ScrollArea, Text, Tooltip, UnstyledButton } from '@mantine/core';
+import { Popover, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import { IconUnlink } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, mapTree } from '@wisepath/domain/projects';
@@ -9,8 +9,7 @@ import classes from './MapOrphans.module.css';
 
 /**
  * MapOrphans
- * How many pages no link reaches, next to the map's progress in the header:
- * it is about the map as a whole, like the progress, not about viewing it.
+ * How many pages no link reaches, under the map's view toggle and search.
  * Opens the list of those pages. Renders nothing when every page is linked.
  */
 export function MapOrphans({
@@ -28,17 +27,12 @@ export function MapOrphans({
   const label = count === 1 ? "1 page isn't on the map" : `${count} pages aren't on the map`;
 
   return (
-    <Popover position="bottom-end" width={280} shadow="md">
+    <Popover position="bottom-start" width={280} shadow="md">
       <Popover.Target>
-        <Tooltip label={label}>
-          <UnstyledButton className={classes.button} aria-label={label}>
-            <IconUnlink size={15} />
-            <span>{count}</span>
-            <Text span visibleFrom="lg" inherit>
-              not on the map
-            </Text>
-          </UnstyledButton>
-        </Tooltip>
+        <UnstyledButton className={classes.button}>
+          <IconUnlink size={15} aria-hidden="true" />
+          <span>{label}</span>
+        </UnstyledButton>
       </Popover.Target>
       <Popover.Dropdown p="xs">
         <Text size="sm" fw={600} px={6} pt={2}>
