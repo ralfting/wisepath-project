@@ -175,3 +175,8 @@
   background: alpha(var(--mantine-color-blue-6), 0.1);
   pointer-events: none;
 }
+
+/* The help button sits at the far end of the toolbar */
+.help {
+  margin-left: auto;
+}

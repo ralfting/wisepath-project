@@ -29,6 +29,7 @@ import { findPageByTitle } from '@wisepath/domain/projects';
 import { BulletToChecklist, PageLinkSuggestion, WikiLink, YouTubeVideo, youTubeId } from './extensions';
 import type { PageLinkItem, PageLinkPickerState } from './extensions';
 import { LinkPreview } from './LinkPreview';
+import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
 
@@ -236,14 +237,6 @@ export function MarkdownEditor({
             <RichTextEditor.Blockquote />
           </RichTextEditor.ControlsGroup>
           <RichTextEditor.ControlsGroup>
-            <RichTextEditor.Control
-              onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
-              disabled={!editor || editor.isActive('table')}
-              aria-label="Insert table"
-              title="Insert table"
-            >
-              <IconTable size={16} stroke={1.5} />
-            </RichTextEditor.Control>
             {editor && <VideoControl editor={editor} />}
             <RichTextEditor.Control
               onClick={() => editor?.chain().focus().insertContent('[[').run()}
@@ -253,8 +246,18 @@ export function MarkdownEditor({
               <IconBrackets size={16} stroke={1.5} />
             </RichTextEditor.Control>
           </RichTextEditor.ControlsGroup>
-          {editor?.isActive('table') && (
-            <RichTextEditor.ControlsGroup aria-label="Table">
+          {/* Everything about tables in one group; editing controls show while the cursor is in a table */}
+          <RichTextEditor.ControlsGroup aria-label="Table">
+            <RichTextEditor.Control
+              onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+              disabled={!editor || editor.isActive('table')}
+              aria-label="Insert table"
+              title="Insert table"
+            >
+              <IconTable size={16} stroke={1.5} />
+            </RichTextEditor.Control>
+            {editor?.isActive('table') && (
+              <>
               <RichTextEditor.Control onClick={() => editor.chain().focus().addRowAfter().run()} aria-label="Add row below" title="Add row below">
                 <IconRowInsertBottom size={16} stroke={1.5} />
               </RichTextEditor.Control>
@@ -270,8 +273,10 @@ export function MarkdownEditor({
               <RichTextEditor.Control onClick={() => editor.chain().focus().deleteTable().run()} aria-label="Delete table" title="Delete table">
                 <IconTableOff size={16} stroke={1.5} />
               </RichTextEditor.Control>
-            </RichTextEditor.ControlsGroup>
-          )}
+              </>
+            )}
+          </RichTextEditor.ControlsGroup>
+          <MarkdownHelp />
         </RichTextEditor.Toolbar>
 
         {editor && (

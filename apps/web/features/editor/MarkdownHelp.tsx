@@ -1,0 +1,94 @@
+'use client';
+
+import { ActionIcon, Code, Popover, ScrollArea, Table, Text, Tooltip } from '@mantine/core';
+import { IconHelp } from '@tabler/icons-react';
+import classes from './MarkdownEditor.module.css';
+
+/**
+ * MarkdownHelp
+ * The "?" at the end of the editor toolbar: every piece of markdown the editor
+ * understands, what to type and what it does. Most of it converts as you
+ * type; website links and tables come from the toolbar or from a paste.
+ */
+
+const SYNTAX: { group: string; rows: { type: string; does: string }[] }[] = [
+  {
+    group: 'Text',
+    rows: [
+      { type: '**bold**', does: 'Bold, for the words that matter most' },
+      { type: '*italic*', does: 'Italic, for terms and emphasis' },
+      { type: '~~struck~~', does: 'Struck through, for something no longer true' },
+      { type: '`code`', does: 'Inline code: names of functions, commands, files' },
+    ],
+  },
+  {
+    group: 'Structure',
+    rows: [
+      { type: '## Heading', does: 'A section title; ### for a smaller one' },
+      { type: '- item', does: 'A bullet list; Tab nests an item' },
+      { type: '1. item', does: 'A numbered list, for steps in order' },
+      { type: '- [ ] task', does: 'A checklist item; - [x] is a done one' },
+      { type: '> quote', does: 'A quote, for something you read or were told' },
+      { type: '```', does: 'A code block: type it, then the code; ``` again closes it' },
+    ],
+  },
+  {
+    group: 'Links and media',
+    rows: [
+      { type: '[[Page]]', does: 'Links another page of this map; a name no page has yet is created when you click it' },
+      { type: 'https://…', does: 'A website address links itself; to link words, select them and use the link button (or paste [text](https://…))' },
+      { type: 'https://youtu.be/…', does: 'A YouTube address alone on its line becomes an embedded video' },
+    ],
+  },
+  {
+    group: 'Tables',
+    rows: [
+      { type: '| A | B |\n| --- | --- |', does: 'Use the table button in the toolbar, or paste a markdown table like this one: the row above the --- line is the header' },
+    ],
+  },
+];
+
+export function MarkdownHelp() {
+  return (
+    <Popover position="bottom-end" width={460} shadow="md" withinPortal>
+      <Popover.Target>
+        <Tooltip label="Markdown you can use">
+          <ActionIcon variant="subtle" color="gray" size="md" aria-label="Markdown you can use" className={classes.help}>
+            <IconHelp size={17} stroke={1.6} />
+          </ActionIcon>
+        </Tooltip>
+      </Popover.Target>
+      <Popover.Dropdown p="md">
+        <Text fw={700} size="sm">
+          Markdown you can use
+        </Text>
+        <Text size="xs" c="dimmed" mb="sm">
+          Most of it turns into formatting as you type. Website links and tables come from the toolbar or a paste.
+        </Text>
+        <ScrollArea.Autosize mah={420}>
+          {SYNTAX.map(({ group, rows }) => (
+            <div key={group}>
+              <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.5} mt="sm" mb={4}>
+                {group}
+              </Text>
+              <Table verticalSpacing={6} horizontalSpacing="xs" withRowBorders={false}>
+                <Table.Tbody>
+                  {rows.map((r) => (
+                    <Table.Tr key={r.type}>
+                      <Table.Td w={170} style={{ verticalAlign: 'top' }}>
+                        <Code block={r.type.includes('\n')}>{r.type}</Code>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{r.does}</Text>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            </div>
+          ))}
+        </ScrollArea.Autosize>
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
