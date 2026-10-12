@@ -39,7 +39,7 @@ Then open <http://localhost:3000> and log in with:
 |---|---|
 | `demo@wisepath.dev` | `wisepath-demo` |
 
-The sample project map is at <http://localhost:3000/projects/learn-javascript>. Projects and pages are not in the database yet: they live in your browser's local storage, seeded with a 25-page "Learn JavaScript" sample (the map's **Reset** link restores it).
+The sample project map is at <http://localhost:3000/projects/learn-javascript>. Projects and pages are not in the database yet: they live in your browser's local storage, seeded with a 5-page "Learn JavaScript" sample (the map's **Reset** link restores it).
 
 > Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 3001, which clashes with the one in Docker.
 

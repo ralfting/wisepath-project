@@ -11,7 +11,8 @@ import { addChildPage, addPage, deletePage, renameLinks, setStartPage, updatePag
  * standing in for the projects API until it exists.
  */
 
-const storageKey = (projectId: string) => `wisepath:project:v2:${projectId}`;
+// Bumped when the shipped sample changes, so browsers drop the copy saved from the old one
+const storageKey = (projectId: string) => `wisepath:project:v3:${projectId}`;
 
 interface ProjectStore {
   project: Project;
