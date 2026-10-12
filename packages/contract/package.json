@@ -1,0 +1,20 @@
+{
+  "name": "@wisepath/contract",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "WisePath HTTP API contract (Effect HttpApi), shared by the web client and, later, the API.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@wisepath/domain": "workspace:*",
+    "effect": "4.0.3"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}
