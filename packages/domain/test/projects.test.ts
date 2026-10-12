@@ -13,6 +13,7 @@ import {
   newProject,
   nextTopic,
   projectProgress,
+  relatedPages,
   renameLinks,
   roleOf,
   sampleProject,
@@ -36,6 +37,20 @@ describe("project structure", () => {
   it("counts progress over topics and finds the next one to study", () => {
     assert.deepStrictEqual(projectProgress(sampleProject), { studied: 7, total: 31 })
     assert.strictEqual(nextTopic(sampleProject)?.title, "Module system")
+  })
+
+  it("lists a page's related pages: parent, children, then links both ways", () => {
+    const related = relatedPages(sampleProject, id("providers")).map((r) => `${r.relation}:${r.page.title}`)
+    assert.deepStrictEqual(related, [
+      "parent:NestJS",
+      "child:What providers are",
+      "child:Custom providers",
+      "child:Scopes",
+      "child:Factory providers",
+      "linksTo:Dependency Injection",
+      "linksTo:JWT"
+    ])
+    assert.deepStrictEqual(relatedPages(sampleProject, id("jwt")).map((r) => r.relation), ["parent", "linkedFrom"])
   })
 
   it("draws cross references only between pages that are not parent and child", () => {

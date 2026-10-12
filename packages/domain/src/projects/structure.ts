@@ -1,3 +1,4 @@
+import { references } from "./links"
 import type { Page, PageColor, PageIcon, PageId, Project } from "./Project"
 
 /**
@@ -90,4 +91,47 @@ export function lookOf(project: Project, pageId: PageId): { color: PageColor; ic
     color: page?.color ?? module?.color ?? DEFAULT_COLOR,
     icon: page?.icon ?? module?.icon ?? DEFAULT_ICON
   }
+}
+
+export type Relation = "parent" | "child" | "linksTo" | "linkedFrom"
+
+export interface RelatedPage {
+  readonly page: Page
+  readonly relation: Relation
+}
+
+/**
+ * Pages related to one page: where it sits in the tree (its parent, then its
+ * children), then the pages its [[links]] point to, then the pages linking to
+ * it. Each page appears once, under its first relation.
+ */
+export function relatedPages(project: Project, pageId: PageId): ReadonlyArray<RelatedPage> {
+  const page = project.pages.find((p) => p.id === pageId)
+  if (!page) return []
+  const { modules } = structureOf(project)
+  const byId = new Map(project.pages.map((p) => [p.id, p]))
+  const parent =
+    roleOf(project, pageId) === "module"
+      ? byId.get(project.rootPageId)
+      : page.parentId
+        ? byId.get(page.parentId)
+        : undefined
+  const children =
+    pageId === project.rootPageId
+      ? modules.map((m) => m.page)
+      : (modules.find((m) => m.page.id === pageId)?.topics ?? [])
+  const refs = references(project)
+
+  const out: RelatedPage[] = []
+  const seen = new Set<PageId>([pageId])
+  const push = (p: Page | undefined, relation: Relation) => {
+    if (!p || seen.has(p.id)) return
+    seen.add(p.id)
+    out.push({ page: p, relation })
+  }
+  push(parent, "parent")
+  for (const c of children) push(c, "child")
+  for (const r of refs) if (r.from === pageId) push(byId.get(r.to), "linksTo")
+  for (const r of refs) if (r.to === pageId) push(byId.get(r.from), "linkedFrom")
+  return out
 }
