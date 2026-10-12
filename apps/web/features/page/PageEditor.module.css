@@ -2,3 +2,9 @@
 .sheet {
   flex: 1;
 }
+
+.header {
+  @media (max-width: $mantine-breakpoint-sm) {
+    flex-wrap: wrap;
+  }
+}

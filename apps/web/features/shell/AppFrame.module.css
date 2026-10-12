@@ -44,7 +44,7 @@
 }
 
 .railMap[data-active] {
-  box-shadow: 0 0 0 2px var(--mantine-color-body), 0 0 0 4px var(--mantine-color-blue-4);
+  box-shadow: 0 0 0 2px var(--mantine-color-body), 0 0 0 3px var(--mantine-color-gray-3);
 }
 
 .column {

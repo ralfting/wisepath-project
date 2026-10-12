@@ -1,7 +1,9 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Anchor, Card, Center, Group, Stack, Text, ThemeIcon, Title } from '@mantine/core';
+import { ActionIcon, Anchor, Box, Card, Center, Group, Stack, Text, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { IconSitemap } from '@tabler/icons-react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, pathTo } from '@wisepath/domain/projects';
@@ -10,7 +12,7 @@ import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import type { Crumb } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
-import { PageContent } from './PageContent';
+import { PageContent, PageTitleInput } from './PageContent';
 import type { PageActions } from './PageContent';
 import { StudiedToggle } from './StudiedToggle';
 import classes from './PageEditor.module.css';
@@ -72,21 +74,74 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
   return (
     <AppFrame crumbs={crumbs}>
       <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="xl" className={classes.sheet}>
-        <Group justify="space-between" mb="lg">
-          <Group gap="sm">
-            <ThemeIcon size={44} radius="xl" variant="light" color={look.color}>
-              <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={23} />
+        <Group justify="space-between" align="center" wrap="nowrap" gap="lg" mb="lg" className={classes.header}>
+          <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
+            <ThemeIcon size={48} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
+              <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={25} />
             </ThemeIcon>
-            <Anchor component={Link} href={`${mapHref}?page=${page.id}`} size="sm">
-              See it on the map
-            </Anchor>
+            <Box miw={0} style={{ flex: 1 }}>
+              <PageTitleInput key={page.id} project={project} page={page} actions={store} size={34} autoFocus={isFresh} />
+            </Box>
           </Group>
-          {!isRoot && (
-            <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />
-          )}
+          <Group gap="sm" wrap="nowrap">
+            <SavedAt updatedAt={page.updatedAt} />
+            {!isRoot && (
+              <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />
+            )}
+            <Tooltip label="See it on the map">
+              <ActionIcon
+                component={Link}
+                href={`${mapHref}?page=${page.id}`}
+                variant="default"
+                size="lg"
+                radius="md"
+                aria-label="See it on the map"
+              >
+                <IconSitemap size={18} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         </Group>
-        <PageContent project={project} page={page} actions={actions} isFresh={isFresh} titleSize={38} toolbarOffset={0} />
+        <PageContent project={project} page={page} actions={actions} showTitle={false} toolbarOffset={0} />
       </Card>
     </AppFrame>
+  );
+}
+
+const relative = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ['second', 60],
+  ['minute', 60],
+  ['hour', 24],
+  ['day', 30],
+  ['month', 12],
+  ['year', Infinity],
+];
+
+/** "3 minutes ago" from an ISO date */
+function ago(iso: string, now: number): string {
+  let value = (new Date(iso).getTime() - now) / 1000;
+  for (const [unit, size] of STEPS) {
+    if (Math.abs(value) < size || unit === 'year') return relative.format(Math.round(value), unit);
+    value /= size;
+  }
+  return '';
+}
+
+/** When the page was last edited; edits save to this device a moment later */
+function SavedAt({ updatedAt }: { updatedAt: string }) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, [updatedAt]);
+  if (!updatedAt || Number.isNaN(new Date(updatedAt).getTime())) return null;
+  return (
+    <Tooltip label={`Saved on this device · ${new Date(updatedAt).toLocaleString()}`}>
+      <Text size="sm" c="dimmed" visibleFrom="md" style={{ whiteSpace: 'nowrap' }}>
+        Saved · edited {ago(updatedAt, now)}
+      </Text>
+    </Tooltip>
   );
 }
