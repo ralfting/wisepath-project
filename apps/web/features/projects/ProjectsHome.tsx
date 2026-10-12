@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Badge, Button, Card, Group, Progress, SimpleGrid, Stack, Text, ThemeIcon, Title } from '@mantine/core';
 import { IconPlayerPlayFilled } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
-import { lookOf, nextTopic, projectProgress, structureOf } from '@wisepath/domain/projects';
+import { lookOf, mapTree, nextPage, projectProgress } from '@wisepath/domain/projects';
 import { useProjects } from '@/useCases/projects';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
@@ -26,7 +26,7 @@ export function ProjectsHome() {
           <Title order={1} fz={34} lts={-0.6}>
             My maps
           </Title>
-          <Text c="dimmed">Each map is a subject you are learning: modules around it, topics in each module.</Text>
+          <Text c="dimmed">Each map is a subject you are learning, page by page, connected by the links you write.</Text>
         </Stack>
 
         {projects === null ? null : projects.length === 0 ? (
@@ -46,8 +46,9 @@ export function ProjectsHome() {
 function ProjectCard({ project }: { project: Project }) {
   const look = lookOf(project, project.rootPageId);
   const { studied, total } = projectProgress(project);
-  const modules = structureOf(project).modules.length;
-  const next = nextTopic(project);
+  const tree = mapTree(project);
+  const modules = [...tree.nodes.values()].filter((n) => n.page.module).length;
+  const next = nextPage(project);
   const href = `/projects/${project.id}`;
 
   return (
@@ -69,7 +70,9 @@ function ProjectCard({ project }: { project: Project }) {
               )}
             </Group>
             <Text size="sm" c="dimmed">
-              {modules} {modules === 1 ? 'module' : 'modules'} · {total} {total === 1 ? 'topic' : 'topics'}
+              {total} {total === 1 ? 'page' : 'pages'}
+              {modules > 0 ? ` · ${modules} ${modules === 1 ? 'module' : 'modules'}` : ''}
+              {tree.orphans.length > 0 ? ` · ${tree.orphans.length} orphan${tree.orphans.length === 1 ? '' : 's'}` : ''}
             </Text>
           </Stack>
         </Group>
@@ -86,7 +89,7 @@ function ProjectCard({ project }: { project: Project }) {
             </Text>
           </Group>
           <Text size="xs" c="dimmed">
-            {studied} of {total} topics studied
+            {studied} of {total} pages studied
           </Text>
         </Stack>
         <Button

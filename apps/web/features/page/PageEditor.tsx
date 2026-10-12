@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Anchor, Card, Center, Group, Stack, Text, ThemeIcon, Title } from '@mantine/core';
 import Link from 'next/link';
 import type { Project } from '@wisepath/domain/projects';
-import { displayTitle, lookOf, moduleOf, roleOf } from '@wisepath/domain/projects';
+import { displayTitle, lookOf, pathTo } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
@@ -51,20 +51,21 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
     );
   }
 
-  const parentModule = moduleOf(project, page.id);
+  const isRoot = page.id === project.rootPageId;
   const look = lookOf(project, page.id);
+  const between = pathTo(project, page.id).slice(1, -1);
   const crumbs: Crumb[] = [
     { label: 'My maps', href: '/projects' },
     { label: project.title, href: mapHref },
-    ...(parentModule && parentModule.page.id !== page.id ? [{ label: displayTitle(parentModule.page), href: `${mapHref}?page=${parentModule.page.id}` }] : []),
-    ...(page.id !== project.rootPageId ? [{ label: displayTitle(page) }] : []),
+    ...between.map((p) => ({ label: displayTitle(p), href: `${mapHref}?page=${p.id}` })),
+    ...(isRoot ? [] : [{ label: displayTitle(page) }]),
   ];
 
   const actions: PageActions = {
     updatePage: store.updatePage,
     renameLinks: store.renameLinks,
     openPage: (id) => router.push(pageHref(id)),
-    createLinkedPage: (title) => router.push(pageHref(store.addTopic(page.id, title).id)),
+    createLinkedPage: (title) => router.push(pageHref(store.createPage(title).id)),
   };
 
   return (
@@ -73,13 +74,13 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
         <Group justify="space-between" mb="lg">
           <Group gap="sm">
             <ThemeIcon size={44} radius="xl" variant="light" color={look.color}>
-              <PageGlyph icon={look.icon} size={23} />
+              <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={23} />
             </ThemeIcon>
             <Anchor component={Link} href={`${mapHref}?page=${page.id}`} size="sm">
               See it on the map
             </Anchor>
           </Group>
-          {roleOf(project, page.id) === 'topic' && (
+          {!isRoot && (
             <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />
           )}
         </Group>

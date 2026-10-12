@@ -131,6 +131,11 @@
   }
 }
 
+.moduleCheck {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .moduleIcon {
   flex-shrink: 0;
   background: var(--mantine-color-body);
@@ -176,11 +181,51 @@
   }
 }
 
+.module[data-status='current'] {
+  border-color: var(--mantine-color-blue-4);
+}
+
 .topicTitle {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Studied pages below a page that has branches */
+.chip {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--c0);
+  color: var(--mantine-color-dimmed);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.orphansButton {
+  position: absolute;
+  top: var(--mantine-spacing-md);
+  right: var(--mantine-spacing-md);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.orphan {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px;
+  border-radius: var(--mantine-radius-sm);
+
+  &:hover {
+    background: var(--mantine-color-gray-0);
+  }
+
+  &[data-selected] {
+    background: var(--mantine-color-blue-0);
+  }
 }
 
 /* Overlays */

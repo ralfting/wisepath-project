@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
-import { ActionIcon, Group, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
+import { ActionIcon, Badge, Button, Group, Popover, ScrollArea, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import {
   IconCircle,
   IconCircleCheckFilled,
@@ -11,19 +11,21 @@ import {
   IconMaximize,
   IconMinus,
   IconPlus,
+  IconUnlink,
 } from '@tabler/icons-react';
 import type { Page, PageColor, Project } from '@wisepath/domain/projects';
-import { displayTitle, lookOf, progressOf, projectProgress } from '@wisepath/domain/projects';
+import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
 import { PageGlyph, shade } from '@/features/shared/look';
-import { MODULE, ROOT_SIZE, TOPIC, layoutMind } from './mindLayout';
-import type { Point, Side } from './mindLayout';
+import { ROOT_SIZE, layoutMind } from './mindLayout';
+import type { PlacedNode, Point } from './mindLayout';
 import classes from './MindMap.module.css';
 
 /**
  * MindMap
- * The project as a radial map: root in the middle, modules around it, topics
- * beside their module, and [[link]] cross references as blue arrows. Drag or
- * scroll to pan, pinch or Ctrl/⌘ + scroll to zoom. Every page is a button.
+ * The project read from its [[links]]: root in the middle, branches level by
+ * level outward, modules drawn larger, other links as blue arrows, and the
+ * pages no link reaches listed as orphans. Drag or scroll to pan, pinch or
+ * Ctrl/⌘ + scroll to zoom. Every page is a button.
  */
 
 export interface FocusRequest {
@@ -34,7 +36,7 @@ export interface FocusRequest {
 interface MindMapProps {
   project: Project;
   selectedId: string | null;
-  /** The topic "Continue studying" leads to */
+  /** The page "Continue studying" leads to */
   currentId: string | null;
   /** Pages matching the search; null when not searching */
   matchIds: Set<string> | null;
@@ -53,7 +55,8 @@ const MAX_ZOOM = 2.2;
 const clampZoom = (k: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
 
 export function MindMap({ project, selectedId, currentId, matchIds, focusRequest, onSelect }: MindMapProps) {
-  const layout = useMemo(() => layoutMind(project), [project]);
+  const tree = useMemo(() => mapTree(project), [project]);
+  const layout = useMemo(() => layoutMind(tree), [tree]);
   const frameRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
@@ -61,14 +64,15 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
   const [animate, setAnimate] = useState(false);
   const drag = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
 
+  /** The whole map in view; `floor` keeps text readable on the first view, at the cost of some panning */
   const fit = useCallback(
-    (w: number, h: number): View => {
+    (w: number, h: number, floor = 0): View => {
       const { minX, minY, maxX, maxY } = layout.bounds;
       const pad = 48;
       const whole = Math.min((w - pad) / (maxX - minX), (h - pad) / (maxY - minY), 1);
       // On a phone the whole map would be unreadable: start readable, around the root
       if (w < 640 && whole < 0.7) return { k: 0.7, x: w / 2, y: h / 2 };
-      const k = clampZoom(whole);
+      const k = clampZoom(Math.max(whole, Math.min(floor, 1)));
       return { k, x: w / 2 - k * ((minX + maxX) / 2), y: h / 2 - k * ((minY + maxY) / 2) };
     },
     [layout.bounds],
@@ -81,7 +85,7 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
     const observer = new ResizeObserver(([entry]) => {
       const next = { w: entry.contentRect.width, h: entry.contentRect.height };
       setSize(next);
-      setView((v) => v ?? fit(next.w, next.h));
+      setView((v) => v ?? fit(next.w, next.h, 0.62));
     });
     observer.observe(el);
     return () => observer.disconnect();
@@ -167,8 +171,14 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
   const touchesSelection = (from: string, to: string) => selectedId !== null && (from === selectedId || to === selectedId);
   const { minX, minY, maxX, maxY } = layout.bounds;
   const pad = 40;
-  const rootLook = lookOf(project, layout.root.page.id);
-  const overall = projectProgress(project);
+  const rootId = tree.root.page.id;
+  const rootLook = lookOf(project, rootId, tree);
+  const overall = progressOf(descendants(tree.root));
+  const statusOf = (page: Page): TopicStatus => (page.studied ? 'done' : page.id === currentId ? 'current' : 'todo');
+  const counterOf = (id: Page['id']) => {
+    const node = tree.nodes.get(id);
+    return node ? progressOf(descendants(node)) : { studied: 0, total: 0 };
+  };
 
   return (
     <div ref={frameRef} className={classes.frame}>
@@ -201,20 +211,17 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
                   <path d="M0,0 L10,5 L0,10 z" fill="var(--mantine-color-blue-6)" />
                 </marker>
               </defs>
-              {layout.tree.map((line) => {
-                const color = lookOf(project, line.to).color;
-                return (
-                  <path
-                    key={line.key}
-                    d={line.d}
-                    fill="none"
-                    stroke={shade(color, line.from === layout.root.page.id ? 4 : 3)}
-                    strokeWidth={line.from === layout.root.page.id ? 2.4 : 1.6}
-                    opacity={dimmed(line.to) ? 0.25 : 0.9}
-                  />
-                );
-              })}
-              {layout.cross.map((line) => (
+              {layout.branches.map((line) => (
+                <path
+                  key={line.key}
+                  d={line.d}
+                  fill="none"
+                  stroke={shade(lookOf(project, line.to, tree).color, line.from === rootId ? 4 : 3)}
+                  strokeWidth={line.from === rootId ? 2.4 : 1.6}
+                  opacity={dimmed(line.to) ? 0.25 : 0.9}
+                />
+              ))}
+              {layout.arrows.map((line) => (
                 <path
                   key={line.key}
                   d={line.d}
@@ -229,63 +236,114 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
             </svg>
 
             <RootNode
-              page={layout.root.page}
+              page={tree.root.page}
               color={rootLook.color}
               icon={<PageGlyph icon={rootLook.icon} size={30} />}
               studied={overall.studied}
               total={overall.total}
-              selected={selectedId === layout.root.page.id}
-              dimmed={dimmed(layout.root.page.id)}
+              selected={selectedId === rootId}
+              dimmed={dimmed(rootId)}
               onSelect={onSelect}
             />
 
-            {layout.modules.map((m) => {
-              const look = lookOf(project, m.page.id);
-              const progress = progressOf(m.topics.map((t) => t.page));
-              return (
-                <div key={m.page.id}>
-                  <UnstyledButton
-                    className={classes.module}
-                    style={place(m.at, MODULE, look.color)}
-                    data-selected={selectedId === m.page.id || undefined}
-                    data-dimmed={dimmed(m.page.id) || undefined}
-                    onClick={() => onSelect(m.page.id)}
-                    aria-label={`${displayTitle(m.page)}, module, ${progress.studied} of ${progress.total} studied`}
-                  >
-                    <ThemeIcon size={40} radius="xl" variant="light" color={look.color} className={classes.moduleIcon}>
-                      <PageGlyph icon={look.icon} size={21} />
-                    </ThemeIcon>
-                    <span className={classes.moduleText}>
-                      <span className={classes.moduleTitle}>{displayTitle(m.page)}</span>
-                      <span className={classes.count}>
-                        {progress.studied}/{progress.total}
-                      </span>
+            {layout.nodes.map((n) => {
+              const look = lookOf(project, n.page.id, tree);
+              const status = statusOf(n.page);
+              const counter = n.branches > 0 ? counterOf(n.page.id) : null;
+              const label = [
+                displayTitle(n.page),
+                n.module ? 'module' : null,
+                STATUS_LABEL[status].toLowerCase(),
+                counter ? `${counter.studied} of ${counter.total} below studied` : null,
+              ]
+                .filter(Boolean)
+                .join(', ');
+              return n.module ? (
+                <UnstyledButton
+                  key={n.page.id}
+                  className={classes.module}
+                  style={place(n, look.color)}
+                  data-status={status}
+                  data-selected={selectedId === n.page.id || undefined}
+                  data-dimmed={dimmed(n.page.id) || undefined}
+                  onClick={() => onSelect(n.page.id)}
+                  aria-label={label}
+                >
+                  <ThemeIcon size={40} radius="xl" variant="light" color={look.color} className={classes.moduleIcon}>
+                    <PageGlyph icon={look.icon} size={21} />
+                  </ThemeIcon>
+                  <span className={classes.moduleText}>
+                    <span className={classes.moduleTitle}>{displayTitle(n.page)}</span>
+                    <span className={classes.count}>
+                      {counter ? `${counter.studied}/${counter.total}` : STATUS_LABEL[status]}
                     </span>
-                  </UnstyledButton>
-                  {m.topics.map((t) => {
-                    const status = t.page.studied ? 'done' : t.page.id === currentId ? 'current' : 'todo';
-                    return (
-                      <UnstyledButton
-                        key={t.page.id}
-                        className={classes.topic}
-                        style={placeTopic(t.at, m.side, look.color)}
-                        data-status={status}
-                        data-selected={selectedId === t.page.id || undefined}
-                        data-dimmed={dimmed(t.page.id) || undefined}
-                        onClick={() => onSelect(t.page.id)}
-                        aria-label={`${displayTitle(t.page)}, ${STATUS_LABEL[status].toLowerCase()}`}
-                      >
-                        <StatusIcon status={status} />
-                        <span className={classes.topicTitle}>{displayTitle(t.page)}</span>
-                      </UnstyledButton>
-                    );
-                  })}
-                </div>
+                  </span>
+                  {n.page.studied && <IconCircleCheckFilled size={18} color="var(--mantine-color-teal-6)" className={classes.moduleCheck} aria-hidden="true" />}
+                </UnstyledButton>
+              ) : (
+                <UnstyledButton
+                  key={n.page.id}
+                  className={classes.topic}
+                  style={place(n, look.color)}
+                  data-status={status}
+                  data-selected={selectedId === n.page.id || undefined}
+                  data-dimmed={dimmed(n.page.id) || undefined}
+                  onClick={() => onSelect(n.page.id)}
+                  aria-label={label}
+                >
+                  <StatusIcon status={status} />
+                  <span className={classes.topicTitle}>{displayTitle(n.page)}</span>
+                  {counter && (
+                    <span className={classes.chip}>
+                      {counter.studied}/{counter.total}
+                    </span>
+                  )}
+                </UnstyledButton>
               );
             })}
           </div>
         )}
       </div>
+
+      {tree.orphans.length > 0 && (
+        <Popover position="bottom-end" width={260} shadow="md">
+          <Popover.Target>
+            <Button
+              variant="default"
+              size="xs"
+              leftSection={<IconUnlink size={15} />}
+              rightSection={
+                <Badge size="sm" variant="light" color="orange" circle>
+                  {tree.orphans.length}
+                </Badge>
+              }
+              className={classes.orphansButton}
+            >
+              Orphans
+            </Button>
+          </Popover.Target>
+          <Popover.Dropdown p="xs">
+            <Text size="xs" c="dimmed" px={6} pb={6}>
+              No link reaches these pages from {displayTitle(tree.root.page)}. Link them with [[Title]] in any page on the map.
+            </Text>
+            <ScrollArea.Autosize mah={260}>
+              {tree.orphans.map((p) => (
+                <UnstyledButton
+                  key={p.id}
+                  className={classes.orphan}
+                  data-selected={selectedId === p.id || undefined}
+                  onClick={() => onSelect(p.id)}
+                >
+                  <StatusIcon status={p.studied ? 'done' : 'todo'} size={16} />
+                  <Text size="sm" truncate>
+                    {displayTitle(p)}
+                  </Text>
+                </UnstyledButton>
+              ))}
+            </ScrollArea.Autosize>
+          </Popover.Dropdown>
+        </Popover>
+      )}
 
       <Stack gap={0} className={classes.controls}>
         <Tooltip label="Zoom in" position="right">
@@ -349,28 +407,25 @@ export function StatusIcon({ status, size = 18 }: { status: TopicStatus; size?: 
 
 const tints = (color: PageColor) => ({
   '--c0': shade(color, 0),
-    '--c1': shade(color, 1),
-    '--c2': shade(color, 2),
-    '--c3': shade(color, 3),
+  '--c1': shade(color, 1),
+  '--c2': shade(color, 2),
+  '--c3': shade(color, 3),
   '--c6': shade(color, 6),
 });
 
-/** Absolute position of a node centred on `at`, with its colour for the CSS module */
-function place(at: Point, size: { w: number; h: number }, color: PageColor): CSSProperties {
-  return { left: at.x - size.w / 2, top: at.y - size.h / 2, width: size.w, height: size.h, ...tints(color) } as CSSProperties;
-}
-
-/** A topic grows away from its module: `at` is its inner end */
-function placeTopic(at: Point, side: Side, color: PageColor): CSSProperties {
+/** Absolute position of a node: it grows away from the root, from its inner end */
+function place(n: PlacedNode, color: PageColor): CSSProperties {
   return {
-    left: at.x,
-    top: at.y - TOPIC.h / 2,
-    height: TOPIC.h,
-    minWidth: TOPIC.w,
-    maxWidth: TOPIC.maxW,
-    transform: side === -1 ? 'translateX(-100%)' : undefined,
+    left: n.side === 1 ? n.inner.x : n.inner.x - n.w,
+    top: n.inner.y - n.h / 2,
+    width: n.w,
+    height: n.h,
     ...tints(color),
   } as CSSProperties;
+}
+
+function placeCircle(size: number, color: PageColor): CSSProperties {
+  return { left: -size / 2, top: -size / 2, width: size, height: size, ...tints(color) } as CSSProperties;
 }
 
 interface RootNodeProps {
@@ -392,11 +447,11 @@ function RootNode({ page, color, icon, studied, total, selected, dimmed, onSelec
   return (
     <UnstyledButton
       className={classes.root}
-      style={place({ x: 0, y: 0 }, { w: ROOT_SIZE, h: ROOT_SIZE }, color)}
+      style={placeCircle(ROOT_SIZE, color)}
       data-selected={selected || undefined}
       data-dimmed={dimmed || undefined}
       onClick={() => onSelect(page.id)}
-      aria-label={`${displayTitle(page)}, ${studied} of ${total} topics studied`}
+      aria-label={`${displayTitle(page)}, ${studied} of ${total} pages studied`}
     >
       <svg className={classes.ring} width={ROOT_SIZE} height={ROOT_SIZE} aria-hidden="true">
         <defs>

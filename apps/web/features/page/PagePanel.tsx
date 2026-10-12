@@ -12,38 +12,27 @@ import {
   ColorSwatch,
   Group,
   Menu,
-  Select,
   SimpleGrid,
   Stack,
+  Switch,
   Tabs,
   Text,
   Textarea,
-  TextInput,
   ThemeIcon,
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import {
-  IconArrowRight,
-  IconArrowsDiagonal,
-  IconCheck,
-  IconChevronRight,
-  IconDotsVertical,
-  IconPlus,
-  IconTrash,
-} from '@tabler/icons-react';
+import { IconArrowRight, IconArrowsDiagonal, IconCheck, IconChevronRight, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import type { Page, Project, Relation } from '@wisepath/domain/projects';
 import {
   PageColor,
   PageIcon,
+  branchProgress,
   displayTitle,
   lookOf,
-  moduleOf,
-  progressOf,
-  projectProgress,
+  mapTree,
+  pathTo,
   relatedPages,
-  roleOf,
-  structureOf,
 } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { PageGlyph, shade } from '@/features/shared/look';
@@ -55,7 +44,7 @@ import classes from './PagePanel.module.css';
 /**
  * PagePanel
  * The selected page beside the map: where it sits, its title and markdown,
- * the pages related to it, and (for the root and modules) how it looks.
+ * the pages related to it, and how it shows on the map.
  */
 
 interface PagePanelProps {
@@ -68,49 +57,49 @@ interface PagePanelProps {
 
 type PanelTab = 'content' | 'related' | 'settings';
 
-const RELATION_LABEL: Record<Relation, (role: string | undefined) => string> = {
-  parent: (role) => (role === 'module' ? 'The map' : 'Module of this topic'),
-  child: (role) => (role === 'root' ? 'Module' : 'Topic in this module'),
-  linksTo: () => 'Referenced in this page',
-  linkedFrom: () => 'References this page',
+const RELATION_LABEL: Record<Relation, string> = {
+  parent: 'This page branches from it',
+  child: 'Branches from this page',
+  linksTo: 'Referenced in this page',
+  linkedFrom: 'References this page',
 };
 
 export function PagePanel({ project, page, store, onSelect, fullPageHref }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const role = roleOf(project, page.id);
-  const look = lookOf(project, page.id);
+  const isRoot = page.id === project.rootPageId;
+  const tree = mapTree(project);
+  const isOrphan = !tree.nodes.has(page.id);
+  const path = pathTo(project, page.id, tree);
+  const look = lookOf(project, page.id, tree);
   const related = relatedPages(project, page.id);
-  const parentModule = moduleOf(project, page.id);
-  const root = structureOf(project).root;
-  const trail = [root, ...(parentModule ? [parentModule.page] : [])].filter((p) => p.id !== page.id);
+  const below = branchProgress(project, page.id);
+  const branchFrom = path.length > 1 ? path[path.length - 2] : null;
 
   const pageActions: PageActions = {
     updatePage: store.updatePage,
     renameLinks: store.renameLinks,
     openPage: onSelect,
-    createLinkedPage: (title) => onSelect(store.addTopic(page.id, title).id),
+    createLinkedPage: (title) => onSelect(store.createPage(title).id),
   };
 
-  const progress = role === 'root' ? projectProgress(project) : role === 'module' && parentModule ? progressOf(parentModule.topics) : null;
-  const subtitle =
-    role === 'root'
-      ? 'The map'
-      : role === 'module'
-        ? 'Module'
-        : parentModule
-          ? `Topic in ${displayTitle(parentModule.page)}`
-          : 'Topic';
+  const kind = isRoot ? 'The map' : isOrphan ? 'Orphan: no link reaches this page' : page.module ? 'Module' : 'Page';
+  const subtitle = below && below.total > 0 ? `${kind} · ${below.studied} of ${below.total} below studied` : kind;
 
   return (
     <Card padding={0} className={classes.panel} aria-label="Selected page" component="aside">
       <Group justify="space-between" wrap="nowrap" px="lg" pt="md" gap="xs">
         <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail}>
-          {trail.map((p) => (
+          {(isOrphan ? [] : path.slice(0, -1)).map((p) => (
             <Anchor key={p.id} component="button" type="button" size="sm" c="dimmed" onClick={() => onSelect(p.id)}>
               {displayTitle(p)}
             </Anchor>
           ))}
+          {isOrphan && (
+            <Text size="sm" c="dimmed">
+              Orphans
+            </Text>
+          )}
           <Text size="sm" fw={600} truncate>
             {displayTitle(page)}
           </Text>
@@ -121,7 +110,7 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
               <IconArrowsDiagonal size={17} />
             </ActionIcon>
           </Tooltip>
-          {role !== 'root' && (
+          {!isRoot && (
             <Menu position="bottom-end">
               <Menu.Target>
                 <ActionIcon variant="subtle" color="gray" aria-label="More">
@@ -130,7 +119,7 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
-                  Delete {role === 'module' ? 'module' : 'topic'}
+                  Delete page
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -141,11 +130,8 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
       {confirmDelete && (
         <Box mx="lg" mt="sm" p="sm" className={classes.confirm}>
           <Text size="sm">
-            Delete <b>{displayTitle(page)}</b>
-            {role === 'module' && parentModule && parentModule.topics.length > 0
-              ? ` and its ${parentModule.topics.length} ${parentModule.topics.length === 1 ? 'topic' : 'topics'}`
-              : ''}
-            ? Links to it stay in other pages and show as missing. This can&apos;t be undone.
+            Delete <b>{displayTitle(page)}</b>? Links to it stay in other pages and show as missing
+            {below && below.total > 0 ? ', and pages only it reaches become orphans' : ''}. This can&apos;t be undone.
           </Text>
           <Group gap="xs" mt="sm">
             <Button
@@ -154,7 +140,7 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
               onClick={() => {
                 setConfirmDelete(false);
                 store.deletePage(page.id);
-                onSelect(parentModule && role === 'topic' ? parentModule.page.id : root.id);
+                onSelect(branchFrom?.id ?? project.rootPageId);
               }}
             >
               Delete
@@ -168,27 +154,21 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
 
       <Group gap="md" wrap="nowrap" align="flex-start" px="lg" pt="md">
         <ThemeIcon size={60} radius="xl" variant="light" color={look.color} className={classes.icon}>
-          <PageGlyph icon={look.icon} size={30} />
+          <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={30} />
         </ThemeIcon>
         <Stack gap={2} miw={0} style={{ flex: 1 }}>
-          <PageTitleInput key={page.id} page={page} actions={store} size={26} />
+          <PageTitleInput key={page.id} project={project} page={page} actions={store} size={26} />
           <Text size="sm" c="dimmed">
             {subtitle}
-            {progress ? ` · ${progress.studied} of ${progress.total} topics studied` : ''}
           </Text>
         </Stack>
       </Group>
 
-      <Group gap="xs" px="lg" pt="md">
-        {role === 'topic' && <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />}
-        {role !== 'topic' && (
-          <AddPageButton
-            label={role === 'root' ? 'Add module' : 'Add topic'}
-            placeholder={role === 'root' ? 'Name the module' : 'Name the topic'}
-            onAdd={(title) => (role === 'root' ? store.addModule(title) : store.addTopic(page.id, title))}
-          />
-        )}
-      </Group>
+      {!isRoot && (
+        <Group gap="xs" px="lg" pt="md">
+          <StudiedToggle studied={page.studied} onChange={(studied) => store.updatePage(page.id, { studied })} />
+        </Group>
+      )}
 
       <Tabs value={tab} onChange={(v) => setTab((v as PanelTab) ?? 'content')} mt="md" className={classes.tabs}>
         <Tabs.List px="lg">
@@ -199,28 +179,31 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
 
         <Tabs.Panel value="content" className={classes.body}>
           <PageContent key={page.id} project={project} page={page} actions={pageActions} showTitle={false} />
+          <Text size="xs" c="dimmed" mt="md">
+            To add a page, type [[ and a name, then click the link. To connect pages, link them the same way.
+          </Text>
         </Tabs.Panel>
 
         <Tabs.Panel value="related" className={classes.body}>
           {related.length === 0 ? (
             <Text size="sm" c="dimmed">
-              Nothing related yet. Type [[ in the content to reference another page.
+              Nothing related yet. Type [[ in the content to link another page.
             </Text>
           ) : (
             <Stack gap={2}>
               {related.map(({ page: p, relation }) => {
-                const l = lookOf(project, p.id);
+                const l = lookOf(project, p.id, tree);
                 return (
                   <UnstyledButton key={p.id} className={classes.related} onClick={() => onSelect(p.id)}>
                     <ThemeIcon size={28} radius="xl" variant="light" color={l.color}>
-                      <PageGlyph icon={l.icon} size={15} />
+                      <PageGlyph icon={p.module || p.id === project.rootPageId ? l.icon : 'book'} size={15} />
                     </ThemeIcon>
                     <Stack gap={0} miw={0} style={{ flex: 1 }}>
                       <Text size="sm" fw={600} truncate>
                         {displayTitle(p)}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {RELATION_LABEL[relation](role)}
+                        {RELATION_LABEL[relation]}
                       </Text>
                     </Stack>
                     <IconArrowRight size={17} color="var(--mantine-color-blue-6)" />
@@ -229,9 +212,6 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
               })}
             </Stack>
           )}
-          <Text size="xs" c="dimmed" mt="md">
-            Any page can reference any other: type [[ in the content and pick a page.
-          </Text>
         </Tabs.Panel>
 
         <Tabs.Panel value="settings" className={classes.body}>
@@ -243,27 +223,13 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref }: Page
 }
 
 function Settings({ project, page, store }: { project: Project; page: Page; store: ProjectActions }) {
-  const role = roleOf(project, page.id);
+  const isRoot = page.id === project.rootPageId;
   const look = lookOf(project, page.id);
-  const { modules } = structureOf(project);
-
-  if (role === 'topic') {
-    return (
-      <Select
-        label="Module"
-        description="Topics take their module's colour and icon."
-        data={modules.map((m) => ({ value: m.page.id, label: displayTitle(m.page) }))}
-        value={page.parentId ?? null}
-        onChange={(value) => value && store.moveTopic(page.id, value)}
-        allowDeselect={false}
-        comboboxProps={{ withinPortal: true }}
-      />
-    );
-  }
+  const styled = isRoot || !!page.module;
 
   return (
     <Stack gap="lg">
-      {role === 'root' && (
+      {isRoot ? (
         <Textarea
           label="Description"
           description="One line under the map's title."
@@ -272,93 +238,63 @@ function Settings({ project, page, store }: { project: Project; page: Page; stor
           value={project.description ?? ''}
           onChange={(e) => store.setDescription(e.currentTarget.value)}
         />
+      ) : (
+        <Switch
+          label="Show as a module"
+          description="Drawn larger on the map, with its own colour and icon; pages below it take the colour. Nothing else changes."
+          checked={!!page.module}
+          onChange={(e) =>
+            store.setLook(page.id, e.currentTarget.checked ? { module: true, color: look.color, icon: page.icon ?? look.icon } : { module: false })
+          }
+        />
       )}
-      <Stack gap={6}>
-        <Text size="sm" fw={500}>
-          Colour
-        </Text>
-        <Group gap={8}>
-          {PageColor.literals.map((color) => (
-            <ColorSwatch
-              key={color}
-              component="button"
-              type="button"
-              color={shade(color, 6)}
-              size={26}
-              aria-label={color}
-              aria-pressed={look.color === color}
-              onClick={() => store.setLook(page.id, { color })}
-              className={classes.swatch}
-            >
-              {look.color === color && <IconCheck size={14} color="white" stroke={3} />}
-            </ColorSwatch>
-          ))}
-        </Group>
-      </Stack>
-      <Stack gap={6}>
-        <Text size="sm" fw={500}>
-          Icon
-        </Text>
-        <SimpleGrid cols={8} spacing={6} maw={340}>
-          {PageIcon.literals.map((icon) => (
-            <ActionIcon
-              key={icon}
-              size={36}
-              radius="md"
-              variant={look.icon === icon ? 'light' : 'default'}
-              color={look.color}
-              aria-label={icon}
-              aria-pressed={look.icon === icon}
-              onClick={() => store.setLook(page.id, { icon })}
-            >
-              <PageGlyph icon={icon} size={18} />
-            </ActionIcon>
-          ))}
-        </SimpleGrid>
-      </Stack>
+      {styled && (
+        <>
+          <Stack gap={6}>
+            <Text size="sm" fw={500}>
+              Colour
+            </Text>
+            <Group gap={8}>
+              {PageColor.literals.map((color) => (
+                <ColorSwatch
+                  key={color}
+                  component="button"
+                  type="button"
+                  color={shade(color, 6)}
+                  size={26}
+                  aria-label={color}
+                  aria-pressed={look.color === color}
+                  onClick={() => store.setLook(page.id, { color })}
+                  className={classes.swatch}
+                >
+                  {look.color === color && <IconCheck size={14} color="white" stroke={3} />}
+                </ColorSwatch>
+              ))}
+            </Group>
+          </Stack>
+          <Stack gap={6}>
+            <Text size="sm" fw={500}>
+              Icon
+            </Text>
+            <SimpleGrid cols={8} spacing={6} maw={340}>
+              {PageIcon.literals.map((icon) => (
+                <ActionIcon
+                  key={icon}
+                  size={36}
+                  radius="md"
+                  variant={look.icon === icon ? 'light' : 'default'}
+                  color={look.color}
+                  aria-label={icon}
+                  aria-pressed={look.icon === icon}
+                  onClick={() => store.setLook(page.id, { icon })}
+                >
+                  <PageGlyph icon={icon} size={18} />
+                </ActionIcon>
+              ))}
+            </SimpleGrid>
+          </Stack>
+        </>
+      )}
     </Stack>
-  );
-}
-
-/** A button that turns into a name field; Enter adds and keeps the field open for the next one */
-function AddPageButton({ label, placeholder, onAdd }: { label: string; placeholder: string; onAdd: (title: string) => void }) {
-  const [draft, setDraft] = useState<string | null>(null);
-  if (draft === null) {
-    return (
-      <Button variant="light" size="xs" leftSection={<IconPlus size={15} />} onClick={() => setDraft('')}>
-        {label}
-      </Button>
-    );
-  }
-  const add = () => {
-    if (draft.trim()) onAdd(draft.trim());
-    setDraft('');
-  };
-  return (
-    <TextInput
-      autoFocus
-      size="xs"
-      w="100%"
-      aria-label={placeholder}
-      placeholder={placeholder}
-      value={draft}
-      onChange={(e) => setDraft(e.currentTarget.value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          add();
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          e.stopPropagation();
-          setDraft(null);
-        }
-      }}
-      onBlur={() => {
-        if (draft.trim()) onAdd(draft.trim());
-        setDraft(null);
-      }}
-      description="Enter adds it and keeps the field open. Esc closes."
-      inputWrapperOrder={['input', 'description']}
-    />
   );
 }

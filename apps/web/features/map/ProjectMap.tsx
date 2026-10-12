@@ -7,7 +7,7 @@ import { Badge, Button, Group, Kbd, Progress, Stack, Tabs, Text, TextInput, Them
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconPlayerPlayFilled, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
-import { displayTitle, lookOf, nextTopic, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
+import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
@@ -15,7 +15,7 @@ import { PageGlyph } from '@/features/shared/look';
 import { PagePanel } from '@/features/page/PagePanel';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';
-import { TopicList } from './TopicList';
+import { MapList } from './MapList';
 import classes from './ProjectMap.module.css';
 
 /**
@@ -45,7 +45,7 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
   );
 
   const selected = project.pages.find((p) => p.id === selectedId) ?? project.pages.find((p) => p.id === project.rootPageId)!;
-  const next = nextTopic(project);
+  const next = nextPage(project);
   const { studied, total } = projectProgress(project);
   const percent = total ? Math.round((studied / total) * 100) : 0;
   const look = lookOf(project, project.rootPageId);
@@ -70,7 +70,7 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') setQuery('');
     if (event.key !== 'Enter' || !matchIds || matchIds.size === 0) return;
-    const first = pagesInMapOrder(project).find((p) => matchIds.has(p.id));
+    const first = [...pagesInMapOrder(project), ...mapTree(project).orphans].find((p) => matchIds.has(p.id));
     if (first) select(first.id, true);
   };
 
@@ -127,7 +127,7 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
                 </Text>
               </Group>
               <Text size="sm" c="dimmed">
-                {studied} of {total} topics studied
+                {studied} of {total} pages studied
               </Text>
             </Stack>
             <Button
@@ -137,7 +137,7 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
               onClick={() => next && select(next.id, true)}
               className={classes.continue}
             >
-              {next ? 'Continue studying' : total ? 'All topics studied' : 'No topics yet'}
+              {next ? 'Continue studying' : total ? 'All pages studied' : 'No pages yet'}
             </Button>
           </Group>
         </Group>
@@ -165,7 +165,7 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
                 onSelect={(pageId) => select(pageId)}
               />
             ) : (
-              <TopicList
+              <MapList
                 project={project}
                 selectedId={selected.id}
                 currentId={next?.id ?? null}

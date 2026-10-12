@@ -1,18 +1,21 @@
 'use client';
 
-import { Progress, ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
-import type { Project } from '@wisepath/domain/projects';
-import { displayTitle, lookOf, progressOf, structureOf } from '@wisepath/domain/projects';
+import type { CSSProperties } from 'react';
+import { ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
+import type { MapNode, Project } from '@wisepath/domain/projects';
+import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
 import { PageGlyph } from '@/features/shared/look';
 import { StatusIcon } from './MindMap';
-import classes from './TopicList.module.css';
+import classes from './MapList.module.css';
 
 /**
- * TopicList
- * The map as a list: each module with its progress, then its topics.
+ * MapList
+ * The map as an indented list, branch by branch in map order, with each
+ * page's studied state and, for pages with branches, how many below are
+ * studied. Orphans close the list.
  */
 
-interface TopicListProps {
+interface MapListProps {
   project: Project;
   selectedId: string | null;
   currentId: string | null;
@@ -20,65 +23,81 @@ interface TopicListProps {
   onSelect: (pageId: string) => void;
 }
 
-export function TopicList({ project, selectedId, currentId, matchIds, onSelect }: TopicListProps) {
-  const { modules } = structureOf(project);
-  const visible = (id: string) => matchIds === null || matchIds.has(id);
+export function MapList({ project, selectedId, currentId, matchIds, onSelect }: MapListProps) {
+  const tree = mapTree(project);
+  const visible = (node: MapNode): boolean =>
+    matchIds === null || matchIds.has(node.page.id) || node.children.some(visible);
 
-  if (modules.length === 0) {
+  const row = (node: MapNode) => {
+    const look = lookOf(project, node.page.id, tree);
+    const below = node.children.length ? progressOf(descendants(node)) : null;
+    const status = node.page.studied ? 'done' : node.page.id === currentId ? 'current' : 'todo';
     return (
-      <Text c="dimmed" p="xl">
-        No modules yet. Select the map&apos;s centre page and add the first module.
-      </Text>
+      <li key={node.page.id}>
+        <UnstyledButton
+          className={classes.row}
+          data-module={node.page.module || undefined}
+          data-selected={selectedId === node.page.id || undefined}
+          onClick={() => onSelect(node.page.id)}
+          style={{ '--depth': node.depth - 1 } as CSSProperties}
+        >
+          {node.page.module ? (
+            <ThemeIcon size={30} radius="xl" variant="light" color={look.color}>
+              <PageGlyph icon={look.icon} size={16} />
+            </ThemeIcon>
+          ) : (
+            <StatusIcon status={status} />
+          )}
+          <Text size="sm" fw={node.page.module ? 700 : 400} truncate style={{ flex: 1 }}>
+            {displayTitle(node.page)}
+          </Text>
+          {below && (
+            <Text size="xs" c="dimmed">
+              {below.studied}/{below.total}
+            </Text>
+          )}
+        </UnstyledButton>
+        {node.children.length > 0 && <ul className={classes.list}>{node.children.filter(visible).map(row)}</ul>}
+      </li>
     );
-  }
+  };
+
+  const orphans = tree.orphans.filter((p) => matchIds === null || matchIds.has(p.id));
 
   return (
     <ScrollArea h="100%">
       <Stack gap="lg" p="lg">
-        {modules
-          .filter((m) => visible(m.page.id) || m.topics.some((t) => visible(t.id)))
-          .map((m) => {
-            const look = lookOf(project, m.page.id);
-            const { studied, total } = progressOf(m.topics);
-            return (
-              <section key={m.page.id} aria-label={displayTitle(m.page)}>
-                <UnstyledButton
-                  className={classes.module}
-                  data-selected={selectedId === m.page.id || undefined}
-                  onClick={() => onSelect(m.page.id)}
-                >
-                  <ThemeIcon size={36} radius="xl" variant="light" color={look.color}>
-                    <PageGlyph icon={look.icon} size={19} />
-                  </ThemeIcon>
-                  <Text fw={700} style={{ flex: 1 }} truncate>
-                    {displayTitle(m.page)}
-                  </Text>
-                  <Progress value={total ? (studied / total) * 100 : 0} color={look.color} size="sm" w={96} aria-hidden />
-                  <Text size="sm" c="dimmed" w={40} ta="right">
-                    {studied}/{total}
-                  </Text>
-                </UnstyledButton>
-                <Stack gap={0} mt={4} pl={46}>
-                  {m.topics.filter((t) => visible(t.id)).map((t) => {
-                    const status = t.studied ? 'done' : t.id === currentId ? 'current' : 'todo';
-                    return (
-                      <UnstyledButton
-                        key={t.id}
-                        className={classes.topic}
-                        data-selected={selectedId === t.id || undefined}
-                        onClick={() => onSelect(t.id)}
-                      >
-                        <StatusIcon status={status} />
-                        <Text size="sm" truncate>
-                          {displayTitle(t)}
-                        </Text>
-                      </UnstyledButton>
-                    );
-                  })}
-                </Stack>
-              </section>
-            );
-          })}
+        {tree.root.children.length === 0 ? (
+          <Text c="dimmed">
+            Nothing on the map yet. Select {displayTitle(tree.root.page)} and type [[ in its content to start a branch.
+          </Text>
+        ) : (
+          <ul className={classes.list}>{tree.root.children.filter(visible).map(row)}</ul>
+        )}
+        {orphans.length > 0 && (
+          <section aria-label="Orphans">
+            <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.6} mb={4}>
+              Orphans · no link reaches them
+            </Text>
+            <ul className={classes.list}>
+              {orphans.map((p) => (
+                <li key={p.id}>
+                  <UnstyledButton
+                    className={classes.row}
+                    data-selected={selectedId === p.id || undefined}
+                    onClick={() => onSelect(p.id)}
+                    style={{ '--depth': 0 } as CSSProperties}
+                  >
+                    <StatusIcon status={p.studied ? 'done' : 'todo'} />
+                    <Text size="sm" truncate>
+                      {displayTitle(p)}
+                    </Text>
+                  </UnstyledButton>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </Stack>
     </ScrollArea>
   );
