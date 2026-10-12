@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Box, Center, Group, Kbd, SegmentedControl, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { Badge, Box, Group, Kbd, Stack, Tabs, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -105,60 +105,42 @@ function MapView({ project }: { project: Project }) {
     />
   );
 
-  const viewSwitch = (
-    <SegmentedControl
-      size="xs"
-      value={view}
-      onChange={(v) => setView(v as View)}
-      aria-label="View"
-      className={classes.viewSwitch}
-      ml={{ base: 0, sm: 'xs' }}
-      data={[
-        {
-          value: 'map',
-          label: (
-            <Center style={{ gap: 6 }}>
-              <IconSitemap size={15} />
-              <Box component="span" visibleFrom="sm">
-                Map
-              </Box>
-            </Center>
-          ),
-        },
-        {
-          value: 'list',
-          label: (
-            <Center style={{ gap: 6 }}>
-              <IconLayoutList size={15} />
-              <Box component="span" visibleFrom="sm">
-                List
-              </Box>
-            </Center>
-          ),
-        },
-      ]}
-    />
+  // What the page shows, as small tabs under the title
+  const viewTabs = (
+    <Tabs value={view} onChange={(v) => setView((v as View) ?? 'map')} variant="unstyled" classNames={{ list: classes.viewTabs, tab: classes.viewTab }}>
+      <Tabs.List aria-label="View">
+        <Tabs.Tab value="map" leftSection={<IconSitemap size={14} />}>
+          Map
+        </Tabs.Tab>
+        <Tabs.Tab value="list" leftSection={<IconLayoutList size={14} />}>
+          List
+        </Tabs.Tab>
+      </Tabs.List>
+    </Tabs>
   );
 
   // Title, search, progress and the way on, in one row of the top bar
   const header = (
     <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
       <Group gap="sm" wrap="nowrap" miw={0} style={{ flex: 1 }}>
-        <ThemeIcon size={36} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
-          <PageGlyph icon={look.icon} size={20} />
+        <ThemeIcon size={40} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
+          <PageGlyph icon={look.icon} size={22} />
         </ThemeIcon>
-        <Tooltip label={project.description} disabled={!project.description} multiline w={320} position="bottom-start" withArrow>
-          <Title order={1} fz={20} lts={-0.3} lh={1.2} lineClamp={1}>
-            {project.title}
-          </Title>
-        </Tooltip>
-        {project.isSample && (
-          <Badge variant="light" color="gray" radius="sm" visibleFrom="sm" style={{ flexShrink: 0 }}>
-            Sample
-          </Badge>
-        )}
-        {/* What the page shows: the map or the list */}
-        {viewSwitch}
+        <Stack gap={2} miw={0}>
+          <Group gap="xs" wrap="nowrap" miw={0}>
+            <Tooltip label={project.description} disabled={!project.description} multiline w={320} position="bottom-start" withArrow>
+              <Title order={1} fz={18} lts={-0.3} lh={1.2} lineClamp={1}>
+                {project.title}
+              </Title>
+            </Tooltip>
+            {project.isSample && (
+              <Badge variant="light" color="gray" radius="sm" size="sm" visibleFrom="sm" style={{ flexShrink: 0 }}>
+                Sample
+              </Badge>
+            )}
+          </Group>
+          {viewTabs}
+        </Stack>
       </Group>
       <MapOrphans project={project} selectedId={selectedId} onSelect={select} />
       {/* Progress and the way on, as one control */}
