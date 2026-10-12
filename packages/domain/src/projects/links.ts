@@ -3,14 +3,13 @@ import { findPageByTitle } from './rules';
 
 /**
  * Links
- * [[Title]] references written in a page's markdown. Any page can reference
- * any other; the ones that are not already parent and child are the map's
- * cross references.
+ * [[Title]] references written in a page's markdown: the only way pages
+ * connect. Their order in the text sets the order of branches on the map.
  */
 
 const WIKILINK = /\[\[([^[\]\n]+)\]\]/g;
 
-/** Titles referenced with [[Title]] in a page's markdown, outside code */
+/** Titles referenced with [[Title]] in a page's markdown, outside code, in reading order */
 export function referencedTitles(markdown: string): string[] {
   const withoutCode = markdown.replace(/```[\s\S]*?```|`[^`\n]*`/g, '');
   return Array.from(withoutCode.matchAll(new RegExp(WIKILINK.source, 'g')), (m) => m[1].trim());
@@ -21,31 +20,19 @@ export interface Reference {
   to: PageId;
 }
 
-/** Directed references between existing pages (links to missing pages are skipped) */
-export function references(project: Project): Reference[] {
-  const seen = new Set<string>();
-  const out: Reference[] = [];
-  for (const page of project.pages) {
-    for (const title of referencedTitles(page.content)) {
-      const target = findPageByTitle(project.pages, title);
-      const key = `${page.id}>${target?.id}`;
-      if (!target || target.id === page.id || seen.has(key)) continue;
-      seen.add(key);
-      out.push({ from: page.id, to: target.id });
-    }
+/** Pages one page links to, in reading order, once each (links to missing pages are skipped) */
+export function linksOf(project: Project, pageId: PageId): PageId[] {
+  const page = project.pages.find((p) => p.id === pageId);
+  if (!page) return [];
+  const out: PageId[] = [];
+  for (const title of referencedTitles(page.content)) {
+    const target = findPageByTitle(project.pages, title);
+    if (target && target.id !== page.id && !out.includes(target.id)) out.push(target.id);
   }
   return out;
 }
 
-/** References that are not the tree's own parent–child lines, one per pair of pages */
-export function crossReferences(project: Project): Reference[] {
-  const parentOf = new Map(project.pages.map((p) => [p.id, p.parentId ?? null]));
-  const pairs = new Set<string>();
-  return references(project).filter(({ from, to }) => {
-    if (parentOf.get(from) === to || parentOf.get(to) === from) return false;
-    const pair = from < to ? `${from}|${to}` : `${to}|${from}`;
-    if (pairs.has(pair)) return false;
-    pairs.add(pair);
-    return true;
-  });
+/** Every link between existing pages */
+export function references(project: Project): Reference[] {
+  return project.pages.flatMap((page) => linksOf(project, page.id).map((to) => ({ from: page.id, to })));
 }

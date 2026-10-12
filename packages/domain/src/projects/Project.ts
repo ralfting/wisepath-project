@@ -1,10 +1,10 @@
 import { Schema } from "effect"
 
 /**
- * A project is a map of what someone is learning. Its pages form a tree three
- * levels deep: one root page (named like the map), the modules under it, and
- * the topics under each module. Every level is a page of free markdown, and
- * any page can reference any other with a [[Title]] link (a cross reference).
+ * A project is a map of what someone is learning: pages of free markdown that
+ * connect only through [[Title]] links. One root page, named like the map,
+ * sits at the centre; the map reads the links outward from it (see tree.ts).
+ * Any page can be shown as a module: drawn larger, with a colour and an icon.
  */
 
 export const ProjectId = Schema.String.pipe(Schema.brand("ProjectId"))
@@ -13,7 +13,7 @@ export type ProjectId = typeof ProjectId.Type
 export const PageId = Schema.String.pipe(Schema.brand("PageId"))
 export type PageId = typeof PageId.Type
 
-/** Colours a learner can give a module; the UI maps them to its palette */
+/** Colours a learner can give a module or the root; the UI maps them to its palette */
 export const PageColor = Schema.Literals([
   "blue",
   "teal",
@@ -30,7 +30,7 @@ export const PageColor = Schema.Literals([
 ])
 export type PageColor = typeof PageColor.Type
 
-/** Icons a learner can give a module; the UI maps them to its icon set */
+/** Icons a learner can give a module or the root; the UI maps them to its icon set */
 export const PageIcon = Schema.Literals([
   "book",
   "box",
@@ -59,9 +59,9 @@ export const Page = Schema.Struct({
   studied: Schema.Boolean,
   /** ISO date of the last edit to the title or text */
   updatedAt: Schema.String,
-  /** The page this one sits under: the root for a module, a module for a topic, none for the root */
-  parentId: Schema.optional(Schema.NullOr(PageId)),
-  /** How the page shows on the map; set on the root and modules, topics take their module's */
+  /** Drawn as a module on the map; nothing else changes */
+  module: Schema.optional(Schema.Boolean),
+  /** How a module or the root shows on the map; pages below a module take its colour */
   color: Schema.optional(PageColor),
   icon: Schema.optional(PageIcon)
 })
