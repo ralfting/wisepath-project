@@ -4,7 +4,7 @@ import { BrowserKeyValueStore } from "@effect/platform-browser"
 import { Project, ProjectRepository, ProjectStorageError } from "@wisepath/domain/projects"
 
 /** Bumped when the shipped sample changes, so browsers drop copies saved from the old one */
-const keyFor = (id: string) => `wisepath:project:v4:${id}`
+const keyFor = (id: string) => `wisepath:project:v5:${id}`
 
 /**
  * Projects kept in this browser's localStorage, validated by the Project schema.

@@ -1,7 +1,7 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Cause, Effect, Exit, Fiber, Option } from "effect"
 import { TestClock } from "effect/testing"
-import { ProjectId, addTopic, sampleProject } from "@wisepath/domain/projects"
+import { ProjectId, createPage, sampleProject } from "@wisepath/domain/projects"
 import { MemoryProjectRepository } from "@/infrastructure/projects/LocalProjectRepository"
 import * as programs from "./programs"
 
@@ -24,7 +24,7 @@ describe("project use cases", () => {
 
   it.effect("saves after the pause and loads the saved copy back", () =>
     Effect.gen(function*() {
-      const { project } = addTopic(sampleProject, sampleProject.rootPageId, "Generators", programs.newPageId())
+      const { project } = createPage(sampleProject, "Generators", programs.newPageId())
       const fiber = yield* Effect.forkChild(programs.saveProject(project))
       yield* TestClock.adjust("300 millis")
       yield* Fiber.join(fiber)

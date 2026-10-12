@@ -7,10 +7,8 @@ import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import {
   PageId,
   ProjectId,
-  addModule,
-  addTopic,
+  createPage,
   deletePage,
-  moveTopic,
   renameLinks,
   setDescription,
   setLook,
@@ -34,7 +32,6 @@ const saveAtom = Atom.family((_: ProjectId) =>
 const projectsAtom = appRuntime.atom(programs.listProjects).pipe(Atom.withReactivity([ReactivityKeys.projects]))
 const linkPreviewAtom = Atom.family((url: string) => appRuntime.atom(programs.previewLink(url)))
 
-/** Page ids come in as plain strings (from the URL or the chart) and are branded here */
 /**
  * False on the server and during hydration, true afterwards. Projects live in
  * device storage the server can't see, so both renders must agree on "loading".
@@ -42,18 +39,18 @@ const linkPreviewAtom = Atom.family((url: string) => appRuntime.atom(programs.pr
 const noSubscription = () => () => {}
 const useHydrated = () => useSyncExternalStore(noSubscription, () => true, () => false)
 
+/** Page ids come in as plain strings (from the URL or the map) and are branded here */
 export interface ProjectActions {
+  /** Edits a page; a title another page has is ignored, so check titleTaken first */
   updatePage: (pageId: string, patch: Partial<Pick<Page, "title" | "content" | "studied">>) => void
   /** Rewrites [[Old]] links across the project after a rename */
   renameLinks: (oldTitle: string, newTitle: string) => void
-  /** Adds a module around the root */
-  addModule: (title: string) => Page
-  /** Adds a topic to the module of `pageId`; from the root it adds a module (also used for new [[links]]) */
-  addTopic: (pageId: string, title: string) => Page
-  /** Removes a page; a module goes with its topics, the root stays */
+  /** Creates the page a [[link]] points to; the link connects it */
+  createPage: (title: string) => Page
+  /** Removes one page; pages only it reached become orphans; the root stays */
   deletePage: (pageId: string) => void
-  setLook: (pageId: string, look: { color?: PageColor; icon?: PageIcon }) => void
-  moveTopic: (topicId: string, moduleId: string) => void
+  /** Shows a page as a module or not, and sets its colour and icon */
+  setLook: (pageId: string, look: { module?: boolean; color?: PageColor; icon?: PageIcon }) => void
   /** The line under the map's title */
   setDescription: (description: string) => void
 }
@@ -96,19 +93,13 @@ export function useProject(projectId: string): { state: ProjectState; actions: P
   const actions: ProjectActions = {
     updatePage: (pageId, patch) => change((p) => updatePage(p, PageId.make(pageId), patch)),
     renameLinks: (oldTitle, newTitle) => change((p) => renameLinks(p, oldTitle, newTitle)),
-    addModule: (title) => {
-      const result = addModule(current()!, title, programs.newPageId())
-      commit(result.project)
-      return result.page
-    },
-    addTopic: (pageId, title) => {
-      const result = addTopic(current()!, PageId.make(pageId), title, programs.newPageId())
+    createPage: (title) => {
+      const result = createPage(current()!, title, programs.newPageId())
       commit(result.project)
       return result.page
     },
     deletePage: (pageId) => change((p) => deletePage(p, PageId.make(pageId))),
     setLook: (pageId, look) => change((p) => setLook(p, PageId.make(pageId), look)),
-    moveTopic: (topicId, moduleId) => change((p) => moveTopic(p, PageId.make(topicId), PageId.make(moduleId))),
     setDescription: (description) => change((p) => setDescription(p, description))
   }
 
