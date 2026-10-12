@@ -143,9 +143,9 @@ export function nextPage(project: Project): Page | undefined {
   return descendants(mapTree(project).root).find((p) => !p.studied)
 }
 
-/** Pages from the root down to this one; empty for an orphan */
-export function pathTo(project: Project, pageId: PageId): ReadonlyArray<Page> {
-  const { nodes } = mapTree(project)
+/** Pages from the root down to this one; empty for an orphan. Pass the tree when you have it. */
+export function pathTo(project: Project, pageId: PageId, tree: MapTree = mapTree(project)): ReadonlyArray<Page> {
+  const { nodes } = tree
   const path: Page[] = []
   for (let node = nodes.get(pageId); node; node = node.parentId ? nodes.get(node.parentId) : undefined) {
     path.unshift(node.page)
@@ -160,8 +160,12 @@ export const DEFAULT_ICON: PageIcon = "book"
  * The colour and icon a page shows: its own if it is a module or the root,
  * else the colour of the nearest module above it.
  */
-export function lookOf(project: Project, pageId: PageId): { color: PageColor; icon: PageIcon } {
-  const path = pathTo(project, pageId)
+export function lookOf(
+  project: Project,
+  pageId: PageId,
+  tree: MapTree = mapTree(project)
+): { color: PageColor; icon: PageIcon } {
+  const path = pathTo(project, pageId, tree)
   const page = project.pages.find((p) => p.id === pageId)
   const styled = [...path].reverse().find((p) => p.module || p.id === project.rootPageId)
   const own = page && (page.module || page.id === project.rootPageId) ? page : undefined
