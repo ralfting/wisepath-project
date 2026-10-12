@@ -2,25 +2,37 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
+  ActionIcon,
   Anchor,
   AppShell,
   Avatar,
   Badge,
+  Box,
   Breadcrumbs,
   Burger,
   Group,
   Menu,
   NavLink,
   ScrollArea,
+  Stack,
   Text,
   ThemeIcon,
+  Tooltip,
   UnstyledButton,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconChevronRight, IconHome, IconLogout, IconRoute } from '@tabler/icons-react';
+import {
+  IconChevronRight,
+  IconHome,
+  IconLayoutSidebarLeftCollapse,
+  IconLayoutSidebarLeftExpand,
+  IconLogout,
+  IconRoute,
+  IconSelector,
+} from '@tabler/icons-react';
 import { lookOf, projectProgress } from '@wisepath/domain/projects';
 import { useLogout, useSession } from '@/useCases/auth';
 import { useProjects } from '@/useCases/projects';
@@ -29,8 +41,11 @@ import classes from './AppFrame.module.css';
 
 /**
  * AppFrame
- * The signed-in layout: a sidebar with the learner's maps and a top bar with
- * breadcrumbs, an optional slot (the map's search) and the account menu.
+ * The signed-in layout: a sidebar with the learner's maps and their account,
+ * and a top bar with breadcrumbs and an optional slot (the map's search).
+ * On desktop the sidebar can be collapsed to a rail of icons; resting the
+ * pointer on the rail floats the full sidebar over the content, where it can
+ * be pinned open again.
  */
 
 export interface Crumb {
@@ -38,14 +53,39 @@ export interface Crumb {
   href?: string;
 }
 
+const COLLAPSED_KEY = 'wisepath:sidebar-collapsed';
+const SIDEBAR_WIDTH = 264;
+const RAIL_WIDTH = 64;
+
+/** The collapsed choice, remembered on this device; storage can be unavailable */
+function useCollapsed(): [boolean, (collapsed: boolean) => void] {
+  const [collapsed, setCollapsed] = useState(false);
+  useEffect(() => {
+    try {
+      setCollapsed(localStorage.getItem(COLLAPSED_KEY) === '1');
+    } catch {
+      // Keep the sidebar open
+    }
+  }, []);
+  const set = (next: boolean) => {
+    setCollapsed(next);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
+    } catch {
+      // The choice lasts until reload
+    }
+  };
+  return [collapsed, set];
+}
+
 export function AppFrame({ crumbs, tools, children }: { crumbs: Crumb[]; tools?: ReactNode; children: ReactNode }) {
   const [opened, { toggle, close }] = useDisclosure(false);
+  const [collapsed, setCollapsed] = useCollapsed();
+  const [peeking, setPeeking] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const session = useSession();
   const logout = useLogout();
-  const projects = useProjects();
-  const user = session.status === 'signedIn' ? session.user : null;
 
   // A cookie that no longer opens a session: clear it, then log in again
   useEffect(() => {
@@ -54,78 +94,73 @@ export function AppFrame({ crumbs, tools, children }: { crumbs: Crumb[]; tools?:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.status]);
 
-  useEffect(close, [pathname, close]);
+  useEffect(() => {
+    close();
+    setPeeking(false);
+  }, [pathname, close]);
 
-  const onLogout = async () => {
-    await logout();
-    router.replace('/login');
-  };
+  // The pointer can open the sidebar from the rail and move away without ever
+  // entering it, so close it once the pointer is clearly past its right side
+  useEffect(() => {
+    if (!peeking) return;
+    const onMove = (event: PointerEvent) => {
+      if (event.clientX > SIDEBAR_WIDTH + 40) setPeeking(false);
+    };
+    document.addEventListener('pointermove', onMove);
+    return () => document.removeEventListener('pointermove', onMove);
+  }, [peeking]);
 
   return (
-    <AppShell navbar={{ width: 264, breakpoint: 'sm', collapsed: { mobile: !opened } }} padding={0}>
+    <AppShell
+      navbar={{ width: { base: SIDEBAR_WIDTH, sm: collapsed ? RAIL_WIDTH : SIDEBAR_WIDTH }, breakpoint: 'sm', collapsed: { mobile: !opened } }}
+      padding={0}
+    >
       <AppShell.Navbar className={classes.navbar}>
-        <AppShell.Section px="lg" pt="lg" pb="md">
-          <Anchor component={Link} href="/projects" underline="never" c="inherit">
-            <Group gap="xs" wrap="nowrap">
-              <ThemeIcon size={34} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }}>
-                <IconRoute size={20} stroke={2} />
-              </ThemeIcon>
-              <Text fw={800} fz={20} lts={-0.3}>
-                WisePath
-              </Text>
-            </Group>
-          </Anchor>
-        </AppShell.Section>
-
-        <AppShell.Section px="sm">
-          <NavLink
-            component={Link}
-            href="/projects"
-            label="My maps"
-            active={pathname === '/projects'}
-            leftSection={<IconHome size={20} stroke={1.7} />}
-            rightSection={
-              projects && projects.length > 0 ? (
-                <Badge size="sm" variant="light" circle>
-                  {projects.length}
-                </Badge>
-              ) : null
+        {collapsed ? (
+          <>
+            {/* The rail on desktop; the full sidebar still opens from the burger on a phone */}
+            <Box visibleFrom="sm" h="100%" onMouseEnter={() => setPeeking(true)}>
+              <Rail />
+            </Box>
+            <Box hiddenFrom="sm" h="100%" className={classes.column}>
+              <Sidebar sidebarAction={null} />
+            </Box>
+          </>
+        ) : (
+          <Sidebar
+            sidebarAction={
+              <Tooltip label="Collapse sidebar" position="right">
+                <ActionIcon variant="subtle" color="gray" onClick={() => setCollapsed(true)} aria-label="Collapse sidebar" visibleFrom="sm">
+                  <IconLayoutSidebarLeftCollapse size={19} />
+                </ActionIcon>
+              </Tooltip>
             }
-            className={classes.navLink}
           />
-        </AppShell.Section>
-
-        <AppShell.Section grow component={ScrollArea} px="sm" pt="lg">
-          <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.6} px="sm" pb={6}>
-            Maps
-          </Text>
-          {(projects ?? []).map((project) => {
-            const look = lookOf(project, project.rootPageId);
-            const { studied, total } = projectProgress(project);
-            const href = `/projects/${project.id}`;
-            return (
-              <NavLink
-                key={project.id}
-                component={Link}
-                href={href}
-                label={project.title}
-                active={pathname.startsWith(href)}
-                leftSection={
-                  <ThemeIcon size={30} radius="xl" variant="light" color={look.color}>
-                    <PageGlyph icon={look.icon} size={17} />
-                  </ThemeIcon>
-                }
-                rightSection={
-                  <Text size="sm" c="dimmed">
-                    {total ? Math.round((studied / total) * 100) : 0}%
-                  </Text>
-                }
-                className={classes.navLink}
-              />
-            );
-          })}
-        </AppShell.Section>
+        )}
       </AppShell.Navbar>
+
+      {collapsed && (
+        <>
+          <nav
+            className={classes.peek}
+            data-open={peeking || undefined}
+            onMouseLeave={() => setPeeking(false)}
+            aria-label="Sidebar"
+            aria-hidden={!peeking}
+            inert={!peeking}
+          >
+            <Sidebar
+              sidebarAction={
+                <Tooltip label="Keep the sidebar open" position="right">
+                  <ActionIcon variant="subtle" color="gray" onClick={() => setCollapsed(false)} aria-label="Keep the sidebar open">
+                    <IconLayoutSidebarLeftExpand size={19} />
+                  </ActionIcon>
+                </Tooltip>
+              }
+            />
+          </nav>
+        </>
+      )}
 
       <AppShell.Main className={classes.main}>
         <Group component="header" className={classes.topbar} gap="md" wrap="nowrap">
@@ -143,34 +178,183 @@ export function AppFrame({ crumbs, tools, children }: { crumbs: Crumb[]; tools?:
               ),
             )}
           </Breadcrumbs>
-          <Group gap="md" ml="auto" wrap="nowrap">
-            {tools}
-            <Menu position="bottom-end" width={220}>
-              <Menu.Target>
-                <UnstyledButton aria-label="Account">
-                  <Avatar radius="xl" color="blue" variant="filled" name={user?.displayName} />
-                </UnstyledButton>
-              </Menu.Target>
-              <Menu.Dropdown>
-                {user && (
-                  <Menu.Label>
-                    <Text size="sm" fw={600} c="var(--mantine-color-text)" truncate>
-                      {user.displayName}
-                    </Text>
-                    <Text size="xs" c="dimmed" truncate>
-                      {user.email}
-                    </Text>
-                  </Menu.Label>
-                )}
-                <Menu.Item leftSection={<IconLogout size={16} />} onClick={onLogout}>
-                  Log out
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
+          {tools && (
+            <Group gap="md" ml="auto" wrap="nowrap">
+              {tools}
+            </Group>
+          )}
         </Group>
         {children}
       </AppShell.Main>
     </AppShell>
+  );
+}
+
+/** The collapsed sidebar: the same places as icons; hovering it floats the full sidebar */
+function Rail() {
+  const pathname = usePathname();
+  const projects = useProjects();
+  const session = useSession();
+  const user = session.status === 'signedIn' ? session.user : null;
+
+  return (
+    <Stack h="100%" align="center" gap="xs" py="lg" className={classes.rail}>
+      <Anchor component={Link} href="/projects" aria-label="WisePath, my maps" mb="sm">
+        <ThemeIcon size={34} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }}>
+          <IconRoute size={20} stroke={2} />
+        </ThemeIcon>
+      </Anchor>
+      <ActionIcon
+        component={Link}
+        href="/projects"
+        size={40}
+        radius="md"
+        variant={pathname === '/projects' ? 'light' : 'subtle'}
+        color={pathname === '/projects' ? 'blue' : 'gray'}
+        aria-label="My maps"
+      >
+        <IconHome size={20} stroke={1.7} />
+      </ActionIcon>
+      <div className={classes.railRule} />
+      {(projects ?? []).map((project) => {
+        const look = lookOf(project, project.rootPageId);
+        const href = `/projects/${project.id}`;
+        return (
+          <ActionIcon
+            key={project.id}
+            component={Link}
+            href={href}
+            size={40}
+            radius="xl"
+            variant="light"
+            color={look.color}
+            aria-label={project.title}
+            data-active={pathname.startsWith(href) || undefined}
+            className={classes.railMap}
+          >
+            <PageGlyph icon={look.icon} size={19} />
+          </ActionIcon>
+        );
+      })}
+      <Avatar mt="auto" radius="xl" color="blue" variant="filled" name={user?.displayName} aria-hidden="true" />
+    </Stack>
+  );
+}
+
+/** Logo, navigation, the learner's maps, and their account at the bottom */
+function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
+  const pathname = usePathname();
+  const projects = useProjects();
+
+  return (
+    <>
+      <AppShell.Section px="lg" pt="lg" pb="md">
+        <Group justify="space-between" wrap="nowrap">
+          <Anchor component={Link} href="/projects" underline="never" c="inherit">
+            <Group gap="xs" wrap="nowrap">
+              <ThemeIcon size={34} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }}>
+                <IconRoute size={20} stroke={2} />
+              </ThemeIcon>
+              <Text fw={800} fz={20} lts={-0.3}>
+                WisePath
+              </Text>
+            </Group>
+          </Anchor>
+          {sidebarAction}
+        </Group>
+      </AppShell.Section>
+
+      <AppShell.Section px="sm">
+        <NavLink
+          component={Link}
+          href="/projects"
+          label="My maps"
+          active={pathname === '/projects'}
+          leftSection={<IconHome size={20} stroke={1.7} />}
+          rightSection={
+            projects && projects.length > 0 ? (
+              <Badge size="sm" variant="light" circle>
+                {projects.length}
+              </Badge>
+            ) : null
+          }
+          className={classes.navLink}
+        />
+      </AppShell.Section>
+
+      <AppShell.Section grow component={ScrollArea} px="sm" pt="lg">
+        <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.6} px="sm" pb={6}>
+          Maps
+        </Text>
+        {(projects ?? []).map((project) => {
+          const look = lookOf(project, project.rootPageId);
+          const { studied, total } = projectProgress(project);
+          const href = `/projects/${project.id}`;
+          return (
+            <NavLink
+              key={project.id}
+              component={Link}
+              href={href}
+              label={project.title}
+              active={pathname.startsWith(href)}
+              leftSection={
+                <ThemeIcon size={30} radius="xl" variant="light" color={look.color}>
+                  <PageGlyph icon={look.icon} size={17} />
+                </ThemeIcon>
+              }
+              rightSection={
+                <Text size="sm" c="dimmed">
+                  {total ? Math.round((studied / total) * 100) : 0}%
+                </Text>
+              }
+              className={classes.navLink}
+            />
+          );
+        })}
+      </AppShell.Section>
+
+      <AppShell.Section p="sm" className={classes.account}>
+        <AccountMenu />
+      </AppShell.Section>
+    </>
+  );
+}
+
+function AccountMenu() {
+  const router = useRouter();
+  const session = useSession();
+  const logout = useLogout();
+  const user = session.status === 'signedIn' ? session.user : null;
+
+  const onLogout = async () => {
+    await logout();
+    router.replace('/login');
+  };
+
+  return (
+    <Menu position="top-start" width="target" withinPortal>
+      <Menu.Target>
+        <UnstyledButton aria-label="Account" className={classes.accountButton}>
+          <Avatar radius="xl" color="blue" variant="filled" name={user?.displayName} />
+          <Stack gap={0} miw={0} style={{ flex: 1 }}>
+            <Text size="sm" fw={600} truncate>
+              {user?.displayName ?? ' '}
+            </Text>
+            {/* Without a name the display name is already the email */}
+            {user && user.displayName !== user.email && (
+              <Text size="xs" c="dimmed" truncate>
+                {user.email}
+              </Text>
+            )}
+          </Stack>
+          <IconSelector size={16} color="var(--mantine-color-dimmed)" />
+        </UnstyledButton>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <Menu.Item leftSection={<IconLogout size={16} />} onClick={onLogout}>
+          Log out
+        </Menu.Item>
+      </Menu.Dropdown>
+    </Menu>
   );
 }
