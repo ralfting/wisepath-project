@@ -13,8 +13,8 @@ import classes from './PagePanel.module.css';
 /**
  * PageDrawer
  * A page opened from the map, in a drawer over it. The URL is the page's own
- * (/projects/:id/pages/:pageId), so back closes it and reload or the expand
- * button shows the full page. The map behind stays usable: clicking another
+ * (/projects/:id/pages/:pageId), so back closes it and a reload shows the full
+ * page; the expand button grows the drawer to the whole window in place. The map behind stays usable: clicking another
  * page switches the drawer to it.
  */
 
@@ -23,7 +23,13 @@ export const DRAWER_WIDTH = 560;
 export const DRAWER_GAP = 12;
 
 /** Closes the drawer with its exit animation, then leaves its URL */
-const CloseDrawer = createContext<() => void>(() => {});
+interface DrawerControls {
+  close: () => void;
+  /** Grown to the whole window, in place: no navigation, no reload */
+  expanded: boolean;
+  toggleExpanded: () => void;
+}
+const DrawerContext = createContext<DrawerControls>({ close: () => {}, expanded: false, toggleExpanded: () => {} });
 
 /** Matches the leave animation in PagePanel.module.css */
 const LEAVE_MS = 180;
@@ -38,6 +44,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [leaving, setLeaving] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -47,6 +54,8 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   // popovers, the delete modal) belong to the drawer, and a drag that panned
   // the map is not a click
   const closeRef = useRef<() => void>(() => {});
+  const expandedRef = useRef(false);
+  expandedRef.current = expanded;
   useEffect(() => {
     let down: { x: number; y: number } | null = null;
     const onDown = (event: PointerEvent) => {
@@ -55,7 +64,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
     const onClick = (event: MouseEvent) => {
       const target = event.target as Element | null;
       const dragged = down && Math.hypot(event.clientX - down.x, event.clientY - down.y) > 5;
-      if (!target?.isConnected || dragged) return;
+      if (!target?.isConnected || dragged || expandedRef.current) return;
       if (target.closest('.mantine-Drawer-content, [data-portal], [role=dialog], [role=menu], [role=listbox]')) return;
       if (target.closest('a, button, input, textarea, select, label, [role=tab], [contenteditable=true]')) return;
       closeRef.current();
@@ -84,10 +93,11 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   return (
     <Drawer
       opened
-      onClose={close}
+      // Esc first shrinks an expanded drawer back, then closes it
+      onClose={() => (expanded ? setExpanded(false) : close())}
       transitionProps={{ duration: 0 }}
       position="right"
-      size={DRAWER_WIDTH}
+      size={expanded ? '100%' : DRAWER_WIDTH}
       withOverlay={false}
       lockScroll={false}
       trapFocus={false}
@@ -97,16 +107,19 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       shadow="xl"
       classNames={{ inner: classes.drawerInner, content: classes.drawer, body: classes.drawerBody }}
       data-leaving={leaving || undefined}
+      data-expanded={expanded || undefined}
       aria-label="Page"
     >
-      <CloseDrawer.Provider value={close}>{children}</CloseDrawer.Provider>
+      <DrawerContext.Provider value={{ close, expanded, toggleExpanded: () => setExpanded((e) => !e) }}>
+        {children}
+      </DrawerContext.Provider>
     </Drawer>
   );
 }
 
 export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: string }) {
   const router = useRouter();
-  const close = useContext(CloseDrawer);
+  const { close, expanded, toggleExpanded } = useContext(DrawerContext);
   return (
     <ProjectGate projectId={projectId}>
       {(project, store) => {
@@ -131,7 +144,8 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
             store={store}
             // Moving between pages replaces the entry, so back still closes the drawer in one step
             onSelect={(id) => router.replace(pageHref(project.id, id), { scroll: false })}
-            fullPageHref={pageHref(project.id, page.id)}
+            expanded={expanded}
+            onToggleExpanded={toggleExpanded}
             onClose={close}
             flat
           />

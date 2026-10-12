@@ -19,7 +19,7 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import { IconArrowRight, IconArrowsDiagonal, IconCheck, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
+import { IconArrowRight, IconArrowsDiagonal, IconArrowsDiagonalMinimize2, IconCheck, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Page, Project, Relation } from '@wisepath/domain/projects';
 import {
   PageColor,
@@ -51,8 +51,9 @@ interface PagePanelProps {
   page: Page;
   store: ProjectActions;
   onSelect: (pageId: string) => void;
-  /** Loaded as a document, not a client navigation, so it shows the full page rather than the drawer */
-  fullPageHref: string;
+  /** The drawer fills the window; the content gets a reading width */
+  expanded?: boolean;
+  onToggleExpanded?: () => void;
   onClose?: () => void;
   /** Without the card frame, inside the drawer */
   flat?: boolean;
@@ -67,7 +68,7 @@ const RELATION_LABEL: Record<Relation, string> = {
   linkedFrom: 'References this page',
 };
 
-export function PagePanel({ project, page, store, onSelect, fullPageHref, onClose, flat = false }: PagePanelProps) {
+export function PagePanel({ project, page, store, onSelect, expanded = false, onToggleExpanded, onClose, flat = false }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isRoot = page.id === project.rootPageId;
@@ -90,7 +91,13 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref, onClos
   const subtitle = below && below.total > 0 ? `${kind} · ${below.studied} of ${below.total} below studied` : kind;
 
   return (
-    <Card padding={0} className={`${classes.panel} ${flat ? classes.flat : ''}`} aria-label="Selected page" component="aside">
+    <Card
+      padding={0}
+      className={`${classes.panel} ${flat ? classes.flat : ''}`}
+      data-expanded={expanded || undefined}
+      aria-label="Selected page"
+      component="aside"
+    >
       <Group justify="space-between" wrap="nowrap" px="lg" pt="md" gap="xs">
         {/* Where the page sits; its own title is right below, so the trail stops at its parent */}
         <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail} aria-label="Path to this page">
@@ -117,11 +124,19 @@ export function PagePanel({ project, page, store, onSelect, fullPageHref, onClos
           )}
         </Breadcrumbs>
         <Group gap={2} wrap="nowrap">
-          <Tooltip label="Open full screen">
-            <ActionIcon component="a" href={fullPageHref} variant="subtle" color="gray" aria-label="Open full screen">
-              <IconArrowsDiagonal size={17} />
-            </ActionIcon>
-          </Tooltip>
+          {onToggleExpanded && (
+            <Tooltip label={expanded ? 'Back to the side' : 'Expand'}>
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={onToggleExpanded}
+                aria-label={expanded ? 'Back to the side' : 'Expand'}
+                aria-pressed={expanded}
+              >
+                {expanded ? <IconArrowsDiagonalMinimize2 size={17} /> : <IconArrowsDiagonal size={17} />}
+              </ActionIcon>
+            </Tooltip>
+          )}
           {!isRoot && (
             <Menu position="bottom-end">
               <Menu.Target>
