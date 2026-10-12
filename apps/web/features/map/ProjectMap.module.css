@@ -47,7 +47,21 @@
 
 .searchButton {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px 0 11px;
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-body);
+  color: var(--mantine-color-dimmed);
   box-shadow: var(--mantine-shadow-xs);
+
+  &:hover {
+    color: var(--mantine-color-text);
+    background: var(--mantine-color-gray-0);
+  }
 }
 
 /* Map / List, in the canvas beside the search */

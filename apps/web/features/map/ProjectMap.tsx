@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { ActionIcon, Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
@@ -77,8 +77,10 @@ function MapView({ project }: { project: Project }) {
     return new Set<string>(project.pages.filter((p) => displayTitle(p).toLowerCase().includes(q)).map((p) => p.id));
   }, [project.pages, query]);
 
-  // The search stays an icon until it is wanted: a click or ⌘K opens it
+  // The search stays folded until it is wanted: a click or ⌘K (Ctrl K) opens it
   const [searchOpen, setSearchOpen] = useState(false);
+  // The map renders only on the client (it reads device storage), so the platform is known here
+  const shortcut = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K';
   const openSearch = () => {
     setSearchOpen(true);
     requestAnimationFrame(() => searchRef.current?.focus());
@@ -108,8 +110,8 @@ function MapView({ project }: { project: Project }) {
       aria-label="Search this map"
       placeholder="Search pages…"
       leftSection={<IconSearch size={16} />}
-      rightSection={<Kbd size="xs">⌘K</Kbd>}
-      rightSectionWidth={44}
+      rightSection={<Kbd size="xs">{shortcut}</Kbd>}
+      rightSectionWidth={shortcut === '⌘K' ? 44 : 58}
       value={query}
       onChange={(e) => setQuery(e.currentTarget.value)}
       onKeyDown={onSearchKeyDown}
@@ -119,11 +121,10 @@ function MapView({ project }: { project: Project }) {
       radius="md"
     />
   ) : (
-    <Tooltip label="Search pages (⌘K)">
-      <ActionIcon variant="default" size={36} radius="md" onClick={openSearch} aria-label="Search this map" className={classes.searchButton}>
-        <IconSearch size={17} />
-      </ActionIcon>
-    </Tooltip>
+    <UnstyledButton onClick={openSearch} aria-label="Search this map" className={classes.searchButton}>
+      <IconSearch size={16} />
+      <Kbd size="xs">{shortcut}</Kbd>
+    </UnstyledButton>
   );
 
   // What the canvas shows: the map or the list
