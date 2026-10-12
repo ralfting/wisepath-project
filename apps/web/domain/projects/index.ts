@@ -6,6 +6,7 @@
 // Components
 export { ProjectMap } from './components/ProjectMap';
 export { PageEditor } from './components/PageEditor';
+export { ProjectsHome } from './components/ProjectsHome';
 
 // Store
 export { ProjectStoreProvider } from './hooks/useProjectStore';

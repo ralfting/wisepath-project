@@ -32,7 +32,8 @@ interface ProjectStore {
 
 const ProjectStoreContext = createContext<ProjectStore | null>(null);
 
-function readStored(projectId: string): Project | null {
+/** The copy of a project saved on this device, if any */
+export function readStoredProject(projectId: string): Project | null {
   try {
     const raw = window.localStorage.getItem(storageKey(projectId));
     if (!raw) return null;
@@ -55,7 +56,7 @@ export function ProjectStoreProvider({ initialProject, children }: { initialProj
 
   // Replace the seed with the saved copy once on the client
   useEffect(() => {
-    const stored = readStored(initialProject.id);
+    const stored = readStoredProject(initialProject.id);
     if (stored) {
       projectRef.current = stored;
       setProject(stored);
