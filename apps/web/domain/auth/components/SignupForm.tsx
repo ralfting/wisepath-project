@@ -8,11 +8,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Alert, Anchor, Button, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
 import { useAuth } from '../hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export function SignupForm() {
   const router = useRouter();
@@ -27,7 +24,7 @@ export function SignupForm() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
-    
+
     try {
       await signup(email, password, name);
       router.push('/projects');
@@ -39,68 +36,60 @@ export function SignupForm() {
   };
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Create Account</CardTitle>
-        <CardDescription>
-          Enter your details to create a new account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <Paper withBorder p="xl" w="100%" maw={380}>
+      <Stack gap={4} mb="lg">
+        <Title order={1} size="h2">
+          Create an account
+        </Title>
+        <Text c="dimmed" size="sm">
+          Your projects and notes are kept under this account.
+        </Text>
+      </Stack>
+      <form onSubmit={handleSubmit}>
+        <Stack gap="md">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+            <Alert color="red" variant="light" role="alert">
               {error}
-            </div>
+            </Alert>
           )}
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="John Doe"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isLoading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password (8+ characters)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isLoading}
-              minLength={8}
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Sign Up'}
+          <TextInput
+            label="Name"
+            placeholder="How should we call you?"
+            value={name}
+            onChange={(e) => setName(e.currentTarget.value)}
+            required
+            disabled={isLoading}
+          />
+          <TextInput
+            label="Email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.currentTarget.value)}
+            required
+            disabled={isLoading}
+          />
+          <PasswordInput
+            label="Password"
+            description="At least 8 characters"
+            placeholder="Choose a password"
+            value={password}
+            onChange={(e) => setPassword(e.currentTarget.value)}
+            required
+            minLength={8}
+            disabled={isLoading}
+          />
+          <Button type="submit" fullWidth loading={isLoading}>
+            Create account
           </Button>
-        </form>
-        <div className="mt-4 text-center text-sm">
-          Already have an account?{' '}
-          <Link href="/login" className="text-primary hover:underline">
-            Login
-          </Link>
-        </div>
-      </CardContent>
-    </Card>
+        </Stack>
+      </form>
+      <Text size="sm" ta="center" mt="lg">
+        Already have an account?{' '}
+        <Anchor component={Link} href="/login" fw={700}>
+          Log in
+        </Anchor>
+      </Text>
+    </Paper>
   );
 }

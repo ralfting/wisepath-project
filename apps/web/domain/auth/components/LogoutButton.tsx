@@ -5,7 +5,7 @@
  * Handles logout action and loading state
  */
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@mantine/core';
 import { useAuth } from '../hooks/useAuth';
 
 export function LogoutButton() {
@@ -20,12 +20,8 @@ export function LogoutButton() {
   };
 
   return (
-    <Button 
-      onClick={handleLogout} 
-      variant="outline"
-      disabled={loading}
-    >
-      {loading ? 'Logging out...' : 'Logout'}
+    <Button onClick={handleLogout} variant="default" loading={loading}>
+      Log out
     </Button>
   );
 }

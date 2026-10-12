@@ -1,9 +1,10 @@
+import { Center } from '@mantine/core';
 import { LoginForm } from '@/domain/auth';
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center p-4">
+    <Center component="main" mih="100vh" p="md">
       <LoginForm />
-    </main>
+    </Center>
   );
 }
