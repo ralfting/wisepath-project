@@ -18,7 +18,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
   
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
-  const host = '127.0.0.1'; // Bind to IPv4 only
+  // IPv4 loopback by default; containers set HOST=0.0.0.0 so the published port reaches the app
+  const host = process.env.HOST || '127.0.0.1';
   await app.listen(port, host);
   console.log(`Application is running on: http://localhost:${port}`);
 }
