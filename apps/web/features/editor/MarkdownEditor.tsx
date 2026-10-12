@@ -6,10 +6,23 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableHeader from '@tiptap/extension-table-header';
+import TableCell from '@tiptap/extension-table-cell';
 import { Markdown } from 'tiptap-markdown';
 import { Link, RichTextEditor, getTaskListExtension } from '@mantine/tiptap';
 import { Box, Button, Group, Paper, Popover, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
-import { IconBrackets, IconBrandYoutube } from '@tabler/icons-react';
+import {
+  IconBrackets,
+  IconBrandYoutube,
+  IconColumnInsertRight,
+  IconColumnRemove,
+  IconRowInsertBottom,
+  IconRowRemove,
+  IconTable,
+  IconTableOff,
+} from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { findPageByTitle } from '@wisepath/domain/projects';
@@ -79,6 +92,11 @@ export function MarkdownEditor({
       getTaskListExtension(TaskList),
       TaskItem.configure({ nested: true }),
       BulletToChecklist,
+      // Tables stay plain so they save as markdown: a header row, one paragraph per cell
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableHeader,
+      TableCell,
       YouTubeVideo,
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
       Markdown.configure({ html: false, linkify: false, tightLists: true, transformPastedText: true }),
@@ -218,6 +236,14 @@ export function MarkdownEditor({
             <RichTextEditor.Blockquote />
           </RichTextEditor.ControlsGroup>
           <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Control
+              onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+              disabled={!editor || editor.isActive('table')}
+              aria-label="Insert table"
+              title="Insert table"
+            >
+              <IconTable size={16} stroke={1.5} />
+            </RichTextEditor.Control>
             {editor && <VideoControl editor={editor} />}
             <RichTextEditor.Control
               onClick={() => editor?.chain().focus().insertContent('[[').run()}
@@ -227,6 +253,25 @@ export function MarkdownEditor({
               <IconBrackets size={16} stroke={1.5} />
             </RichTextEditor.Control>
           </RichTextEditor.ControlsGroup>
+          {editor?.isActive('table') && (
+            <RichTextEditor.ControlsGroup aria-label="Table">
+              <RichTextEditor.Control onClick={() => editor.chain().focus().addRowAfter().run()} aria-label="Add row below" title="Add row below">
+                <IconRowInsertBottom size={16} stroke={1.5} />
+              </RichTextEditor.Control>
+              <RichTextEditor.Control onClick={() => editor.chain().focus().addColumnAfter().run()} aria-label="Add column to the right" title="Add column to the right">
+                <IconColumnInsertRight size={16} stroke={1.5} />
+              </RichTextEditor.Control>
+              <RichTextEditor.Control onClick={() => editor.chain().focus().deleteRow().run()} aria-label="Delete row" title="Delete row">
+                <IconRowRemove size={16} stroke={1.5} />
+              </RichTextEditor.Control>
+              <RichTextEditor.Control onClick={() => editor.chain().focus().deleteColumn().run()} aria-label="Delete column" title="Delete column">
+                <IconColumnRemove size={16} stroke={1.5} />
+              </RichTextEditor.Control>
+              <RichTextEditor.Control onClick={() => editor.chain().focus().deleteTable().run()} aria-label="Delete table" title="Delete table">
+                <IconTableOff size={16} stroke={1.5} />
+              </RichTextEditor.Control>
+            </RichTextEditor.ControlsGroup>
+          )}
         </RichTextEditor.Toolbar>
 
         {editor && (

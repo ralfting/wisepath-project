@@ -135,3 +135,43 @@
 .content :global(.ProseMirror h3) {
   font-size: 1em;
 }
+
+/* Tables: light grid, tinted header row, the selected cells highlighted */
+.content :global(.tableWrapper) {
+  overflow-x: auto;
+  margin-block: var(--mantine-spacing-sm);
+}
+
+.content :global(table) {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.content :global(th),
+.content :global(td) {
+  position: relative;
+  min-width: 80px;
+  padding: 6px 10px;
+  border: 1px solid var(--mantine-color-gray-3);
+  vertical-align: top;
+  text-align: left;
+
+  & > p {
+    margin: 0;
+  }
+}
+
+.content :global(th) {
+  background: var(--mantine-color-gray-0);
+  font-weight: 600;
+}
+
+.content :global(.selectedCell)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: alpha(var(--mantine-color-blue-6), 0.1);
+  pointer-events: none;
+}
