@@ -40,7 +40,7 @@ Then open <http://localhost:3000> and log in with:
 |---|---|
 | `demo@wisepath.dev` | `wisepath-demo` |
 
-The sample map is at <http://localhost:3000/projects/nestjs>: a NestJS root, 8 modules and 31 topics, with cross references between modules. Maps are not in the database yet: they live in your browser's local storage (key `wisepath:project:v4:<id>`), starting from the sample.
+The sample map is at <http://localhost:3000/projects/nestjs>: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Maps are not in the database yet: they live in your browser's local storage (key `wisepath:project:v5:<id>`), starting from the sample.
 
 > Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 3001, which clashes with the one in Docker.
 
