@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@wisepath/types"],
+  transpilePackages: ["@wisepath/domain", "@wisepath/contract"],
 };
 
 module.exports = nextConfig;

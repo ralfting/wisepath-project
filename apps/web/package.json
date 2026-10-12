@@ -6,13 +6,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@effect/atom-react": "4.0.3",
+    "@effect/platform-browser": "4.0.3",
     "@mantine/core": "8.3.18",
     "@mantine/hooks": "8.3.18",
     "@mantine/tiptap": "8.3.18",
     "@tabler/icons-react": "^3.31.0",
+    "@tanstack/react-form": "^1.33.5",
     "@tiptap/extension-bubble-menu": "^2.11.5",
     "@tiptap/extension-floating-menu": "^2.11.5",
     "@tiptap/extension-link": "^2.11.5",
@@ -24,9 +29,11 @@
     "@tiptap/react": "^2.11.5",
     "@tiptap/starter-kit": "^2.11.5",
     "@tiptap/suggestion": "^2.11.5",
-    "@wisepath/types": "workspace:*",
+    "@wisepath/contract": "workspace:*",
+    "@wisepath/domain": "workspace:*",
     "autoprefixer": "^10.4.0",
     "d3-force": "^3.0.0",
+    "effect": "4.0.3",
     "next": "^15.5.26",
     "postcss": "^8.4.0",
     "react": "^19.3.0",
@@ -34,6 +41,7 @@
     "tiptap-markdown": "^0.8.10"
   },
   "devDependencies": {
+    "@effect/vitest": "4.0.3",
     "@types/d3-force": "^3.0.10",
     "@types/node": "^20.0.0",
     "@types/react": "^19.3.0",
@@ -42,6 +50,7 @@
     "eslint-config-next": "15.5.26",
     "postcss-preset-mantine": "^1.18.0",
     "postcss-simple-vars": "^7.0.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.4"
   }
 }

@@ -9,7 +9,7 @@ import { references, subjectOf } from '../entities/levels';
 import { layoutGraph } from '../entities/graph-layout';
 import { readStoredProject } from '../hooks/useProjectStore';
 import { Anchor, Box, Button, Container, Group, Progress, Stack, Text, Title } from '@mantine/core';
-import { useAuth } from '@/domain/auth';
+import { useLogout, useSession } from '@/useCases/auth';
 import classes from './ProjectsHome.module.css';
 
 /**
@@ -22,7 +22,9 @@ const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short
 
 export function ProjectsHome({ projects: shipped }: { projects: Project[] }) {
   const router = useRouter();
-  const { user, loading, logout } = useAuth();
+  const session = useSession();
+  const logout = useLogout();
+  const user = session.status === 'signedIn' ? session.user : null;
   // Projects live on this device until the projects API exists; prefer the saved copy
   const [projects, setProjects] = useState(shipped);
 
@@ -32,14 +34,13 @@ export function ProjectsHome({ projects: shipped }: { projects: Project[] }) {
 
   // A cookie that no longer opens a session: clear it, then log in again
   useEffect(() => {
-    if (loading || user) return;
-    logout()
-      .catch(() => undefined)
-      .finally(() => router.replace('/login'));
-  }, [loading, user, logout, router]);
+    if (session.status !== 'signedOut') return;
+    logout().finally(() => router.replace('/login'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.status]);
 
   const onLogout = async () => {
-    await logout().catch(() => undefined);
+    await logout();
     router.replace('/login');
   };
 
@@ -52,7 +53,7 @@ export function ProjectsHome({ projects: shipped }: { projects: Project[] }) {
         <Group ml="auto" gap="md">
           {user && (
             <Text size="sm" c="dimmed" visibleFrom="sm">
-              {user.name || user.email}
+              {user.displayName}
             </Text>
           )}
           <Button variant="default" onClick={onLogout}>

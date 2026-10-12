@@ -1,5 +1,5 @@
 import { Center } from '@mantine/core';
-import { SignupForm } from '@/domain/auth';
+import { SignupForm } from '@/features/auth';
 
 export default function SignupPage() {
   return (
