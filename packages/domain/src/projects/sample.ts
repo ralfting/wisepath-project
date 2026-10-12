@@ -1,4 +1,5 @@
-import type { ChartPosition, Page, Project } from '../types/project.types';
+import { PageId, ProjectId } from './Project';
+import type { Page, Project } from './Project';
 
 /**
  * Sample project used until the projects API exists.
@@ -19,7 +20,6 @@ interface SeedPage {
   title: string;
   description: string;
   resources: Resource[];
-  position: ChartPosition;
   studiedAt: string | null;
 }
 
@@ -46,10 +46,9 @@ function toPage(seed: SeedPage): Page {
     .map((c) => seedPages.find((p) => p.id === c.to)?.title)
     .filter((title): title is string => !!title);
   return {
-    id: seed.id,
+    id: PageId.make(seed.id),
     title: seed.title,
     content: toMarkdown(seed, next),
-    position: seed.position,
     studied: seed.studiedAt !== null,
     updatedAt: seed.studiedAt ?? '2026-09-20T12:00:00Z',
   };
@@ -85,7 +84,6 @@ const seedPages: SeedPage[] = [
       jsinfo('types', 'Data types'),
       note('variables-note', 'Why I stopped using var'),
     ],
-    position: { x: 0, y: 0 },
     studiedAt: '2026-09-01T19:00:00Z',
   },
   {
@@ -94,7 +92,6 @@ const seedPages: SeedPage[] = [
     description:
       'Declarations, expressions and arrow functions; parameters, defaults and rest; functions as values you can pass around.',
     resources: [mdn('Web/JavaScript/Guide/Functions', 'Functions'), jsinfo('function-basics', 'Functions')],
-    position: { x: 0, y: 0 },
     studiedAt: '2026-09-06T19:00:00Z',
   },
   {
@@ -102,7 +99,6 @@ const seedPages: SeedPage[] = [
     title: 'Arrays',
     description: 'Creating arrays, reading and writing by index, and the methods that loop over them.',
     resources: [jsinfo('array', 'Arrays'), jsinfo('array-methods', 'Array methods')],
-    position: { x: 0, y: 0 },
     studiedAt: null,
   },
   {
@@ -110,7 +106,6 @@ const seedPages: SeedPage[] = [
     title: 'Scope',
     description: 'Global, function and block scope; how the engine looks up a name through nested scopes.',
     resources: [mdn('Glossary/Scope', 'Scope')],
-    position: { x: 0, y: 0 },
     studiedAt: null,
   },
   {
@@ -122,7 +117,6 @@ const seedPages: SeedPage[] = [
       mdn('Web/JavaScript/Closures', 'Closures'),
       note('closures-note', 'The for-loop + setTimeout bug'),
     ],
-    position: { x: 0, y: 0 },
     studiedAt: null,
   },
 ];
@@ -135,15 +129,18 @@ const seedConnections = [
 ];
 
 export const sampleProject: Project = {
-  id: 'learn-javascript',
+  id: ProjectId.make('learn-javascript'),
   title: 'Learn JavaScript',
   subject: 'JavaScript',
-  startPageId: 'variables',
+  startPageId: PageId.make('variables'),
   isSample: true,
   pages: seedPages.map(toPage),
 };
 
-/** Looks up a project by id. Only the sample exists until the projects API lands. */
-export function getSampleProject(projectId: string): Project | null {
-  return projectId === sampleProject.id ? sampleProject : null;
+/** Projects every learner starts with, until projects are created from the app */
+export const sampleProjects: ReadonlyArray<Project> = [sampleProject];
+
+/** The shipped sample with this id, if any */
+export function findSampleProject(projectId: string): Project | undefined {
+  return sampleProjects.find((p) => p.id === projectId);
 }

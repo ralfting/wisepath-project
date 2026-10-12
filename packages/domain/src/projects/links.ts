@@ -1,5 +1,5 @@
-import type { Project } from '../types/project.types';
-import { findPageByTitle } from './project.entity';
+import type { PageId, Project } from './Project';
+import { findPageByTitle } from './rules';
 
 /**
  * Levels
@@ -18,8 +18,8 @@ export function referencedTitles(markdown: string): string[] {
 }
 
 export interface Reference {
-  from: string;
-  to: string;
+  from: PageId;
+  to: PageId;
 }
 
 /** Directed references between existing pages (links to missing pages are skipped) */
@@ -40,17 +40,17 @@ export function references(project: Project): Reference[] {
 
 export interface Levels {
   /** Page ids per level, level 1 first */
-  levels: string[][];
+  levels: PageId[][];
   /** Pages the start page does not reach */
-  apart: string[];
-  levelOf: Map<string, number>;
+  apart: PageId[];
+  levelOf: Map<PageId, number>;
 }
 
 /** Breadth-first descent from the start page along references */
 export function computeLevels(project: Project): Levels {
   const refs = references(project);
-  const levelOf = new Map<string, number>();
-  const levels: string[][] = [];
+  const levelOf = new Map<PageId, number>();
+  const levels: PageId[][] = [];
   const start = project.pages.find((p) => p.id === project.startPageId);
 
   if (start) {
@@ -58,7 +58,7 @@ export function computeLevels(project: Project): Levels {
     levelOf.set(start.id, 1);
     while (frontier.length) {
       levels.push(frontier);
-      const next: string[] = [];
+      const next: PageId[] = [];
       for (const id of frontier) {
         for (const ref of refs) {
           if (ref.from === id && !levelOf.has(ref.to)) {

@@ -6,7 +6,8 @@
   "description": "WisePath domain: Effect Schemas, errors, pure rules and service interfaces. No React, no I/O.",
   "exports": {
     ".": "./src/index.ts",
-    "./auth": "./src/auth/index.ts"
+    "./auth": "./src/auth/index.ts",
+    "./projects": "./src/projects/index.ts"
   },
   "scripts": {
     "test": "vitest run",

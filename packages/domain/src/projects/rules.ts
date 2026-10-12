@@ -1,4 +1,4 @@
-import type { Page, Project } from '../types/project.types';
+import type { Page, PageId, Project } from './Project';
 
 /**
  * Project Entity
@@ -28,25 +28,19 @@ export function displayTitle(page: Page): string {
 }
 
 /** The page a [[Title]] link points at: case-insensitive, ignoring surrounding spaces */
-export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: T[], title: string): T | undefined {
+export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: ReadonlyArray<T>, title: string): T | undefined {
   const wanted = title.trim().toLowerCase();
   return wanted ? pages.find((p) => p.title.trim().toLowerCase() === wanted) : undefined;
 }
 
-function newPageId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID();
-  return `page-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-/** Adds a page with this title, or returns the existing page that already has it */
-export function addPage(project: Project, title: string, now = new Date()): { project: Project; page: Page } {
+/** Adds a page with this title (and the given new id), or returns the existing page that already has it */
+export function addPage(project: Project, title: string, id: PageId, now = new Date()): { project: Project; page: Page } {
   const existing = findPageByTitle(project.pages, title);
   if (existing) return { project, page: existing };
   const page: Page = {
-    id: newPageId(),
+    id,
     title: title.trim(),
     content: '',
-    position: { x: 0, y: 0 },
     studied: false,
     updatedAt: now.toISOString(),
   };
@@ -55,7 +49,7 @@ export function addPage(project: Project, title: string, now = new Date()): { pr
 
 export function updatePage(
   project: Project,
-  pageId: string,
+  pageId: PageId,
   patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>,
   now = new Date(),
 ): Project {
@@ -71,7 +65,7 @@ export function updatePage(
 }
 
 /** Removes the page; links to it stay in other pages and show as missing */
-export function deletePage(project: Project, pageId: string): Project {
+export function deletePage(project: Project, pageId: PageId): Project {
   return {
     ...project,
     pages: project.pages.filter((p) => p.id !== pageId),
@@ -79,7 +73,7 @@ export function deletePage(project: Project, pageId: string): Project {
   };
 }
 
-export function setStartPage(project: Project, pageId: string | null): Project {
+export function setStartPage(project: Project, pageId: PageId | null): Project {
   return { ...project, startPageId: pageId };
 }
 
@@ -88,7 +82,7 @@ export function setStartPage(project: Project, pageId: string | null): Project {
  * when it already ends in a list of links. No-op if the page links it already
  * or the title is the page's own.
  */
-export function linkFrom(project: Project, fromId: string, title: string, now = new Date()): Project {
+export function linkFrom(project: Project, fromId: PageId, title: string, now = new Date()): Project {
   const from = project.pages.find((p) => p.id === fromId);
   const name = title.trim();
   if (!from || !name || findPageByTitle([from], name)) return project;
@@ -112,12 +106,14 @@ export function linkFrom(project: Project, fromId: string, title: string, now = 
  */
 export function addChildPage(
   project: Project,
-  parentId: string | null,
+  parentId: PageId | null,
   title: string,
+  id: PageId,
+  now = new Date(),
 ): { project: Project; page: Page } {
-  const added = addPage(project, title);
+  const added = addPage(project, title, id, now);
   let next = added.project;
-  if (parentId) next = linkFrom(next, parentId, added.page.title);
+  if (parentId) next = linkFrom(next, parentId, added.page.title, now);
   else if (!next.startPageId) next = setStartPage(next, added.page.id);
   return { project: next, page: added.page };
 }
