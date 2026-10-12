@@ -40,7 +40,7 @@ Then open <http://localhost:3000> and log in with:
 |---|---|
 | `demo@wisepath.dev` | `wisepath-demo` |
 
-The sample project map is at <http://localhost:3000/projects/learn-javascript>. Projects and pages are not in the database yet: they live in your browser's local storage, seeded with a 5-page "Learn JavaScript" sample (the map's **Reset** link restores it).
+The sample map is at <http://localhost:3000/projects/nestjs>: a NestJS root, 8 modules and 31 topics, with cross references between modules. Maps are not in the database yet: they live in your browser's local storage (key `wisepath:project:v4:<id>`), starting from the sample.
 
 > Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 3001, which clashes with the one in Docker.
 
@@ -89,7 +89,7 @@ The front end is built on [Effect 4](https://effect.website) and split in layers
 | Contract | `packages/contract` | The HTTP API as `HttpApi` groups, decoding the NestJS responses into domain types and errors. |
 | Infrastructure | `apps/web/infrastructure` | `Layer`s that implement the domain services: the API client, auth over HTTP, projects in local storage, link previews, and the `/api/link-preview` handler. In-memory versions for tests sit beside them. |
 | Use cases | `apps/web/useCases` | Effect programs plus the hooks the UI calls (`useSession`, `useLogin`, `useProject`, `useProjects`, `useLinkPreview`, …), backed by atoms. Every hook that touches a service lives here, including ones that combine domains. |
-| Features | `apps/web/features` | React components by feature (`auth`, `map`, `page`, `editor`, `projects`). They use hooks from `useCases` and pure rules from the domain, never Effect or infrastructure directly. |
+| Features | `apps/web/features` | React components by feature (`shell`, `auth`, `map`, `page`, `editor`, `projects`). They use hooks from `useCases` and pure rules from the domain, never Effect or infrastructure directly. |
 | Routes | `apps/web/app` | Next.js pages and layouts: read params, render a feature. |
 
 Forms use TanStack Form with the domain schemas (Effect Schema through Standard Schema), so the form and the use case validate with the same rules.
