@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// Mantine after globals.css so its component styles win over Tailwind's preflight while both are loaded
+// Mantine after globals.css; globals only adds touches Mantine does not cover
 import "@mantine/core/styles.css";
 import "@mantine/tiptap/styles.css";
 import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
@@ -37,7 +37,7 @@ export default function RootLayout({
       <head>
         <ColorSchemeScript defaultColorScheme="light" />
       </head>
-      <body className="antialiased">
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>

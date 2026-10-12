@@ -6,7 +6,7 @@ Monorepo (pnpm + Turborepo):
 
 | Path | What |
 |---|---|
-| `apps/web` | Next.js 14 front end (Tailwind) on port 3000 |
+| `apps/web` | Next.js 14 front end (Mantine 8, theme in `apps/web/theme.ts`) on port 3000 |
 | `apps/api` | NestJS API with Prisma on port 3001 (`/api`) |
 | `packages/types` | Shared TypeScript types |
 | `prisma/` | Database schema and migrations (Postgres) |

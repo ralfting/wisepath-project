@@ -10,8 +10,6 @@ module.exports = {
         'mantine-breakpoint-xl': '88em',
       },
     },
-    // Tailwind stays until the last screen is migrated to Mantine
-    tailwindcss: {},
     autoprefixer: {},
   },
 }
