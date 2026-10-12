@@ -1,0 +1,80 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  @media (min-width: $mantine-breakpoint-md) {
+    height: 100vh;
+  }
+}
+
+/* Two rows on phones (title and tabs, then search and actions), one bar from md up */
+.header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--mantine-spacing-sm) var(--mantine-spacing-lg);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
+  border-bottom: 1px solid var(--mantine-color-default-border);
+  background: var(--mantine-color-body);
+
+  @media (min-width: $mantine-breakpoint-md) {
+    display: flex;
+    height: 56px;
+    padding-block: 0;
+    padding-inline: var(--mantine-spacing-lg);
+  }
+}
+
+.fullRow {
+  grid-column: span 2;
+}
+
+.search {
+  @media (min-width: $mantine-breakpoint-md) {
+    margin-left: auto;
+    width: 15rem;
+  }
+}
+
+.breadcrumb {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.crumbLink {
+  color: inherit;
+
+  &:hover {
+    color: var(--mantine-color-text);
+  }
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 1fr;
+  flex: 1;
+  min-height: 0;
+
+  @media (min-width: $mantine-breakpoint-md) {
+    &[data-sheet-open] {
+      grid-template-columns: minmax(0, 1fr) 560px;
+    }
+  }
+}
+
+.panel {
+  height: calc(100vh - 150px);
+  min-height: 0;
+  padding: var(--mantine-spacing-sm);
+
+  @media (min-width: $mantine-breakpoint-sm) {
+    padding: var(--mantine-spacing-md);
+  }
+
+  @media (min-width: $mantine-breakpoint-md) {
+    height: auto;
+  }
+}

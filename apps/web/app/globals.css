@@ -250,29 +250,6 @@
     outline-offset: 2px;
   }
 
-  /* Finder rings settle onto the selected page */
-  .finder-ring {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: finder-settle 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-
-  @keyframes finder-settle {
-    from {
-      transform: scale(1.8);
-      opacity: 0;
-    }
-    to {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .finder-ring {
-      animation: none;
-    }
-  }
 }
 
 /* The app's pale atlas ground; Mantine surfaces (inputs, cards) keep --mantine-color-body.

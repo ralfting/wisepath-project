@@ -1,13 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import type { KeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
 import type { ChartPosition, Page, Project } from '../types/project.types';
 import { displayTitle, pagesInOrder, wordCount } from '../entities/project.entity';
 import { references, subjectOf } from '../entities/levels';
 import { graphKey, layoutGraph } from '../entities/graph-layout';
 import type { GraphLayout } from '../entities/graph-layout';
-import { FitIcon, GridIcon, MinusIcon, PlusIcon } from './icons';
+import { ActionIcon, Box, Button, Group, Paper, Stack, Text, TextInput, Title, UnstyledButton } from '@mantine/core';
+import { IconGrid4x4, IconMaximize, IconMinus, IconPlus } from '@tabler/icons-react';
+import classes from './StarChart.module.css';
 
 /**
  * StarChart
@@ -398,10 +400,11 @@ export function StarChart({
   }, [layout]);
 
   return (
-    <div ref={containerRef} className="relative h-full min-h-[420px] overflow-hidden rounded bg-chart text-star">
+    <div ref={containerRef} className={classes.chart}>
       <svg
         ref={svgRef}
-        className={`absolute inset-0 h-full w-full touch-none select-none ${cursor}`}
+        className={classes.svg}
+        data-panning={gestureKind === 'pan' || undefined}
         role="group"
         aria-label={`Chart of ${project.title}, read from the start page down. Drag to move, scroll to zoom.`}
         onPointerDown={onBackgroundPointerDown}
@@ -414,7 +417,7 @@ export function StarChart({
             {verticals.map((x) => {
               const [sx] = toScreen({ x, y: 0 });
               return (
-                <line key={`v${x}`} x1={sx} x2={sx} y1={0} y2={size.h} className="stroke-chart-grid" strokeWidth={1} opacity={0.6} />
+                <line key={`v${x}`} x1={sx} x2={sx} y1={0} y2={size.h} stroke="var(--grid)" strokeWidth={1} opacity={0.6} />
               );
             })}
           </g>
@@ -426,7 +429,8 @@ export function StarChart({
             x={toScreen(apartLabel)[0]}
             y={toScreen(apartLabel)[1]}
             textAnchor="middle"
-            className="fill-star-dim text-[12px]"
+            fill="var(--star-dim)"
+            fontSize={12}
           >
             {hasStart ? 'Not linked from the start yet' : 'Pages'}
           </text>
@@ -459,7 +463,7 @@ export function StarChart({
                   y1={y1}
                   x2={x2}
                   y2={y2}
-                  className={raised ? 'stroke-star-ring' : 'stroke-star-dim'}
+                  stroke={raised ? 'var(--star-ring)' : 'var(--star-dim)'}
                   strokeWidth={raised ? 1.8 : 1.2}
                   opacity={dimmed ? 0.15 : raised ? 1 : 0.7}
                 />
@@ -485,12 +489,12 @@ export function StarChart({
               isMatch ||
               neighborIds.has(page.id) ||
               hoveredId === page.id;
-            const labelClass =
+            const labelFill =
               page.studied || isSelected || isMatch || isStart
-                ? 'fill-star'
+                ? 'var(--star)'
                 : neighborIds.has(page.id)
-                  ? 'fill-star-ring'
-                  : 'fill-star-dim';
+                  ? 'var(--star-ring)'
+                  : 'var(--star-dim)';
             const title = displayTitle(page);
 
             return (
@@ -502,7 +506,7 @@ export function StarChart({
                 aria-pressed={isSelected}
                 aria-label={`${title}${isStart ? ', start page' : ''}, ${page.studied ? 'studied' : 'not studied'}`}
                 transform={`translate(${x} ${y})`}
-                className="group cursor-pointer outline-none transition-opacity duration-200"
+                className={classes.star}
                 opacity={dimmed ? 0.25 : isApart && hasStart ? 0.6 : 1}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => onSelect(page.id)}
@@ -511,31 +515,32 @@ export function StarChart({
                 onMouseLeave={() => setHoveredId((id) => (id === page.id ? null : id))}
               >
                 <circle r={r + 14} fill="transparent" />
-                <circle r={r + 6} className="fill-star/15 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
+                <circle r={r + 6} className={classes.halo} fill="var(--star)" fillOpacity={0.15} />
                 {isStart && !isSelected && (
-                  <circle r={r + 6} fill="none" className="stroke-star" strokeWidth={1} strokeDasharray="1 3" />
+                  <circle r={r + 6} fill="none" stroke="var(--star)" strokeWidth={1} strokeDasharray="1 3" />
                 )}
                 <circle
                   r={r + 10}
                   fill="none"
                   strokeWidth={2}
                   strokeDasharray="3 3"
-                  className="stroke-star opacity-0 group-focus-visible:opacity-100"
+                  stroke="var(--star)"
+                  className={classes.focusRing}
                 />
                 {page.studied ? (
-                  <circle r={r} className="fill-star" />
+                  <circle r={r} fill="var(--star)" />
                 ) : (
-                  <circle r={r - 1} className="fill-chart stroke-star-ring" strokeWidth={1.8} />
+                  <circle r={r - 1} fill="var(--chart)" stroke="var(--star-ring)" strokeWidth={1.8} />
                 )}
                 {showLabel && (
                   <text
                     y={isSelected ? FINDER_RINGS[FINDER_RINGS.length - 1] + 16 : r + 18}
                     textAnchor="middle"
-                    className={`${labelClass} stroke-chart font-star italic`}
+                    className={classes.label}
+                    fill={labelFill}
+                    stroke="var(--chart)"
                     fontSize={isSelected ? 16 : 14}
                     strokeWidth={4}
-                    paintOrder="stroke"
-                    strokeLinejoin="round"
                   >
                     {title}
                   </text>
@@ -546,13 +551,14 @@ export function StarChart({
 
         {selectedPos && selectedId && (
           <g transform={`translate(${selectedPos.join(' ')})`}>
-            <g key={selectedId} aria-hidden="true" className="pointer-events-none">
+            <g key={selectedId} aria-hidden="true" pointerEvents="none">
               {FINDER_RINGS.map((r, i) => (
                 <circle
                   key={r}
                   r={r}
                   fill="none"
-                  className="finder-ring stroke-finder-glow"
+                  className={classes.finderRing}
+                  stroke="var(--glow)"
                   strokeWidth={1.6}
                   style={{ animationDelay: `${i * 70}ms` }}
                 />
@@ -562,63 +568,69 @@ export function StarChart({
         )}
       </svg>
 
-      <div className="absolute left-3 top-3 flex flex-wrap gap-1.5" role="toolbar" aria-label="Chart tools">
-        <ChartButton onClick={fit} label="Fit chart to view">
-          <FitIcon />
-          <span>Fit</span>
-        </ChartButton>
-        <ChartButton onClick={() => zoomBy(1.3)} label="Zoom in" disabled={!!cam && cam.k >= MAX_K}>
-          <PlusIcon />
-        </ChartButton>
-        <ChartButton onClick={() => zoomBy(1 / 1.3)} label="Zoom out" disabled={!!cam && cam.k <= MIN_K}>
-          <MinusIcon />
-        </ChartButton>
-        <ChartButton onClick={() => setShowGrid((v) => !v)} label="Show grid" pressed={showGrid}>
-          <GridIcon />
-          <span>Grid</span>
-        </ChartButton>
-      </div>
+      <Group className={classes.toolbar} gap={6} role="toolbar" aria-label="Chart tools">
+        <Button size="compact-sm" className={classes.toolButton} leftSection={<IconMaximize size={14} />} onClick={fit} title="Fit chart to view" aria-label="Fit chart to view">
+          Fit
+        </Button>
+        <ActionIcon size={26} className={classes.toolButton} onClick={() => zoomBy(1.3)} disabled={!!cam && cam.k >= MAX_K} aria-label="Zoom in" title="Zoom in">
+          <IconPlus size={14} />
+        </ActionIcon>
+        <ActionIcon size={26} className={classes.toolButton} onClick={() => zoomBy(1 / 1.3)} disabled={!!cam && cam.k <= MIN_K} aria-label="Zoom out" title="Zoom out">
+          <IconMinus size={14} />
+        </ActionIcon>
+        <Button
+          size="compact-sm"
+          className={classes.toolButton}
+          leftSection={<IconGrid4x4 size={14} />}
+          onClick={() => setShowGrid((v) => !v)}
+          data-active={showGrid || undefined}
+          aria-pressed={showGrid}
+          aria-label="Show grid"
+          title="Show grid"
+        >
+          Grid
+        </Button>
+      </Group>
 
       {pages.length > 0 && hasStart && (
-        <p className="pointer-events-none absolute right-4 top-4 hidden max-w-[40ch] text-right text-[13px] leading-snug text-star-ring md:block">
+        <Text size="sm" lh={1.35} className={classes.hint} visibleFrom="md">
           Click a star to open it. Use + under it to add the pages that come next.
-        </p>
+        </Text>
       )}
 
       {/* + under the open page, or the name field that replaces it */}
       {view && selectedPos && !composer && (
-        <button
-          type="button"
+        <ActionIcon
+          radius="xl"
+          size={28}
+          className={classes.addBelow}
+          style={{ left: selectedPos[0], top: selectedPos[1] + FINDER_RINGS[2] + 26 }}
           onClick={() => {
             setDraft('');
             setComposer({ parentId: selectedId });
           }}
           aria-label="Add a page below"
           title="Add a page below"
-          className="absolute grid h-7 w-7 -translate-x-1/2 place-items-center rounded-full border border-dashed border-star-ring bg-chart text-star transition-colors hover:border-solid hover:bg-finder-glow hover:text-chart"
-          style={{ left: selectedPos[0], top: selectedPos[1] + FINDER_RINGS[2] + 26 }}
         >
-          <PlusIcon />
-        </button>
+          <IconPlus size={16} />
+        </ActionIcon>
       )}
 
       {view && composer && (
-        <div
-          className="absolute w-60 -translate-x-1/2"
+        <Box
+          className={classes.composer}
           style={
             composer.parentId && selectedPos
               ? { left: selectedPos[0], top: selectedPos[1] + FINDER_RINGS[2] + 24 }
               : { left: size.w / 2, top: size.h / 2 - 40 }
           }
         >
-          <label htmlFor="new-page-name" className="sr-only">
-            {composer.parentId ? 'Name of the page below' : 'Name of the first page'}
-          </label>
-          <input
+          <TextInput
             id="new-page-name"
             autoFocus
+            aria-label={composer.parentId ? 'Name of the page below' : 'Name of the first page'}
             value={draft}
-            onChange={(e) => setDraft(e.target.value)}
+            onChange={(e) => setDraft(e.currentTarget.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -637,40 +649,41 @@ export function StarChart({
               closeComposer();
             }}
             placeholder={composer.parentId ? 'Name the next page' : 'Name the first page'}
-            className="h-9 w-full rounded border border-star-ring bg-chart px-3 text-center font-star text-[16px] italic text-star placeholder:font-sans placeholder:text-sm placeholder:not-italic placeholder:text-star-dim focus-visible:outline-finder-glow"
+            classNames={{ input: classes.composerInput }}
           />
-          <p className="mt-1.5 text-center text-[12px] leading-snug text-star-ring">
+          <Text size="xs" mt={6} lh={1.35} className={classes.composerHelp}>
             Enter adds it here{composer.parentId ? ', Tab one level deeper' : ''}. Esc closes.
-          </p>
-        </div>
+          </Text>
+        </Box>
       )}
 
       {view && !composer && !hasStart && (
-        <div className="absolute left-1/2 top-1/2 w-[min(90%,26rem)] -translate-x-1/2 -translate-y-1/2 space-y-3 text-center">
-          <p className="font-star text-2xl italic">{pages.length ? 'Where does this study start?' : 'An empty sky'}</p>
-          <p className="text-sm text-star-ring">
+        <Stack className={classes.centerPrompt} gap="sm" align="center">
+          <Title order={2} fz={24} c="var(--star)">
+            {pages.length ? 'Where does this study start?' : 'An empty sky'}
+          </Title>
+          <Text size="sm" c="var(--star-ring)">
             {pages.length
               ? 'Open a page and mark it Start page, or add a new first page. Everything else hangs below it.'
               : 'Add the first page. The pages it leads to go below it, level by level.'}
-          </p>
-          <button
-            type="button"
+          </Text>
+          <Button
+            color="finder.6"
+            leftSection={<IconPlus size={16} />}
             onClick={() => {
               setDraft('');
               setComposer({ parentId: null });
             }}
-            className="inline-flex h-9 items-center gap-1.5 rounded bg-finder px-4 text-sm font-bold text-finder-foreground hover:bg-finder/90"
           >
-            <PlusIcon />
             Add the first page
-          </button>
-        </div>
+          </Button>
+        </Stack>
       )}
 
       {searchEmpty && (
-        <p role="status" className="absolute left-1/2 top-16 -translate-x-1/2 rounded bg-star px-3 py-1.5 text-sm text-foreground">
-          No page matches your search. Clear it to see the whole chart.
-        </p>
+        <Paper role="status" px="sm" py={6} className={classes.searchEmpty}>
+          <Text size="sm">No page matches your search. Clear it to see the whole chart.</Text>
+        </Paper>
       )}
 
       {pages.length > 0 && <ChartLegend onResetSample={project.isSample ? onResetSample : undefined} />}
@@ -732,7 +745,7 @@ function Destination({
 
   return (
     <g role="img" aria-label={complete ? `Now I know ${subject}` : `${studied} of ${total} pages studied toward knowing ${subject}`}>
-      <line x1={0} x2={width} y1={oy} y2={oy} className="stroke-star-dim" strokeWidth={1} strokeDasharray="2 6" />
+      <line x1={0} x2={width} y1={oy} y2={oy} stroke="var(--star-dim)" strokeWidth={1} strokeDasharray="2 6" />
       <g transform={`translate(${ox} ${oy})`}>
         {crown.slice(1).map((p, i) => {
           const a = crown[i];
@@ -744,7 +757,7 @@ function Destination({
               y1={a.y * k}
               x2={p.x * k}
               y2={p.y * k}
-              className={lit ? 'stroke-star-ring' : 'stroke-star-dim'}
+              stroke={lit ? 'var(--star-ring)' : 'var(--star-dim)'}
               strokeWidth={lit ? 1.4 : 1}
               opacity={lit ? 1 : 0.35}
             />
@@ -758,7 +771,7 @@ function Destination({
               cx={p.x * k}
               cy={p.y * k}
               r={(lit ? p.size + 1.2 : p.size) * starScale}
-              className={lit ? 'fill-star' : 'fill-star-dim'}
+              fill={lit ? 'var(--star)' : 'var(--star-dim)'}
               opacity={lit ? 1 : 0.45}
             />
           );
@@ -766,12 +779,13 @@ function Destination({
         <text
           y={205 * k}
           textAnchor="middle"
-          className={`font-star italic ${complete ? 'fill-star' : 'fill-star-ring'}`}
+          className={classes.label}
+          fill={complete ? 'var(--star)' : 'var(--star-ring)'}
           fontSize={Math.max(20, 36 * k)}
         >
           Now I know {subject}
         </text>
-        <text y={205 * k + Math.max(22, 30 * k)} textAnchor="middle" className="fill-star-dim text-[13px]">
+        <text y={205 * k + Math.max(22, 30 * k)} textAnchor="middle" fill="var(--star-dim)" fontSize={13}>
           {complete ? 'Every page studied' : `${studied} of ${total} pages studied`}
         </text>
       </g>
@@ -779,92 +793,64 @@ function Destination({
   );
 }
 
-function ChartButton({
-  children,
-  label,
-  onClick,
-  disabled,
-  pressed,
-}: {
-  children: ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  pressed?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      aria-pressed={pressed}
-      title={label}
-      className="inline-flex h-8 items-center gap-1.5 rounded bg-star/10 px-2.5 text-[13px] text-star transition-colors hover:bg-star/20 focus-visible:outline-star disabled:opacity-40 aria-pressed:bg-star aria-pressed:text-chart"
-    >
-      {children}
-    </button>
-  );
-}
-
 function ChartLegend({ onResetSample }: { onResetSample?: () => void }) {
   const [confirming, setConfirming] = useState(false);
   return (
-    <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center justify-between gap-x-5 gap-y-1 bg-chart/90 px-4 py-2 text-[13px] text-star-ring">
-      <ul className="flex flex-wrap items-center gap-x-5 gap-y-1" aria-label="Legend">
-        <li className="flex items-center gap-1.5">
+    <Group className={classes.legend} justify="space-between" gap="xs" fz={13}>
+      <Group component="ul" gap="lg" p={0} m={0} style={{ listStyle: 'none' }} aria-label="Legend">
+        <Group component="li" gap={6}>
           <svg width="14" height="14" aria-hidden="true">
-            <circle cx="7" cy="7" r="6" className="fill-star" />
+            <circle cx="7" cy="7" r="6" fill="var(--star)" />
           </svg>
           Studied
-        </li>
-        <li className="flex items-center gap-1.5">
+        </Group>
+        <Group component="li" gap={6}>
           <svg width="14" height="14" aria-hidden="true">
-            <circle cx="7" cy="7" r="5" className="fill-chart stroke-star-ring" strokeWidth="1.8" />
+            <circle cx="7" cy="7" r="5" fill="var(--chart)" stroke="var(--star-ring)" strokeWidth="1.8" />
           </svg>
           Not studied
-        </li>
-        <li className="flex items-center gap-1.5">
+        </Group>
+        <Group component="li" gap={6}>
           <svg width="44" height="16" aria-hidden="true">
-            <circle cx="4" cy="8" r="2.5" className="fill-star" />
-            <circle cx="16" cy="8" r="4.5" className="fill-star" />
-            <circle cx="34" cy="8" r="7" className="fill-star" />
+            <circle cx="4" cy="8" r="2.5" fill="var(--star)" />
+            <circle cx="16" cy="8" r="4.5" fill="var(--star)" />
+            <circle cx="34" cy="8" r="7" fill="var(--star)" />
           </svg>
           More written
-        </li>
-        <li className="flex items-center gap-1.5">
+        </Group>
+        <Group component="li" gap={6}>
           <svg width="22" height="10" aria-hidden="true">
-            <line x1="1" y1="5" x2="21" y2="5" className="stroke-star-ring" strokeWidth="1.2" />
+            <line x1="1" y1="5" x2="21" y2="5" stroke="var(--star-ring)" strokeWidth="1.2" />
           </svg>
           Leads to
-        </li>
-      </ul>
+        </Group>
+      </Group>
       {onResetSample && (
-        <span className="flex items-center gap-2 text-star-dim">
+        <Group gap="xs" c="var(--star-dim)">
           Sample project
           {confirming ? (
             <>
-              <button
-                type="button"
+              <UnstyledButton
+                fw={700}
+                className={classes.legendLink}
                 onClick={() => {
                   onResetSample();
                   setConfirming(false);
                 }}
-                className="rounded px-1.5 py-0.5 font-bold text-star hover:bg-star/15"
               >
                 Discard my edits
-              </button>
-              <button type="button" onClick={() => setConfirming(false)} className="rounded px-1.5 py-0.5 hover:bg-star/15">
+              </UnstyledButton>
+              <UnstyledButton className={classes.legendLink} onClick={() => setConfirming(false)}>
                 Keep
-              </button>
+              </UnstyledButton>
             </>
           ) : (
-            <button type="button" onClick={() => setConfirming(true)} className="rounded px-1.5 py-0.5 underline underline-offset-4 hover:text-star">
+            <UnstyledButton className={classes.legendLink} onClick={() => setConfirming(true)}>
               Reset
-            </button>
+            </UnstyledButton>
           )}
-        </span>
+        </Group>
       )}
-    </div>
+    </Group>
   );
 }

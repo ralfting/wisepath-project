@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { countStudied, displayTitle, pagesInOrder } from '../entities/project.entity';
 import { useProjectStore } from '../hooks/useProjectStore';
@@ -11,7 +11,9 @@ import type { FocusRequest } from './StarChart';
 import { PageList } from './PageList';
 import { PageSheet } from './PageSheet';
 import type { PageActions } from './PageContent';
-import { PlusIcon, SearchIcon } from './icons';
+import { Anchor, Button, Group, Tabs, Text, TextInput } from '@mantine/core';
+import { IconPlus, IconSearch } from '@tabler/icons-react';
+import classes from './ProjectMap.module.css';
 
 /**
  * ProjectMap
@@ -40,7 +42,6 @@ export function ProjectMap() {
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(
     initialPage ? { pageId: initialPage, nonce: 1, mode: 'center' } : null,
   );
-  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ map: null, list: null });
 
   const total = project.pages.length;
   const studied = countStudied(project);
@@ -99,94 +100,61 @@ export function ProjectMap() {
     if (first) open(first.id, 'center');
   };
 
-  const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-    const next: Tab = tab === 'map' ? 'list' : 'map';
-    setTab(next);
-    tabRefs.current[next]?.focus();
-  };
 
   return (
-    <div className="flex min-h-screen flex-col lg:h-screen">
-      <header className="grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-3 border-b border-border bg-card px-4 py-3 sm:px-6 lg:flex lg:h-14 lg:py-0">
-        <div className="flex min-w-0 items-center gap-x-5">
-          <Link href="/projects" className="text-[17px] font-bold">
+    <Tabs value={tab} onChange={(value) => setTab((value as Tab) ?? 'map')} variant="pills" className={classes.shell}>
+      <header className={classes.header}>
+        <Group gap="lg" wrap="nowrap" miw={0}>
+          <Anchor component={Link} href="/projects" fw={700} fz={17} c="inherit" underline="never">
             WisePath
-          </Link>
-          <nav aria-label="Breadcrumb" className="min-w-0 truncate text-[15px] text-muted-foreground">
-            <Link href="/projects" className="hover:text-foreground hover:underline">
+          </Anchor>
+          <Text component="nav" aria-label="Breadcrumb" c="dimmed" fz={15} className={classes.breadcrumb}>
+            <Anchor component={Link} href="/projects" className={classes.crumbLink} c="dimmed">
               Projects
-            </Link>
+            </Anchor>
             <span aria-hidden="true"> / </span>
-            <span className="font-bold text-foreground" aria-current="page">
+            <Text span fw={700} c="var(--mantine-color-text)" aria-current="page">
               {project.title}
-            </span>
-          </nav>
-        </div>
+            </Text>
+          </Text>
+        </Group>
 
-        <div role="tablist" aria-label="View" className="flex w-fit gap-1 rounded-md bg-muted p-[3px] ring-1 ring-border">
+        <Tabs.List aria-label="View">
           {TABS.map(({ id, label }) => (
-            <button
-              key={id}
-              ref={(el) => {
-                tabRefs.current[id] = el;
-              }}
-              type="button"
-              role="tab"
-              id={`tab-${id}`}
-              aria-selected={tab === id}
-              aria-controls={`panel-${id}`}
-              tabIndex={tab === id ? 0 : -1}
-              onClick={() => setTab(id)}
-              onKeyDown={onTabKeyDown}
-              className="rounded px-3.5 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground aria-selected:bg-card aria-selected:font-bold aria-selected:text-foreground aria-selected:shadow-[0_1px_2px_hsl(var(--primary)/0.12)]"
-            >
+            <Tabs.Tab key={id} value={id} id={`tab-${id}`} py={6}>
               {label}
-            </button>
+            </Tabs.Tab>
           ))}
-        </div>
+        </Tabs.List>
 
-        <label className="relative col-span-2 block lg:ml-auto lg:w-60">
-          <span className="sr-only">Search pages</span>
-          <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-            <SearchIcon />
-          </span>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onSearchKeyDown}
-            placeholder="Search pages"
-            className="h-9 w-full rounded border border-input bg-card pl-8 pr-3 text-sm placeholder:text-muted-foreground"
-          />
-        </label>
+        <TextInput
+          type="search"
+          aria-label="Search pages"
+          placeholder="Search pages"
+          leftSection={<IconSearch size={16} />}
+          value={query}
+          onChange={(e) => setQuery(e.currentTarget.value)}
+          onKeyDown={onSearchKeyDown}
+          className={`${classes.fullRow} ${classes.search}`}
+        />
 
-        <div className="col-span-2 flex items-center justify-between gap-5 lg:justify-end">
+        <Group justify="space-between" gap="lg" className={classes.fullRow}>
           {total > 0 && (
-            <span className="text-sm text-muted-foreground">
-              <span className="font-bold text-foreground">{studied}</span> of {total} studied
-            </span>
+            <Text size="sm" c="dimmed">
+              <Text span fw={700} c="var(--mantine-color-text)">
+                {studied}
+              </Text>{' '}
+              of {total} studied
+            </Text>
           )}
-          <button
-            type="button"
-            onClick={startAdding}
-            className="inline-flex h-9 items-center gap-1.5 rounded bg-finder px-3.5 text-sm font-bold text-finder-foreground transition-colors hover:bg-finder/90 focus-visible:outline-finder"
-          >
-            <PlusIcon />
+          <Button color="finder.6" leftSection={<IconPlus size={16} />} onClick={startAdding}>
             Add page
-          </button>
-        </div>
+          </Button>
+        </Group>
       </header>
 
-      <main
-        className={`grid min-h-0 flex-1 grid-cols-1 ${openPage ? 'lg:grid-cols-[minmax(0,1fr)_560px]' : ''}`}
-      >
-        <div
-          role="tabpanel"
-          id={`panel-${tab}`}
-          aria-labelledby={`tab-${tab}`}
-          className={`h-[calc(100vh-150px)] min-h-0 p-3 sm:p-4 lg:h-auto ${openPage ? 'lg:pr-4' : ''}`}
-        >
+      <main className={classes.main} data-sheet-open={openPage ? true : undefined}>
+        <Tabs.Panel value={tab} className={classes.panel}>
           {tab === 'map' ? (
             <StarChart
               project={project}
@@ -204,7 +172,7 @@ export function ProjectMap() {
           ) : (
             <PageList project={project} selectedId={openId} matchIds={matchIds} onOpen={(pageId) => open(pageId, null)} />
           )}
-        </div>
+        </Tabs.Panel>
 
         {openPage && store.ready && (
           <PageSheet
@@ -219,6 +187,6 @@ export function ProjectMap() {
           />
         )}
       </main>
-    </div>
+    </Tabs>
   );
 }
