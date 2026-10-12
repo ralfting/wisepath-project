@@ -44,7 +44,8 @@ export class AuthService {
       where: { email: loginDto.email },
     });
 
-    if (!user) {
+    // Accounts created through Google or GitHub have no password to check
+    if (!user || !user.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -63,7 +64,7 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       return null;
     }
 
