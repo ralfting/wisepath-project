@@ -175,6 +175,7 @@ function MapView({ project }: { project: Project }) {
                 matchIds={matchIds}
                 focusRequest={focusRequest}
                 onSelect={(pageId) => select(pageId)}
+                onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
               />
             ) : (
               <MapList

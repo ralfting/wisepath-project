@@ -44,6 +44,8 @@ interface MindMapProps {
   /** Width covered on the right (by the page drawer); focusing centres pages in what is left */
   coveredRight?: number;
   onSelect: (pageId: string) => void;
+  /** The pointer or focus rests on a page: a good moment to load it ahead of the click */
+  onIntent?: (pageId: string) => void;
 }
 
 interface View {
@@ -56,7 +58,7 @@ const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.2;
 const clampZoom = (k: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
 
-export function MindMap({ project, selectedId, currentId, matchIds, focusRequest, coveredRight = 0, onSelect }: MindMapProps) {
+export function MindMap({ project, selectedId, currentId, matchIds, focusRequest, coveredRight = 0, onSelect, onIntent }: MindMapProps) {
   const tree = useMemo(() => mapTree(project), [project]);
   const layout = useMemo(() => layoutMind(tree), [tree]);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -255,6 +257,7 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
               selected={selectedId === rootId}
               dimmed={dimmed(rootId)}
               onSelect={onSelect}
+              onIntent={onIntent}
             />
 
             {layout.nodes.map((n) => {
@@ -278,6 +281,8 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   onClick={() => onSelect(n.page.id)}
+                  onPointerEnter={() => onIntent?.(n.page.id)}
+                  onFocus={() => onIntent?.(n.page.id)}
                   aria-label={label}
                 >
                   <ThemeIcon size={40} radius="xl" variant="light" color={look.color} className={classes.moduleIcon}>
@@ -300,6 +305,8 @@ export function MindMap({ project, selectedId, currentId, matchIds, focusRequest
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   onClick={() => onSelect(n.page.id)}
+                  onPointerEnter={() => onIntent?.(n.page.id)}
+                  onFocus={() => onIntent?.(n.page.id)}
                   aria-label={label}
                 >
                   <StatusIcon status={status} />
@@ -448,10 +455,11 @@ interface RootNodeProps {
   selected: boolean;
   dimmed: boolean;
   onSelect: (pageId: string) => void;
+  onIntent?: (pageId: string) => void;
 }
 
 /** The root: a circle with the map's progress drawn as a ring around it */
-function RootNode({ page, color, icon, studied, total, selected, dimmed, onSelect }: RootNodeProps) {
+function RootNode({ page, color, icon, studied, total, selected, dimmed, onSelect, onIntent }: RootNodeProps) {
   const r = ROOT_SIZE / 2 - 5;
   const circumference = 2 * Math.PI * r;
   const share = total ? studied / total : 0;
@@ -462,6 +470,8 @@ function RootNode({ page, color, icon, studied, total, selected, dimmed, onSelec
       data-selected={selected || undefined}
       data-dimmed={dimmed || undefined}
       onClick={() => onSelect(page.id)}
+      onPointerEnter={() => onIntent?.(page.id)}
+      onFocus={() => onIntent?.(page.id)}
       aria-label={`${displayTitle(page)}, ${studied} of ${total} pages studied`}
     >
       <svg className={classes.ring} width={ROOT_SIZE} height={ROOT_SIZE} aria-hidden="true">
