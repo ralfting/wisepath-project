@@ -1,19 +1,17 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
-import { ActionIcon, Divider, Group, HoverCard, Popover, ScrollArea, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import { ActionIcon, Divider, Group, HoverCard, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import {
   IconCircle,
   IconCircleCheckFilled,
   IconCircleDotFilled,
-  IconChevronRight,
   IconFocusCentered,
   IconInfoCircle,
   IconMaximize,
   IconMinus,
   IconPlus,
-  IconUnlink,
 } from '@tabler/icons-react';
 import type { Page, PageColor, Project } from '@wisepath/domain/projects';
 import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
@@ -25,9 +23,9 @@ import classes from './MindMap.module.css';
 /**
  * MindMap
  * The project read from its [[links]]: root in the middle, branches level by
- * level outward, modules drawn larger, other links as blue arrows, and the
- * pages no link reaches listed as orphans. Drag or scroll to pan, pinch or
- * Ctrl/⌘ + scroll to zoom. Every page is a button.
+ * level outward, modules drawn larger, other links as blue arrows. Pages no
+ * link reaches are not drawn (the header lists them, see MapOrphans). Drag or
+ * scroll to pan, pinch or Ctrl/⌘ + scroll to zoom. Every page is a button.
  */
 
 export interface FocusRequest {
@@ -48,6 +46,8 @@ interface MindMapProps {
   onSelect: (pageId: string) => void;
   /** The pointer or focus rests on a page: a good moment to load it ahead of the click */
   onIntent?: (pageId: string) => void;
+  /** Shown in the map's top-left corner (the search) */
+  topLeft?: ReactNode;
 }
 
 interface View {
@@ -69,6 +69,7 @@ export function MindMap({
   coveredRight = 0,
   onSelect,
   onIntent,
+  topLeft,
 }: MindMapProps) {
   const tree = useMemo(() => mapTree(project), [project]);
   const layout = useMemo(() => layoutMind(tree), [tree]);
@@ -336,40 +337,10 @@ export function MindMap({
         )}
       </div>
 
-      {/* Pages no link reaches: a notice about the content, apart from the tools */}
-      {tree.orphans.length > 0 && (
-        <Popover position="bottom-start" width={280} shadow="md">
-          <Popover.Target>
-            <UnstyledButton className={classes.orphansNotice}>
-              <IconUnlink size={15} />
-              <span>
-                {tree.orphans.length === 1 ? "1 page isn't on the map" : `${tree.orphans.length} pages aren't on the map`}
-              </span>
-              <IconChevronRight size={14} />
-            </UnstyledButton>
-          </Popover.Target>
-          <Popover.Dropdown p="xs">
-            <Text size="xs" c="dimmed" px={6} pb={6}>
-              No link reaches these pages from {displayTitle(tree.root.page)}. Link them with [[Title]] in any page on the map.
-            </Text>
-            <ScrollArea.Autosize mah={260}>
-              {tree.orphans.map((p) => (
-                <UnstyledButton
-                  key={p.id}
-                  className={classes.orphan}
-                  data-selected={selectedId === p.id || undefined}
-                  onClick={() => onSelect(p.id)}
-                >
-                  <StatusIcon status={p.studied ? 'done' : 'todo'} size={16} />
-                  <Text size="sm" truncate>
-                    {displayTitle(p)}
-                  </Text>
-                </UnstyledButton>
-              ))}
-            </ScrollArea.Autosize>
-          </Popover.Dropdown>
-        </Popover>
-      )}
+      {/* Top left: what the page puts here (the search) */}
+      <Group gap="xs" wrap="nowrap" className={classes.topLeft}>
+        {topLeft}
+      </Group>
 
       {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
       <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label="Map view">

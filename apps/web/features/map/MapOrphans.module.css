@@ -1,0 +1,38 @@
+/* A quiet status chip beside the progress */
+.button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--mantine-color-orange-2);
+  border-radius: 999px;
+  background: var(--mantine-color-orange-0);
+  color: var(--mantine-color-orange-9);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &:hover,
+  &[data-expanded] {
+    border-color: var(--mantine-color-orange-4);
+  }
+}
+
+.orphan {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px;
+  border-radius: var(--mantine-radius-sm);
+
+  &:hover {
+    background: var(--mantine-color-gray-0);
+  }
+
+  &[data-selected] {
+    background: var(--mantine-color-blue-0);
+  }
+}

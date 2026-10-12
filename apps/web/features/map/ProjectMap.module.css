@@ -27,11 +27,11 @@
   flex-shrink: 0;
 }
 
-.continue {
-  box-shadow: 0 6px 14px -8px alpha(var(--mantine-color-blue-6), 0.7);
-}
 
-/* Progress fills teal to cyan, as on the map's centre */
-.progress {
-  background: linear-gradient(90deg, var(--mantine-color-teal-5), var(--mantine-color-cyan-5));
+
+/* Inside the map: it searches the map, so it lives there */
+.search {
+  flex-shrink: 1;
+  min-width: 0;
+  box-shadow: var(--mantine-shadow-xs);
 }

@@ -3,9 +3,9 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { ActionIcon, Badge, Box, Button, Center, Group, Kbd, Progress, SegmentedControl, Text, TextInput, ThemeIcon, Title, Tooltip, VisuallyHidden } from '@mantine/core';
+import { Badge, Box, Center, Group, Kbd, SegmentedControl, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
-import { IconLayoutList, IconPlayerPlayFilled, IconSearch, IconSitemap } from '@tabler/icons-react';
+import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
@@ -16,6 +16,8 @@ import { openPageId, pageHref } from '@/features/shared/routes';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';
 import { MapList } from './MapList';
+import { MapOrphans } from './MapOrphans';
+import { ContinueButton } from './ContinueButton';
 import classes from './ProjectMap.module.css';
 
 /**
@@ -44,7 +46,6 @@ function MapView({ project }: { project: Project }) {
   const selectedId = openPageId(pathname, project.id);
   const next = nextPage(project);
   const { studied, total } = projectProgress(project);
-  const percent = total ? Math.round((studied / total) * 100) : 0;
   const look = lookOf(project, project.rootPageId);
 
   // Opening the drawer adds a history entry (back closes it); moving between pages replaces it
@@ -90,16 +91,16 @@ function MapView({ project }: { project: Project }) {
       ref={searchRef}
       type="search"
       aria-label="Search this map"
-      placeholder="Search this map…"
+      placeholder="Search pages…"
       leftSection={<IconSearch size={16} />}
       rightSection={<Kbd size="xs">⌘K</Kbd>}
       rightSectionWidth={44}
       value={query}
       onChange={(e) => setQuery(e.currentTarget.value)}
       onKeyDown={onSearchKeyDown}
-      w={{ sm: 220, lg: 300 }}
-      visibleFrom="sm"
-      style={{ flexShrink: 1 }}
+      w={{ base: '100%', xs: 280 }}
+      maw={280}
+      className={classes.search}
       radius="md"
     />
   );
@@ -159,40 +160,14 @@ function MapView({ project }: { project: Project }) {
         {/* What the page shows: the map or the list */}
         {viewSwitch}
       </Group>
-      {search}
-      <Tooltip label={`${studied} of ${total} pages studied`}>
-        <Group gap={8} wrap="nowrap" visibleFrom="md" style={{ flexShrink: 0 }}>
-          <Progress value={percent} size="md" w={88} aria-label="Map progress" classNames={{ section: classes.progress }} />
-          <Text fw={700} size="sm">
-            {percent}%
-          </Text>
-          <VisuallyHidden>
-            {studied} of {total} pages studied
-          </VisuallyHidden>
-        </Group>
-      </Tooltip>
-      <Button
-        size="sm"
-        leftSection={<IconPlayerPlayFilled size={14} />}
-        disabled={!next}
-        onClick={() => next && select(next.id)}
-        className={classes.continue}
-        style={{ flexShrink: 0 }}
-        visibleFrom="sm"
-      >
-        {next ? 'Continue studying' : total ? 'All pages studied' : 'No pages yet'}
-      </Button>
-      {/* On a phone the title needs the room: the same action as an icon */}
-      <ActionIcon
-        size="lg"
-        radius="md"
-        disabled={!next}
-        onClick={() => next && select(next.id)}
-        aria-label="Continue studying"
-        hiddenFrom="sm"
-      >
-        <IconPlayerPlayFilled size={16} />
-      </ActionIcon>
+      <MapOrphans project={project} selectedId={selectedId} onSelect={select} />
+      {/* Progress and the way on, as one control */}
+      <Box visibleFrom="sm">
+        <ContinueButton next={next} studied={studied} total={total} onContinue={() => next && select(next.id)} />
+      </Box>
+      <Box hiddenFrom="sm">
+        <ContinueButton next={next} studied={studied} total={total} onContinue={() => next && select(next.id)} compact />
+      </Box>
     </Group>
   );
 
@@ -210,9 +185,11 @@ function MapView({ project }: { project: Project }) {
               focusRequest={focusRequest}
               onSelect={(pageId) => select(pageId)}
               onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
+              topLeft={search}
             />
           ) : (
             <MapList
+              header={search}
               project={project}
               selectedId={selectedId}
               currentId={next?.id ?? null}

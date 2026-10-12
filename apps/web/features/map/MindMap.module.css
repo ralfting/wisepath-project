@@ -205,22 +205,6 @@
   line-height: 20px;
 }
 
-.orphan {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 6px;
-  border-radius: var(--mantine-radius-sm);
-
-  &:hover {
-    background: var(--mantine-color-gray-0);
-  }
-
-  &[data-selected] {
-    background: var(--mantine-color-blue-0);
-  }
-}
 
 /* Overlays */
 
@@ -257,23 +241,16 @@
   }
 }
 
-/* Orphans: a notice about the content, not a tool */
-.orphansNotice {
+/* Top left: the search */
+.topLeft {
   position: absolute;
   top: var(--mantine-spacing-sm);
   left: var(--mantine-spacing-sm);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border: 1px solid var(--mantine-color-orange-2);
-  border-radius: 999px;
-  background: var(--mantine-color-orange-0);
-  color: var(--mantine-color-orange-9);
-  font-size: 13px;
-  font-weight: 500;
+  right: var(--mantine-spacing-sm);
+  pointer-events: none;
 
-  &:hover {
-    border-color: var(--mantine-color-orange-4);
+  & > * {
+    pointer-events: auto;
   }
 }
+
