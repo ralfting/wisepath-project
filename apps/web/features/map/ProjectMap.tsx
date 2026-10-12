@@ -1,33 +1,30 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { Badge, Button, Group, Kbd, Progress, Stack, Tabs, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
+import { useHotkeys } from '@mantine/hooks';
+import { IconLayoutList, IconPlayerPlayFilled, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
-import { countStudied, displayTitle, pagesInOrder } from '@wisepath/domain/projects';
+import { displayTitle, lookOf, nextTopic, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
-import { StarChart } from './StarChart';
-import type { FocusRequest } from './StarChart';
-import { PageList } from './PageList';
-import { PageSheet } from '@/features/page/PageSheet';
-import type { PageActions } from '@/features/page/PageContent';
-import { Anchor, Button, Group, Tabs, Text, TextInput } from '@mantine/core';
-import { IconPlus, IconSearch } from '@tabler/icons-react';
+import { AppFrame } from '@/features/shell/AppFrame';
+import { PageGlyph } from '@/features/shared/look';
+import { PagePanel } from '@/features/page/PagePanel';
+import { MindMap } from './MindMap';
+import type { FocusRequest } from './MindMap';
+import { TopicList } from './TopicList';
 import classes from './ProjectMap.module.css';
 
 /**
  * ProjectMap
- * Project shell: top bar with Map/List tabs, page search, New page and progress.
- * Clicking a page opens it beside the map, editable in place.
+ * A map's home: its title and progress, the mind map (or the list), and the
+ * selected page beside it. ?page= in the URL keeps the selection on reload.
  */
 
-type Tab = 'map' | 'list';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'map', label: 'Map' },
-  { id: 'list', label: 'List' },
-];
+type View = 'map' | 'list';
 
 export function ProjectMap({ projectId }: { projectId: string }) {
   return <ProjectGate projectId={projectId}>{(project, store) => <MapView project={project} store={store} />}</ProjectGate>;
@@ -37,59 +34,30 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const initialPage = searchParams.get('page');
-  const [tab, setTab] = useState<Tab>('map');
-  const [openId, setOpenId] = useState<string | null>(initialPage);
-  const [composeRequest, setComposeRequest] = useState<{ parentId: string | null; nonce: number } | null>(null);
+  const [view, setView] = useState<View>('map');
+  const [selectedId, setSelectedId] = useState<string>(initialPage ?? project.rootPageId);
   const [query, setQuery] = useState('');
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(
-    initialPage ? { pageId: initialPage, nonce: 1, mode: 'center' } : null,
+    initialPage ? { pageId: initialPage, nonce: 1 } : null,
   );
 
-  const total = project.pages.length;
-  const studied = countStudied(project);
-  const openPage = project.pages.find((p) => p.id === openId) ?? null;
-  const fullPageHref = (pageId: string) => `/projects/${project.id}/pages/${pageId}`;
+  const selected = project.pages.find((p) => p.id === selectedId) ?? project.pages.find((p) => p.id === project.rootPageId)!;
+  const next = nextTopic(project);
+  const { studied, total } = projectProgress(project);
+  const percent = total ? Math.round((studied / total) * 100) : 0;
+  const look = lookOf(project, project.rootPageId);
 
-  // Keep ?page= in the URL so reload and back return to the open page
-  const syncUrl = useCallback(
-    (pageId: string | null) => {
-      router.replace(pageId ? `${pathname}?page=${pageId}` : pathname, { scroll: false });
+  const select = useCallback(
+    (pageId: string, focus = false) => {
+      setSelectedId(pageId);
+      router.replace(pageId === project.rootPageId ? pathname : `${pathname}?page=${pageId}`, { scroll: false });
+      if (focus) setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1 }));
     },
-    [router, pathname],
+    [router, pathname, project.rootPageId],
   );
-
-  const open = useCallback(
-    (pageId: string | null, focus: FocusRequest['mode'] | null = 'reveal') => {
-      setOpenId(pageId);
-      syncUrl(pageId);
-      if (pageId && focus) setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1, mode: focus }));
-    },
-    [syncUrl],
-  );
-
-  /** Opens the name field under the open page, or under the start page, or for the first page */
-  const startAdding = () => {
-    setTab('map');
-    const parentId = openId ?? project.startPageId ?? null;
-    if (parentId && parentId !== openId) open(parentId);
-    setComposeRequest((r) => ({ parentId, nonce: (r?.nonce ?? 0) + 1 }));
-  };
-
-  const actions: PageActions = {
-    updatePage: store.updatePage,
-    renameLinks: store.renameLinks,
-    openPage: (pageId) => open(pageId),
-    addChild: (parentId, title) => {
-      store.addChild(parentId, title);
-    },
-    createLinkedPage: (title) => open(store.addPage(title).id),
-    deletePage: (pageId) => {
-      store.deletePage(pageId);
-      open(null, null);
-    },
-  };
 
   const matchIds = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -97,100 +65,127 @@ function MapView({ project, store }: { project: Project; store: ProjectActions }
     return new Set<string>(project.pages.filter((p) => displayTitle(p).toLowerCase().includes(q)).map((p) => p.id));
   }, [project.pages, query]);
 
+  useHotkeys([['mod+K', () => searchRef.current?.focus()]]);
+
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') setQuery('');
     if (event.key !== 'Enter' || !matchIds || matchIds.size === 0) return;
-    const first = pagesInOrder(project).find((p) => matchIds.has(p.id));
-    if (first) open(first.id, 'center');
+    const first = pagesInMapOrder(project).find((p) => matchIds.has(p.id));
+    if (first) select(first.id, true);
   };
 
+  const search = (
+    <TextInput
+      ref={searchRef}
+      type="search"
+      aria-label="Search this map"
+      placeholder="Search this map…"
+      leftSection={<IconSearch size={16} />}
+      rightSection={<Kbd size="xs">⌘K</Kbd>}
+      rightSectionWidth={44}
+      value={query}
+      onChange={(e) => setQuery(e.currentTarget.value)}
+      onKeyDown={onSearchKeyDown}
+      w={{ base: 160, sm: 260, md: 340 }}
+      radius="md"
+    />
+  );
 
   return (
-    <Tabs value={tab} onChange={(value) => setTab((value as Tab) ?? 'map')} variant="pills" className={classes.shell}>
-      <header className={classes.header}>
-        <Group gap="lg" wrap="nowrap" miw={0}>
-          <Anchor component={Link} href="/projects" fw={700} fz={17} c="inherit" underline="never">
-            WisePath
-          </Anchor>
-          <Text component="nav" aria-label="Breadcrumb" c="dimmed" fz={15} className={classes.breadcrumb}>
-            <Anchor component={Link} href="/projects" className={classes.crumbLink} c="dimmed">
-              Projects
-            </Anchor>
-            <span aria-hidden="true"> / </span>
-            <Text span fw={700} c="var(--mantine-color-text)" aria-current="page">
-              {project.title}
-            </Text>
-          </Text>
+    <AppFrame crumbs={[{ label: 'My maps', href: '/projects' }, { label: project.title }]} tools={search}>
+      <Stack gap="lg" className={classes.page}>
+        <Group justify="space-between" align="center" gap="lg" className={classes.header}>
+          <Group gap="lg" wrap="nowrap" miw={0} style={{ flex: '1 1 340px' }}>
+            <ThemeIcon size={68} radius="xl" variant="light" color={look.color}>
+              <PageGlyph icon={look.icon} size={36} />
+            </ThemeIcon>
+            <Stack gap={4} miw={0}>
+              <Group gap="sm" wrap="nowrap">
+                <Title order={1} fz={{ base: 26, sm: 34 }} lts={-0.6} lh={1.1} lineClamp={1}>
+                  {project.title}
+                </Title>
+                {project.isSample && (
+                  <Badge variant="light" color="gray" radius="sm">
+                    Sample
+                  </Badge>
+                )}
+              </Group>
+              {project.description && (
+                <Text c="dimmed" lineClamp={2}>
+                  {project.description}
+                </Text>
+              )}
+            </Stack>
+          </Group>
+
+          <Group gap="xl" wrap="nowrap" className={classes.progressBlock}>
+            <Stack gap={6} w={240} visibleFrom="md">
+              <Group gap="sm" wrap="nowrap">
+                <Progress value={percent} size="lg" style={{ flex: 1 }} aria-label="Map progress" classNames={{ section: classes.progress }} />
+                <Text fw={800} fz={20}>
+                  {percent}%
+                </Text>
+              </Group>
+              <Text size="sm" c="dimmed">
+                {studied} of {total} topics studied
+              </Text>
+            </Stack>
+            <Button
+              size="md"
+              leftSection={<IconPlayerPlayFilled size={16} />}
+              disabled={!next}
+              onClick={() => next && select(next.id, true)}
+              className={classes.continue}
+            >
+              {next ? 'Continue studying' : total ? 'All topics studied' : 'No topics yet'}
+            </Button>
+          </Group>
         </Group>
 
-        <Tabs.List aria-label="View">
-          {TABS.map(({ id, label }) => (
-            <Tabs.Tab key={id} value={id} id={`tab-${id}`} py={6}>
-              {label}
+        <Tabs value={view} onChange={(v) => setView((v as View) ?? 'map')} variant="pills" classNames={{ tab: classes.viewTab }}>
+          <Tabs.List>
+            <Tabs.Tab value="map" leftSection={<IconSitemap size={16} />}>
+              Map
             </Tabs.Tab>
-          ))}
-        </Tabs.List>
+            <Tabs.Tab value="list" leftSection={<IconLayoutList size={16} />}>
+              List
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
 
-        <TextInput
-          type="search"
-          aria-label="Search pages"
-          placeholder="Search pages"
-          leftSection={<IconSearch size={16} />}
-          value={query}
-          onChange={(e) => setQuery(e.currentTarget.value)}
-          onKeyDown={onSearchKeyDown}
-          className={`${classes.fullRow} ${classes.search}`}
-        />
-
-        <Group justify="space-between" gap="lg" className={classes.fullRow}>
-          {total > 0 && (
-            <Text size="sm" c="dimmed">
-              <Text span fw={700} c="var(--mantine-color-text)">
-                {studied}
-              </Text>{' '}
-              of {total} studied
-            </Text>
-          )}
-          <Button color="finder.6" leftSection={<IconPlus size={16} />} onClick={startAdding}>
-            Add page
-          </Button>
-        </Group>
-      </header>
-
-      <main className={classes.main} data-sheet-open={openPage ? true : undefined}>
-        <Tabs.Panel value={tab} className={classes.panel}>
-          {tab === 'map' ? (
-            <StarChart
+        <div className={classes.workspace}>
+          <div className={classes.canvas}>
+            {view === 'map' ? (
+              <MindMap
+                project={project}
+                selectedId={selected.id}
+                currentId={next?.id ?? null}
+                matchIds={matchIds}
+                focusRequest={focusRequest}
+                onSelect={(pageId) => select(pageId)}
+              />
+            ) : (
+              <TopicList
+                project={project}
+                selectedId={selected.id}
+                currentId={next?.id ?? null}
+                matchIds={matchIds}
+                onSelect={(pageId) => select(pageId)}
+              />
+            )}
+          </div>
+          <div className={classes.side}>
+            <PagePanel
+              key={selected.id}
               project={project}
-              selectedId={openId}
-              matchIds={matchIds}
-              focusRequest={focusRequest}
-              onSelect={(pageId) => open(pageId, null)}
-              onAddChild={(parentId, title) => store.addChild(parentId, title).id}
-              composeRequest={composeRequest}
-              onResetSample={() => {
-                store.reset();
-                open(null, null);
-              }}
+              page={selected}
+              store={store}
+              onSelect={(pageId) => select(pageId, true)}
+              fullPageHref={`/projects/${project.id}/pages/${selected.id}`}
             />
-          ) : (
-            <PageList project={project} selectedId={openId} matchIds={matchIds} onOpen={(pageId) => open(pageId, null)} />
-          )}
-        </Tabs.Panel>
-
-        {openPage && (
-          <PageSheet
-            project={project}
-            page={openPage}
-            actions={actions}
-            isFresh={false}
-            isStart={openPage.id === project.startPageId}
-            onToggleStart={() => store.setStartPage(openPage.id === project.startPageId ? null : openPage.id)}
-            fullPageHref={fullPageHref(openPage.id)}
-            onClose={() => open(null, null)}
-          />
-        )}
-      </main>
-    </Tabs>
+          </div>
+        </div>
+      </Stack>
+    </AppFrame>
   );
 }

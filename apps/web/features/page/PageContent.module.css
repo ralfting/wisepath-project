@@ -1,63 +1,15 @@
-/* The page title reads like a star name, edited in place without a box */
+/* The page title, edited in place without a box */
 .titleInput {
   height: auto;
   min-height: 0;
   padding: 0;
-  font-family: var(--mantine-font-family-headings);
-  font-style: italic;
-  font-weight: 500;
+  font-weight: 800;
   font-size: var(--title-size, 32px);
   line-height: 1.2;
+  letter-spacing: -0.4px;
 
   &::placeholder {
     color: var(--mantine-color-placeholder);
     opacity: 0.6;
-  }
-}
-
-.section {
-  border-top: 1px solid var(--mantine-color-default-border);
-  padding-top: var(--mantine-spacing-lg);
-}
-
-.starName {
-  font-family: var(--mantine-font-family-headings);
-  font-style: italic;
-}
-
-.linkList {
-  border-block: 1px solid var(--mantine-color-default-border);
-}
-
-.linkRow {
-  display: block;
-  width: 100%;
-  padding-block: 6px;
-  font-family: var(--mantine-font-family-headings);
-  font-style: italic;
-  font-size: 15px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  &:hover {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-
-  & + & {
-    border-top: 1px solid var(--mantine-color-default-border);
-  }
-}
-
-.nameInput {
-  font-family: var(--mantine-font-family-headings);
-  font-style: italic;
-  font-size: 15px;
-
-  &::placeholder {
-    font-family: var(--mantine-font-family);
-    font-style: normal;
-    font-size: var(--mantine-font-size-sm);
   }
 }

@@ -1,0 +1,24 @@
+.module,
+.topic {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+  width: 100%;
+  border-radius: var(--mantine-radius-md);
+
+  &:hover {
+    background: var(--mantine-color-gray-0);
+  }
+
+  &[data-selected] {
+    background: var(--mantine-color-blue-0);
+  }
+}
+
+.module {
+  padding: 6px 10px 6px 4px;
+}
+
+.topic {
+  padding: 7px 10px;
+}
