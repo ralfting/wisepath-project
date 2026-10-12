@@ -87,7 +87,7 @@
 
 .topbar {
   padding: 14px var(--mantine-spacing-xl);
-  min-height: 64px;
+  min-height: var(--wp-topbar-height);
 
   @media (max-width: $mantine-breakpoint-sm) {
     padding-inline: var(--mantine-spacing-md);

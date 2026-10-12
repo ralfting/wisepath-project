@@ -37,7 +37,10 @@ export const theme = createTheme({
 });
 
 export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
-  variables: {},
+  variables: {
+    // The app frame's top bar; the page drawer opens below it
+    '--wp-topbar-height': '64px',
+  },
   light: {
     // The ground behind cards: a touch cooler than white
     '--wp-ground': '#F6F8FB',

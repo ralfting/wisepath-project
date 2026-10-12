@@ -59,8 +59,15 @@
   box-shadow: none;
 }
 
+/* Below the top bar, so the map's header (progress, Continue studying) stays usable */
+.drawerInner {
+  top: var(--wp-topbar-height);
+}
+
 .drawer {
   border-left: 1px solid var(--wp-line);
+  border-top: 1px solid var(--wp-line);
+  border-top-left-radius: var(--mantine-radius-lg);
   animation: drawer-surface 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 
   :global([data-leaving]) & {

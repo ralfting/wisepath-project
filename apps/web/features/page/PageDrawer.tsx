@@ -93,7 +93,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       withCloseButton={false}
       padding={0}
       shadow="xl"
-      classNames={{ content: classes.drawer, body: classes.drawerBody }}
+      classNames={{ inner: classes.drawerInner, content: classes.drawer, body: classes.drawerBody }}
       data-leaving={leaving || undefined}
       aria-label="Page"
     >
