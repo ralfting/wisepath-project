@@ -1,0 +1,12 @@
+# Keep build context small and secrets out of images
+.git
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/*.tsbuildinfo
+**/.env
+**/.env.*
+apps/web
+apps/api/.prisma
+.planning
