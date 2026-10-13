@@ -19,7 +19,19 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import { IconArrowLeft, IconArrowRight, IconArrowsDiagonal, IconCheck, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
+import {
+  IconArrowDownRight,
+  IconArrowLeft,
+  IconArrowRight,
+  IconArrowUpLeft,
+  IconArrowsDiagonal,
+  IconCheck,
+  IconChevronRight,
+  IconDotsVertical,
+  IconTrash,
+  IconX,
+} from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
 import type { Page, Project, Relation } from '@wisepath/domain/projects';
 import {
   PageColor,
@@ -68,12 +80,17 @@ interface PagePanelProps {
 
 type PanelTab = 'content' | 'related' | 'settings';
 
-const RELATION_LABEL: Record<Relation, string> = {
-  parent: 'This page branches from it',
-  child: 'Branches from this page',
-  linksTo: 'Referenced in this page',
-  linkedFrom: 'References this page',
-};
+/**
+ * The related pages, grouped by how they connect, in a fixed order: up the
+ * branch, down it, then [[links]] out and in. Each arrow reads from this page,
+ * so a section says its direction once instead of every row repeating it.
+ */
+const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; label: string; hint: string; icon: Icon }> = [
+  { relation: 'parent', label: 'Branches from', hint: 'The page this one grows out of on the map', icon: IconArrowUpLeft },
+  { relation: 'child', label: 'Branches into', hint: 'Pages that grow out of this one on the map', icon: IconArrowDownRight },
+  { relation: 'linksTo', label: 'Links to', hint: 'Pages this page mentions with [[ ]]', icon: IconArrowRight },
+  { relation: 'linkedFrom', label: 'Linked from', hint: 'Pages that mention this one with [[ ]]', icon: IconArrowLeft },
+];
 
 export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
@@ -252,24 +269,41 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
               Nothing related yet. Type [[ in the content to link another page.
             </Text>
           ) : (
-            <Stack gap={2}>
-              {related.map(({ page: p, relation }) => {
-                const l = lookOf(project, p.id, tree);
+            <Stack gap="lg">
+              {RELATION_SECTIONS.map(({ relation, label, hint, icon: Arrow }) => {
+                const pages = related.filter((r) => r.relation === relation);
+                if (pages.length === 0) return null;
                 return (
-                  <UnstyledButton key={p.id} className={classes.related} onClick={() => onSelect(p.id)}>
-                    <ThemeIcon size={28} radius="xl" variant="light" color={l.color}>
-                      <PageGlyph icon={p.module || p.id === project.rootPageId ? l.icon : 'book'} size={15} />
-                    </ThemeIcon>
-                    <Stack gap={0} miw={0} style={{ flex: 1 }}>
-                      <Text size="sm" fw={600} truncate>
-                        {displayTitle(p)}
+                  <section key={relation} aria-label={`${label} (${pages.length})`}>
+                    <Group gap={6} wrap="nowrap" className={classes.relationHead}>
+                      <Arrow size={15} stroke={2} className={classes.relationArrow} aria-hidden />
+                      <Text size="xs" fw={700} className={classes.relationLabel}>
+                        {label}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {RELATION_LABEL[relation]}
+                        {pages.length}
                       </Text>
+                    </Group>
+                    <Text size="xs" c="dimmed" mb={4}>
+                      {hint}
+                    </Text>
+                    <Stack gap={0}>
+                      {pages.map(({ page: p }) => {
+                        const l = lookOf(project, p.id, tree);
+                        return (
+                          <UnstyledButton key={p.id} className={classes.related} onClick={() => onSelect(p.id)}>
+                            <ThemeIcon size={28} radius="xl" variant="light" color={l.color}>
+                              <PageGlyph icon={p.module || p.id === project.rootPageId ? l.icon : 'book'} size={15} />
+                            </ThemeIcon>
+                            <Text size="sm" fw={600} truncate style={{ flex: 1, minWidth: 0 }}>
+                              {displayTitle(p)}
+                            </Text>
+                            <IconChevronRight size={16} className={classes.relatedOpen} aria-hidden />
+                          </UnstyledButton>
+                        );
+                      })}
                     </Stack>
-                    <IconArrowRight size={17} color="var(--mantine-color-blue-6)" />
-                  </UnstyledButton>
+                  </section>
                 );
               })}
             </Stack>
