@@ -119,7 +119,7 @@ A request goes: controller, then `SchemaPipe` decodes the body or query with the
 | Variable | Purpose | Local value |
 |---|---|---|
 | `DATABASE_URL` | Postgres connection | `postgresql://wisepath:wisepath@localhost:5432/wisepath` |
-| `JWT_SECRET` | Signs the login cookie | any long random string |
+| `JWT_SECRET` | Signs the session token. Required in production (32+ characters); elsewhere it falls back to a development key | any long random string |
 | `FRONTEND_URL` | Origin allowed by CORS | `http://localhost:3000` |
 | `HOST`, `PORT` | Where the API listens | `127.0.0.1`, `3001` (Docker uses `0.0.0.0`) |
 

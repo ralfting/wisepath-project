@@ -1,17 +1,17 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './infrastructure/auth.controller';
 import { JwtAuthGuard } from './infrastructure/jwt.guard';
+import { jwtSecret } from './infrastructure/jwtSecret';
 import { SESSION_HOURS } from './infrastructure/session';
 
 /** Accounts and sessions, served under /api/auth; other modules guard their routes with JwtAuthGuard */
 @Module({
   imports: [
     JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key-change-in-production',
+      // Read when the app starts, after ConfigModule has loaded .env
+      useFactory: () => ({
+        secret: jwtSecret(process.env),
         signOptions: { expiresIn: `${SESSION_HOURS}h` },
       }),
     }),
