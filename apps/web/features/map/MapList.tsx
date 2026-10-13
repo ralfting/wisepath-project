@@ -68,7 +68,8 @@ export function MapList({ header, project, selectedId, currentId, matchIds, onSe
 
   return (
     <ScrollArea h="100%">
-      <Stack gap="lg" p="lg" pt="sm">
+      {/* Same inset as the map's tools, so switching views leaves them in place */}
+      <Stack gap="lg" p="sm" pb="lg">
         {header && <div>{header}</div>}
         {tree.root.children.length === 0 ? (
           <Text c="dimmed">
