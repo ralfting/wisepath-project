@@ -1,56 +1,57 @@
-import { Controller, Post, Get, Body, Res, UseGuards, Req } from '@nestjs/common';
-import type { Response, Request } from 'express';
-import { AuthService } from '../application/auth.service';
-import { SignupDto } from '../application/dto/signup.dto';
-import { LoginDto } from '../application/dto/login.dto';
+import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import type { Request, Response } from 'express';
+import { Schema } from 'effect';
+import { UserJson } from '@wisepath/contract';
+import { Credentials, SignupDetails } from '@wisepath/domain/auth';
+import type { User } from '@wisepath/domain/auth';
+import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
+import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
+import * as auth from '../application/auth';
 import { JwtAuthGuard } from './jwt.guard';
+import { claimsOf, clearSessionCookie, setSessionCookie } from './session';
 
+/** The body of every answer that carries the user */
+const UserBody = Schema.Struct({ user: UserJson });
+const bodyOf = (user: User) => Schema.encodeSync(UserBody)({ user });
+
+/**
+ * AuthController
+ * /api/auth as the contract (AuthApiGroup in @wisepath/contract) describes
+ * it. The use cases check the account in Effect; this controller starts and
+ * ends the session cookie.
+ */
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private readonly effect: EffectRuntime,
+    private readonly jwt: JwtService,
+  ) {}
 
   @Post('signup')
-  async signup(@Body() signupDto: SignupDto, @Res() res: Response) {
-    const user = await this.authService.signup(signupDto);
-    const token = this.authService.generateJwtToken(user);
-
-    // Set httpOnly cookie: 24h (86400000ms)
-    res.cookie('access_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    });
-
-    return res.json({ user });
+  async signup(@Body(new SchemaPipe(SignupDetails)) details: SignupDetails, @Res({ passthrough: true }) res: Response) {
+    const user = await this.effect.run(auth.signup(details));
+    setSessionCookie(res, await this.jwt.signAsync(claimsOf(user)));
+    return bodyOf(user);
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto, @Res() res: Response) {
-    const user = await this.authService.login(loginDto);
-    const token = this.authService.generateJwtToken(user);
-
-    // Set httpOnly cookie
-    res.cookie('access_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    });
-
-    return res.json({ user });
+  @HttpCode(200)
+  async login(@Body(new SchemaPipe(Credentials)) credentials: Credentials, @Res({ passthrough: true }) res: Response) {
+    const user = await this.effect.run(auth.login(credentials));
+    setSessionCookie(res, await this.jwt.signAsync(claimsOf(user)));
+    return bodyOf(user);
   }
 
   @Post('logout')
-  async logout(@Res() res: Response) {
-    // Clear the cookie
-    res.clearCookie('access_token');
-    return res.json({ message: 'Logged out' });
+  @HttpCode(204)
+  logout(@Res({ passthrough: true }) res: Response) {
+    clearSessionCookie(res);
   }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async getMe(@Req() req: Request) {
-    return { user: req.user };
+  me(@Req() req: Request) {
+    return bodyOf(req.user!);
   }
 }

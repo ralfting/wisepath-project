@@ -16,7 +16,7 @@ import {
   RootPageProtected,
   TitleTaken
 } from "@wisepath/domain/projects"
-import { nestError } from "./nestError"
+import { InvalidRequest } from "./InvalidRequest"
 
 /**
  * The learner's maps and their pages (under /api/projects). Every endpoint
@@ -29,13 +29,8 @@ import { nestError } from "./nestError"
  * with the status they declare.
  */
 
-/** The request did not match the contract: a missing field, a wrong type */
-export class InvalidRequest extends Schema.TaggedError<InvalidRequest>()("InvalidRequest", {
-  message: Schema.String
-}, { httpApiStatus: 400 }) {}
-
-/** The session guard answers in NestJS's own format */
-const SessionRequired = nestError(NotAuthenticated, 401, () => new NotAuthenticated())
+/** Every endpoint needs a session */
+const SessionRequired = NotAuthenticated
 
 const project = { projectId: ProjectId }
 const page = { projectId: ProjectId, pageId: PageId }

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { EffectRuntime } from './infrastructure/EffectRuntime';
+import { AuthModule } from '../auth/auth.module';
 import { ProjectsController } from './infrastructure/projects.controller';
 
-/** The learner's maps and pages, served under /api/projects */
+/** The learner's maps and pages, served under /api/projects; every route needs a session */
 @Module({
+  imports: [AuthModule],
   controllers: [ProjectsController],
-  providers: [EffectRuntime],
 })
 export class ProjectsModule {}

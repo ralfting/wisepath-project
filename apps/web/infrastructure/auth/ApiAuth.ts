@@ -35,11 +35,10 @@ export const ApiAuth = Layer.effect(
       Effect.mapError(unavailable)
     )
 
-    // The session endpoint carries no name, so the user's name is unknown here
     const currentUser = Effect.fn("Auth.currentUser")(
       function*() {
         const { user } = yield* client.auth.me()
-        return Option.some(new User({ ...user, name: null }))
+        return Option.some(new User(user))
       },
       Effect.catchTag("NotAuthenticated", () => Effect.succeed(Option.none<User>())),
       Effect.mapError(unavailable)

@@ -1,12 +1,12 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
-import { Schema } from 'effect';
-import { UserId } from '@wisepath/domain/auth';
+import { Effect, Schema } from 'effect';
 import { NewPage, NewProject, Page, PageEdit, PageId, Project, ProjectEdit, ProjectId, ProjectSummary } from '@wisepath/domain/projects';
 import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
 import * as projects from '../application/projects';
-import { EffectRuntime } from './EffectRuntime';
-import { SchemaPipe } from './SchemaPipe';
+import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
+import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
+import { CurrentUser } from '../application/CurrentUser';
 
 /**
  * ProjectsController
@@ -15,8 +15,8 @@ import { SchemaPipe } from './SchemaPipe';
  * pipes decode what came in, and the use case does the rest in Effect.
  */
 
-/** The session guard puts the token's user on the request */
-const userOf = (req: Request) => ({ id: UserId.make((req.user as { id: string }).id) });
+/** Runs as the session's user, whom the guard put on the request */
+const asUser = (req: Request) => Effect.provideService(CurrentUser, { id: req.user!.id });
 
 const projectId = new SchemaPipe(ProjectId);
 const pageId = new SchemaPipe(PageId);
@@ -28,34 +28,34 @@ export class ProjectsController {
 
   @Get()
   list(@Req() req: Request) {
-    return this.effect.run(projects.listProjects(), userOf(req), Schema.Array(ProjectSummary));
+    return this.effect.respond(projects.listProjects().pipe(asUser(req)), Schema.Array(ProjectSummary));
   }
 
   @Post()
   create(@Req() req: Request, @Body(new SchemaPipe(NewProject)) command: NewProject) {
-    return this.effect.run(projects.createProject(command), userOf(req), Project);
+    return this.effect.respond(projects.createProject(command).pipe(asUser(req)), Project);
   }
 
   @Get(':projectId')
   get(@Req() req: Request, @Param('projectId', projectId) id: ProjectId) {
-    return this.effect.run(projects.getProject(id), userOf(req), Project);
+    return this.effect.respond(projects.getProject(id).pipe(asUser(req)), Project);
   }
 
   @Patch(':projectId')
   @HttpCode(204)
   async update(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, @Body(new SchemaPipe(ProjectEdit)) edit: ProjectEdit) {
-    await this.effect.run(projects.updateProject(id, edit), userOf(req));
+    await this.effect.run(projects.updateProject(id, edit).pipe(asUser(req)));
   }
 
   @Delete(':projectId')
   @HttpCode(204)
   async remove(@Req() req: Request, @Param('projectId', projectId) id: ProjectId) {
-    await this.effect.run(projects.removeProject(id), userOf(req));
+    await this.effect.run(projects.removeProject(id).pipe(asUser(req)));
   }
 
   @Post(':projectId/pages')
   createPage(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, @Body(new SchemaPipe(NewPage)) command: NewPage) {
-    return this.effect.run(projects.createPage(id, command), userOf(req), Page);
+    return this.effect.respond(projects.createPage(id, command).pipe(asUser(req)), Page);
   }
 
   @Patch(':projectId/pages/:pageId')
@@ -66,12 +66,12 @@ export class ProjectsController {
     @Param('pageId', pageId) page: PageId,
     @Body(new SchemaPipe(PageEdit)) edit: PageEdit,
   ) {
-    await this.effect.run(projects.updatePage(id, page, edit), userOf(req));
+    await this.effect.run(projects.updatePage(id, page, edit).pipe(asUser(req)));
   }
 
   @Delete(':projectId/pages/:pageId')
   @HttpCode(204)
   async removePage(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, @Param('pageId', pageId) page: PageId) {
-    await this.effect.run(projects.deletePage(id, page), userOf(req));
+    await this.effect.run(projects.deletePage(id, page).pipe(asUser(req)));
   }
 }

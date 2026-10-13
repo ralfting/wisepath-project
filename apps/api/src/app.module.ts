@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
+import { SharedModule } from './shared/shared.module';
 
 @Module({
   imports: [
@@ -12,7 +12,7 @@ import { ProjectsModule } from './projects/projects.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    PrismaModule,
+    SharedModule,
     AuthModule,
     ProjectsModule,
   ],

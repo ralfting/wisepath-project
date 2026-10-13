@@ -4,7 +4,6 @@ import { UserId } from "@wisepath/domain/auth"
 import { PageColor, PageIcon, PageId, ProjectId } from "@wisepath/domain/projects"
 import type { Page, Project } from "@wisepath/domain/projects"
 import { ProjectStore } from "../application/ProjectStore"
-import { SqlLive } from "./Sql"
 
 /**
  * Projects in Postgres: one row per map in `projects`, one per page in
@@ -179,4 +178,4 @@ export const SqlProjectStore = Layer.effect(
 
     return ProjectStore.of({ listOwned, find, insert, save, remove, claimSample, transaction })
   })
-).pipe(Layer.provide(SqlLive))
+)
