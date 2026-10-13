@@ -11,7 +11,7 @@ const effect = {
 };
 const infrastructure = {
   group: ['@/infrastructure', '@/infrastructure/*'],
-  message: 'Only useCases (and API routes) may reach infrastructure.',
+  message: 'Only useCases may reach infrastructure.',
 };
 const features = { group: ['@/features', '@/features/*'], message: 'Lower layers must not depend on features.' };
 const useCases = { group: ['@/useCases', '@/useCases/*'], message: 'Infrastructure must not depend on useCases.' };
@@ -23,7 +23,7 @@ const config = [
   { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   { files: ['features/**'], rules: ban(effect, infrastructure) },
-  { files: ['app/**'], ignores: ['app/api/**'], rules: ban(effect, infrastructure) },
+  { files: ['app/**'], rules: ban(effect, infrastructure) },
   { files: ['useCases/**'], rules: ban(features) },
   { files: ['infrastructure/**'], rules: ban(features, useCases, react) },
   {
