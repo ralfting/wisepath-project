@@ -19,6 +19,7 @@ import type { PageActions } from './PageContent';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
+import { NextPageButton } from './NextPageButton';
 import classes from './PageEditor.module.css';
 
 /**
@@ -172,6 +173,7 @@ export function PageSheet({
               progress={{ map: project.title, ...projectProgress(project) }}
             />
           )}
+          {!isRoot && <NextPageButton project={project} page={page} onOpen={onOpenPage} />}
           <Tooltip label="See it on the map">
             {'href' in showOnMap ? (
               <ActionIcon component={Link} href={showOnMap.href} variant="default" size="lg" radius="md" aria-label="See it on the map">

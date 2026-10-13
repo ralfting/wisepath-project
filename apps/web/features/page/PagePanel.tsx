@@ -39,6 +39,7 @@ import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import type { PageActions } from './PageContent';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
+import { NextPageButton } from './NextPageButton';
 import classes from './PagePanel.module.css';
 
 /**
@@ -213,6 +214,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
             onChange={(studied) => store.updatePage(page.id, { studied })}
             progress={{ map: project.title, ...projectProgress(project) }}
           />
+          <NextPageButton project={project} page={page} onOpen={onSelect} />
         </Group>
       )}
 
@@ -234,9 +236,12 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
             onCursor={onCursor}
             focusSignal={textFocus}
           />
-          <Text size="xs" c="dimmed" mt="md">
-            To add a page, type / and choose Page, then its name and Enter (Cmd/Ctrl+Enter to stay here). To connect pages, type [[ and a name.
-          </Text>
+          {/* Help while the page is empty; once there is writing it only takes room */}
+          {!page.content.trim() && (
+            <Text size="xs" c="dimmed" mt="md">
+              To add a page, type / and choose Page, then its name and Enter (Cmd/Ctrl+Enter to stay here). To connect pages, type [[ and a name.
+            </Text>
+          )}
         </Tabs.Panel>
 
         <Tabs.Panel value="related" className={classes.body}>
