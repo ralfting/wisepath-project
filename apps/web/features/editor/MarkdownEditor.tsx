@@ -15,6 +15,7 @@ import { Link, RichTextEditor, getTaskListExtension } from '@mantine/tiptap';
 import { Box, Button, Group, Paper, Popover, Portal, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import {
   IconBlockquote,
+  IconChevronRight,
   IconBrackets,
   IconBrandYoutube,
   IconCode,
@@ -131,6 +132,7 @@ export function MarkdownEditor({
   onCursor,
 }: MarkdownEditorProps) {
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
+  const [headings, setHeadings] = useState<ReadonlyArray<Heading>>([]);
   const [slash, setSlash] = useState<SlashMenuState | null>(null);
   const [prompt, setPrompt] = useState<PagePrompt | null>(null);
   const [card, setCard] = useState<LinkCard | null>(null);
@@ -215,7 +217,11 @@ export function MarkdownEditor({
       },
     },
     // A link is put in with a space after it, to keep typing; at the end of a line that space is not saved
-    onUpdate: ({ editor: e }) => latest.current.onChange(e.storage.markdown.getMarkdown().replace(/\]\] +$/gm, ']]')),
+    onCreate: ({ editor: e }) => setHeadings(headingsOf(e)),
+    onUpdate: ({ editor: e }) => {
+      setHeadings((current) => sameHeadings(current, headingsOf(e)));
+      latest.current.onChange(e.storage.markdown.getMarkdown().replace(/\]\] +$/gm, ']]'));
+    },
     onSelectionUpdate: ({ editor: e }) => latest.current.onCursor?.(e.state.selection.from),
   });
 
@@ -303,6 +309,7 @@ export function MarkdownEditor({
 
   return (
     <div ref={wrapperRef} className={classes.wrapper} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
+      {editor && headings.length >= 2 && <Outline editor={editor} headings={headings} />}
       <RichTextEditor editor={editor} variant="subtle" classNames={{ root: classes.root, content: classes.content }}>
         <RichTextEditor.Toolbar sticky stickyOffset={toolbarOffset} className={classes.toolbar}>
           <RichTextEditor.ControlsGroup>
@@ -606,6 +613,70 @@ function PageNamePrompt({
         {note}
       </Text>
     </Paper>
+  );
+}
+
+/** A heading in the page's text, for the outline */
+interface Heading {
+  level: number;
+  text: string;
+  /** Where it starts in the document */
+  pos: number;
+}
+
+function headingsOf(editor: Editor): Heading[] {
+  const found: Heading[] = [];
+  editor.state.doc.descendants((node, pos) => {
+    if (node.type.name === 'heading') {
+      const text = node.textContent.trim();
+      if (text) found.push({ level: node.attrs.level as number, text, pos });
+      return false;
+    }
+    return node.type.name !== 'codeBlock';
+  });
+  return found;
+}
+
+/** Keeps the same list while only positions move, so typing elsewhere does not redraw the outline */
+function sameHeadings(current: ReadonlyArray<Heading>, next: Heading[]): ReadonlyArray<Heading> {
+  const same = current.length === next.length && current.every((h, i) => h.level === next[i].level && h.text === next[i].text && h.pos === next[i].pos);
+  return same ? current : next;
+}
+
+/**
+ * Outline
+ * The page's headings, indented by level, above its text. A click scrolls to
+ * that heading and puts the cursor at its end. Shown once there are two.
+ */
+function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray<Heading> }) {
+  const [open, setOpen] = useState(true);
+  const top = Math.min(...headings.map((h) => h.level));
+
+  const go = (heading: Heading) => {
+    const node = editor.state.doc.nodeAt(heading.pos);
+    if (!node) return;
+    editor.chain().focus(heading.pos + node.nodeSize - 1, { scrollIntoView: false }).run();
+    (editor.view.nodeDOM(heading.pos) as HTMLElement | null)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  return (
+    <nav aria-label="Contents" className={classes.outline}>
+      <UnstyledButton onClick={() => setOpen((o) => !o)} aria-expanded={open} className={classes.outlineToggle}>
+        <IconChevronRight size={14} className={classes.outlineChevron} data-open={open || undefined} />
+        Contents
+      </UnstyledButton>
+      {open && (
+        <ul className={classes.outlineList}>
+          {headings.map((h) => (
+            <li key={h.pos} style={{ paddingLeft: (h.level - top) * 14 }}>
+              <UnstyledButton onClick={() => go(h)} className={classes.outlineItem} data-level={h.level - top}>
+                {h.text}
+              </UnstyledButton>
+            </li>
+          ))}
+        </ul>
+      )}
+    </nav>
   );
 }
 

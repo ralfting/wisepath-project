@@ -94,6 +94,59 @@
   width: 18rem;
 }
 
+/* The page's outline, above its text */
+.outline {
+  margin-bottom: var(--mantine-spacing-sm);
+  padding: 6px 10px 8px;
+  border-left: 2px solid var(--mantine-color-gray-3);
+}
+
+.outlineToggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mantine-color-dimmed);
+}
+
+.outlineChevron {
+  transition: transform 120ms ease;
+
+  &[data-open] {
+    transform: rotate(90deg);
+  }
+}
+
+.outlineList {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+.outlineItem {
+  display: block;
+  padding: 2px 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--mantine-color-text);
+
+  &[data-level='0'] {
+    font-weight: 600;
+  }
+
+  &:hover {
+    color: var(--mantine-color-blue-6);
+  }
+}
+
+/* Headings land below the sticky toolbar when the outline scrolls to them */
+.content :global(:is(h1, h2, h3)) {
+  scroll-margin-top: 64px;
+}
+
 .starName {
   font-weight: 600;
 }
