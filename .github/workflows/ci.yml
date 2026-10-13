@@ -1,0 +1,58 @@
+# Typecheck, lint and test the whole monorepo on every push to main and every pull request.
+# The API's integration tests run against the Postgres service below (database wisepath_test,
+# wiped and migrated by apps/api/test/globalSetup.ts).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: wisepath
+          POSTGRES_PASSWORD: wisepath
+          POSTGRES_DB: wisepath_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wisepath -d wisepath_test"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      TEST_DATABASE_URL: postgresql://wisepath:wisepath@localhost:5432/wisepath_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Version from "packageManager" in package.json
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test
+        run: pnpm test
