@@ -206,6 +206,13 @@ export function MindMap({
 
   const dimmed = (id: string) => matchIds !== null && !matchIds.has(id);
   const touchesSelection = (from: string, to: string) => selectedId !== null && (from === selectedId || to === selectedId);
+  // Links across the map stay faint until they matter: from or to the open page, or the one under the pointer
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const arrowActive = (from: string, to: string) => touchesSelection(from, to) || (hoveredId !== null && (from === hoveredId || to === hoveredId));
+  const intent = (pageId: string) => {
+    setHoveredId(pageId);
+    onIntent?.(pageId);
+  };
   const { minX, minY, maxX, maxY } = layout.bounds;
   const pad = 40;
   const rootId = tree.root.page.id;
@@ -264,10 +271,10 @@ export function MindMap({
                   d={line.d}
                   fill="none"
                   stroke="var(--mantine-color-blue-6)"
-                  strokeWidth={touchesSelection(line.from, line.to) ? 3 : 2.2}
+                  strokeWidth={arrowActive(line.from, line.to) ? 2.6 : 1.4}
                   strokeLinecap="round"
                   markerEnd="url(#wp-arrow)"
-                  opacity={selectedId && !touchesSelection(line.from, line.to) ? 0.45 : 0.95}
+                  opacity={arrowActive(line.from, line.to) ? 0.95 : 0.16}
                 />
               ))}
             </svg>
@@ -306,7 +313,8 @@ export function MindMap({
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   onClick={() => onSelect(n.page.id)}
-                  onPointerEnter={() => onIntent?.(n.page.id)}
+                  onPointerEnter={() => intent(n.page.id)}
+                  onPointerLeave={() => setHoveredId(null)}
                   onFocus={() => onIntent?.(n.page.id)}
                   aria-label={label}
                   title={displayTitle(n.page)}
@@ -331,7 +339,8 @@ export function MindMap({
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   onClick={() => onSelect(n.page.id)}
-                  onPointerEnter={() => onIntent?.(n.page.id)}
+                  onPointerEnter={() => intent(n.page.id)}
+                  onPointerLeave={() => setHoveredId(null)}
                   onFocus={() => onIntent?.(n.page.id)}
                   aria-label={label}
                   title={displayTitle(n.page)}
