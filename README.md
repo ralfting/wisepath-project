@@ -6,7 +6,7 @@ Monorepo (pnpm + Turborepo):
 
 | Path | What |
 |---|---|
-| `apps/web` | Next.js 15 front end (React 19, Mantine 8, Effect 4) on port 3000 |
+| `apps/web` | Next.js 15 front end (React 19, Mantine 8, Effect 4) on port 3002 |
 | `apps/api` | NestJS API on port 3001 (`/api`): use cases in Effect 4, Postgres through Drizzle on `@effect/sql-pg` |
 | `packages/domain` | `@wisepath/domain`: the model in plain TypeScript and Effect Schema (auth, projects), no React |
 | `packages/contract` | `@wisepath/contract`: the API described with Effect `HttpApi`; the web's client is generated from it and the API serves it as OpenAPI |
@@ -33,13 +33,13 @@ docker compose exec api pnpm db:seed
 pnpm --filter @wisepath/web dev
 ```
 
-Then open <http://localhost:3000> and log in with:
+Then open <http://localhost:3002> and log in with:
 
 | Email | Password |
 |---|---|
 | `demo@wisepath.dev` | `wisepath-demo` |
 
-Maps are kept in Postgres by the API. Every account gets its own copy of the sample map once, the first time it lists its maps: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Deleting it doesn't bring it back. Start more maps from **New map** on <http://localhost:3000/projects>.
+Maps are kept in Postgres by the API. Every account gets its own copy of the sample map once, the first time it lists its maps: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Deleting it doesn't bring it back. Start more maps from **New map** on <http://localhost:3002/projects>.
 
 > Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 3001, which clashes with the one in Docker.
 
@@ -132,7 +132,7 @@ docker compose up --build -d api          # the container applies it on start (d
 |---|---|---|
 | `DATABASE_URL` | Postgres connection | `postgresql://wisepath:wisepath@localhost:5432/wisepath` |
 | `JWT_SECRET` | Signs the session token. Required in production (32+ characters); elsewhere it falls back to a development key | any long random string |
-| `FRONTEND_URL` | Origin allowed by CORS | `http://localhost:3000` |
+| `FRONTEND_URL` | Origin allowed by CORS | `http://localhost:3002` |
 | `HOST`, `PORT` | Where the API listens | `127.0.0.1`, `3001` (Docker uses `0.0.0.0`) |
 
 **Web** (`apps/web/.env.local`, optional)
