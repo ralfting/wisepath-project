@@ -5,30 +5,30 @@ import tseslint from 'typescript-eslint';
 /**
  * Lint for the API, including the layer boundaries (see README, "How the API
  * is organised"): application code is plain Effect, with no Nest, Express or
- * infrastructure; only infrastructure and the modules wire things to Nest.
+ * infrastructure (Drizzle included); only infrastructure and the modules
+ * wire things to Nest and the database.
  */
 const nest = {
   group: ['@nestjs/*', 'express', 'cookie-parser'],
   message: 'Application code is plain Effect: Nest and Express belong in infrastructure.',
 };
+const database = {
+  group: ['drizzle-orm', 'drizzle-orm/*', 'effect/sql', '@effect/sql-pg'],
+  message: 'Application code reaches the database through its ports (ProjectStore, UserStore).',
+};
 const infrastructure = {
   group: ['**/infrastructure', '**/infrastructure/*'],
   message: 'Application code depends on ports (Context.Service), not on their implementations.',
-};
-const prisma = {
-  group: ['@prisma/client'],
-  message: 'Prisma is for the schema and migrations only; query with @effect/sql.',
 };
 
 const ban = (...patterns) => ({ 'no-restricted-imports': ['error', { patterns }] });
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', '.prisma/**', 'prisma/**', 'webpack.config.js'] },
+  { ignores: ['dist/**', 'node_modules/**', 'drizzle/**', 'webpack.config.js'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { languageOptions: { globals: globals.node } },
-  { files: ['src/**'], rules: ban(prisma) },
-  { files: ['src/**/application/**'], rules: ban(nest, infrastructure, prisma) },
+  { files: ['src/**/application/**'], rules: ban(nest, database, infrastructure) },
   {
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

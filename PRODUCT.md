@@ -48,7 +48,7 @@ Used in a desktop browser alongside the material being studied (video, docs, IDE
 - Progress: every page but the root has a studied flag. The root shows the whole map's count, every page with branches shows the count of the pages below it, and "Continue studying" goes to the first page not studied yet, in map order.
 - Sharing creates a full independent copy; each user owns their own copy and progress.
 - Out of scope for v1: real-time collaboration, built-in templates, social features (likes, comments on others' projects), mobile apps.
-- Stack: Turborepo monorepo — Next.js 15 + Mantine 8 (design system, customised only through `apps/web/theme.ts`) + Effect 4 (`apps/web`), NestJS + Prisma (`apps/api`), the domain model (`packages/domain`) and API contract (`packages/contract`).
+- Stack: Turborepo monorepo — Next.js 15 + Mantine 8 (design system, customised only through `apps/web/theme.ts`) + Effect 4 (`apps/web`), NestJS + Effect + Drizzle (`apps/api`), the domain model (`packages/domain`) and API contract (`packages/contract`).
 - Terminology: "map" (code: project) = the subject; "root" = the map's centre page; "page" = any other page; "branch" = a page reached first through a link from another; "arrow" = any other link between pages on the map; "module" = a page shown larger, only a display choice; "orphan" = a page no link reaches.
 - Undecided: AI features. The repo name says "WisePath AI", but no AI capability is defined; do not imply one.
 

@@ -7,10 +7,9 @@ Monorepo (pnpm + Turborepo):
 | Path | What |
 |---|---|
 | `apps/web` | Next.js 15 front end (React 19, Mantine 8, Effect 4) on port 3000 |
-| `apps/api` | NestJS API on port 3001 (`/api`): use cases in Effect 4, Postgres through `@effect/sql-pg` |
+| `apps/api` | NestJS API on port 3001 (`/api`): use cases in Effect 4, Postgres through Drizzle on `@effect/sql-pg` |
 | `packages/domain` | `@wisepath/domain`: the model in plain TypeScript and Effect Schema (auth, projects), no React |
 | `packages/contract` | `@wisepath/contract`: the API described with Effect `HttpApi`; the web's client is generated from it and the API serves it as OpenAPI |
-| `prisma/` | Database schema and migrations (Postgres). Prisma is used for these and the seed only |
 
 ## What you need
 
@@ -56,7 +55,7 @@ docker compose exec api pnpm db:seed     # re-run the seed (safe to repeat)
 docker compose exec api pnpm db:migrate  # apply pending migrations
 ```
 
-Postgres is also published on `localhost:5432` (user, password and database: `wisepath`), so a local client or `pnpm --filter @wisepath/api db:studio` can browse it.
+Postgres is also published on `localhost:5432` (user, password and database: `wisepath`), so any Postgres client can browse it.
 
 ## Run the API without Docker
 
@@ -65,7 +64,7 @@ Useful for hot reload while working on the API. Keep only the database in Docker
 ```bash
 docker compose up -d db
 cp apps/api/.env.example apps/api/.env      # points at the Postgres above
-pnpm --filter @wisepath/api exec prisma generate   # for the seed script
+pnpm --filter @wisepath/api build           # db:migrate and db:seed run the built scripts
 pnpm --filter @wisepath/api db:migrate
 pnpm --filter @wisepath/api db:seed
 pnpm --filter @wisepath/api dev             # http://localhost:3001/api, reloads on change
@@ -107,10 +106,25 @@ NestJS handles HTTP: routes, the session guard, cookies. What the API does is wr
 | Layer | Where | What lives there |
 |---|---|---|
 | Application | `src/<module>/application` | Use cases (`Effect.fn` programs) and the ports they need as `Context.Service`: `ProjectStore`, `UserStore`, `PasswordHasher`, `PageFetcher`. No Nest, Express or SQL. |
-| Infrastructure | `src/<module>/infrastructure` | Nest controllers and guards, and the `Layer`s behind the ports: SQL stores (`@effect/sql-pg`), bcrypt, the page fetcher for link previews. |
-| Shared | `src/shared` | `EffectRuntime` (one `ManagedRuntime` for the app, over one connection pool) and `SchemaPipe`. |
+| Infrastructure | `src/<module>/infrastructure` | Nest controllers and guards, and the `Layer`s behind the ports: Drizzle stores, bcrypt, the page fetcher for link previews. |
+| Shared | `src/shared` | `EffectRuntime` (one `ManagedRuntime` for the app, over one connection pool), `SchemaPipe`, and the database: the Drizzle schema, the bridge that runs Drizzle on `@effect/sql`, and the migration runner. |
 
-A request goes: controller, then `SchemaPipe` decodes the body or query with the domain schema (400 `InvalidRequest` when it doesn't match), then `EffectRuntime` runs the use case. A domain error becomes the status it declares, with its own JSON body (`{ "_tag": "TitleTaken", "title": "JWT" }`); anything else is logged and answered with a 500. ESLint (`apps/api/eslint.config.mjs`) keeps application code free of Nest, infrastructure and the Prisma client.
+A request goes: controller, then `SchemaPipe` decodes the body or query with the domain schema (400 `InvalidRequest` when it doesn't match), then `EffectRuntime` runs the use case. A domain error becomes the status it declares, with its own JSON body (`{ "_tag": "TitleTaken", "title": "JWT" }`); anything else is logged and answered with a 500. ESLint (`apps/api/eslint.config.mjs`) keeps application code free of Nest, the database and infrastructure.
+
+## The database
+
+The tables are declared with Drizzle in `apps/api/src/shared/infrastructure/database/schema.ts`; queries are written with Drizzle and checked against it by the compiler, relational queries included.
+
+Drizzle's own Effect integration needs Effect 3, so `Database.ts` runs Drizzle on the `@effect/sql-pg` client instead: Drizzle builds each query and maps its rows, `@effect/sql` runs it on the fiber that asked. Inside `Database.transaction` every query uses that transaction's connection, so the domain rules run inside it as Effect code.
+
+To change the schema, edit `schema.ts`, then:
+
+```bash
+pnpm --filter @wisepath/api db:generate   # writes the SQL migration to apps/api/drizzle/
+docker compose up --build -d api          # the container applies it on start (dist/migrate.js)
+```
+
+Databases created by Prisma (before Drizzle) are adopted on their first migration: their schema is the same as Drizzle's first migration, so it is recorded as applied and Prisma's history table is dropped.
 
 ## Environment variables
 
@@ -157,6 +171,4 @@ Sending the same create or delete twice changes nothing more, so clients can ret
 
 - **Port 5432 or 3001 already in use**: stop the other Postgres or API, or change the left side of `ports` in `docker-compose.yml`.
 - **Login from the web app fails with a network error**: the API isn't running. Check `docker compose ps`.
-- **Prisma says the client isn't generated** when seeding outside Docker: run `pnpm --filter @wisepath/api exec prisma generate`. The API itself doesn't use the Prisma client.
-- **`prisma generate` tries to run `pnpm add prisma`**: your `node_modules` predate the repo's `.npmrc`. Reinstall with `pnpm install --config.confirmModulesPurge=false`.
 - **Start over with an empty database**: `docker compose down -v && docker compose up --build -d`, then seed again.

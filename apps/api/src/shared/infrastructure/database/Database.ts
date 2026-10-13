@@ -30,6 +30,9 @@ export class Database extends Context.Service<
     /** Runs a Drizzle query on the current fiber; a database error is a defect */
     readonly run: <A>(query: PromiseLike<A>) => Effect.Effect<A>;
 
+    /** Runs a function that makes several Drizzle calls (like its migrator) on the current fiber */
+    readonly use: <A>(f: (db: Db) => PromiseLike<A>) => Effect.Effect<A>;
+
     /** Runs the effect in one database transaction; every `run` inside it uses that transaction */
     readonly transaction: <A, E, R>(effect: Effect.Effect<A, E, R>) => Effect.Effect<A, E, R>;
   }
@@ -55,14 +58,17 @@ export const DatabaseLive = Layer.effect(
       { schema },
     );
 
-    const run = <A>(query: PromiseLike<A>) =>
+    const use = <A>(f: (db: Db) => PromiseLike<A>) =>
       Effect.flatMap(Effect.context<never>(), (services) =>
-        Effect.tryPromise(() => runningFiber.run(services, () => Promise.resolve(query))),
+        Effect.tryPromise(() => runningFiber.run(services, () => Promise.resolve(f(db)))),
       ).pipe(Effect.orDie);
+
+    // A Drizzle query starts when awaited, which `use` does inside the fiber's context
+    const run = <A>(query: PromiseLike<A>) => use(() => query);
 
     const transaction = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
       client.withTransaction(effect).pipe(Effect.catchTag('SqlError', Effect.die)) as Effect.Effect<A, E, R>;
 
-    return Database.of({ db, run, transaction });
+    return Database.of({ db, run, use, transaction });
   }),
 );

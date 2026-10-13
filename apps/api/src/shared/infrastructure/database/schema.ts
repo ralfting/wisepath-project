@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { boolean, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 /**
@@ -19,7 +19,9 @@ export const users = pgTable(
     name: text(),
     googleId: text(),
     githubId: text(),
-    createdAt: timestamp({ precision: 3 }).notNull().defaultNow(),
+    createdAt: timestamp({ precision: 3 })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp({ precision: 3 })
       .notNull()
       .$onUpdate(() => new Date()),
@@ -42,7 +44,9 @@ export const projects = pgTable(
     title: text().notNull(),
     description: text(),
     rootPageId: text('root_page_id').notNull(),
-    createdAt: timestamp('created_at', { precision: 3, withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
   },
   (t) => [
     index('projects_owner_id_idx').on(t.ownerId),

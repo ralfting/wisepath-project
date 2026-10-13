@@ -69,9 +69,6 @@ importers:
       '@nestjs/cli':
         specifier: ^10.0.0
         version: 10.4.9(@swc/core@1.16.18)(esbuild@0.28.2)
-      '@prisma/client':
-        specifier: ^5.11.0
-        version: 5.11.0(prisma@5.11.0)
       '@swc/core':
         specifier: ^1.16.18
         version: 1.16.18
@@ -93,9 +90,6 @@ importers:
       globals:
         specifier: ^17.13.0
         version: 17.13.0
-      prisma:
-        specifier: ^5.11.0
-        version: 5.11.0
       ts-loader:
         specifier: ^9.6.2
         version: 9.6.2(typescript@5.9.3)(webpack@5.97.1(@swc/core@1.16.18)(esbuild@0.28.2))
@@ -5747,10 +5741,13 @@ snapshots:
   '@prisma/client@5.11.0(prisma@5.11.0)':
     optionalDependencies:
       prisma: 5.11.0
+    optional: true
 
-  '@prisma/debug@5.11.0': {}
+  '@prisma/debug@5.11.0':
+    optional: true
 
-  '@prisma/engines-version@5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102': {}
+  '@prisma/engines-version@5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102':
+    optional: true
 
   '@prisma/engines@5.11.0':
     dependencies:
@@ -5758,16 +5755,19 @@ snapshots:
       '@prisma/engines-version': 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
       '@prisma/fetch-engine': 5.11.0
       '@prisma/get-platform': 5.11.0
+    optional: true
 
   '@prisma/fetch-engine@5.11.0':
     dependencies:
       '@prisma/debug': 5.11.0
       '@prisma/engines-version': 5.11.0-15.efd2449663b3d73d637ea1fd226bafbcf45b3102
       '@prisma/get-platform': 5.11.0
+    optional: true
 
   '@prisma/get-platform@5.11.0':
     dependencies:
       '@prisma/debug': 5.11.0
+    optional: true
 
   '@remirror/core-constants@3.0.0': {}
 
@@ -8604,6 +8604,7 @@ snapshots:
   prisma@5.11.0:
     dependencies:
       '@prisma/engines': 5.11.0
+    optional: true
 
   prop-types@15.8.1:
     dependencies:

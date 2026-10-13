@@ -8,5 +8,4 @@
 **/.env
 **/.env.*
 apps/web
-apps/api/.prisma
 .planning
