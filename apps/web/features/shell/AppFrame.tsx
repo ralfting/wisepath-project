@@ -314,7 +314,7 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
 
       <AppShell.Section grow component={ScrollArea} px="sm" pt="lg">
         <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.6} px="sm" pb={6}>
-          Maps
+          Paths
         </Text>
         {(projects ?? []).map((project) => {
           const { studied, total } = project;
