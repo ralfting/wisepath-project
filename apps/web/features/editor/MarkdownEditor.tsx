@@ -12,7 +12,7 @@ import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
 import { Markdown } from 'tiptap-markdown';
 import { Link, RichTextEditor, getTaskListExtension } from '@mantine/tiptap';
-import { Box, Button, Group, Paper, Popover, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
+import { Box, Button, Group, Paper, Popover, Portal, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import {
   IconBrackets,
   IconBrandYoutube,
@@ -362,48 +362,51 @@ export function MarkdownEditor({
         </Box>
       )}
 
-      {/* "/page" waits for a space before the name, so "/pages" stays plain text */}
+      {/* "/page" waits for a space before the name, so "/pages" stays plain text. In a portal:
+          inside the drawer, its transform would place a fixed popup off screen */}
       {picker && picker.rect && !(picker.mode === 'create' && /^\S/.test(picker.query)) && (
-        <Paper
-          withBorder
-          shadow="md"
-          py={4}
-          role="listbox"
-          aria-label={picker.mode === 'create' ? 'Page to create' : 'Pages to link'}
-          className={classes.picker}
-          style={{ top: picker.rect.bottom + 6, left: picker.rect.left }}
-        >
-          {picker.items.length === 0 ? (
-            <Text size="sm" c="dimmed" px="sm" py={6}>
-              {picker.mode === 'create' ? 'Type the name of the page, then Enter.' : 'Type a page name.'}
-            </Text>
-          ) : (
-            picker.items.map((item, i) => (
-              <UnstyledButton
-                key={item.id ?? `new-${item.title}`}
-                role="option"
-                aria-selected={i === picker.index}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  picker.select(item);
-                }}
-                className={classes.option}
-              >
-                {picker.mode === 'create' ? (
-                  <Text span size="sm">
-                    {item.id ? 'Go to page' : 'Create page'} <span className={classes.starName}>{item.title}</span>
-                  </Text>
-                ) : item.id ? (
-                  <span className={classes.starName}>{item.title}</span>
-                ) : (
-                  <Text span size="sm">
-                    Link to new page <span className={classes.starName}>{item.title}</span>
-                  </Text>
-                )}
-              </UnstyledButton>
-            ))
-          )}
-        </Paper>
+        <Portal>
+          <Paper
+            withBorder
+            shadow="md"
+            py={4}
+            role="listbox"
+            aria-label={picker.mode === 'create' ? 'Page to create' : 'Pages to link'}
+            className={classes.picker}
+            style={{ top: picker.rect.bottom + 6, left: picker.rect.left }}
+          >
+            {picker.items.length === 0 ? (
+              <Text size="sm" c="dimmed" px="sm" py={6}>
+                {picker.mode === 'create' ? 'Type the name of the page, then Enter.' : 'Type a page name.'}
+              </Text>
+            ) : (
+              picker.items.map((item, i) => (
+                <UnstyledButton
+                  key={item.id ?? `new-${item.title}`}
+                  role="option"
+                  aria-selected={i === picker.index}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    picker.select(item);
+                  }}
+                  className={classes.option}
+                >
+                  {picker.mode === 'create' ? (
+                    <Text span size="sm">
+                      {item.id ? 'Go to page' : 'Create page'} <span className={classes.starName}>{item.title}</span>
+                    </Text>
+                  ) : item.id ? (
+                    <span className={classes.starName}>{item.title}</span>
+                  ) : (
+                    <Text span size="sm">
+                      Link to new page <span className={classes.starName}>{item.title}</span>
+                    </Text>
+                  )}
+                </UnstyledButton>
+              ))
+            )}
+          </Paper>
+        </Portal>
       )}
     </div>
   );

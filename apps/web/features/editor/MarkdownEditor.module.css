@@ -41,7 +41,8 @@
 
 .picker {
   position: fixed;
-  z-index: 40;
+  /* Above the drawer, like Mantine's popovers */
+  z-index: 300;
   width: 16rem;
   overflow: hidden;
 }
