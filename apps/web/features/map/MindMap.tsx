@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { ActionIcon, Divider, Group, HoverCard, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import {
@@ -289,6 +289,7 @@ export function MindMap({
                   onPointerEnter={() => onIntent?.(n.page.id)}
                   onFocus={() => onIntent?.(n.page.id)}
                   aria-label={label}
+                  title={displayTitle(n.page)}
                 >
                   <ThemeIcon size={40} radius="xl" variant="light" color={look.color} className={classes.moduleIcon}>
                     <PageGlyph icon={look.icon} size={21} />
@@ -313,6 +314,7 @@ export function MindMap({
                   onPointerEnter={() => onIntent?.(n.page.id)}
                   onFocus={() => onIntent?.(n.page.id)}
                   aria-label={label}
+                  title={displayTitle(n.page)}
                 >
                   <StatusIcon status={status} />
                   <span className={classes.topicTitle}>{displayTitle(n.page)}</span>
@@ -413,6 +415,7 @@ function place(n: PlacedNode, color: PageColor): CSSProperties {
     top: n.inner.y - n.h / 2,
     width: n.w,
     height: n.h,
+    '--lines': n.lines,
     ...tints(color),
   } as CSSProperties;
 }
@@ -433,8 +436,41 @@ interface RootNodeProps {
   onIntent?: (pageId: string) => void;
 }
 
+/** Font sizes the root's title may take, largest first */
+const ROOT_TITLE_SIZES = [20, 19, 18, 17, 16, 15, 14];
+
+/**
+ * Fits the root's title in its circle: the largest size at which every word
+ * fits on a line and the title on two lines. A title that fits at none is cut
+ * with an ellipsis, breaking a word if it must (the header shows it whole).
+ */
+function useFittedTitle(title: string) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      delete el.dataset.overflow;
+      const fits = ROOT_TITLE_SIZES.some((size) => {
+        el.style.fontSize = `${size}px`;
+        return el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight + 1;
+      });
+      if (!fits) el.dataset.overflow = '';
+    };
+    fit();
+    // Widths change once the web font arrives
+    let live = true;
+    document.fonts?.ready.then(() => live && fit());
+    return () => {
+      live = false;
+    };
+  }, [title]);
+  return ref;
+}
+
 /** The root: a circle with the map's progress drawn as a ring around it */
 function RootNode({ page, color, icon, studied, total, selected, dimmed, onSelect, onIntent }: RootNodeProps) {
+  const titleRef = useFittedTitle(displayTitle(page));
   const r = ROOT_SIZE / 2 - 5;
   const circumference = 2 * Math.PI * r;
   const share = total ? studied / total : 0;
@@ -448,6 +484,7 @@ function RootNode({ page, color, icon, studied, total, selected, dimmed, onSelec
       onPointerEnter={() => onIntent?.(page.id)}
       onFocus={() => onIntent?.(page.id)}
       aria-label={`${displayTitle(page)}, ${studied} of ${total} pages studied`}
+      title={displayTitle(page)}
     >
       <svg className={classes.ring} width={ROOT_SIZE} height={ROOT_SIZE} aria-hidden="true">
         <defs>
@@ -472,7 +509,9 @@ function RootNode({ page, color, icon, studied, total, selected, dimmed, onSelec
       <ThemeIcon size={52} radius="xl" variant="light" color={color}>
         {icon}
       </ThemeIcon>
-      <span className={classes.rootTitle}>{displayTitle(page)}</span>
+      <span ref={titleRef} className={classes.rootTitle}>
+        {displayTitle(page)}
+      </span>
       <span className={classes.count}>
         {studied}/{total}
       </span>

@@ -13,6 +13,9 @@ import type { MapNode, MapTree, Page, PageId } from '@wisepath/domain/projects';
 export const ROOT_SIZE = 156;
 const NODE_H = 32;
 const MODULE_H = 58;
+/** Height a second line of title adds */
+const NODE_LINE = 17;
+const MODULE_LINE = 18;
 const SIBLING_GAP = 9;
 const BLOCK_GAP = 26;
 const COLUMN_GAP = 32;
@@ -37,6 +40,8 @@ export interface PlacedNode {
   inner: Point;
   w: number;
   h: number;
+  /** Lines the title takes: a title too long for one line wraps onto a second */
+  lines: 1 | 2;
 }
 
 export interface Line {
@@ -57,13 +62,19 @@ export interface MindLayout {
   centres: Map<PageId, Point>;
 }
 
-/** Rough rendered width of a node, from its title */
-export function nodeWidth(title: string, module: boolean, hasCounter: boolean): number {
+/**
+ * Rough rendered size of a node, from its title. Up to a maximum width the
+ * node grows with its title; past it the title wraps onto a second line.
+ */
+export function nodeSize(title: string, module: boolean, hasCounter: boolean): { w: number; h: number; lines: 1 | 2 } {
   // Icon, padding and the studied check on a module; status icon, padding and counter chip on a page
   const counter = hasCounter && !module ? 50 : 0;
-  return module
-    ? Math.min(280, Math.max(170, 118 + title.length * 8.8))
-    : Math.min(270, Math.max(112, 50 + title.length * 7.3 + counter));
+  const [min, max, chrome, perChar] = module ? [170, 280, 118, 8.8] : [112, 270, 50 + counter, 7.3];
+  const oneLine = chrome + title.length * perChar;
+  const lines = oneLine > max ? 2 : 1;
+  const base = module ? MODULE_H : NODE_H;
+  const extra = module ? MODULE_LINE : NODE_LINE;
+  return { w: Math.min(max, Math.max(min, oneLine)), h: base + (lines - 1) * extra, lines };
 }
 
 /** A horizontal S-curve: leaves and arrives level, like branches of a mind map */
@@ -76,11 +87,10 @@ const centreOf = (n: PlacedNode): Point => ({ x: n.inner.x + (n.side * n.w) / 2,
 const outerOf = (n: PlacedNode): Point => ({ x: n.inner.x + n.side * n.w, y: n.inner.y });
 
 export function layoutMind(tree: MapTree): MindLayout {
-  const sizes = new Map<PageId, { w: number; h: number }>();
+  const sizes = new Map<PageId, { w: number; h: number; lines: 1 | 2 }>();
   const heights = new Map<PageId, number>();
   const measure = (node: MapNode): number => {
-    const big = !!node.page.module;
-    const size = { w: nodeWidth(node.page.title, big, node.children.length > 0), h: big ? MODULE_H : NODE_H };
+    const size = nodeSize(node.page.title, !!node.page.module, node.children.length > 0);
     sizes.set(node.page.id, size);
     const kids = node.children.map(measure);
     const stacked = kids.reduce((a, h) => a + h, 0) + SIBLING_GAP * Math.max(kids.length - 1, 0);

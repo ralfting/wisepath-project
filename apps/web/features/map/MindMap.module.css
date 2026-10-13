@@ -91,16 +91,24 @@
   pointer-events: none;
 }
 
+/* Sized to fit by useFittedTitle: up to two lines, words kept whole */
 .rootTitle {
   font-size: 20px;
   font-weight: 800;
   line-height: 1.15;
   letter-spacing: -0.3px;
   text-align: center;
-  max-width: 120px;
+  width: 120px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: normal;
+
+  /* Too long at the smallest size: break the word and end with an ellipsis */
+  &[data-overflow] {
+    overflow-wrap: anywhere;
+  }
 }
 
 .count {
@@ -148,15 +156,22 @@
 .moduleTitle {
   font-size: 14.5px;
   font-weight: 700;
+  line-height: 18px;
+}
+
+/* A long title wraps onto the lines the layout made room for (--lines), then ends with an ellipsis */
+.moduleTitle,
+.topicTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--lines, 1);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .topic {
   gap: 8px;
   padding: 0 12px 0 8px;
-  white-space: nowrap;
 
   border-radius: 999px;
   background: var(--mantine-color-body);
@@ -184,9 +199,7 @@
 
 .topicTitle {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 17px;
 }
 
 /* Studied pages below a page that has branches */
