@@ -20,7 +20,6 @@ const SIBLING_GAP = 9;
 const BLOCK_GAP = 26;
 const COLUMN_GAP = 32;
 const RADIUS_X = 196;
-const MIN_X = ROOT_SIZE / 2 + 40;
 
 export interface Point {
   x: number;
@@ -77,6 +76,52 @@ export function nodeSize(title: string, module: boolean, hasCounter: boolean): {
   return { w: Math.min(max, Math.max(min, oneLine)), h: base + (lines - 1) * extra, lines };
 }
 
+/** How the root is drawn while the variants are compared: ?root=circle|card|badge */
+export type RootVariant = 'circle' | 'card' | 'badge';
+
+export interface RootShape {
+  variant: RootVariant;
+  w: number;
+  h: number;
+  /** Lines the title takes */
+  lines: number;
+}
+
+/** Rough rendered size of the root, from its title */
+export function rootShape(title: string, variant: RootVariant): RootShape {
+  if (variant === 'card') {
+    // Ring and icon, then the title at 18px bold, up to three lines, and the count under it
+    const text = title.length * 10.5;
+    const lines = Math.min(3, Math.max(1, Math.ceil(text / 210)));
+    return { variant, w: Math.max(230, 18 + 64 + 16 + Math.min(210, text) + 22), h: Math.max(96, 32 + lines * 22 + 22), lines };
+  }
+  if (variant === 'badge') {
+    // The ring with icon and count, the title under it on a label
+    const text = title.length * 9.6;
+    const lines = Math.min(2, Math.max(1, Math.ceil(text / 220)));
+    return { variant, w: Math.max(ROOT_BADGE, Math.min(220, text) + 32), h: ROOT_BADGE + 10 + lines * 21 + 14, lines };
+  }
+  return { variant, w: ROOT_SIZE, h: ROOT_SIZE, lines: 2 };
+}
+
+/** The badge's circle */
+export const ROOT_BADGE = 116;
+
+/** Where a branch leaves the root, toward a point: on its circle or the edge of its box */
+const rootEdge = (root: RootShape, toward: Point): Point => {
+  const angle = Math.atan2(toward.y, toward.x);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  if (root.variant === 'circle') return { x: cos * (root.w / 2), y: sin * (root.h / 2) };
+  if (root.variant === 'badge') {
+    // From the circle, which sits at the top of the badge
+    const cy = -root.h / 2 + ROOT_BADGE / 2;
+    return { x: cos * (ROOT_BADGE / 2), y: cy + sin * (ROOT_BADGE / 2) };
+  }
+  const scale = Math.min(root.w / 2 / Math.abs(cos || 1e-9), root.h / 2 / Math.abs(sin || 1e-9));
+  return { x: cos * scale, y: sin * scale };
+};
+
 /** A horizontal S-curve: leaves and arrives level, like branches of a mind map */
 const curve = (a: Point, b: Point) => {
   const mx = (a.x + b.x) / 2;
@@ -86,7 +131,10 @@ const curve = (a: Point, b: Point) => {
 const centreOf = (n: PlacedNode): Point => ({ x: n.inner.x + (n.side * n.w) / 2, y: n.inner.y });
 const outerOf = (n: PlacedNode): Point => ({ x: n.inner.x + n.side * n.w, y: n.inner.y });
 
-export function layoutMind(tree: MapTree): MindLayout {
+export function layoutMind(tree: MapTree, root: RootShape = rootShape('', 'circle')): MindLayout {
+  const minX = root.w / 2 + 40;
+  const radiusX = Math.max(RADIUS_X, root.w / 2 + 118);
+  const reach = Math.max(root.w, root.h) / 2;
   const sizes = new Map<PageId, { w: number; h: number; lines: 1 | 2 }>();
   const heights = new Map<PageId, number>();
   const measure = (node: MapNode): number => {
@@ -148,17 +196,16 @@ export function layoutMind(tree: MapTree): MindLayout {
   for (const { side, items } of columns) {
     const blocks = items.map((m) => heights.get(m.page.id)!);
     const total = blocks.reduce((a, h) => a + h, 0) + BLOCK_GAP * Math.max(items.length - 1, 0);
-    const radiusY = Math.max(total / 2 + 60, ROOT_SIZE);
+    const radiusY = Math.max(total / 2 + 60, root.h);
     let top = -total / 2;
     items.forEach((m, i) => {
       const y = top + blocks[i] / 2;
       top += blocks[i] + BLOCK_GAP;
       const bulge = Math.sqrt(Math.max(0, 1 - (y / radiusY) ** 2));
-      const x = side * Math.max(MIN_X, RADIUS_X * bulge);
+      const x = side * Math.max(minX, radiusX * bulge);
       const placed = place(m, { x, y }, side, columnWidths(m));
-      // Leave the root's circle at the point facing the branch
-      const angle = Math.atan2(y, x);
-      const start = { x: Math.cos(angle) * (ROOT_SIZE / 2), y: Math.sin(angle) * (ROOT_SIZE / 2) };
+      // Leave the root at the point facing the branch
+      const start = rootEdge(root, { x, y });
       branches.push({ key: `${tree.root.page.id}-${m.page.id}`, d: curve(start, placed.inner), from: tree.root.page.id, to: m.page.id });
     });
   }
@@ -180,7 +227,7 @@ export function layoutMind(tree: MapTree): MindLayout {
   const passesRoot = (a: Point, b: Point) => {
     const len2 = (b.x - a.x) ** 2 + (b.y - a.y) ** 2 || 1;
     const t = Math.max(0, Math.min(1, -(a.x * (b.x - a.x) + a.y * (b.y - a.y)) / len2));
-    return Math.hypot(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y)) < ROOT_SIZE / 2 + 50;
+    return Math.hypot(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y)) < reach + 50;
   };
   const arrows: Line[] = tree.arrows
     .filter((r) => byId.has(r.from) && byId.has(r.to))
@@ -191,7 +238,7 @@ export function layoutMind(tree: MapTree): MindLayout {
       let c2: Point;
       if (passesRoot(a0, b0)) {
         // Below the root when the pages sit lower, above otherwise
-        const sweep = (a0.y + b0.y >= 0 ? 1 : -1) * (ROOT_SIZE / 2 + 70);
+        const sweep = (a0.y + b0.y >= 0 ? 1 : -1) * (reach + 70);
         c1 = { x: a0.x * 0.45, y: sweep };
         c2 = { x: b0.x * 0.45, y: sweep };
       } else {
@@ -206,8 +253,8 @@ export function layoutMind(tree: MapTree): MindLayout {
       return { key: `x-${r.from}-${r.to}`, d: `M${a.x},${a.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${b.x},${b.y}`, from: r.from, to: r.to };
     });
 
-  const xs = [-ROOT_SIZE / 2, ROOT_SIZE / 2];
-  const ys = [-ROOT_SIZE / 2, ROOT_SIZE / 2];
+  const xs = [-root.w / 2, root.w / 2];
+  const ys = [-root.h / 2, root.h / 2];
   for (const n of nodes) {
     xs.push(n.inner.x, n.inner.x + n.side * n.w);
     ys.push(n.inner.y - n.h / 2, n.inner.y + n.h / 2);
