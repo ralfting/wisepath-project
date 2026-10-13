@@ -60,6 +60,9 @@ importers:
       '@effect/vitest':
         specifier: 4.0.3
         version: 4.0.3(effect@4.0.3)(vitest@5.0.4(@types/node@20.19.37)(vite@8.3.4(@types/node@20.19.37)(sugarss@5.0.2(postcss@8.5.29))(terser@5.46.0)))
+      '@eslint/js':
+        specifier: 9.39.5
+        version: 9.39.5
       '@nestjs/cli':
         specifier: ^10.0.0
         version: 10.4.9(@swc/core@1.16.18(@swc/helpers@0.5.15))
@@ -78,6 +81,12 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.37
+      eslint:
+        specifier: 9.39.5
+        version: 9.39.5
+      globals:
+        specifier: ^17.13.0
+        version: 17.13.0
       prisma:
         specifier: ^5.11.0
         version: 5.11.0
@@ -87,6 +96,9 @@ importers:
       typescript:
         specifier: ^5.3.0
         version: 5.9.3
+      typescript-eslint:
+        specifier: 8.71.2
+        version: 8.71.2(eslint@9.39.5)(typescript@5.9.3)
       unplugin-swc:
         specifier: ^2.0.0
         version: 2.0.0(@swc/core@1.16.18(@swc/helpers@0.5.15))(rolldown@1.2.13)(vite@8.3.4(@types/node@20.19.37)(sugarss@5.0.2(postcss@8.5.29))(terser@5.46.0))(webpack@5.97.1(@swc/core@1.16.18(@swc/helpers@0.5.15)))
@@ -2505,6 +2517,10 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
+  globals@17.13.0:
+    resolution: {integrity: sha512-RwMTC61u7hrG3ZJMkZQOK4JLJrKS8QtoTii63EmWvFXHqycY9FObBJQCbsLxSO8kjKhWE5kV1GC+Vb1g3RI0Zg==}
+    engines: {node: '>=18'}
+
   globalthis@1.0.4:
     resolution: {integrity: sha512-DpLKbNU4WylpxJykQujfCcwYWiV/Jhm50Goo0wrVILAv5jOr9d+H+UR3PhSCD2rCCEIg0uc+G+muBTwD54JhDQ==}
     engines: {node: '>= 0.4'}
@@ -4016,6 +4032,13 @@ packages:
 
   typedarray@0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
+
+  typescript-eslint@8.71.2:
+    resolution: {integrity: sha512-Rz4effbMy2g9wnvOJZG6SbVavX313Lap1vNEbk1RUochzickvzP8P4HB+bkNg5e50eVz1hQGjh9K1omI1xB4Bw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+      typescript: '>=4.8.4 <6.1.0'
 
   typescript@5.7.2:
     resolution: {integrity: sha512-i5t66RHxDvVN40HfDd1PsEThGNnlMCMT3jMUuoh9/0TaqWevNontacunWyN02LA9/fIbEWlcHZcgTKb9QoaLfg==}
@@ -6820,6 +6843,8 @@ snapshots:
 
   globals@14.0.0: {}
 
+  globals@17.13.0: {}
+
   globalthis@1.0.4:
     dependencies:
       define-properties: 1.2.1
@@ -8442,6 +8467,17 @@ snapshots:
       reflect.getprototypeof: 1.0.10
 
   typedarray@0.0.6: {}
+
+  typescript-eslint@8.71.2(eslint@9.39.5)(typescript@5.9.3):
+    dependencies:
+      '@typescript-eslint/eslint-plugin': 8.71.2(@typescript-eslint/parser@8.71.2(eslint@9.39.5)(typescript@5.9.3))(eslint@9.39.5)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.71.2(eslint@9.39.5)(typescript@5.9.3)
+      '@typescript-eslint/typescript-estree': 8.71.2(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.71.2(eslint@9.39.5)(typescript@5.9.3)
+      eslint: 9.39.5
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - supports-color
 
   typescript@5.7.2: {}
 
