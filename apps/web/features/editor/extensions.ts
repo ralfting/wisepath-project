@@ -9,7 +9,7 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 /**
  * Editor extensions
  * Markdown round-tripping for YouTube embeds, Obsidian-style [[Page]] links,
- * the [[ page picker, and "- [ ]" checklists.
+ * the [[ page picker, /page to create a page, and "- [ ]" checklists.
  */
 
 interface MarkdownState {
@@ -183,7 +183,7 @@ export const WikiLink = Node.create<WikiLinkOptions>({
   },
 });
 
-/* ---------- [[ picker ---------- */
+/* ---------- [[ picker and /page ---------- */
 
 export interface PageLinkItem {
   /** Page id, or null for a page that does not exist yet */
@@ -191,7 +191,13 @@ export interface PageLinkItem {
   title: string;
 }
 
+/** "link" lists pages to link; "create" offers the one page /page will open */
+export type PagePickerMode = 'link' | 'create';
+
 export interface PageLinkPickerState {
+  mode: PagePickerMode;
+  /** What was typed after the trigger */
+  query: string;
   items: PageLinkItem[];
   index: number;
   rect: DOMRect | null;
@@ -199,8 +205,12 @@ export interface PageLinkPickerState {
 }
 
 interface PageLinkOptions {
+  /** What opens the picker: "[[" to link a page, "/page" to create one and go there */
+  char: string;
+  mode: PagePickerMode;
   getItems: (query: string) => PageLinkItem[];
-  onLink: (item: PageLinkItem) => void;
+  /** Called once the [[Page]] link is in the text */
+  onPick: (item: PageLinkItem) => void;
   /** Receives picker state for the React popup; null hides it */
   onState: (state: PageLinkPickerState | null) => void;
 }
@@ -210,11 +220,11 @@ export const PageLinkSuggestion = Extension.create<PageLinkOptions>({
   name: 'pageLinkSuggestion',
 
   addOptions() {
-    return { getItems: () => [], onLink: () => {}, onState: () => {} };
+    return { char: '[[', mode: 'link', getItems: () => [], onPick: () => {}, onState: () => {} };
   },
 
   addProseMirrorPlugins() {
-    const { getItems, onLink, onState } = this.options;
+    const { char, mode, getItems, onPick, onState } = this.options;
     let current: PageLinkPickerState | null = null;
 
     const insert = (editor: Editor, range: Range, item: PageLinkItem) => {
@@ -227,11 +237,13 @@ export const PageLinkSuggestion = Extension.create<PageLinkOptions>({
           { type: 'text', text: ' ' },
         ])
         .run();
-      onLink(item);
+      onPick(item);
     };
 
     const publish = (props: SuggestionProps<PageLinkItem>, index: number) => {
       current = {
+        mode,
+        query: props.query,
         items: props.items,
         index,
         rect: props.clientRect?.() ?? null,
@@ -243,8 +255,8 @@ export const PageLinkSuggestion = Extension.create<PageLinkOptions>({
     return [
       Suggestion<PageLinkItem>({
         editor: this.editor,
-        pluginKey: new PluginKey('pageLinkSuggestion'),
-        char: '[[',
+        pluginKey: new PluginKey(this.name),
+        char,
         allowSpaces: true,
         items: ({ query }) => getItems(query),
         render: () => ({
@@ -282,6 +294,9 @@ export const PageLinkSuggestion = Extension.create<PageLinkOptions>({
     ];
   },
 });
+
+/** Typing /page and a name, then Enter, links that page and goes to it, creating it when it does not exist */
+export const PageCreateSuggestion = PageLinkSuggestion.extend({ name: 'pageCreateSuggestion' });
 
 /* ---------- "- [ ]" checklists ---------- */
 

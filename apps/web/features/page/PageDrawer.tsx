@@ -30,8 +30,27 @@ interface DrawerControls {
   /** Grown to the whole window, in place: no navigation, no reload */
   expanded: boolean;
   toggleExpanded: () => void;
+  /** The pages walked through inside the drawer, ending at the one it shows now */
+  trail: Trail;
+  setTrail: (trail: Trail) => void;
 }
-const DrawerContext = createContext<DrawerControls>({ close: () => {}, expanded: false, toggleExpanded: () => {} });
+const DrawerContext = createContext<DrawerControls>({
+  close: () => {},
+  expanded: false,
+  toggleExpanded: () => {},
+  trail: { before: [], at: null },
+  setTrail: () => {},
+});
+
+/**
+ * Where the drawer has been: going from page to page inside it adds the page
+ * left behind, so the back arrow can return to it. A page opened some other
+ * way (a click on the map) is not where the trail ends, so it starts over.
+ */
+interface Trail {
+  before: ReadonlyArray<string>;
+  at: string | null;
+}
 
 /** Matches the leave animation in PagePanel.module.css */
 const LEAVE_MS = 180;
@@ -47,6 +66,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   const reduceMotion = useReducedMotion();
   const [leaving, setLeaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [trail, setTrail] = useState<Trail>({ before: [], at: null });
   // Expanded, the drawer stops at the sidebar, so it lands exactly where the full page sits
   const [sidebarEdge, setSidebarEdge] = useState(0);
   const toggleExpanded = () => {
@@ -119,7 +139,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       style={{ '--drawer-left': `${sidebarEdge}px` } as CSSProperties}
       aria-label="Page"
     >
-      <DrawerContext.Provider value={{ close, expanded, toggleExpanded }}>
+      <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail }}>
         {children}
       </DrawerContext.Provider>
     </Drawer>
@@ -128,11 +148,27 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
 
 export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: string }) {
   const router = useRouter();
-  const { close, expanded, toggleExpanded } = useContext(DrawerContext);
+  const { close, expanded, toggleExpanded, trail, setTrail } = useContext(DrawerContext);
+  const before = trail.at === pageId ? trail.before : [];
+
+  // Moving between pages replaces the entry, so back still closes the drawer in one step
+  const go = (id: string) => {
+    if (id === pageId) return;
+    setTrail({ before: [...before, pageId], at: id });
+    router.replace(pageHref(projectId, id), { scroll: false });
+  };
+  const goBack = (to: string, rest: ReadonlyArray<string>) => {
+    setTrail({ before: rest, at: to });
+    router.replace(pageHref(projectId, to), { scroll: false });
+  };
+
   return (
     <ProjectGate projectId={projectId}>
       {(project, store, save) => {
         const page = project.pages.find((p) => p.id === pageId);
+        // The page to go back to, skipping any deleted on the way
+        const backIndex = before.map((id) => project.pages.some((p) => p.id === id)).lastIndexOf(true);
+        const back = backIndex < 0 ? undefined : project.pages.find((p) => p.id === before[backIndex]);
         if (!page) {
           return (
             <Stack gap="sm" p="xl">
@@ -158,7 +194,7 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
                 page={page}
                 store={store}
                 save={save}
-                onOpenPage={(id) => router.replace(pageHref(project.id, id), { scroll: false })}
+                onOpenPage={go}
                 showOnMap={{ onClick: toggleExpanded }}
                 onDeleted={(back) => {
                   toggleExpanded();
@@ -173,8 +209,8 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
             project={project}
             page={page}
             store={store}
-            // Moving between pages replaces the entry, so back still closes the drawer in one step
-            onSelect={(id) => router.replace(pageHref(project.id, id), { scroll: false })}
+            onSelect={go}
+            back={back && { page: back, onClick: () => goBack(back.id, before.slice(0, backIndex)) }}
             onExpand={toggleExpanded}
             onClose={close}
             flat

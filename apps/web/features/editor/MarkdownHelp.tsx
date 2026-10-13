@@ -36,6 +36,7 @@ const SYNTAX: { group: string; rows: { type: string; does: string }[] }[] = [
     group: 'Links and media',
     rows: [
       { type: '[[Page]]', does: 'Links another page of this map; a name no page has yet is created when you click it' },
+      { type: '/page Name', does: 'Then Enter: links that page and goes to it, creating it if it does not exist' },
       { type: 'https://…', does: 'A website address links itself; to link words, select them and use the link button (or paste [text](https://…))' },
       { type: 'https://youtu.be/…', does: 'A YouTube address alone on its line becomes an embedded video' },
     ],

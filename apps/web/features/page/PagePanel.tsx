@@ -19,7 +19,7 @@ import {
   Tooltip,
   UnstyledButton,
 } from '@mantine/core';
-import { IconArrowRight, IconArrowsDiagonal, IconCheck, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
+import { IconArrowLeft, IconArrowRight, IconArrowsDiagonal, IconCheck, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Page, Project, Relation } from '@wisepath/domain/projects';
 import {
   PageColor,
@@ -56,6 +56,8 @@ interface PagePanelProps {
   onClose?: () => void;
   /** Without the card frame, inside the drawer */
   flat?: boolean;
+  /** The page this one was reached from, inside the drawer */
+  back?: { page: Page; onClick: () => void };
 }
 
 type PanelTab = 'content' | 'related' | 'settings';
@@ -67,7 +69,7 @@ const RELATION_LABEL: Record<Relation, string> = {
   linkedFrom: 'References this page',
 };
 
-export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false }: PagePanelProps) {
+export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isRoot = page.id === project.rootPageId;
@@ -97,6 +99,14 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
       component="aside"
     >
       <Group justify="space-between" wrap="nowrap" px="lg" pt="md" gap="xs">
+        <Group gap={4} wrap="nowrap" miw={0}>
+        {back && (
+          <Tooltip label={`Back to ${displayTitle(back.page)}`}>
+            <ActionIcon variant="subtle" color="gray" onClick={back.onClick} aria-label={`Back to ${displayTitle(back.page)}`}>
+              <IconArrowLeft size={17} />
+            </ActionIcon>
+          </Tooltip>
+        )}
         {/* Where the page sits; its own title is right below, so the trail stops at its parent */}
         <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail} aria-label="Path to this page">
           {isRoot ? (
@@ -121,6 +131,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
             )
           )}
         </Breadcrumbs>
+        </Group>
         <Group gap={2} wrap="nowrap">
           {onExpand && (
             <Tooltip label="Open as a full page">
@@ -197,7 +208,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         <Tabs.Panel value="content" className={classes.body}>
           <PageContent key={page.id} project={project} page={page} actions={pageActions} showTitle={false} />
           <Text size="xs" c="dimmed" mt="md">
-            To add a page, type [[ and a name, then click the link. To connect pages, link them the same way.
+            To add a page, type /page and its name, then Enter. To connect pages, type [[ and a name.
           </Text>
         </Tabs.Panel>
 

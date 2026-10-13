@@ -26,7 +26,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 import { findPageByTitle } from '@wisepath/domain/projects';
-import { BulletToChecklist, PageLinkSuggestion, WikiLink, YouTubeVideo, youTubeId } from './extensions';
+import { BulletToChecklist, PageCreateSuggestion, PageLinkSuggestion, WikiLink, YouTubeVideo, youTubeId } from './extensions';
 import type { PageLinkItem, PageLinkPickerState } from './extensions';
 import { LinkPreview } from './LinkPreview';
 import { MarkdownHelp } from './MarkdownHelp';
@@ -40,6 +40,7 @@ import classes from './MarkdownEditor.module.css';
  * checklist, code, video, page link); selecting text shows a bubble menu for
  * inline formatting. [[Page]] links another page by title, like Obsidian; a
  * link to a page that does not exist yet offers to create it when clicked.
+ * /page and a name, then Enter, links that page and goes straight to it.
  */
 
 interface MarkdownEditorProps {
@@ -88,7 +89,7 @@ export function MarkdownEditor({
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
       Placeholder.configure({
-        placeholder: 'Write here. Type ## for a heading, - for a list, [[ to link another page.',
+        placeholder: 'Write here. Type ## for a heading, - for a list, [[ to link a page, /page to create one.',
       }),
       getTaskListExtension(TaskList),
       TaskItem.configure({ nested: true }),
@@ -112,8 +113,25 @@ export function MarkdownEditor({
           const exact = q && findPageByTitle(latest.current.pages, q);
           return q && !exact ? [...matches, { id: null, title: q }] : matches;
         },
-        onLink: (item: PageLinkItem) => {
+        onPick: (item: PageLinkItem) => {
           if (item.id) latest.current.onLinkPage(item.id);
+        },
+        onState: setPicker,
+      }),
+      PageCreateSuggestion.configure({
+        char: '/page',
+        mode: 'create',
+        // "/page Name": the name comes after a space, so "/pages" is just text
+        getItems: (query: string): PageLinkItem[] => {
+          const title = query.trim();
+          if (!title || !/^\s/.test(query)) return [];
+          const page = findPageByTitle(latest.current.pages, title);
+          if (page?.id === latest.current.currentPageId) return [];
+          return [page ? { id: page.id, title: page.title.trim() } : { id: null, title }];
+        },
+        onPick: (item: PageLinkItem) => {
+          if (item.id) latest.current.onOpenPage(item.id);
+          else latest.current.onCreatePage(item.title);
         },
         onState: setPicker,
       }),
@@ -344,19 +362,20 @@ export function MarkdownEditor({
         </Box>
       )}
 
-      {picker && picker.rect && (
+      {/* "/page" waits for a space before the name, so "/pages" stays plain text */}
+      {picker && picker.rect && !(picker.mode === 'create' && /^\S/.test(picker.query)) && (
         <Paper
           withBorder
           shadow="md"
           py={4}
           role="listbox"
-          aria-label="Pages to link"
+          aria-label={picker.mode === 'create' ? 'Page to create' : 'Pages to link'}
           className={classes.picker}
           style={{ top: picker.rect.bottom + 6, left: picker.rect.left }}
         >
           {picker.items.length === 0 ? (
             <Text size="sm" c="dimmed" px="sm" py={6}>
-              Type a page name.
+              {picker.mode === 'create' ? 'Type the name of the page, then Enter.' : 'Type a page name.'}
             </Text>
           ) : (
             picker.items.map((item, i) => (
@@ -370,7 +389,11 @@ export function MarkdownEditor({
                 }}
                 className={classes.option}
               >
-                {item.id ? (
+                {picker.mode === 'create' ? (
+                  <Text span size="sm">
+                    {item.id ? 'Go to page' : 'Create page'} <span className={classes.starName}>{item.title}</span>
+                  </Text>
+                ) : item.id ? (
                   <span className={classes.starName}>{item.title}</span>
                 ) : (
                   <Text span size="sm">
