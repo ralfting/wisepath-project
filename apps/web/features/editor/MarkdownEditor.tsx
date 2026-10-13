@@ -141,7 +141,7 @@ export function MarkdownEditor({
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
       Placeholder.configure({
-        placeholder: 'Write here, or type / for commands: a new page, headings, lists and more.',
+        placeholder: 'Write here, or type / for commands',
       }),
       getTaskListExtension(TaskList),
       TaskItem.configure({ nested: true }),
