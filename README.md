@@ -124,8 +124,6 @@ pnpm --filter @wisepath/api db:generate   # writes the SQL migration to apps/api
 docker compose up --build -d api          # the container applies it on start (dist/migrate.js)
 ```
 
-Databases created by Prisma (before Drizzle) are adopted on their first migration: their schema is the same as Drizzle's first migration, so it is recorded as applied and Prisma's history table is dropped.
-
 ## Environment variables
 
 **API** (`apps/api/.env` outside Docker; `docker-compose.yml` sets them in Docker)
