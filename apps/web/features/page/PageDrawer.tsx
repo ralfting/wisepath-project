@@ -131,7 +131,7 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
   const { close, expanded, toggleExpanded } = useContext(DrawerContext);
   return (
     <ProjectGate projectId={projectId}>
-      {(project, store) => {
+      {(project, store, save) => {
         const page = project.pages.find((p) => p.id === pageId);
         if (!page) {
           return (
@@ -157,6 +157,7 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
                 project={project}
                 page={page}
                 store={store}
+                save={save}
                 onOpenPage={(id) => router.replace(pageHref(project.id, id), { scroll: false })}
                 showOnMap={{ onClick: toggleExpanded }}
                 onDeleted={(back) => {

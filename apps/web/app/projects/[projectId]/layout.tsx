@@ -1,6 +1,4 @@
 import type { ReactNode } from 'react';
-import { notFound } from 'next/navigation';
-import { findSampleProject } from '@wisepath/domain/projects';
 
 interface ProjectLayoutProps {
   children: ReactNode;
@@ -9,9 +7,8 @@ interface ProjectLayoutProps {
   params: Promise<{ projectId: string }>;
 }
 
-export default async function ProjectLayout({ children, drawer, params }: ProjectLayoutProps) {
-  const { projectId } = await params;
-  if (!findSampleProject(projectId)) notFound();
+/** Maps load in the browser (see ProjectGate), which shows not-found for an unknown id */
+export default async function ProjectLayout({ children, drawer }: ProjectLayoutProps) {
   return (
     <>
       {children}

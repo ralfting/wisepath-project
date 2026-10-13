@@ -3,7 +3,7 @@ import { PageNotFound, RootPageProtected, TitleTaken } from "./errors"
 import { PageColor, PageIcon, PageId, ProjectId } from "./Project"
 import type { Page, Project } from "./Project"
 import { createPage, deletePage, newProject, renameLinks, setDescription, setLook, titleTaken, updatePage } from "./rules"
-import { lookOf, nextPage, projectProgress } from "./tree"
+import { lookOf, mapTree, nextPage, projectProgress } from "./tree"
 
 /**
  * Commands
@@ -60,6 +60,9 @@ export const ProjectSummary = Schema.Struct({
   icon: PageIcon,
   studied: Schema.Number,
   total: Schema.Number,
+  modules: Schema.Number,
+  /** Pages no link reaches */
+  orphans: Schema.Number,
   /** Where "Continue" leads, if anything is left to study */
   next: Schema.NullOr(Schema.Struct({ id: PageId, title: Schema.String }))
 })
@@ -115,7 +118,8 @@ export const removePage = Effect.fnUntraced(function*(project: Project, pageId: 
 
 /** The map as its card and the sidebar show it */
 export function summarize(project: Project): ProjectSummary {
-  const look = lookOf(project, project.rootPageId)
+  const tree = mapTree(project)
+  const look = lookOf(project, project.rootPageId, tree)
   const next = nextPage(project)
   return {
     id: project.id,
@@ -124,6 +128,8 @@ export function summarize(project: Project): ProjectSummary {
     color: look.color,
     icon: look.icon,
     ...projectProgress(project),
+    modules: [...tree.nodes.values()].filter((n) => n.page.module).length,
+    orphans: tree.orphans.length,
     next: next ? { id: next.id, title: next.title } : null
   }
 }

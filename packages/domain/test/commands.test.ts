@@ -75,7 +75,7 @@ describe("projects", () => {
 
   it("summarizes a map for its card", () => {
     const s = summarize(sampleProject)
-    assert.deepStrictEqual([s.studied, s.total, s.next?.title, s.color], [8, 41, "Modules", "red"])
+    assert.deepStrictEqual([s.studied, s.total, s.modules, s.orphans, s.next?.title, s.color], [8, 41, 8, 0, "Modules", "red"])
   })
 
   it("copies the sample with fresh ids and the same map", () => {

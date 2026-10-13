@@ -1,40 +1,30 @@
-import { Effect, Option } from "effect"
-import {
-  LinkPreviews,
-  PageId,
-  ProjectNotFound,
-  ProjectRepository,
-  findSampleProject,
-  sampleProjects
-} from "@wisepath/domain/projects"
-import type { Project, ProjectId } from "@wisepath/domain/projects"
+import { Effect } from "effect"
+import { LinkPreviews, PageId, ProjectId, ProjectRepository } from "@wisepath/domain/projects"
 
 /**
- * Project use cases as Effect programs. Editing itself is pure domain rules
- * applied in the hooks; these programs cover what touches services.
+ * Project use cases as Effect programs, for what isn't an edit of an open map
+ * (those go through sync.ts): the list of maps, making and deleting one.
  */
 
-/** The saved copy of a project, or the shipped sample when nothing was saved yet */
-export const loadProject = Effect.fn("useCases.projects.load")(function*(id: ProjectId) {
-  const saved = yield* ProjectRepository.use((repo) => repo.load(id))
-  if (Option.isSome(saved)) return saved.value
-  const sample = findSampleProject(id)
-  if (!sample) return yield* new ProjectNotFound({ projectId: id })
-  return sample
+/** A fresh id; ids are made here so a new page or map can open before the API answers */
+const newId = (): string =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
+
+export const newPageId = (): PageId => PageId.make(newId())
+
+/** Every map the learner has, as their cards show them */
+export const listProjects = ProjectRepository.use((repo) => repo.list).pipe(Effect.withSpan("useCases.projects.list"))
+
+/** A new map named after its root page */
+export const createProject = Effect.fn("useCases.projects.create")(function*(title: string) {
+  const repo = yield* ProjectRepository
+  return yield* repo.create({ id: ProjectId.make(newId()), rootPageId: newPageId(), title: title.trim() })
 })
 
-/** Saves after a short pause; a newer save started meanwhile replaces this one */
-export const saveProject = Effect.fn("useCases.projects.save")(function*(project: Project) {
-  yield* Effect.sleep("300 millis")
-  yield* ProjectRepository.use((repo) => repo.save(project))
+export const removeProject = Effect.fn("useCases.projects.remove")(function*(id: ProjectId) {
+  const repo = yield* ProjectRepository
+  yield* repo.remove(id)
 })
-
-/** Every project the learner has, with their saved progress */
-export const listProjects = Effect.forEach(sampleProjects, (project) => loadProject(project.id))
-
-/** A fresh id for a new page */
-export const newPageId = (): PageId =>
-  PageId.make(typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `page-${Date.now().toString(36)}`)
 
 /** What an external link says about itself */
 export const previewLink = (url: string) => LinkPreviews.use((previews) => previews.preview(url))

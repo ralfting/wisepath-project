@@ -3,12 +3,14 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Badge, Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
+import { Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
 import { useHotkeys } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
+import { SaveStatus } from '@/features/projects/SaveStatus';
+import type { SaveState } from '@/useCases/projects';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
@@ -31,10 +33,10 @@ import classes from './ProjectMap.module.css';
 type View = 'map' | 'list';
 
 export function ProjectMap({ projectId }: { projectId: string }) {
-  return <ProjectGate projectId={projectId}>{(project) => <MapView project={project} />}</ProjectGate>;
+  return <ProjectGate projectId={projectId}>{(project, _actions, save) => <MapView project={project} save={save} />}</ProjectGate>;
 }
 
-function MapView({ project }: { project: Project }) {
+function MapView({ project, save }: { project: Project; save: SaveState }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -79,7 +81,7 @@ function MapView({ project }: { project: Project }) {
 
   // The search stays folded until it is wanted: a click or ⌘K (Ctrl K) opens it
   const [searchOpen, setSearchOpen] = useState(false);
-  // The map renders only on the client (it reads device storage), so the platform is known here
+  // The map renders only on the client (it loads in the browser), so the platform is known here
   const shortcut = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K';
   const openSearch = () => {
     setSearchOpen(true);
@@ -181,11 +183,10 @@ function MapView({ project }: { project: Project }) {
             {project.title}
           </Title>
         </Tooltip>
-        {project.isSample && (
-          <Badge variant="light" color="gray" radius="sm" visibleFrom="sm" style={{ flexShrink: 0 }}>
-            Sample
-          </Badge>
-        )}
+        {/* Only while something is on its way, or was undone */}
+        <Box visibleFrom="sm" style={{ flexShrink: 0 }}>
+          <SaveStatus save={save} hideSaved />
+        </Box>
       </Group>
       {/* Progress and the way on, as one control */}
       <Box visibleFrom="sm">

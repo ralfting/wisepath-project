@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@effect/atom-react": "4.0.3",
-    "@effect/platform-browser": "4.0.3",
     "@mantine/core": "8.3.18",
     "@mantine/hooks": "8.3.18",
     "@mantine/tiptap": "8.3.18",

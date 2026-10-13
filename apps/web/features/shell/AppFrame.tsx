@@ -33,7 +33,6 @@ import {
   IconRoute,
   IconSelector,
 } from '@tabler/icons-react';
-import { lookOf, projectProgress } from '@wisepath/domain/projects';
 import { useLogout, useSession } from '@/useCases/auth';
 import { useProjects } from '@/useCases/projects';
 import { PageGlyph } from '@/features/shared/look';
@@ -249,7 +248,6 @@ function Rail() {
       </ActionIcon>
       <div className={classes.railRule} />
       {(projects ?? []).map((project) => {
-        const look = lookOf(project, project.rootPageId);
         const href = `/projects/${project.id}`;
         return (
           <ActionIcon
@@ -259,12 +257,12 @@ function Rail() {
             size={40}
             radius="xl"
             variant="light"
-            color={look.color}
+            color={project.color}
             aria-label={project.title}
             data-active={pathname.startsWith(href) || undefined}
             className={classes.railMap}
           >
-            <PageGlyph icon={look.icon} size={19} />
+            <PageGlyph icon={project.icon} size={19} />
           </ActionIcon>
         );
       })}
@@ -319,8 +317,7 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
           Maps
         </Text>
         {(projects ?? []).map((project) => {
-          const look = lookOf(project, project.rootPageId);
-          const { studied, total } = projectProgress(project);
+          const { studied, total } = project;
           const href = `/projects/${project.id}`;
           return (
             <NavLink
@@ -330,8 +327,8 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
               label={project.title}
               active={pathname.startsWith(href)}
               leftSection={
-                <ThemeIcon size={30} radius="xl" variant="light" color={look.color}>
-                  <PageGlyph icon={look.icon} size={17} />
+                <ThemeIcon size={30} radius="xl" variant="light" color={project.color}>
+                  <PageGlyph icon={project.icon} size={17} />
                 </ThemeIcon>
               }
               rightSection={

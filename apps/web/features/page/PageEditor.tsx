@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Page, Project } from '@wisepath/domain/projects';
 import { branchProgress, displayTitle, lookOf, pathTo, projectProgress } from '@wisepath/domain/projects';
-import type { ProjectActions } from '@/useCases/projects';
+import type { ProjectActions, SaveState } from '@/useCases/projects';
+import { SaveStatus } from '@/features/projects/SaveStatus';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import type { Crumb } from '@/features/shell/AppFrame';
@@ -26,12 +27,12 @@ import classes from './PageEditor.module.css';
 export function PageEditor({ projectId, pageId }: { projectId: string; pageId: string }) {
   return (
     <ProjectGate projectId={projectId}>
-      {(project, store) => <EditorView project={project} store={store} pageId={pageId} />}
+      {(project, store, save) => <EditorView project={project} store={store} save={save} pageId={pageId} />}
     </ProjectGate>
   );
 }
 
-function EditorView({ project, store, pageId }: { project: Project; store: ProjectActions; pageId: string }) {
+function EditorView({ project, store, save, pageId }: { project: Project; store: ProjectActions; save: SaveState; pageId: string }) {
   const router = useRouter();
   const page = project.pages.find((p) => p.id === pageId);
   const isFresh = useSearchParams().get('new') === '1';
@@ -61,6 +62,7 @@ function EditorView({ project, store, pageId }: { project: Project; store: Proje
         project={project}
         page={page}
         store={store}
+        save={save}
         isFresh={isFresh}
         onOpenPage={(id) => router.push(pageHref(id))}
         showOnMap={{ href: mapWithPageHref(project.id, page.id) }}
@@ -85,6 +87,8 @@ interface PageSheetProps {
   project: Project;
   page: Page;
   store: ProjectActions;
+  /** Whether the latest edits reached WisePath */
+  save: SaveState;
   isFresh?: boolean;
   onOpenPage: (pageId: string) => void;
   /** The graph button: a link to the map, or (in the expanded drawer) going back to it */
@@ -99,7 +103,7 @@ interface PageSheetProps {
  * toggle, the way to the map and the delete menu, then the markdown. Shown by
  * the page route and by the map's drawer once expanded, so both are the same.
  */
-export function PageSheet({ project, page, store, isFresh = false, onOpenPage, showOnMap, onDeleted }: PageSheetProps) {
+export function PageSheet({ project, page, store, save, isFresh = false, onOpenPage, showOnMap, onDeleted }: PageSheetProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isRoot = page.id === project.rootPageId;
   const look = lookOf(project, page.id);
@@ -124,7 +128,7 @@ export function PageSheet({ project, page, store, isFresh = false, onOpenPage, s
           </Box>
         </Group>
         <Group gap="sm" wrap="nowrap">
-          <SavedAt updatedAt={page.updatedAt} />
+          {save.status === 'saved' && !save.notice ? <SavedAt updatedAt={page.updatedAt} /> : <SaveStatus save={save} />}
           {!isRoot && (
             <StudiedToggle
               studied={page.studied}
@@ -195,7 +199,7 @@ function ago(iso: string, now: number): string {
   return '';
 }
 
-/** When the page was last edited; edits save to this device a moment later */
+/** When the page was last edited, once its edits are saved */
 function SavedAt({ updatedAt }: { updatedAt: string }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -205,7 +209,7 @@ function SavedAt({ updatedAt }: { updatedAt: string }) {
   }, [updatedAt]);
   if (!updatedAt || Number.isNaN(new Date(updatedAt).getTime())) return null;
   return (
-    <Tooltip label={`Saved on this device · ${new Date(updatedAt).toLocaleString()}`}>
+    <Tooltip label={`Saved · ${new Date(updatedAt).toLocaleString()}`}>
       <Text size="sm" c="dimmed" visibleFrom="md" style={{ whiteSpace: 'nowrap' }}>
         Saved · edited {ago(updatedAt, now)}
       </Text>
