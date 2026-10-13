@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
-import { useHotkeys, useWindowEvent } from '@mantine/hooks';
+import { useHotkeys, useMediaQuery, useWindowEvent } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
@@ -43,7 +43,12 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   const searchParams = useSearchParams();
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const [view, setView] = useState<View>('map');
+  // A phone opens the outline: the drawing needs room to read; the map renders only in the browser, so the width is known
+  const [view, setView] = useState<View>(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches ? 'list' : 'map',
+  );
+  // Keyboard hints only where there is a keyboard
+  const hasKeyboard = useMediaQuery('(hover: hover) and (pointer: fine)', true);
   const [query, setQuery] = useState('');
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const selectedId = openPageId(pathname, project.id);
@@ -122,8 +127,8 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
       aria-label="Search this path"
       placeholder="Search pages…"
       leftSection={<IconSearch size={16} />}
-      rightSection={<Kbd size="xs">{shortcut}</Kbd>}
-      rightSectionWidth={shortcut === '⌘K' ? 44 : 58}
+      rightSection={hasKeyboard ? <Kbd size="xs">{shortcut}</Kbd> : undefined}
+      rightSectionWidth={hasKeyboard ? (shortcut === '⌘K' ? 44 : 58) : undefined}
       value={query}
       onChange={(e) => setQuery(e.currentTarget.value)}
       onKeyDown={onSearchKeyDown}
@@ -135,7 +140,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   ) : (
     <UnstyledButton onClick={openSearch} aria-label="Search this path" className={classes.searchButton}>
       <IconSearch size={16} />
-      <Kbd size="xs">{shortcut}</Kbd>
+      {hasKeyboard && <Kbd size="xs">{shortcut}</Kbd>}
     </UnstyledButton>
   );
 
