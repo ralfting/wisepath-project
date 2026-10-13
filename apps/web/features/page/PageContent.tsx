@@ -41,6 +41,8 @@ interface PageContentProps {
   /** Puts the cursor in the text on open */
   focusEditor?: EditorFocus | null;
   onCursor?: (pos: number) => void;
+  /** Increment to move the cursor to the end of the text (Enter in a title shown elsewhere) */
+  focusSignal?: number;
 }
 
 export function PageContent({
@@ -53,6 +55,7 @@ export function PageContent({
   toolbarOffset = 0,
   focusEditor = null,
   onCursor,
+  focusSignal: outsideFocusSignal = 0,
 }: PageContentProps) {
   const [focusSignal, setFocusSignal] = useState(0);
 
@@ -78,7 +81,7 @@ export function PageContent({
         onLinkPage={() => {}}
         onCreatePage={actions.createLinkedPage}
         onCreatePageHere={actions.createPage}
-        focusSignal={focusSignal}
+        focusSignal={focusSignal + outsideFocusSignal}
         toolbarOffset={toolbarOffset}
         focusOnOpen={focusEditor}
         onCursor={onCursor}

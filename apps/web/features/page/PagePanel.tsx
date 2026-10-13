@@ -76,6 +76,8 @@ const RELATION_LABEL: Record<Relation, string> = {
 
 export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
+  // Enter in the title moves on to the text
+  const [textFocus, setTextFocus] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isRoot = page.id === project.rootPageId;
   const tree = mapTree(project);
@@ -187,7 +189,17 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
           <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={30} />
         </ThemeIcon>
         <Stack gap={2} miw={0} style={{ flex: 1 }}>
-          <PageTitleInput key={page.id} project={project} page={page} actions={store} size={26} />
+          <PageTitleInput
+            key={page.id}
+            project={project}
+            page={page}
+            actions={store}
+            size={26}
+            onEnter={() => {
+              setTab('content');
+              setTextFocus((n) => n + 1);
+            }}
+          />
           <Text size="sm" c="dimmed">
             {subtitle}
           </Text>
@@ -220,6 +232,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
             showTitle={false}
             focusEditor={focusEditor}
             onCursor={onCursor}
+            focusSignal={textFocus}
           />
           <Text size="xs" c="dimmed" mt="md">
             To add a page, type / and choose Page, then its name and Enter (Cmd/Ctrl+Enter to stay here). To connect pages, type [[ and a name.

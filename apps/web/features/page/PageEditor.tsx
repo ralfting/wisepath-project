@@ -123,6 +123,8 @@ export function PageSheet({
   onCursor,
 }: PageSheetProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Enter in the title moves on to the text
+  const [textFocus, setTextFocus] = useState(0);
   const isRoot = page.id === project.rootPageId;
   const look = lookOf(project, page.id);
   const between = pathTo(project, page.id).slice(1, -1);
@@ -150,7 +152,15 @@ export function PageSheet({
             <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={25} />
           </ThemeIcon>
           <Box miw={0} style={{ flex: 1 }}>
-            <PageTitleInput key={page.id} project={project} page={page} actions={store} size={34} autoFocus={isFresh} />
+            <PageTitleInput
+              key={page.id}
+              project={project}
+              page={page}
+              actions={store}
+              size={34}
+              autoFocus={isFresh}
+              onEnter={() => setTextFocus((n) => n + 1)}
+            />
           </Box>
         </Group>
         <Group gap="sm" wrap="nowrap">
@@ -209,6 +219,7 @@ export function PageSheet({
         toolbarOffset={0}
         focusEditor={focusEditor}
         onCursor={onCursor}
+        focusSignal={textFocus}
       />
     </Card>
   );
