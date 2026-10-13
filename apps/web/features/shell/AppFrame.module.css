@@ -43,8 +43,27 @@
   background: var(--wp-line);
 }
 
-.railMap[data-active] {
-  box-shadow: 0 0 0 2px var(--mantine-color-body), 0 0 0 3px var(--mantine-color-gray-3);
+/* A path on the rail: a hairline ring around it fills with its progress */
+.railMap {
+  position: relative;
+  border-radius: 50%;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background: conic-gradient(var(--mantine-color-teal-5) var(--progress), var(--track, var(--wp-line)) 0);
+    mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* The open path: a full-strength ring on a darker track */
+  &[data-active]::before {
+    --track: var(--mantine-color-gray-4);
+    opacity: 1;
+  }
 }
 
 .column {

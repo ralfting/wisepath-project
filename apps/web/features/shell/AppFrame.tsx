@@ -249,21 +249,27 @@ function Rail() {
       <div className={classes.railRule} />
       {(projects ?? []).map((project) => {
         const href = `/projects/${project.id}`;
+        const percent = project.total ? Math.round((project.studied / project.total) * 100) : 0;
         return (
-          <ActionIcon
+          // A thin ring around the icon fills with the path's progress
+          <Box
             key={project.id}
-            component={Link}
-            href={href}
-            size={40}
-            radius="xl"
-            variant="light"
-            color={project.color}
-            aria-label={project.title}
-            data-active={pathname.startsWith(href) || undefined}
             className={classes.railMap}
+            data-active={pathname.startsWith(href) || undefined}
+            style={{ '--progress': `${percent}%` }}
           >
-            <PageGlyph icon={project.icon} size={19} />
-          </ActionIcon>
+            <ActionIcon
+              component={Link}
+              href={href}
+              size={40}
+              radius="xl"
+              variant="light"
+              color={project.color}
+              aria-label={`${project.title}, ${percent}% studied`}
+            >
+              <PageGlyph icon={project.icon} size={19} />
+            </ActionIcon>
+          </Box>
         );
       })}
       <Avatar mt="auto" radius="xl" color="blue" variant="filled" name={user?.displayName} aria-hidden="true" />
