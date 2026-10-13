@@ -208,7 +208,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         <Tabs.Panel value="content" className={classes.body}>
           <PageContent key={page.id} project={project} page={page} actions={pageActions} showTitle={false} />
           <Text size="xs" c="dimmed" mt="md">
-            To add a page, type /page and its name, then Enter. To connect pages, type [[ and a name.
+            To add a page, type / and choose Page, then its name and Enter. To connect pages, type [[ and a name.
           </Text>
         </Tabs.Panel>
 

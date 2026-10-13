@@ -44,7 +44,8 @@
   /* Above the drawer, like Mantine's popovers */
   z-index: 300;
   width: 16rem;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .option {
@@ -60,6 +61,37 @@
   &:hover {
     background: var(--mantine-color-blue-0);
   }
+}
+
+.commands {
+  width: 20rem;
+}
+
+.command {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px var(--mantine-spacing-sm);
+  font-size: 15px;
+  color: var(--mantine-color-text);
+
+  &[aria-selected='true'],
+  &:hover {
+    background: var(--mantine-color-blue-0);
+  }
+}
+
+.commandLabel {
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* The Page command's name field, where / was typed */
+.prompt {
+  position: fixed;
+  z-index: 300;
+  width: 18rem;
 }
 
 .starName {

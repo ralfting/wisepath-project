@@ -14,20 +14,29 @@ import { Markdown } from 'tiptap-markdown';
 import { Link, RichTextEditor, getTaskListExtension } from '@mantine/tiptap';
 import { Box, Button, Group, Paper, Popover, Portal, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import {
+  IconBlockquote,
   IconBrackets,
   IconBrandYoutube,
+  IconCode,
   IconColumnInsertRight,
+  IconFilePlus,
+  IconH2,
+  IconH3,
+  IconList,
+  IconListCheck,
+  IconListNumbers,
   IconColumnRemove,
   IconRowInsertBottom,
   IconRowRemove,
   IconTable,
   IconTableOff,
 } from '@tabler/icons-react';
+import type { Icon } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { findPageByTitle } from '@wisepath/domain/projects';
-import { BulletToChecklist, PageCreateSuggestion, PageLinkSuggestion, WikiLink, YouTubeVideo, youTubeId } from './extensions';
-import type { PageLinkItem, PageLinkPickerState } from './extensions';
+import { BulletToChecklist, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
+import type { PageLinkItem, PageLinkPickerState, SlashCommand, SlashMenuState } from './extensions';
 import { LinkPreview } from './LinkPreview';
 import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
@@ -40,7 +49,8 @@ import classes from './MarkdownEditor.module.css';
  * checklist, code, video, page link); selecting text shows a bubble menu for
  * inline formatting. [[Page]] links another page by title, like Obsidian; a
  * link to a page that does not exist yet offers to create it when clicked.
- * /page and a name, then Enter, links that page and goes straight to it.
+ * / opens a list of commands; its Page command asks for a name, then Enter
+ * links that page and goes straight to it, creating it when it does not exist.
  */
 
 interface MarkdownEditorProps {
@@ -61,6 +71,40 @@ interface MarkdownEditorProps {
 
 type LinkCard = { target: PreviewTarget; top: number; left: number; confirmCreate?: boolean };
 
+/** The Page command waiting for a name: where its link goes, and where to show the field */
+type PagePrompt = { at: number; anchor: Anchor };
+
+/** The text a popup belongs to, in window coordinates */
+type Anchor = { top: number; bottom: number; left: number };
+
+/** The / commands; Page is handled by the editor, since it asks for a name first */
+const SLASH_COMMANDS: ReadonlyArray<Omit<SlashCommand, 'run'> & { icon: Icon; run?: (editor: Editor) => void }> = [
+  { id: 'page', label: 'Page', hint: 'Create a page and go to it', keywords: 'new create', icon: IconFilePlus },
+  {
+    id: 'link',
+    label: 'Link to a page',
+    hint: 'Same as [[',
+    keywords: '[[ wiki',
+    icon: IconBrackets,
+    run: (e) => e.chain().focus().insertContent('[[').run(),
+  },
+  { id: 'h2', label: 'Heading', hint: '##', keywords: 'h2 title', icon: IconH2, run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
+  { id: 'h3', label: 'Subheading', hint: '###', keywords: 'h3 title', icon: IconH3, run: (e) => e.chain().focus().toggleHeading({ level: 3 }).run() },
+  { id: 'bullets', label: 'Bulleted list', hint: '-', keywords: 'ul', icon: IconList, run: (e) => e.chain().focus().toggleBulletList().run() },
+  { id: 'numbers', label: 'Numbered list', hint: '1.', keywords: 'ol', icon: IconListNumbers, run: (e) => e.chain().focus().toggleOrderedList().run() },
+  { id: 'checklist', label: 'Checklist', hint: '- [ ]', keywords: 'todo task', icon: IconListCheck, run: (e) => e.chain().focus().toggleTaskList().run() },
+  { id: 'code', label: 'Code block', hint: '```', keywords: 'pre', icon: IconCode, run: (e) => e.chain().focus().toggleCodeBlock().run() },
+  { id: 'quote', label: 'Quote', hint: '>', keywords: 'blockquote', icon: IconBlockquote, run: (e) => e.chain().focus().toggleBlockquote().run() },
+  {
+    id: 'table',
+    label: 'Table',
+    hint: '3 × 3',
+    keywords: 'grid',
+    icon: IconTable,
+    run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+  },
+];
+
 const MAX_PICKER_ITEMS = 6;
 
 export function MarkdownEditor({
@@ -75,6 +119,8 @@ export function MarkdownEditor({
   toolbarOffset = 0,
 }: MarkdownEditorProps) {
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
+  const [slash, setSlash] = useState<SlashMenuState | null>(null);
+  const [prompt, setPrompt] = useState<PagePrompt | null>(null);
   const [card, setCard] = useState<LinkCard | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const hoverTimer = useRef<number>(0);
@@ -83,13 +129,19 @@ export function MarkdownEditor({
   const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage });
   latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage };
 
+  const askPageName = (e: Editor) => {
+    const at = e.state.selection.from;
+    const { top, bottom, left } = e.view.coordsAtPos(at);
+    setPrompt({ at, anchor: { top, bottom, left } });
+  };
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
       Placeholder.configure({
-        placeholder: 'Write here. Type ## for a heading, - for a list, [[ to link a page, /page to create one.',
+        placeholder: 'Write here, or type / for commands: a new page, headings, lists and more.',
       }),
       getTaskListExtension(TaskList),
       TaskItem.configure({ nested: true }),
@@ -113,27 +165,14 @@ export function MarkdownEditor({
           const exact = q && findPageByTitle(latest.current.pages, q);
           return q && !exact ? [...matches, { id: null, title: q }] : matches;
         },
-        onPick: (item: PageLinkItem) => {
+        onLink: (item: PageLinkItem) => {
           if (item.id) latest.current.onLinkPage(item.id);
         },
         onState: setPicker,
       }),
-      PageCreateSuggestion.configure({
-        char: '/page',
-        mode: 'create',
-        // "/page Name": the name comes after a space, so "/pages" is just text
-        getItems: (query: string): PageLinkItem[] => {
-          const title = query.trim();
-          if (!title || !/^\s/.test(query)) return [];
-          const page = findPageByTitle(latest.current.pages, title);
-          if (page?.id === latest.current.currentPageId) return [];
-          return [page ? { id: page.id, title: page.title.trim() } : { id: null, title }];
-        },
-        onPick: (item: PageLinkItem) => {
-          if (item.id) latest.current.onOpenPage(item.id);
-          else latest.current.onCreatePage(item.title);
-        },
-        onState: setPicker,
+      SlashCommands.configure({
+        commands: SLASH_COMMANDS.map(({ run, ...command }) => ({ ...command, run: run ?? askPageName })),
+        onState: setSlash,
       }),
     ],
     content,
@@ -362,22 +401,21 @@ export function MarkdownEditor({
         </Box>
       )}
 
-      {/* "/page" waits for a space before the name, so "/pages" stays plain text. In a portal:
-          inside the drawer, its transform would place a fixed popup off screen */}
-      {picker && picker.rect && !(picker.mode === 'create' && /^\S/.test(picker.query)) && (
+      {/* Popups go in a portal: inside the drawer, its transform would place a fixed popup off screen */}
+      {picker && picker.rect && (
         <Portal>
           <Paper
             withBorder
             shadow="md"
             py={4}
             role="listbox"
-            aria-label={picker.mode === 'create' ? 'Page to create' : 'Pages to link'}
+            aria-label="Pages to link"
             className={classes.picker}
-            style={{ top: picker.rect.bottom + 6, left: picker.rect.left }}
+            style={placeNear(picker.rect, 256, picker.items.length * 34 + 10)}
           >
             {picker.items.length === 0 ? (
               <Text size="sm" c="dimmed" px="sm" py={6}>
-                {picker.mode === 'create' ? 'Type the name of the page, then Enter.' : 'Type a page name.'}
+                Type a page name.
               </Text>
             ) : (
               picker.items.map((item, i) => (
@@ -385,17 +423,15 @@ export function MarkdownEditor({
                   key={item.id ?? `new-${item.title}`}
                   role="option"
                   aria-selected={i === picker.index}
+                  // Mouse down keeps the editor's focus; click covers keyboards and assistive tech
                   onMouseDown={(e) => {
                     e.preventDefault();
                     picker.select(item);
                   }}
+                  onClick={() => picker.select(item)}
                   className={classes.option}
                 >
-                  {picker.mode === 'create' ? (
-                    <Text span size="sm">
-                      {item.id ? 'Go to page' : 'Create page'} <span className={classes.starName}>{item.title}</span>
-                    </Text>
-                  ) : item.id ? (
+                  {item.id ? (
                     <span className={classes.starName}>{item.title}</span>
                   ) : (
                     <Text span size="sm">
@@ -408,7 +444,140 @@ export function MarkdownEditor({
           </Paper>
         </Portal>
       )}
+
+      {slash && slash.rect && slash.items.length > 0 && (
+        <Portal>
+          <Paper
+            withBorder
+            shadow="md"
+            py={4}
+            role="listbox"
+            aria-label="Commands"
+            className={`${classes.picker} ${classes.commands}`}
+            style={placeNear(slash.rect, 320, slash.items.length * 36 + 10)}
+          >
+            {slash.items.map((command, i) => {
+              const CommandIcon = SLASH_COMMANDS.find((c) => c.id === command.id)?.icon ?? IconFilePlus;
+              return (
+                <UnstyledButton
+                  key={command.id}
+                  role="option"
+                  aria-selected={i === slash.index}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    slash.select(command);
+                  }}
+                  onClick={() => slash.select(command)}
+                  className={classes.command}
+                >
+                  <CommandIcon size={17} stroke={1.5} />
+                  <span className={classes.commandLabel}>{command.label}</span>
+                  <Text span size="xs" c="dimmed">
+                    {command.hint}
+                  </Text>
+                </UnstyledButton>
+              );
+            })}
+          </Paper>
+        </Portal>
+      )}
+
+      {prompt && editor && (
+        <Portal>
+          <PageNamePrompt
+            prompt={prompt}
+            pages={pages}
+            currentPageId={currentPageId}
+            onCancel={() => {
+              setPrompt(null);
+              editor.commands.focus(prompt.at);
+            }}
+            onSubmit={(title, page) => {
+              setPrompt(null);
+              insertPageLink(editor, prompt.at, title);
+              if (page) onOpenPage(page.id);
+              else onCreatePage(title);
+            }}
+          />
+        </Portal>
+      )}
     </div>
+  );
+}
+
+/**
+ * Where a popup of about this size goes: below its text, or above it when the
+ * window has more room there, kept inside the window and scrolling if it must
+ */
+function placeNear(anchor: Anchor, width: number, height: number): CSSProperties {
+  const left = Math.max(8, Math.min(anchor.left, window.innerWidth - width - 8));
+  const below = window.innerHeight - anchor.bottom - 14;
+  const above = anchor.top - 14;
+  return below >= height || below >= above
+    ? { top: anchor.bottom + 6, left, maxHeight: below }
+    : { bottom: window.innerHeight - anchor.top + 6, left, maxHeight: above };
+}
+
+/**
+ * The Page command's name field. Enter links the page where / was typed and
+ * goes to it: a name no page has creates the page, a taken one opens that page.
+ */
+function PageNamePrompt({
+  prompt,
+  pages,
+  currentPageId,
+  onCancel,
+  onSubmit,
+}: {
+  prompt: PagePrompt;
+  pages: ReadonlyArray<PreviewPage>;
+  currentPageId: string;
+  onCancel: () => void;
+  onSubmit: (title: string, page: PreviewPage | undefined) => void;
+}) {
+  const [name, setName] = useState('');
+  const title = name.trim();
+  const page = title ? findPageByTitle(pages, title) : undefined;
+  const isThisPage = page?.id === currentPageId;
+  const note = !title
+    ? 'Enter creates it and takes you there.'
+    : isThisPage
+      ? 'That is this page.'
+      : page
+        ? 'A page has this name: Enter links it and opens it.'
+        : 'Enter creates it and takes you there.';
+
+  return (
+    <Paper withBorder shadow="md" p="sm" role="dialog" aria-label="New page" className={classes.prompt} style={placeNear(prompt.anchor, 288, 96)}>
+      <TextInput
+        size="sm"
+        aria-label="Page name"
+        placeholder="Page name"
+        leftSection={<IconFilePlus size={16} stroke={1.5} />}
+        value={name}
+        autoFocus
+        // Keeps Esc here: the drawer around the editor would close on it
+        data-mantine-stop-propagation
+        onChange={(e) => setName(e.currentTarget.value)}
+        // Clicking elsewhere on the page cancels; switching to another window does not
+        onBlur={() => {
+          if (document.hasFocus()) onCancel();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            onCancel();
+          }
+          if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            if (title && !isThisPage) onSubmit(page ? page.title.trim() : title, page);
+          }
+        }}
+      />
+      <Text size="xs" c={isThisPage ? 'red' : 'dimmed'} mt={6}>
+        {note}
+      </Text>
+    </Paper>
   );
 }
 
