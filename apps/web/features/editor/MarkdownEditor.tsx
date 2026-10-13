@@ -137,8 +137,8 @@ export function MarkdownEditor({
   const hoverTimer = useRef<number>(0);
 
   // Extensions are created once; they read the latest props through refs
-  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCursor });
-  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCursor };
+  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor });
+  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor };
 
   const askPageName = (e: Editor) => {
     const at = e.state.selection.from;
@@ -177,8 +177,10 @@ export function MarkdownEditor({
           const exact = q && findPageByTitle(latest.current.pages, q);
           return q && !exact ? [...matches, { id: null, title: q }] : matches;
         },
+        // A name no page has yet makes the page, like /page does, so it shows on the map right away
         onLink: (item: PageLinkItem) => {
           if (item.id) latest.current.onLinkPage(item.id);
+          else latest.current.onCreatePageHere(item.title);
         },
         onState: setPicker,
       }),
@@ -211,7 +213,8 @@ export function MarkdownEditor({
         },
       },
     },
-    onUpdate: ({ editor: e }) => latest.current.onChange(e.storage.markdown.getMarkdown()),
+    // A link is put in with a space after it, to keep typing; at the end of a line that space is not saved
+    onUpdate: ({ editor: e }) => latest.current.onChange(e.storage.markdown.getMarkdown().replace(/\]\] +$/gm, ']]')),
     onSelectionUpdate: ({ editor: e }) => latest.current.onCursor?.(e.state.selection.from),
   });
 
@@ -456,7 +459,7 @@ export function MarkdownEditor({
                     <span className={classes.starName}>{item.title}</span>
                   ) : (
                     <Text span size="sm">
-                      Link to new page <span className={classes.starName}>{item.title}</span>
+                      Create page <span className={classes.starName}>{item.title}</span>
                     </Text>
                   )}
                 </UnstyledButton>
