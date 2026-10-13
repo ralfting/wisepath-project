@@ -103,13 +103,14 @@ const SLASH_COMMANDS: ReadonlyArray<Omit<SlashCommand, 'run'> & { icon: Icon; ru
   { id: 'checklist', label: 'Checklist', hint: '- [ ]', keywords: 'todo task', icon: IconListCheck, run: (e) => e.chain().focus().toggleTaskList().run() },
   { id: 'code', label: 'Code block', hint: '```', keywords: 'pre', icon: IconCode, run: (e) => e.chain().focus().toggleCodeBlock().run() },
   { id: 'quote', label: 'Quote', hint: '>', keywords: 'blockquote', icon: IconBlockquote, run: (e) => e.chain().focus().toggleBlockquote().run() },
+  // A header and one row: Tab in the last cell adds the next row, so no empty rows are left over
   {
     id: 'table',
     label: 'Table',
-    hint: '3 × 3',
+    hint: 'Header and a row',
     keywords: 'grid',
     icon: IconTable,
-    run: (e) => e.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+    run: (e) => e.chain().focus().insertTable({ rows: 2, cols: 3, withHeaderRow: true }).run(),
   },
 ];
 
@@ -330,7 +331,7 @@ export function MarkdownEditor({
           {/* Everything about tables in one group; editing controls show while the cursor is in a table */}
           <RichTextEditor.ControlsGroup aria-label="Table">
             <RichTextEditor.Control
-              onClick={() => editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+              onClick={() => editor?.chain().focus().insertTable({ rows: 2, cols: 3, withHeaderRow: true }).run()}
               disabled={!editor || editor.isActive('table')}
               aria-label="Insert table"
               title="Insert table"
