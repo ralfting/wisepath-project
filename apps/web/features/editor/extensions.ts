@@ -409,6 +409,8 @@ const WHOLE_BLOCKS = new Set(['table', 'codeBlock', 'youtube']);
  * whose cells are all empty, Backspace removes the table. Cmd/Ctrl+A inside
  * a code block selects the code first, then the whole page. Cmd/Ctrl+K with
  * text selected makes a link; with nothing selected it opens the map's search.
+ * Enter after a markdown header row, "| a | b |", makes it a table with an
+ * empty row to fill.
  */
 export const BlockKeys = Extension.create({
   name: 'blockKeys',
@@ -451,6 +453,32 @@ export const BlockKeys = Extension.create({
             // An empty line goes away as the block is selected
             if ($from.parent.content.size === 0) tr.delete(lineStart, lineStart + $from.parent.nodeSize);
             tr.setSelection(NodeSelection.create(tr.doc, blockStart));
+            return true;
+          })
+          .run();
+      },
+      Enter: ({ editor }) => {
+        const { state } = editor;
+        const { $from, empty } = state.selection;
+        // A line of its own, with the cursor at its end
+        if (!empty || $from.depth !== 1 || $from.parent.type.name !== 'paragraph') return false;
+        if ($from.parentOffset !== $from.parent.content.size) return false;
+        const row = /^\|(.+)\|$/.exec($from.parent.textContent.trim());
+        const headers = row?.[1].split('|').map((h) => h.trim()) ?? [];
+        if (!headers.some(Boolean)) return false;
+
+        const { schema } = state;
+        const cell = (type: 'tableHeader' | 'tableCell', text: string) =>
+          schema.nodes[type].create(null, schema.nodes.paragraph.create(null, text ? schema.text(text) : null));
+        const header = schema.nodes.tableRow.create(null, headers.map((h) => cell('tableHeader', h)));
+        const body = schema.nodes.tableRow.create(null, headers.map(() => cell('tableCell', '')));
+        const start = $from.before();
+        return editor
+          .chain()
+          .command(({ tr }) => {
+            tr.replaceWith(start, $from.after(), schema.nodes.table.create(null, [header, body]));
+            // Into the first empty cell: past the table, the header row, then the row, cell and paragraph openings
+            tr.setSelection(TextSelection.create(tr.doc, start + 1 + header.nodeSize + 3));
             return true;
           })
           .run();

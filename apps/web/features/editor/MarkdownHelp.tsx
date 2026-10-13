@@ -44,7 +44,8 @@ const SYNTAX: { group: string; rows: { type: string; does: string }[] }[] = [
   {
     group: 'Tables',
     rows: [
-      { type: '| A | B |\n| --- | --- |', does: 'Use the table button in the toolbar, or paste a markdown table like this one: the row above the --- line is the header' },
+      { type: '| A | B |', does: 'Then Enter: a table with those headers and a row to fill. /table works too' },
+      { type: '| A | B |\n| --- | --- |', does: 'Paste a markdown table like this one: the row above the --- line is the header' },
     ],
   },
 ];
