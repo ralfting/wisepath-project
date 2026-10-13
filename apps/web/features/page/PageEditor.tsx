@@ -114,6 +114,7 @@ export function PageSheet({ project, page, store, save, isFresh = false, onOpenP
     renameLinks: store.renameLinks,
     openPage: onOpenPage,
     createLinkedPage: (title) => onOpenPage(store.createPage(title).id),
+    createPage: (title) => void store.createPage(title),
   };
 
   return (

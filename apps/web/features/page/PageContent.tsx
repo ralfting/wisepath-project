@@ -22,6 +22,8 @@ export interface PageActions {
   openPage: (pageId: string) => void;
   /** Creates the page a [[link]] already points to, and opens it */
   createLinkedPage: (title: string) => void;
+  /** Creates the page a [[link]] already points to, and stays here */
+  createPage: (title: string) => void;
 }
 
 interface PageContentProps {
@@ -75,6 +77,7 @@ export function PageContent({
         onOpenPage={actions.openPage}
         onLinkPage={() => {}}
         onCreatePage={actions.createLinkedPage}
+        onCreatePageHere={actions.createPage}
         focusSignal={focusSignal}
         toolbarOffset={toolbarOffset}
         focusOnOpen={focusEditor}

@@ -63,6 +63,8 @@ interface MarkdownEditorProps {
   onLinkPage: (pageId: string) => void;
   /** Creates a page with this title, linked from the current one, and opens it */
   onCreatePage: (title: string) => void;
+  /** Creates a page with this title, linked from the current one, and stays here */
+  onCreatePageHere: (title: string) => void;
   /** Increment to move focus to the end of the text */
   focusSignal?: number;
   /** Distance from the top where the sticky toolbar stops (below a sticky header) */
@@ -121,6 +123,7 @@ export function MarkdownEditor({
   onOpenPage,
   onLinkPage,
   onCreatePage,
+  onCreatePageHere,
   focusSignal = 0,
   toolbarOffset = 0,
   focusOnOpen = null,
@@ -510,10 +513,12 @@ export function MarkdownEditor({
               setPrompt(null);
               editor.commands.focus(prompt.at);
             }}
-            onSubmit={(title, page) => {
+            onSubmit={(title, page, stay) => {
               setPrompt(null);
               insertPageLink(editor, prompt.at, title);
-              if (page) onOpenPage(page.id);
+              if (stay) {
+                if (!page) onCreatePageHere(title);
+              } else if (page) onOpenPage(page.id);
               else onCreatePage(title);
             }}
           />
@@ -536,9 +541,12 @@ function placeNear(anchor: Anchor, width: number, height: number): CSSProperties
     : { bottom: window.innerHeight - anchor.top + 6, left, maxHeight: above };
 }
 
+const MOD_KEY = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
+
 /**
  * The Page command's name field. Enter links the page where / was typed and
  * goes to it: a name no page has creates the page, a taken one opens that page.
+ * Cmd/Ctrl+Enter does the same but stays here, to list several pages in a row.
  */
 function PageNamePrompt({
   prompt,
@@ -551,22 +559,20 @@ function PageNamePrompt({
   pages: ReadonlyArray<PreviewPage>;
   currentPageId: string;
   onCancel: () => void;
-  onSubmit: (title: string, page: PreviewPage | undefined) => void;
+  onSubmit: (title: string, page: PreviewPage | undefined, stay: boolean) => void;
 }) {
   const [name, setName] = useState('');
   const title = name.trim();
   const page = title ? findPageByTitle(pages, title) : undefined;
   const isThisPage = page?.id === currentPageId;
-  const note = !title
-    ? 'Enter creates it and takes you there.'
-    : isThisPage
-      ? 'That is this page.'
-      : page
-        ? 'A page has this name: Enter links it and opens it.'
-        : 'Enter creates it and takes you there.';
+  const note = isThisPage
+    ? 'That is this page.'
+    : page
+      ? `A page has this name: Enter opens it, ${MOD_KEY}Enter only links it.`
+      : `Enter creates it and takes you there. ${MOD_KEY}Enter creates it and stays here.`;
 
   return (
-    <Paper withBorder shadow="md" p="sm" role="dialog" aria-label="New page" className={classes.prompt} style={placeNear(prompt.anchor, 288, 96)}>
+    <Paper withBorder shadow="md" p="sm" role="dialog" aria-label="New page" className={classes.prompt} style={placeNear(prompt.anchor, 288, 110)}>
       <TextInput
         size="sm"
         aria-label="Page name"
@@ -588,7 +594,7 @@ function PageNamePrompt({
           }
           if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
             e.preventDefault();
-            if (title && !isThisPage) onSubmit(page ? page.title.trim() : title, page);
+            if (title && !isThisPage) onSubmit(page ? page.title.trim() : title, page, e.metaKey || e.ctrlKey);
           }
         }}
       />

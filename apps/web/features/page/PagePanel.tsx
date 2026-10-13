@@ -91,6 +91,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
     renameLinks: store.renameLinks,
     openPage: onSelect,
     createLinkedPage: (title) => onSelect(store.createPage(title).id),
+    createPage: (title) => void store.createPage(title),
   };
 
   const kind = isRoot ? 'The map' : isOrphan ? 'Orphan: no link reaches this page' : page.module ? 'Module' : 'Page';
@@ -221,7 +222,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
             onCursor={onCursor}
           />
           <Text size="xs" c="dimmed" mt="md">
-            To add a page, type / and choose Page, then its name and Enter. To connect pages, type [[ and a name.
+            To add a page, type / and choose Page, then its name and Enter (Cmd/Ctrl+Enter to stay here). To connect pages, type [[ and a name.
           </Text>
         </Tabs.Panel>
 
