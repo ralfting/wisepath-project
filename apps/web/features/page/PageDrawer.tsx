@@ -154,10 +154,11 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
   const router = useRouter();
   const { close, expanded, toggleExpanded, trail, setTrail, cursors } = useContext(DrawerContext);
   const before = trail.at === pageId ? trail.before : [];
-  // Reached from another page in the drawer, or just made (?new=1): ready to write, where the cursor was last
+  // Ready to write on arrival. Reached from another page in the drawer: where the cursor was last, else the start.
+  // Opened from the map (or just made, ?new=1): at the end of the text, to add to it
   const isNew = useSearchParams().get('new') === '1';
-  const arrived = trail.at === pageId || isNew;
-  const cursor = arrived ? (cursors.get(pageId) ?? (trail.at === pageId ? 'start' : 'end')) : null;
+  const fromDrawer = trail.at === pageId && !isNew;
+  const cursor = fromDrawer ? (cursors.get(pageId) ?? 'start') : 'end';
 
   // Moving between pages replaces the entry, so back still closes the drawer in one step
   const go = (id: string) => {
