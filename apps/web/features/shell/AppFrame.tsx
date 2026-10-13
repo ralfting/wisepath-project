@@ -230,7 +230,7 @@ function Rail() {
 
   return (
     <Stack h="100%" align="center" gap="xs" py="lg" className={classes.rail}>
-      <Anchor component={Link} href="/projects" aria-label="WisePath, my maps" mb="sm">
+      <Anchor component={Link} href="/projects" aria-label="WisePath, my paths" mb="sm">
         <ThemeIcon size={34} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }}>
           <IconRoute size={20} stroke={2} />
         </ThemeIcon>
@@ -242,7 +242,7 @@ function Rail() {
         radius="md"
         variant={pathname === '/projects' ? 'light' : 'subtle'}
         color={pathname === '/projects' ? 'blue' : 'gray'}
-        aria-label="My maps"
+        aria-label="My paths"
       >
         <IconHome size={20} stroke={1.7} />
       </ActionIcon>
@@ -298,7 +298,7 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
         <NavLink
           component={Link}
           href="/projects"
-          label="My maps"
+          label="My paths"
           active={pathname === '/projects'}
           leftSection={<IconHome size={20} stroke={1.7} />}
           rightSection={

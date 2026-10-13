@@ -23,12 +23,12 @@ export function ProjectsHome() {
   const [creating, setCreating] = useState(false);
 
   return (
-    <AppFrame crumbs={[{ label: 'My maps' }]}>
+    <AppFrame crumbs={[{ label: 'My paths' }]}>
       <Stack gap="xl" px={{ base: 'md', sm: 'xl' }} pb="xl" maw={1200}>
         <Group justify="space-between" align="flex-end" gap="md">
           <Stack gap={4}>
             <Title order={1} fz={34} lts={-0.6}>
-              My maps
+              My paths
             </Title>
             <Text c="dimmed">Each map is a subject you are learning, page by page, connected by the links you write.</Text>
           </Stack>

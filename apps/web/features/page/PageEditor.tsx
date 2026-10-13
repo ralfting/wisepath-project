@@ -40,7 +40,7 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
 
   if (!page) {
     return (
-      <AppFrame crumbs={[{ label: 'My maps', href: '/projects' }, { label: project.title, href: mapHref(project.id) }]}>
+      <AppFrame crumbs={[{ label: 'My paths', href: '/projects' }, { label: project.title, href: mapHref(project.id) }]}>
         <Center component="main" flex={1} p="md">
           <Stack gap="sm" align="center" maw={420} ta="center">
             <Title order={1} fz={30}>
@@ -72,11 +72,11 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
   );
 }
 
-/** My maps › map › the pages the branch passes through › this page */
+/** My paths › map › the pages the branch passes through › this page */
 export function pageCrumbs(project: Project, page: Page): Crumb[] {
   const between = pathTo(project, page.id).slice(1, -1);
   return [
-    { label: 'My maps', href: '/projects' },
+    { label: 'My paths', href: '/projects' },
     { label: project.title, href: mapHref(project.id) },
     ...between.map((p) => ({ label: displayTitle(p), href: mapWithPageHref(project.id, p.id) })),
     ...(page.id === project.rootPageId ? [] : [{ label: displayTitle(page) }]),
