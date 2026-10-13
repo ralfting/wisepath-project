@@ -35,7 +35,7 @@ import type { Icon } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
 import { findPageByTitle } from '@wisepath/domain/projects';
-import { BulletToChecklist, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
+import { BlockKeys, BulletToChecklist, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
 import type { PageLinkItem, PageLinkPickerState, SlashCommand, SlashMenuState } from './extensions';
 import { LinkPreview } from './LinkPreview';
 import { MarkdownHelp } from './MarkdownHelp';
@@ -154,6 +154,7 @@ export function MarkdownEditor({
       getTaskListExtension(TaskList),
       TaskItem.configure({ nested: true }),
       BulletToChecklist,
+      BlockKeys,
       // Tables stay plain so they save as markdown: a header row, one paragraph per cell
       Table.configure({ resizable: false }),
       TableRow,

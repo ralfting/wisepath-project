@@ -3,13 +3,13 @@ import type { Editor, Range } from '@tiptap/react';
 import Youtube from '@tiptap/extension-youtube';
 import Suggestion from '@tiptap/suggestion';
 import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { NodeSelection, Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 
 /**
  * Editor extensions
  * Markdown round-tripping for YouTube embeds, Obsidian-style [[Page]] links,
- * the [[ page picker, the / commands, and "- [ ]" checklists.
+ * the [[ page picker, the / commands, "- [ ]" checklists, and keys for whole blocks.
  */
 
 interface MarkdownState {
@@ -391,5 +391,74 @@ export const BulletToChecklist = Extension.create({
         },
       }),
     ];
+  },
+});
+
+/* ---------- Keys for whole blocks ---------- */
+
+/** Blocks Backspace selects first, then deletes, when it reaches them from the line below */
+const WHOLE_BLOCKS = new Set(['table', 'codeBlock', 'youtube']);
+
+/**
+ * Backspace at the start of the line below a table (or a code block, or a
+ * video) selects that block, so the next Backspace removes it (a selected
+ * table shows as all its cells selected, which Backspace deletes); in a table
+ * whose cells are all empty, Backspace removes the table. Cmd/Ctrl+A inside
+ * a code block selects the code first, then the whole page.
+ */
+export const BlockKeys = Extension.create({
+  name: 'blockKeys',
+  // Ahead of the table's own keys
+  priority: 200,
+
+  addKeyboardShortcuts() {
+    return {
+      Backspace: ({ editor }) => {
+        const { state } = editor;
+        const { selection } = state;
+        if (!selection.empty) return false;
+        const { $from } = selection;
+
+        // Inside a table with nothing in it: an empty line takes its place
+        for (let depth = $from.depth; depth > 0; depth--) {
+          const node = $from.node(depth);
+          if (node.type.name !== 'table') continue;
+          if (node.textContent.trim()) return false;
+          const at = $from.before(depth);
+          return editor
+            .chain()
+            .command(({ tr }) => {
+              tr.replaceWith(at, $from.after(depth), state.schema.nodes.paragraph.create());
+              tr.setSelection(TextSelection.create(tr.doc, at + 1));
+              return true;
+            })
+            .run();
+        }
+
+        // At the start of a line, right after a whole block: select the block
+        if ($from.parentOffset > 0 || !$from.parent.isTextblock) return false;
+        const lineStart = $from.before();
+        const blockBefore = state.doc.resolve(lineStart).nodeBefore;
+        if (!blockBefore || !WHOLE_BLOCKS.has(blockBefore.type.name)) return false;
+        const blockStart = lineStart - blockBefore.nodeSize;
+        return editor
+          .chain()
+          .command(({ tr }) => {
+            // An empty line goes away as the block is selected
+            if ($from.parent.content.size === 0) tr.delete(lineStart, lineStart + $from.parent.nodeSize);
+            tr.setSelection(NodeSelection.create(tr.doc, blockStart));
+            return true;
+          })
+          .run();
+      },
+      'Mod-a': ({ editor }) => {
+        const { $from, from, to } = editor.state.selection;
+        if ($from.parent.type.name !== 'codeBlock') return false;
+        const start = $from.start();
+        const end = $from.end();
+        if (from === start && to === end) return false;
+        return editor.commands.setTextSelection({ from: start, to: end });
+      },
+    };
   },
 });

@@ -136,6 +136,13 @@
   text-decoration-color: currentColor;
 }
 
+/* A whole block picked by Backspace, about to go (a picked table shows every cell selected instead) */
+.content :global(.ProseMirror-selectednode:is(pre, div[data-youtube-video])) {
+  outline: 2px solid var(--mantine-color-blue-5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .content :global(div[data-youtube-video]) {
   max-width: 640px;
 }
