@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActionIcon, Anchor, Box, Card, Center, Group, Menu, Stack, Text, ThemeIcon, Title, Tooltip } from '@mantine/core';
-import { IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
+import { IconArrowLeft, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Page, Project } from '@wisepath/domain/projects';
@@ -16,6 +16,7 @@ import { PageGlyph } from '@/features/shared/look';
 import { mapHref, mapWithPageHref, pageHref as pageHrefOf } from '@/features/shared/routes';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { PageActions } from './PageContent';
+import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
 import classes from './PageEditor.module.css';
@@ -95,6 +96,11 @@ interface PageSheetProps {
   showOnMap: { href: string } | { onClick: () => void };
   /** After deleting, with the page it branched from */
   onDeleted: (backPageId: string) => void;
+  /** The page this one was reached from, inside the drawer */
+  back?: { page: Page; onClick: () => void };
+  /** Puts the cursor in the text on open */
+  focusEditor?: EditorFocus | null;
+  onCursor?: (pos: number) => void;
 }
 
 /**
@@ -103,7 +109,19 @@ interface PageSheetProps {
  * toggle, the way to the map and the delete menu, then the markdown. Shown by
  * the page route and by the map's drawer once expanded, so both are the same.
  */
-export function PageSheet({ project, page, store, save, isFresh = false, onOpenPage, showOnMap, onDeleted }: PageSheetProps) {
+export function PageSheet({
+  project,
+  page,
+  store,
+  save,
+  isFresh = false,
+  onOpenPage,
+  showOnMap,
+  onDeleted,
+  back,
+  focusEditor = null,
+  onCursor,
+}: PageSheetProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isRoot = page.id === project.rootPageId;
   const look = lookOf(project, page.id);
@@ -121,6 +139,13 @@ export function PageSheet({ project, page, store, save, isFresh = false, onOpenP
     <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="xl" className={classes.sheet}>
       <Group justify="space-between" align="center" wrap="nowrap" gap="lg" mb="lg" className={classes.header}>
         <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
+          {back && (
+            <Tooltip label={`Back to ${displayTitle(back.page)}`}>
+              <ActionIcon variant="subtle" color="gray" size="lg" onClick={back.onClick} aria-label={`Back to ${displayTitle(back.page)}`}>
+                <IconArrowLeft size={20} />
+              </ActionIcon>
+            </Tooltip>
+          )}
           <ThemeIcon size={48} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
             <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={25} />
           </ThemeIcon>
@@ -175,7 +200,16 @@ export function PageSheet({ project, page, store, save, isFresh = false, onOpenP
           store.deletePage(page.id);
         }}
       />
-      <PageContent project={project} page={page} actions={actions} showTitle={false} toolbarOffset={0} />
+      <PageContent
+        key={page.id}
+        project={project}
+        page={page}
+        actions={actions}
+        showTitle={false}
+        toolbarOffset={0}
+        focusEditor={focusEditor}
+        onCursor={onCursor}
+      />
     </Card>
   );
 }

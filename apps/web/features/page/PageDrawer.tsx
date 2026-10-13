@@ -203,6 +203,9 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
                 store={store}
                 save={save}
                 onOpenPage={go}
+                back={back && { page: back, onClick: () => goBack(back.id, before.slice(0, backIndex)) }}
+                focusEditor={cursor}
+                onCursor={(pos) => cursors.set(page.id, pos)}
                 showOnMap={{ onClick: toggleExpanded }}
                 onDeleted={(back) => {
                   toggleExpanded();
