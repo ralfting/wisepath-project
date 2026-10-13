@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { ActionIcon, Button, Card, Group, Menu, Modal, Progress, SimpleGrid, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
-import { IconDotsVertical, IconPlayerPlayFilled, IconPlus, IconTrash } from '@tabler/icons-react';
+import { IconDotsVertical, IconPlayerPlayFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import type { ProjectSummary } from '@wisepath/domain/projects';
 import { useCreateProject, useProjects, useRemoveProject } from '@/useCases/projects';
 import { AppFrame } from '@/features/shell/AppFrame';
@@ -16,11 +16,18 @@ import classes from './ProjectsHome.module.css';
 /**
  * ProjectsHome
  * Where a logged-in learner lands: one card per map with its progress and the
- * way back to where they stopped, a way to start a new map, and to delete one.
+ * way back to where they stopped, a search over them, a way to start a new
+ * map, and to delete one.
  */
 export function ProjectsHome() {
   const projects = useProjects();
   const [creating, setCreating] = useState(false);
+  const [query, setQuery] = useState('');
+
+  const needle = query.trim().toLowerCase();
+  const shown = (projects ?? []).filter(
+    (p) => !needle || p.title.toLowerCase().includes(needle) || p.description?.toLowerCase().includes(needle),
+  );
 
   return (
     <AppFrame crumbs={[{ label: 'My paths' }]}>
@@ -32,16 +39,32 @@ export function ProjectsHome() {
             </Title>
             <Text c="dimmed">Each path is a subject you are learning, page by page, connected by the links you write.</Text>
           </Stack>
-          <Button leftSection={<IconPlus size={16} />} onClick={() => setCreating(true)}>
-            New path
-          </Button>
+          <Group gap="sm" wrap="nowrap">
+            {projects && projects.length > 0 && (
+              <TextInput
+                type="search"
+                placeholder="Search paths"
+                aria-label="Search paths"
+                leftSection={<IconSearch size={16} />}
+                value={query}
+                onChange={(e) => setQuery(e.currentTarget.value)}
+                onKeyDown={(e) => e.key === 'Escape' && setQuery('')}
+                w={{ base: '100%', xs: 240 }}
+              />
+            )}
+            <Button leftSection={<IconPlus size={16} />} onClick={() => setCreating(true)} style={{ flexShrink: 0 }}>
+              New path
+            </Button>
+          </Group>
         </Group>
 
         {projects === null ? null : projects.length === 0 ? (
           <Text c="dimmed">No paths yet. Start one with New path.</Text>
+        ) : shown.length === 0 ? (
+          <Text c="dimmed">No paths match &ldquo;{query.trim()}&rdquo;.</Text>
         ) : (
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-            {projects.map((project) => (
+            {shown.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
           </SimpleGrid>
