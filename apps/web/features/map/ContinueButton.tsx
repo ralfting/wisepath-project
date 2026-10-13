@@ -28,7 +28,7 @@ export function ContinueButton({
 }) {
   const percent = total ? Math.round((studied / total) * 100) : 0;
   const done = total > 0 && !next;
-  const title = done ? 'All pages studied' : total ? 'Continue studying' : 'No pages yet';
+  const title = done ? 'All pages studied' : !total ? 'No pages yet' : studied === 0 ? 'Start studying' : 'Continue studying';
   const detail = next ? `Next: ${displayTitle(next)}` : done ? 'Every page on the map' : 'Link pages from the centre';
   const summary = `${studied} of ${total} pages studied`;
 
@@ -40,7 +40,7 @@ export function ContinueButton({
         data-compact={compact || undefined}
         disabled={!next}
         onClick={onContinue}
-        aria-label={next ? `Continue studying: ${displayTitle(next)}. ${summary}.` : `${title}. ${summary}.`}
+        aria-label={next ? `${title}: ${displayTitle(next)}. ${summary}.` : `${title}. ${summary}.`}
       >
         <RingProgress
           size={compact ? 30 : 42}

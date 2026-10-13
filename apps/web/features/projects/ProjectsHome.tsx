@@ -99,8 +99,9 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
               {total ? Math.round((studied / total) * 100) : 0}%
             </Text>
           </Group>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" c="dimmed" truncate>
             {studied} of {total} pages studied
+            {next ? ` · Next: ${next.title}` : ''}
           </Text>
         </Stack>
         <Button
@@ -110,7 +111,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
           variant={next ? 'filled' : 'light'}
           className={classes.action}
         >
-          {next ? 'Continue studying' : 'Open path'}
+          {!next ? 'Open path' : studied === 0 ? 'Start studying' : 'Continue studying'}
         </Button>
       </Stack>
       <DeleteMapModal opened={deleting} project={project} onClose={() => setDeleting(false)} />
