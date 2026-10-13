@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react';
 import type { Page, Project } from '@wisepath/domain/projects';
 import { titleTaken } from '@wisepath/domain/projects';
 import { MarkdownEditor } from '@/features/editor/MarkdownEditor';
+import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { Stack, TextInput } from '@mantine/core';
 import classes from './PageContent.module.css';
 
@@ -35,6 +36,9 @@ interface PageContentProps {
   titleSize?: number;
   /** Where the editor's sticky toolbar stops, below any sticky header */
   toolbarOffset?: number;
+  /** Puts the cursor in the text on open */
+  focusEditor?: EditorFocus | null;
+  onCursor?: (pos: number) => void;
 }
 
 export function PageContent({
@@ -45,6 +49,8 @@ export function PageContent({
   showTitle = true,
   titleSize = 32,
   toolbarOffset = 0,
+  focusEditor = null,
+  onCursor,
 }: PageContentProps) {
   const [focusSignal, setFocusSignal] = useState(0);
 
@@ -71,6 +77,8 @@ export function PageContent({
         onCreatePage={actions.createLinkedPage}
         focusSignal={focusSignal}
         toolbarOffset={toolbarOffset}
+        focusOnOpen={focusEditor}
+        onCursor={onCursor}
       />
     </Stack>
   );

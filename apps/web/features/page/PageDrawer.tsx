@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
@@ -33,6 +33,8 @@ interface DrawerControls {
   /** The pages walked through inside the drawer, ending at the one it shows now */
   trail: Trail;
   setTrail: (trail: Trail) => void;
+  /** Where the cursor last was in each page's text, to put it back on return */
+  cursors: Map<string, number>;
 }
 const DrawerContext = createContext<DrawerControls>({
   close: () => {},
@@ -40,6 +42,7 @@ const DrawerContext = createContext<DrawerControls>({
   toggleExpanded: () => {},
   trail: { before: [], at: null },
   setTrail: () => {},
+  cursors: new Map(),
 });
 
 /**
@@ -67,6 +70,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   const [leaving, setLeaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [trail, setTrail] = useState<Trail>({ before: [], at: null });
+  const cursors = useRef(new Map<string, number>()).current;
   // Expanded, the drawer stops at the sidebar, so it lands exactly where the full page sits
   const [sidebarEdge, setSidebarEdge] = useState(0);
   const toggleExpanded = () => {
@@ -139,7 +143,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       style={{ '--drawer-left': `${sidebarEdge}px` } as CSSProperties}
       aria-label="Page"
     >
-      <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail }}>
+      <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail, cursors }}>
         {children}
       </DrawerContext.Provider>
     </Drawer>
@@ -148,8 +152,12 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
 
 export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: string }) {
   const router = useRouter();
-  const { close, expanded, toggleExpanded, trail, setTrail } = useContext(DrawerContext);
+  const { close, expanded, toggleExpanded, trail, setTrail, cursors } = useContext(DrawerContext);
   const before = trail.at === pageId ? trail.before : [];
+  // Reached from another page in the drawer, or just made (?new=1): ready to write, where the cursor was last
+  const isNew = useSearchParams().get('new') === '1';
+  const arrived = trail.at === pageId || isNew;
+  const cursor = arrived ? (cursors.get(pageId) ?? (trail.at === pageId ? 'start' : 'end')) : null;
 
   // Moving between pages replaces the entry, so back still closes the drawer in one step
   const go = (id: string) => {
@@ -210,6 +218,8 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
             page={page}
             store={store}
             onSelect={go}
+            focusEditor={cursor}
+            onCursor={(pos) => cursors.set(page.id, pos)}
             back={back && { page: back, onClick: () => goBack(back.id, before.slice(0, backIndex)) }}
             onExpand={toggleExpanded}
             onClose={close}

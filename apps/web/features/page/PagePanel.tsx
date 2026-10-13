@@ -35,6 +35,7 @@ import {
 import type { ProjectActions } from '@/useCases/projects';
 import { PageGlyph, shade } from '@/features/shared/look';
 import { PageContent, PageTitleInput } from './PageContent';
+import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import type { PageActions } from './PageContent';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
@@ -58,6 +59,10 @@ interface PagePanelProps {
   flat?: boolean;
   /** The page this one was reached from, inside the drawer */
   back?: { page: Page; onClick: () => void };
+  /** Puts the cursor in the text on open: at a position, its start or its end */
+  focusEditor?: EditorFocus | null;
+  /** Follows the cursor in the text */
+  onCursor?: (pos: number) => void;
 }
 
 type PanelTab = 'content' | 'related' | 'settings';
@@ -69,7 +74,7 @@ const RELATION_LABEL: Record<Relation, string> = {
   linkedFrom: 'References this page',
 };
 
-export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back }: PagePanelProps) {
+export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const isRoot = page.id === project.rootPageId;
@@ -206,7 +211,15 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         </Tabs.List>
 
         <Tabs.Panel value="content" className={classes.body}>
-          <PageContent key={page.id} project={project} page={page} actions={pageActions} showTitle={false} />
+          <PageContent
+            key={page.id}
+            project={project}
+            page={page}
+            actions={pageActions}
+            showTitle={false}
+            focusEditor={focusEditor}
+            onCursor={onCursor}
+          />
           <Text size="xs" c="dimmed" mt="md">
             To add a page, type / and choose Page, then its name and Enter. To connect pages, type [[ and a name.
           </Text>

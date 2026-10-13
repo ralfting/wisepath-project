@@ -66,12 +66,14 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   }, [selectedId]);
 
   // ?open=<page> from a link outside the map: drop it from this entry, then open the drawer
+  // (&new=1, for a page just made, carries over: the drawer puts the cursor in its text)
   const toOpen = searchParams.get('open');
+  const isNew = searchParams.get('new') === '1';
   useEffect(() => {
     if (!toOpen) return;
     window.history.replaceState(null, '', pathname);
-    router.push(pageHref(project.id, toOpen), { scroll: false });
-  }, [toOpen, pathname, project.id, router]);
+    router.push(`${pageHref(project.id, toOpen)}${isNew ? '?new=1' : ''}`, { scroll: false });
+  }, [toOpen, isNew, pathname, project.id, router]);
 
   const matchIds = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -67,7 +67,13 @@ interface MarkdownEditorProps {
   focusSignal?: number;
   /** Distance from the top where the sticky toolbar stops (below a sticky header) */
   toolbarOffset?: number;
+  /** Puts the cursor in the text once it is ready: at a position, its start or its end */
+  focusOnOpen?: EditorFocus | null;
+  /** Follows the cursor, so it can be put back later */
+  onCursor?: (pos: number) => void;
 }
+
+export type EditorFocus = number | 'start' | 'end';
 
 type LinkCard = { target: PreviewTarget; top: number; left: number; confirmCreate?: boolean };
 
@@ -117,6 +123,8 @@ export function MarkdownEditor({
   onCreatePage,
   focusSignal = 0,
   toolbarOffset = 0,
+  focusOnOpen = null,
+  onCursor,
 }: MarkdownEditorProps) {
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
   const [slash, setSlash] = useState<SlashMenuState | null>(null);
@@ -126,8 +134,8 @@ export function MarkdownEditor({
   const hoverTimer = useRef<number>(0);
 
   // Extensions are created once; they read the latest props through refs
-  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage });
-  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage };
+  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCursor });
+  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCursor };
 
   const askPageName = (e: Editor) => {
     const at = e.state.selection.from;
@@ -200,7 +208,16 @@ export function MarkdownEditor({
       },
     },
     onUpdate: ({ editor: e }) => latest.current.onChange(e.storage.markdown.getMarkdown()),
+    onSelectionUpdate: ({ editor: e }) => latest.current.onCursor?.(e.state.selection.from),
   });
+
+  // Ready to write on arrival; a remembered position past the end lands at the end
+  const focusOnOpenRef = useRef(focusOnOpen);
+  useEffect(() => {
+    const at = focusOnOpenRef.current;
+    if (!editor || at === null) return;
+    editor.commands.focus(typeof at === 'number' ? Math.min(at, editor.state.doc.content.size) : at);
+  }, [editor]);
 
   // Opened through a real anchor: embedded browsers (like Orca's) ignore window.open
   const openUrl = (href: string) => {

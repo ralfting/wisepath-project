@@ -140,7 +140,8 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
     setBusy(false);
     if (!result.ok) return setError(result.message);
     close();
-    router.push(mapHref(result.value.id));
+    // Straight to writing: the map with its main page open, the cursor in the text
+    router.push(`${mapWithPageHref(result.value.id, result.value.rootPageId)}&new=1`);
   };
 
   return (
