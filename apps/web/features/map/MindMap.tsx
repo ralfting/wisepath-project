@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { ActionIcon, Divider, Group, HoverCard, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import {
@@ -15,8 +15,8 @@ import {
 import type { Page, PageColor, Project } from '@wisepath/domain/projects';
 import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
 import { PageGlyph, shade } from '@/features/shared/look';
-import { ROOT_BADGE, ROOT_SIZE, layoutMind, rootShape } from './mindLayout';
-import type { PlacedNode, Point, RootShape, RootVariant } from './mindLayout';
+import { layoutMind, rootShape } from './mindLayout';
+import type { PlacedNode, Point, RootShape } from './mindLayout';
 import classes from './MindMap.module.css';
 
 /**
@@ -71,11 +71,7 @@ export function MindMap({
   topLeft,
 }: MindMapProps) {
   const tree = useMemo(() => mapTree(project), [project]);
-  const [variant] = useState<RootVariant>(() => {
-    const v = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('root');
-    return v === 'card' || v === 'badge' ? v : 'circle';
-  });
-  const root = useMemo(() => rootShape(displayTitle(tree.root.page), variant), [tree, variant]);
+  const root = useMemo(() => rootShape(displayTitle(tree.root.page)), [tree]);
   const layout = useMemo(() => layoutMind(tree, root), [tree, root]);
   const viewportRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
@@ -262,7 +258,7 @@ export function MindMap({
               shape={root}
               page={tree.root.page}
               color={rootLook.color}
-              icon={<PageGlyph icon={rootLook.icon} size={30} />}
+              icon={<PageGlyph icon={rootLook.icon} size={24} />}
               studied={overall.studied}
               total={overall.total}
               selected={selectedId === rootId}
@@ -430,10 +426,6 @@ function placeBox(shape: RootShape, color: PageColor): CSSProperties {
   return { left: -shape.w / 2, top: -shape.h / 2, width: shape.w, height: shape.h, ...tints(color) } as CSSProperties;
 }
 
-function placeCircle(size: number, color: PageColor): CSSProperties {
-  return { left: -size / 2, top: -size / 2, width: size, height: size, ...tints(color) } as CSSProperties;
-}
-
 interface RootNodeProps {
   shape: RootShape;
   page: Page;
@@ -445,45 +437,6 @@ interface RootNodeProps {
   dimmed: boolean;
   onSelect: (pageId: string) => void;
   onIntent?: (pageId: string) => void;
-}
-
-/** Font sizes the root's title may take, largest first */
-const ROOT_TITLE_SIZES = [20, 19, 18, 17, 16, 15, 14];
-
-/**
- * Fits the root's title in its circle: the largest size at which every word
- * fits on a line and the title on two lines. A title that fits at none is cut
- * with an ellipsis, breaking a word if it must (the header shows it whole).
- */
-function useFittedTitle(title: string) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const fit = () => {
-      delete el.dataset.overflow;
-      const fits = ROOT_TITLE_SIZES.some((size) => {
-        el.style.fontSize = `${size}px`;
-        return el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight + 1;
-      });
-      if (!fits) el.dataset.overflow = '';
-    };
-    fit();
-    // Widths change once the web font arrives
-    let live = true;
-    document.fonts?.ready.then(() => live && fit());
-    return () => {
-      live = false;
-    };
-  }, [title]);
-  return ref;
-}
-
-/** The root, drawn as the variant being tried */
-function RootNode(props: RootNodeProps) {
-  if (props.shape.variant === 'card') return <RootCard {...props} />;
-  if (props.shape.variant === 'badge') return <RootBadge {...props} />;
-  return <RootCircle {...props} />;
 }
 
 /** The map's progress as a ring, the root's colour inside */
@@ -514,11 +467,11 @@ function ProgressRing({ size, stroke, share }: { size: number; stroke: number; s
   );
 }
 
-/** The root as a card: the ring around its icon, the title beside it, as long as it needs */
-function RootCard({ shape, page, color, icon, studied, total, selected, dimmed, onSelect, onIntent }: RootNodeProps) {
+/** The root: a card with the map's progress as a ring around its icon, and the title beside it, as long as it needs */
+function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, onSelect, onIntent }: RootNodeProps) {
   return (
     <UnstyledButton
-      className={classes.rootCard}
+      className={classes.root}
       style={{ ...placeBox(shape, color), '--lines': shape.lines } as CSSProperties}
       data-selected={selected || undefined}
       data-dimmed={dimmed || undefined}
@@ -528,96 +481,17 @@ function RootCard({ shape, page, color, icon, studied, total, selected, dimmed, 
       aria-label={`${displayTitle(page)}, ${studied} of ${total} pages studied`}
       title={displayTitle(page)}
     >
-      <span className={classes.rootCardRing}>
+      <span className={classes.rootRing}>
         <ProgressRing size={64} stroke={5} share={total ? studied / total : 0} />
         <ThemeIcon size={44} radius="xl" variant="light" color={color}>
           {icon}
         </ThemeIcon>
       </span>
-      <span className={classes.rootCardText}>
-        <span className={classes.rootCardTitle}>{displayTitle(page)}</span>
+      <span className={classes.rootText}>
+        <span className={classes.rootTitle}>{displayTitle(page)}</span>
         <span className={classes.count}>
           {studied} of {total} studied
         </span>
-      </span>
-    </UnstyledButton>
-  );
-}
-
-/** The root as a badge: the ring with the icon and the count, the title on a label under it */
-function RootBadge({ shape, page, color, icon, studied, total, selected, dimmed, onSelect, onIntent }: RootNodeProps) {
-  return (
-    <UnstyledButton
-      className={classes.rootBadge}
-      style={{ ...placeBox(shape, color), '--lines': shape.lines } as CSSProperties}
-      data-selected={selected || undefined}
-      data-dimmed={dimmed || undefined}
-      onClick={() => onSelect(page.id)}
-      onPointerEnter={() => onIntent?.(page.id)}
-      onFocus={() => onIntent?.(page.id)}
-      aria-label={`${displayTitle(page)}, ${studied} of ${total} pages studied`}
-      title={displayTitle(page)}
-    >
-      <span className={classes.rootBadgeCircle} style={{ width: ROOT_BADGE, height: ROOT_BADGE }}>
-        <ProgressRing size={ROOT_BADGE} stroke={6} share={total ? studied / total : 0} />
-        <ThemeIcon size={48} radius="xl" variant="light" color={color}>
-          {icon}
-        </ThemeIcon>
-        <span className={classes.count}>
-          {studied}/{total}
-        </span>
-      </span>
-      <span className={classes.rootBadgeLabel}>{displayTitle(page)}</span>
-    </UnstyledButton>
-  );
-}
-
-/** The root: a circle with the map's progress drawn as a ring around it */
-function RootCircle({ page, color, icon, studied, total, selected, dimmed, onSelect, onIntent }: RootNodeProps) {
-  const titleRef = useFittedTitle(displayTitle(page));
-  const r = ROOT_SIZE / 2 - 5;
-  const circumference = 2 * Math.PI * r;
-  const share = total ? studied / total : 0;
-  return (
-    <UnstyledButton
-      className={classes.root}
-      style={placeCircle(ROOT_SIZE, color)}
-      data-selected={selected || undefined}
-      data-dimmed={dimmed || undefined}
-      onClick={() => onSelect(page.id)}
-      onPointerEnter={() => onIntent?.(page.id)}
-      onFocus={() => onIntent?.(page.id)}
-      aria-label={`${displayTitle(page)}, ${studied} of ${total} pages studied`}
-      title={displayTitle(page)}
-    >
-      <svg className={classes.ring} width={ROOT_SIZE} height={ROOT_SIZE} aria-hidden="true">
-        <defs>
-          <linearGradient id="wp-ring" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="var(--mantine-color-teal-5)" />
-            <stop offset="100%" stopColor="var(--mantine-color-cyan-5)" />
-          </linearGradient>
-        </defs>
-        <circle cx={ROOT_SIZE / 2} cy={ROOT_SIZE / 2} r={r} fill="none" stroke="var(--mantine-color-gray-2)" strokeWidth="7" />
-        <circle
-          cx={ROOT_SIZE / 2}
-          cy={ROOT_SIZE / 2}
-          r={r}
-          fill="none"
-          stroke="url(#wp-ring)"
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeDasharray={`${circumference * share} ${circumference}`}
-          transform={`rotate(-90 ${ROOT_SIZE / 2} ${ROOT_SIZE / 2})`}
-        />
-      </svg>
-      <ThemeIcon size={52} radius="xl" variant="light" color={color}>
-        {icon}
-      </ThemeIcon>
-      <span ref={titleRef} className={classes.rootTitle}>
-        {displayTitle(page)}
-      </span>
-      <span className={classes.count}>
-        {studied}/{total}
       </span>
     </UnstyledButton>
   );

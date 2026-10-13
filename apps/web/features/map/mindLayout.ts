@@ -10,7 +10,6 @@ import type { MapNode, MapTree, Page, PageId } from '@wisepath/domain/projects';
  * from titles so lines can be drawn without measuring the DOM.
  */
 
-export const ROOT_SIZE = 156;
 const NODE_H = 32;
 const MODULE_H = 58;
 /** Height a second line of title adds */
@@ -76,48 +75,26 @@ export function nodeSize(title: string, module: boolean, hasCounter: boolean): {
   return { w: Math.min(max, Math.max(min, oneLine)), h: base + (lines - 1) * extra, lines };
 }
 
-/** How the root is drawn while the variants are compared: ?root=circle|card|badge */
-export type RootVariant = 'circle' | 'card' | 'badge';
-
+/** The root's box: a card with the progress ring and icon, then the title */
 export interface RootShape {
-  variant: RootVariant;
   w: number;
   h: number;
   /** Lines the title takes */
   lines: number;
 }
 
-/** Rough rendered size of the root, from its title */
-export function rootShape(title: string, variant: RootVariant): RootShape {
-  if (variant === 'card') {
-    // Ring and icon, then the title at 18px bold, up to three lines, and the count under it
-    const text = title.length * 10.5;
-    const lines = Math.min(3, Math.max(1, Math.ceil(text / 210)));
-    return { variant, w: Math.max(230, 18 + 64 + 16 + Math.min(210, text) + 22), h: Math.max(96, 32 + lines * 22 + 22), lines };
-  }
-  if (variant === 'badge') {
-    // The ring with icon and count, the title under it on a label
-    const text = title.length * 9.6;
-    const lines = Math.min(2, Math.max(1, Math.ceil(text / 220)));
-    return { variant, w: Math.max(ROOT_BADGE, Math.min(220, text) + 32), h: ROOT_BADGE + 10 + lines * 21 + 14, lines };
-  }
-  return { variant, w: ROOT_SIZE, h: ROOT_SIZE, lines: 2 };
+/** Rough rendered size of the root, from its title: up to three lines of it at 18px bold, and the count under it */
+export function rootShape(title: string): RootShape {
+  const text = title.length * 10.5;
+  const lines = Math.min(3, Math.max(1, Math.ceil(text / 210)));
+  return { w: Math.max(230, 18 + 64 + 16 + Math.min(210, text) + 22), h: Math.max(96, 32 + lines * 22 + 22), lines };
 }
 
-/** The badge's circle */
-export const ROOT_BADGE = 116;
-
-/** Where a branch leaves the root, toward a point: on its circle or the edge of its box */
+/** Where a branch leaves the root toward a point: on the edge of its box */
 const rootEdge = (root: RootShape, toward: Point): Point => {
   const angle = Math.atan2(toward.y, toward.x);
   const cos = Math.cos(angle);
   const sin = Math.sin(angle);
-  if (root.variant === 'circle') return { x: cos * (root.w / 2), y: sin * (root.h / 2) };
-  if (root.variant === 'badge') {
-    // From the circle, which sits at the top of the badge
-    const cy = -root.h / 2 + ROOT_BADGE / 2;
-    return { x: cos * (ROOT_BADGE / 2), y: cy + sin * (ROOT_BADGE / 2) };
-  }
   const scale = Math.min(root.w / 2 / Math.abs(cos || 1e-9), root.h / 2 / Math.abs(sin || 1e-9));
   return { x: cos * scale, y: sin * scale };
 };
@@ -131,7 +108,7 @@ const curve = (a: Point, b: Point) => {
 const centreOf = (n: PlacedNode): Point => ({ x: n.inner.x + (n.side * n.w) / 2, y: n.inner.y });
 const outerOf = (n: PlacedNode): Point => ({ x: n.inner.x + n.side * n.w, y: n.inner.y });
 
-export function layoutMind(tree: MapTree, root: RootShape = rootShape('', 'circle')): MindLayout {
+export function layoutMind(tree: MapTree, root: RootShape = rootShape(tree.root.page.title)): MindLayout {
   const minX = root.w / 2 + 40;
   const radiusX = Math.max(RADIUS_X, root.w / 2 + 118);
   const reach = Math.max(root.w, root.h) / 2;
