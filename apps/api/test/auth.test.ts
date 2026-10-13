@@ -103,7 +103,11 @@ describe('auth API', () => {
       const { user } = yield* client.auth.signup({ payload: { name: 'Ada', email: newEmail(), password } });
       const jwt = yield* token;
       const me = (auth: string) =>
-        Effect.promise(() => fetch(`${baseUrl}/auth/me`, { headers: { authorization: auth } }).then(async (r) => [r.status, (await r.json()) as { user?: { id: string }; _tag?: string }] as const));
+        Effect.promise(() =>
+          fetch(`${baseUrl}/auth/me`, { headers: { authorization: auth } }).then(
+            async (r) => [r.status, (await r.json()) as { user?: { id: string }; _tag?: string }] as const,
+          ),
+        );
 
       const [ok, body] = yield* me(`Bearer ${jwt}`);
       assert.deepStrictEqual([ok, body.user?.id], [200, user.id]);

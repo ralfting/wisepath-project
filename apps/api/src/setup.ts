@@ -6,15 +6,14 @@ export function configureApp(app: NestExpressApplication) {
   // Page content travels whole in one request, so allow long pages
   app.useBodyParser('json', { limit: '2mb' });
 
-  // Enable cookie parser for httpOnly cookies
+  // The session travels in an httpOnly cookie
   app.use(cookieParser());
 
-  // Enable CORS for development
+  // Only the web app may call with that cookie
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
   });
 
-  // Set global API prefix
   app.setGlobalPrefix('api');
 }

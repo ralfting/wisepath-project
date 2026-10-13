@@ -105,10 +105,15 @@ describe('projects API', () => {
 
       // A page from a [[link]]; a retry of the same command changes nothing
       const borrowId = pgid();
-      yield* client.projects.updatePage({ params: { ...params, pageId: rootPageId }, payload: { content: 'Start with [[Borrowing]]' } });
+      yield* client.projects.updatePage({
+        params: { ...params, pageId: rootPageId },
+        payload: { content: 'Start with [[Borrowing]]' },
+      });
       yield* client.projects.createPage({ params, payload: { id: borrowId, title: 'Borrowing' } });
       yield* client.projects.createPage({ params, payload: { id: borrowId, title: 'Borrowing' } });
-      const taken = yield* Effect.flip(client.projects.createPage({ params, payload: { id: pgid(), title: ' borrowing ' } }));
+      const taken = yield* Effect.flip(
+        client.projects.createPage({ params, payload: { id: pgid(), title: ' borrowing ' } }),
+      );
       assert.strictEqual(taken._tag, 'TitleTaken');
 
       // Renaming moves the [[links]] that used the old title; the look is set in the same command
@@ -120,12 +125,17 @@ describe('projects API', () => {
       const root = renamed.pages.find((p) => p.id === rootPageId)!;
       const borrow = renamed.pages.find((p) => p.id === borrowId)!;
       assert.strictEqual(root.content, 'Start with [[Borrow checker]]');
-      assert.deepStrictEqual([borrow.title, borrow.module, borrow.color, borrow.studied], ['Borrow checker', true, 'green', true]);
+      assert.deepStrictEqual(
+        [borrow.title, borrow.module, borrow.color, borrow.studied],
+        ['Borrow checker', true, 'green', true],
+      );
 
       // The root names the map: renaming it renames the map, and it can't be studied or deleted
       yield* client.projects.updatePage({ params: { ...params, pageId: rootPageId }, payload: { title: 'Rust 2024' } });
       assert.strictEqual((yield* client.projects.get({ params })).title, 'Rust 2024');
-      const studied = yield* Effect.flip(client.projects.updatePage({ params: { ...params, pageId: rootPageId }, payload: { studied: true } }));
+      const studied = yield* Effect.flip(
+        client.projects.updatePage({ params: { ...params, pageId: rootPageId }, payload: { studied: true } }),
+      );
       assert.strictEqual(studied._tag, 'RootPageProtected');
       const rootDelete = yield* Effect.flip(client.projects.removePage({ params: { ...params, pageId: rootPageId } }));
       assert.strictEqual(rootDelete._tag, 'RootPageProtected');
@@ -133,7 +143,9 @@ describe('projects API', () => {
       // Deleting a page twice is fine; editing it afterwards says it is gone
       yield* client.projects.removePage({ params: { ...params, pageId: borrowId } });
       yield* client.projects.removePage({ params: { ...params, pageId: borrowId } });
-      const missing = yield* Effect.flip(client.projects.updatePage({ params: { ...params, pageId: borrowId }, payload: { content: 'x' } }));
+      const missing = yield* Effect.flip(
+        client.projects.updatePage({ params: { ...params, pageId: borrowId }, payload: { content: 'x' } }),
+      );
       assert.strictEqual(missing._tag, 'PageNotFound');
       assert.strictEqual((yield* client.projects.get({ params })).pages.length, 1);
     }),
@@ -148,7 +160,9 @@ describe('projects API', () => {
       yield* owner.projects.create({ payload: { id: projectId, rootPageId, title: 'Private' } });
       const read = yield* Effect.flip(other.projects.get({ params: { projectId } }));
       assert.strictEqual(read._tag, 'ProjectNotFound');
-      const write = yield* Effect.flip(other.projects.updatePage({ params: { projectId, pageId: rootPageId }, payload: { content: 'mine now' } }));
+      const write = yield* Effect.flip(
+        other.projects.updatePage({ params: { projectId, pageId: rootPageId }, payload: { content: 'mine now' } }),
+      );
       assert.strictEqual(write._tag, 'ProjectNotFound');
       yield* other.projects.remove({ params: { projectId } });
       assert.strictEqual((yield* owner.projects.get({ params: { projectId } })).pages[0].content, '');

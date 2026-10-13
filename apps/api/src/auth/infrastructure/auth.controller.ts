@@ -31,6 +31,7 @@ export class AuthController {
   @Post('signup')
   async signup(@Body(new SchemaPipe(SignupDetails)) details: SignupDetails, @Res({ passthrough: true }) res: Response) {
     const user = await this.effect.run(auth.signup(details));
+
     setSessionCookie(res, await this.jwt.signAsync(claimsOf(user)));
     return bodyOf(user);
   }
@@ -39,6 +40,7 @@ export class AuthController {
   @HttpCode(200)
   async login(@Body(new SchemaPipe(Credentials)) credentials: Credentials, @Res({ passthrough: true }) res: Response) {
     const user = await this.effect.run(auth.login(credentials));
+
     setSessionCookie(res, await this.jwt.signAsync(claimsOf(user)));
     return bodyOf(user);
   }

@@ -33,6 +33,7 @@ export const claimsOf = (user: User): SessionClaims => ({ userId: user.id, email
 export function tokenOf(req: Request): string | null {
   const header = req.headers.authorization;
   if (header?.startsWith('Bearer ')) return header.slice('Bearer '.length);
+
   const cookie: unknown = req.cookies?.[COOKIE];
   return typeof cookie === 'string' ? cookie : null;
 }

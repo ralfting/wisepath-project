@@ -35,12 +35,17 @@ export class EffectRuntime implements OnModuleDestroy {
   async run<A, E>(program: Effect.Effect<A, E, AppServices>): Promise<A> {
     const exit = await this.runtime.runPromiseExit(program);
     if (Exit.isSuccess(exit)) return exit.value;
+
     const error = Cause.findErrorOption(exit.cause);
     if (error._tag === 'Some' && Predicate.hasProperty(error.value, '_tag')) {
+      // A domain error's class is its schema, which says the HTTP status it is answered with
       const schema = (error.value as object).constructor as unknown as Schema.Codec<unknown, unknown>;
       const status = SchemaAST.resolve(schema.ast)?.httpApiStatus as number | undefined;
-      if (status !== undefined) throw new HttpException(Schema.encodeUnknownSync(schema)(error.value) as object, status);
+      if (status !== undefined) {
+        throw new HttpException(Schema.encodeUnknownSync(schema)(error.value) as object, status);
+      }
     }
+
     this.logger.error(Cause.pretty(exit.cause));
     throw new InternalServerErrorException();
   }

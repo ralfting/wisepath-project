@@ -1,12 +1,22 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { Effect, Schema } from 'effect';
-import { NewPage, NewProject, Page, PageEdit, PageId, Project, ProjectEdit, ProjectId, ProjectSummary } from '@wisepath/domain/projects';
+import {
+  NewPage,
+  NewProject,
+  Page,
+  PageEdit,
+  PageId,
+  Project,
+  ProjectEdit,
+  ProjectId,
+  ProjectSummary,
+} from '@wisepath/domain/projects';
 import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
-import * as projects from '../application/projects';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import { CurrentUser } from '../application/CurrentUser';
+import * as projects from '../application/projects';
 
 /**
  * ProjectsController
@@ -43,7 +53,11 @@ export class ProjectsController {
 
   @Patch(':projectId')
   @HttpCode(204)
-  async update(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, @Body(new SchemaPipe(ProjectEdit)) edit: ProjectEdit) {
+  async update(
+    @Req() req: Request,
+    @Param('projectId', projectId) id: ProjectId,
+    @Body(new SchemaPipe(ProjectEdit)) edit: ProjectEdit,
+  ) {
     await this.effect.run(projects.updateProject(id, edit).pipe(asUser(req)));
   }
 
@@ -54,7 +68,11 @@ export class ProjectsController {
   }
 
   @Post(':projectId/pages')
-  createPage(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, @Body(new SchemaPipe(NewPage)) command: NewPage) {
+  createPage(
+    @Req() req: Request,
+    @Param('projectId', projectId) id: ProjectId,
+    @Body(new SchemaPipe(NewPage)) command: NewPage,
+  ) {
     return this.effect.respond(projects.createPage(id, command).pipe(asUser(req)), Page);
   }
 
@@ -71,7 +89,11 @@ export class ProjectsController {
 
   @Delete(':projectId/pages/:pageId')
   @HttpCode(204)
-  async removePage(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, @Param('pageId', pageId) page: PageId) {
+  async removePage(
+    @Req() req: Request,
+    @Param('projectId', projectId) id: ProjectId,
+    @Param('pageId', pageId) page: PageId,
+  ) {
     await this.effect.run(projects.deletePage(id, page).pipe(asUser(req)));
   }
 }

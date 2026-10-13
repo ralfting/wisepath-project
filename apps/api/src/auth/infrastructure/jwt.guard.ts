@@ -29,6 +29,7 @@ export class JwtAuthGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<Request>();
     const user = await this.userOf(req);
     if (!user) throw notAuthenticated();
+
     req.user = user;
     return true;
   }
@@ -38,6 +39,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) return null;
     const claims = await this.jwt.verifyAsync<SessionClaims>(token).catch(() => null);
     if (typeof claims?.userId !== 'string') return null;
+
     return Option.getOrNull(await this.effect.run(sessionUser(UserId.make(claims.userId))));
   }
 }
