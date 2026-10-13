@@ -125,8 +125,13 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   return (
     <Drawer
       opened
-      // Esc first shrinks an expanded drawer back, then closes it
-      onClose={() => (expanded ? setExpanded(false) : close())}
+      // Esc first closes a popover or menu open in the drawer (they close themselves), then shrinks
+      // an expanded drawer back, then closes it
+      onClose={() => {
+        if (document.querySelector('.mantine-Popover-dropdown, [role=menu]')) return;
+        if (expanded) setExpanded(false);
+        else close();
+      }}
       transitionProps={{ duration: 0 }}
       position="right"
       size={expanded ? '100%' : DRAWER_WIDTH}

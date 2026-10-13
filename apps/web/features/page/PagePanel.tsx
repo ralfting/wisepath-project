@@ -6,15 +6,11 @@ import {
   Anchor,
   Breadcrumbs,
   Card,
-  ColorSwatch,
   Group,
   Menu,
-  SimpleGrid,
   Stack,
-  Switch,
   Tabs,
   Text,
-  Textarea,
   ThemeIcon,
   Tooltip,
   UnstyledButton,
@@ -25,7 +21,7 @@ import {
   IconArrowRight,
   IconArrowUpLeft,
   IconArrowsDiagonal,
-  IconCheck,
+  IconBox,
   IconChevronRight,
   IconDotsVertical,
   IconTrash,
@@ -34,8 +30,6 @@ import {
 import type { Icon } from '@tabler/icons-react';
 import type { Page, Project, Relation } from '@wisepath/domain/projects';
 import {
-  PageColor,
-  PageIcon,
   branchProgress,
   displayTitle,
   lookOf,
@@ -45,12 +39,13 @@ import {
   relatedPages,
 } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
-import { PageGlyph, shade } from '@/features/shared/look';
+import { PageGlyph } from '@/features/shared/look';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import type { PageActions } from './PageContent';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
+import { PageLook, moduleLook } from './PageLook';
 import classes from './PagePanel.module.css';
 
 /**
@@ -77,7 +72,7 @@ interface PagePanelProps {
   onCursor?: (pos: number) => void;
 }
 
-type PanelTab = 'content' | 'related' | 'settings';
+type PanelTab = 'content' | 'related';
 
 /**
  * The related pages, grouped by how they connect, in a fixed order: up the
@@ -100,7 +95,6 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
   const tree = mapTree(project);
   const isOrphan = !tree.nodes.has(page.id);
   const path = pathTo(project, page.id, tree);
-  const look = lookOf(project, page.id, tree);
   const related = relatedPages(project, page.id);
   const below = branchProgress(project, page.id);
   const branchFrom = path.length > 1 ? path[path.length - 2] : null;
@@ -173,6 +167,10 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
+                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(project, page, !page.module))}>
+                  {page.module ? 'Show as a page' : 'Show as a module'}
+                </Menu.Item>
+                <Menu.Divider />
                 <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
                   Delete page
                 </Menu.Item>
@@ -202,9 +200,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
       />
 
       <Group gap="md" wrap="nowrap" align="flex-start" px="lg" pt="md">
-        <ThemeIcon size={60} radius="xl" variant="light" color={look.color} className={classes.icon}>
-          <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={30} />
-        </ThemeIcon>
+        <PageLook project={project} page={page} store={store} size={60} />
         <Stack gap={2} miw={0} style={{ flex: 1 }}>
           <PageTitleInput
             key={page.id}
@@ -237,7 +233,6 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         <Tabs.List px="lg">
           <Tabs.Tab value="content">Content</Tabs.Tab>
           <Tabs.Tab value="related">Related ({related.length})</Tabs.Tab>
-          <Tabs.Tab value="settings">Settings</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="content" className={classes.body}>
@@ -308,9 +303,6 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
           )}
         </Tabs.Panel>
 
-        <Tabs.Panel value="settings" className={classes.body}>
-          <Settings project={project} page={page} store={store} />
-        </Tabs.Panel>
       </Tabs>
     </Card>
   );
@@ -319,81 +311,4 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
 /** Root, then the parent; deeper paths fold the middle into an ellipsis */
 function trailOf(ancestors: ReadonlyArray<Page>): ReadonlyArray<Page | null> {
   return ancestors.length <= 2 ? ancestors : [ancestors[0], null, ancestors[ancestors.length - 1]];
-}
-
-function Settings({ project, page, store }: { project: Project; page: Page; store: ProjectActions }) {
-  const isRoot = page.id === project.rootPageId;
-  const look = lookOf(project, page.id);
-  const styled = isRoot || !!page.module;
-
-  return (
-    <Stack gap="lg">
-      {isRoot ? (
-        <Textarea
-          label="Description"
-          description="One line under the path's title."
-          autosize
-          minRows={2}
-          value={project.description ?? ''}
-          onChange={(e) => store.setDescription(e.currentTarget.value)}
-        />
-      ) : (
-        <Switch
-          label="Show as a module"
-          description="Drawn larger on the map, with its own colour and icon; pages below it take the colour. Nothing else changes."
-          checked={!!page.module}
-          onChange={(e) =>
-            store.setLook(page.id, e.currentTarget.checked ? { module: true, color: look.color, icon: page.icon ?? look.icon } : { module: false })
-          }
-        />
-      )}
-      {styled && (
-        <>
-          <Stack gap={6}>
-            <Text size="sm" fw={500}>
-              Colour
-            </Text>
-            <Group gap={8}>
-              {PageColor.literals.map((color) => (
-                <ColorSwatch
-                  key={color}
-                  component="button"
-                  type="button"
-                  color={shade(color, 6)}
-                  size={26}
-                  aria-label={color}
-                  aria-pressed={look.color === color}
-                  onClick={() => store.setLook(page.id, { color })}
-                  className={classes.swatch}
-                >
-                  {look.color === color && <IconCheck size={14} color="white" stroke={3} />}
-                </ColorSwatch>
-              ))}
-            </Group>
-          </Stack>
-          <Stack gap={6}>
-            <Text size="sm" fw={500}>
-              Icon
-            </Text>
-            <SimpleGrid cols={8} spacing={6} maw={340}>
-              {PageIcon.literals.map((icon) => (
-                <ActionIcon
-                  key={icon}
-                  size={36}
-                  radius="md"
-                  variant={look.icon === icon ? 'light' : 'default'}
-                  color={look.color}
-                  aria-label={icon}
-                  aria-pressed={look.icon === icon}
-                  onClick={() => store.setLook(page.id, { icon })}
-                >
-                  <PageGlyph icon={icon} size={18} />
-                </ActionIcon>
-              ))}
-            </SimpleGrid>
-          </Stack>
-        </>
-      )}
-    </Stack>
-  );
 }

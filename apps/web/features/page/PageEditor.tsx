@@ -1,24 +1,24 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ActionIcon, Anchor, Box, Card, Center, Group, Menu, Stack, Text, ThemeIcon, Title, Tooltip } from '@mantine/core';
-import { IconArrowLeft, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
+import { ActionIcon, Anchor, Box, Card, Center, Group, Menu, Stack, Text, Title, Tooltip } from '@mantine/core';
+import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Page, Project } from '@wisepath/domain/projects';
-import { branchProgress, displayTitle, lookOf, pathTo, projectProgress } from '@wisepath/domain/projects';
+import { branchProgress, displayTitle, pathTo, projectProgress } from '@wisepath/domain/projects';
 import type { ProjectActions, SaveState } from '@/useCases/projects';
 import { SaveStatus } from '@/features/projects/SaveStatus';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import type { Crumb } from '@/features/shell/AppFrame';
-import { PageGlyph } from '@/features/shared/look';
 import { mapHref, mapWithPageHref, pageHref as pageHrefOf } from '@/features/shared/routes';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { PageActions } from './PageContent';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
+import { PageLook, moduleLook } from './PageLook';
 import classes from './PageEditor.module.css';
 
 /**
@@ -126,7 +126,6 @@ export function PageSheet({
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
   const isRoot = page.id === project.rootPageId;
-  const look = lookOf(project, page.id);
   const between = pathTo(project, page.id).slice(1, -1);
 
   const actions: PageActions = {
@@ -148,9 +147,7 @@ export function PageSheet({
               </ActionIcon>
             </Tooltip>
           )}
-          <ThemeIcon size={48} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
-            <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={25} />
-          </ThemeIcon>
+          <PageLook project={project} page={page} store={store} size={48} />
           <Box miw={0} style={{ flex: 1 }}>
             <PageTitleInput
               key={page.id}
@@ -191,6 +188,10 @@ export function PageSheet({
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
+                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(project, page, !page.module))}>
+                  {page.module ? 'Show as a page' : 'Show as a module'}
+                </Menu.Item>
+                <Menu.Divider />
                 <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
                   Delete page
                 </Menu.Item>
