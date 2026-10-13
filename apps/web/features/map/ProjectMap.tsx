@@ -4,7 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
-import { useHotkeys } from '@mantine/hooks';
+import { useHotkeys, useWindowEvent } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
@@ -15,6 +15,7 @@ import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
 import { openPageId, pageHref } from '@/features/shared/routes';
+import { OPEN_SEARCH_EVENT } from '@/features/editor/extensions';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';
 import { MapList } from './MapList';
@@ -85,11 +86,18 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   const [searchOpen, setSearchOpen] = useState(false);
   // The map renders only on the client (it loads in the browser), so the platform is known here
   const shortcut = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K';
+  // Focused once rendered: opened from the page's text, the field may not exist yet on the next frame
+  const [searchFocus, setSearchFocus] = useState(0);
   const openSearch = () => {
     setSearchOpen(true);
-    requestAnimationFrame(() => searchRef.current?.focus());
+    setSearchFocus((n) => n + 1);
   };
-  useHotkeys([['mod+K', openSearch]]);
+  useEffect(() => {
+    if (searchFocus) searchRef.current?.focus();
+  }, [searchFocus]);
+  // ⌘K works from fields too; in the page's text it comes as an event (with text selected there, it makes a link)
+  useHotkeys([['mod+K', openSearch]], []);
+  useWindowEvent(OPEN_SEARCH_EVENT, openSearch);
 
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {

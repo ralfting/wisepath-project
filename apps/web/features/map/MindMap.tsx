@@ -27,6 +27,9 @@ import classes from './MindMap.module.css';
  * scroll to pan, pinch or Ctrl/⌘ + scroll to zoom. Every page is a button.
  */
 
+/** Opening a page zooms out at most to this, to show the pages branching from it */
+const MIN_FRAME_ZOOM = 0.5;
+
 export interface FocusRequest {
   pageId: string;
   nonce: number;
@@ -127,7 +130,7 @@ export function MindMap({
   /** Keeps the zoom and brings the root to the middle */
   const centreOnRoot = () => size && smoothly((v) => ({ ...v, x: size.w / 2, y: size.h / 2 }));
 
-  // Bring a page into view when asked from outside the map (search, related pages)
+  // Bring a page into view, with its branches, when asked from outside the map (search, related pages)
   useEffect(() => {
     if (!focusRequest || !size) return;
     const c = layout.centres.get(focusRequest.pageId as Page['id']);
@@ -136,12 +139,27 @@ export function MindMap({
     const frameRight = viewportRef.current?.getBoundingClientRect().right ?? 0;
     const covered = Math.max(0, Math.min(coveredRight - (window.innerWidth - frameRight), size.w - 200));
     const visibleW = size.w - covered;
+    // The page and the pages branching from it, so opening a page shows where it leads
+    const branch = [c, ...(tree.nodes.get(focusRequest.pageId as Page['id'])?.children ?? [])
+      .map((child) => layout.centres.get(child.page.id))
+      .filter((p): p is NonNullable<typeof p> => !!p)];
+    const box = {
+      minX: Math.min(...branch.map((p) => p.x)) - 90,
+      maxX: Math.max(...branch.map((p) => p.x)) + 90,
+      minY: Math.min(...branch.map((p) => p.y)) - 30,
+      maxY: Math.max(...branch.map((p) => p.y)) + 30,
+    };
     smoothly((v) => {
-      const sx = v.x + c.x * v.k;
-      const sy = v.y + c.y * v.k;
-      const margin = 100;
-      if (sx > margin && sx < visibleW - margin && sy > margin && sy < size.h - margin) return v;
-      return { k: v.k, x: visibleW / 2 - c.x * v.k, y: size.h / 2 - c.y * v.k };
+      const margin = 40;
+      const inView = (x: number, y: number) => x > margin && x < visibleW - margin && y > margin && y < size.h - margin;
+      if (inView(v.x + box.minX * v.k, v.y + box.minY * v.k) && inView(v.x + box.maxX * v.k, v.y + box.maxY * v.k)) return v;
+      // The whole branch beside the drawer, zooming out for it down to half size; past that, the page itself
+      const fitK = Math.min((visibleW - 2 * margin) / (box.maxX - box.minX), (size.h - 2 * margin) / (box.maxY - box.minY));
+      const k = Math.min(v.k, Math.max(fitK, MIN_FRAME_ZOOM));
+      const fits = fitK >= MIN_FRAME_ZOOM;
+      const cx = fits ? (box.minX + box.maxX) / 2 : c.x;
+      const cy = fits ? (box.minY + box.maxY) / 2 : c.y;
+      return { k, x: visibleW / 2 - cx * k, y: size.h / 2 - cy * k };
     });
     // Runs again once the size is known, so a page opened from the URL is brought into view
     // eslint-disable-next-line react-hooks/exhaustive-deps

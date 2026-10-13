@@ -394,7 +394,10 @@ export const BulletToChecklist = Extension.create({
   },
 });
 
-/* ---------- Keys for whole blocks ---------- */
+/* ---------- Keys for whole blocks, and ⌘K ---------- */
+
+/** Fired on the window when ⌘K (Ctrl K) is pressed in the text with nothing selected: the map opens its search */
+export const OPEN_SEARCH_EVENT = 'wisepath:open-search';
 
 /** Blocks Backspace selects first, then deletes, when it reaches them from the line below */
 const WHOLE_BLOCKS = new Set(['table', 'codeBlock', 'youtube']);
@@ -404,12 +407,13 @@ const WHOLE_BLOCKS = new Set(['table', 'codeBlock', 'youtube']);
  * video) selects that block, so the next Backspace removes it (a selected
  * table shows as all its cells selected, which Backspace deletes); in a table
  * whose cells are all empty, Backspace removes the table. Cmd/Ctrl+A inside
- * a code block selects the code first, then the whole page.
+ * a code block selects the code first, then the whole page. Cmd/Ctrl+K with
+ * text selected makes a link; with nothing selected it opens the map's search.
  */
 export const BlockKeys = Extension.create({
   name: 'blockKeys',
-  // Ahead of the table's own keys
-  priority: 200,
+  // Ahead of the table's keys and the link's Cmd/Ctrl+K
+  priority: 1100,
 
   addKeyboardShortcuts() {
     return {
@@ -450,6 +454,11 @@ export const BlockKeys = Extension.create({
             return true;
           })
           .run();
+      },
+      'Mod-k': ({ editor }) => {
+        if (!editor.state.selection.empty) return false;
+        window.dispatchEvent(new Event(OPEN_SEARCH_EVENT));
+        return true;
       },
       'Mod-a': ({ editor }) => {
         const { $from, from, to } = editor.state.selection;
