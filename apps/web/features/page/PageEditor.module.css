@@ -1,6 +1,8 @@
 /* The page fills the content area, below the top bar */
 .sheet {
   flex: 1;
+  /* A card clips by default, which would stop the editor's toolbar from sticking while the text scrolls */
+  overflow: visible;
 }
 
 .header {

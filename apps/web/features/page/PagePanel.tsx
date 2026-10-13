@@ -235,6 +235,8 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
             focusEditor={focusEditor}
             onCursor={onCursor}
             focusSignal={textFocus}
+            // The panel's top padding: the toolbar sticks at the very top, so no text shows above it
+            toolbarOffset={-16}
           />
           {/* Help while the page is empty; once there is writing it only takes room */}
           {!page.content.trim() && (
