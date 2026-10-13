@@ -1,21 +1,20 @@
 import { Effect, Layer, Option } from "effect"
-import { FetchHttpClient, HttpClient, HttpClientResponse } from "effect/http"
-import { LinkPreview, LinkPreviews } from "@wisepath/domain/projects"
+import { LinkPreviews } from "@wisepath/domain/projects"
+import { ApiClient } from "../http/ApiClient"
 
-/** Previews from the app's own /api/link-preview route; any failure means no preview */
+/** Previews from the WisePath API (/api/link-preview); any failure means no preview */
 export const HttpLinkPreviews = Layer.effect(
   LinkPreviews,
   Effect.gen(function*() {
-    const client = (yield* HttpClient.HttpClient).pipe(HttpClient.filterStatusOk)
+    const client = yield* ApiClient
 
     return LinkPreviews.of({
       preview: Effect.fn("LinkPreviews.preview")(
         function*(url) {
-          const response = yield* client.get(`/api/link-preview?url=${encodeURIComponent(url)}`)
-          return Option.some(yield* HttpClientResponse.schemaBodyJson(LinkPreview)(response))
+          return Option.some(yield* client.links.preview({ query: { url } }))
         },
         Effect.catch(() => Effect.succeedNone)
       )
     })
   })
-).pipe(Layer.provide(FetchHttpClient.layer))
+).pipe(Layer.provide(ApiClient.layer))

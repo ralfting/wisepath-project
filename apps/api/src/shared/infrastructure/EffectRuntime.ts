@@ -5,15 +5,19 @@ import type { PasswordHasher } from '../../auth/application/PasswordHasher';
 import type { UserStore } from '../../auth/application/UserStore';
 import { BcryptPasswordHasher } from '../../auth/infrastructure/BcryptPasswordHasher';
 import { SqlUserStore } from '../../auth/infrastructure/SqlUserStore';
+import type { PageFetcher } from '../../links/application/PageFetcher';
+import { SafePageFetcher } from '../../links/infrastructure/SafePageFetcher';
 import type { ProjectStore } from '../../projects/application/ProjectStore';
 import { SqlProjectStore } from '../../projects/infrastructure/SqlProjectStore';
 import { SqlLive } from './Sql';
 
 /** Everything the use cases need, built once for the app over one connection pool */
-const AppLive = Layer.mergeAll(SqlProjectStore, SqlUserStore, BcryptPasswordHasher).pipe(Layer.provide(SqlLive));
+const AppLive = Layer.mergeAll(SqlProjectStore, SqlUserStore, BcryptPasswordHasher, SafePageFetcher).pipe(
+  Layer.provide(SqlLive),
+);
 
 /** The services a use case may ask for; anything per request (like the current user) is provided by its caller */
-export type AppServices = ProjectStore | UserStore | PasswordHasher;
+export type AppServices = ProjectStore | UserStore | PasswordHasher | PageFetcher;
 
 /**
  * EffectRuntime
