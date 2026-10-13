@@ -2,8 +2,8 @@ import { PageId, ProjectId } from './Project';
 import type { Page, PageColor, PageIcon, Project } from './Project';
 
 /**
- * Sample project used until the projects API exists.
- * Flagged with isSample so the UI labels it as sample content.
+ * The sample map every account starts with: a copy of it is made once, with
+ * fresh ids, and from then on it is the learner's own map like any other.
  * Pages connect only through the [[links]] in their text, so each seed page
  * lists the pages it leads to; the order of those links orders the map.
  */
@@ -155,11 +155,4 @@ export const sampleProject: Project = {
   description: 'From the basics to advanced: learning the NestJS framework by building real applications.',
   pages,
   rootPageId: pages[0].id,
-  isSample: true,
 };
-
-export const sampleProjects: ReadonlyArray<Project> = [sampleProject];
-
-export function findSampleProject(projectId: string): Project | undefined {
-  return sampleProjects.find((p) => p.id === projectId);
-}

@@ -1,14 +1,32 @@
-import type { Effect, Option } from "effect"
+import type { Effect } from "effect"
 import { Context } from "effect"
-import type { ProjectStorageError } from "./errors"
-import type { Project, ProjectId } from "./Project"
+import type { NewPage, NewProject, PageEdit, ProjectEdit, ProjectSummary } from "./commands"
+import type { PageNotFound, ProjectNotFound, ProjectsUnavailable, RootPageProtected, TitleTaken } from "./errors"
+import type { Page, PageId, Project, ProjectId } from "./Project"
 
 /**
- * Where projects are kept. Today an infrastructure layer keeps them on this
- * device; later the WisePath API will.
+ * Where the learner's projects are kept: the WisePath API. Each change is one
+ * command (see commands.ts); a command sent twice changes nothing more.
+ * ProjectsUnavailable means the API could not be reached and the command can
+ * be sent again; every other error is final.
  */
 export class ProjectRepository extends Context.Service<ProjectRepository, {
-  /** The saved project, or none if it was never saved */
-  readonly load: (id: ProjectId) => Effect.Effect<Option.Option<Project>, ProjectStorageError>
-  readonly save: (project: Project) => Effect.Effect<void, ProjectStorageError>
+  readonly list: Effect.Effect<ReadonlyArray<ProjectSummary>, ProjectsUnavailable>
+  readonly get: (id: ProjectId) => Effect.Effect<Project, ProjectNotFound | ProjectsUnavailable>
+  readonly create: (command: NewProject) => Effect.Effect<Project, ProjectsUnavailable>
+  readonly update: (id: ProjectId, edit: ProjectEdit) => Effect.Effect<void, ProjectNotFound | ProjectsUnavailable>
+  readonly remove: (id: ProjectId) => Effect.Effect<void, ProjectsUnavailable>
+  readonly createPage: (
+    id: ProjectId,
+    command: NewPage
+  ) => Effect.Effect<Page, ProjectNotFound | TitleTaken | ProjectsUnavailable>
+  readonly updatePage: (
+    id: ProjectId,
+    pageId: PageId,
+    edit: PageEdit
+  ) => Effect.Effect<void, ProjectNotFound | PageNotFound | TitleTaken | RootPageProtected | ProjectsUnavailable>
+  readonly removePage: (
+    id: ProjectId,
+    pageId: PageId
+  ) => Effect.Effect<void, ProjectNotFound | RootPageProtected | ProjectsUnavailable>
 }>()("@wisepath/domain/projects/ProjectRepository") {}

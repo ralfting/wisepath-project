@@ -1,5 +1,6 @@
 import { HttpApi } from "effect/http-api"
 import { AuthApiGroup } from "./AuthApi"
+import { ProjectsApiGroup } from "./ProjectsApi"
 
 /** The WisePath HTTP API. Clients prepend the base URL (e.g. http://localhost:3001/api). */
-export class WisePathApi extends HttpApi.make("wisepath").add(AuthApiGroup) {}
+export class WisePathApi extends HttpApi.make("wisepath").add(AuthApiGroup).add(ProjectsApiGroup) {}

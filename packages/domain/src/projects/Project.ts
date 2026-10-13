@@ -75,8 +75,6 @@ export const Project = Schema.Struct({
   description: Schema.optional(Schema.String),
   pages: Schema.Array(Page),
   /** The single page at the centre of the map */
-  rootPageId: PageId,
-  /** True for demonstration content that is not a real user's project */
-  isSample: Schema.optional(Schema.Boolean)
+  rootPageId: PageId
 })
 export type Project = typeof Project.Type

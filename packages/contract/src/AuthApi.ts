@@ -1,22 +1,13 @@
-import { Schema, SchemaTransformation } from "effect"
+import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema } from "effect/http-api"
 import { Credentials, EmailAlreadyRegistered, InvalidCredentials, NotAuthenticated, SignupDetails, UserId } from "@wisepath/domain/auth"
+import { nestError } from "./nestError"
 
 /**
  * The account endpoints as the NestJS API serves them today (under /api/auth).
  * Error bodies are NestJS's `{ message, statusCode }`, so each error is read
  * from its status code and its body is decoded into the domain error.
  */
-
-/** A domain error carried as NestJS's `{ message, statusCode }` body with this status */
-const nestError = <E>(error: Schema.Codec<E, unknown>, status: number, make: () => E) =>
-  Schema.Struct({ message: Schema.Unknown }).pipe(
-    Schema.decodeTo(
-      Schema.toType(error),
-      SchemaTransformation.transform({ decode: make, encode: (): { readonly message: unknown } => ({ message: String(status) }) })
-    ),
-    HttpApiSchema.status(status)
-  )
 
 /** A user as the API returns it from login and signup */
 export const UserJson = Schema.Struct({
