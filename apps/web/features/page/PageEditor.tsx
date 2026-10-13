@@ -46,7 +46,7 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
             <Title order={1} fz={30}>
               Page not found
             </Title>
-            <Text c="dimmed">It may have been deleted. The rest of the map is still there.</Text>
+            <Text c="dimmed">It may have been deleted. The rest of the path is still there.</Text>
             <Anchor component={Link} href={mapHref(project.id)} fw={700}>
               Back to the map
             </Anchor>

@@ -119,7 +119,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
       ref={searchRef}
       onBlur={() => !query && setSearchOpen(false)}
       type="search"
-      aria-label="Search this map"
+      aria-label="Search this path"
       placeholder="Search pages…"
       leftSection={<IconSearch size={16} />}
       rightSection={<Kbd size="xs">{shortcut}</Kbd>}
@@ -133,7 +133,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
       radius="md"
     />
   ) : (
-    <UnstyledButton onClick={openSearch} aria-label="Search this map" className={classes.searchButton}>
+    <UnstyledButton onClick={openSearch} aria-label="Search this path" className={classes.searchButton}>
       <IconSearch size={16} />
       <Kbd size="xs">{shortcut}</Kbd>
     </UnstyledButton>

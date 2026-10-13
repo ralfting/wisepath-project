@@ -40,7 +40,7 @@ export function MapOrphans({
         </Text>
         <Text size="xs" c="dimmed" px={6} pb={6}>
           No link reaches {count === 1 ? 'it' : 'them'} from {displayTitle(tree.root.page)}. Link {count === 1 ? 'it' : 'them'} with
-          [[Title]] in any page on the map.
+          [[Title]] in any page of the path.
         </Text>
         <ScrollArea.Autosize mah={260}>
           {tree.orphans.map((p) => (

@@ -183,7 +183,7 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
               <Title order={2} fz={22}>
                 Page not found
               </Title>
-              <Text c="dimmed">It may have been deleted. The rest of the map is still there.</Text>
+              <Text c="dimmed">It may have been deleted. The rest of the path is still there.</Text>
               <Anchor component="button" type="button" onClick={close} fw={700} ta="left">
                 Close
               </Anchor>

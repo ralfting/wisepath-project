@@ -6,7 +6,7 @@ interface ProjectPageProps {
 }
 
 // The map loads in the browser, so the server can't name it yet
-export const metadata: Metadata = { title: 'Map | WisePath' };
+export const metadata: Metadata = { title: 'Path | WisePath' };
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
   const { projectId } = await params;

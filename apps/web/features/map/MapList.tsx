@@ -73,7 +73,7 @@ export function MapList({ header, project, selectedId, currentId, matchIds, onSe
         {header && <div>{header}</div>}
         {tree.root.children.length === 0 ? (
           <Text c="dimmed">
-            Nothing on the map yet. Select {displayTitle(tree.root.page)} and type [[ in its content to start a branch.
+            Nothing on the map yet. Select {displayTitle(tree.root.page)} and type / in its content to add a page.
           </Text>
         ) : (
           <ul className={classes.list}>{tree.root.children.filter(visible).map(row)}</ul>

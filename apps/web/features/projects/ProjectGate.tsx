@@ -29,7 +29,7 @@ export function ProjectGate({
       <Center component="main" mih="100vh" p="md">
         <Stack gap="sm" align="center" maw={420} ta="center">
           <Title order={1} fz={30}>
-            Can&apos;t open this map
+            Can&apos;t open this path
           </Title>
           <Text c="dimmed">WisePath can&apos;t be reached right now. Reload the page to try again.</Text>
         </Stack>

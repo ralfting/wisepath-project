@@ -94,7 +94,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
     createPage: (title) => void store.createPage(title),
   };
 
-  const kind = isRoot ? 'The map' : isOrphan ? 'Orphan: no link reaches this page' : page.module ? 'Module' : 'Page';
+  const kind = isRoot ? 'The path' : isOrphan ? 'Orphan: no link reaches this page' : page.module ? 'Module' : 'Page';
   const subtitle = below && below.total > 0 ? `${kind} · ${below.studied} of ${below.total} below studied` : kind;
 
   return (
@@ -117,7 +117,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail} aria-label="Path to this page">
           {isRoot ? (
             <Text size="sm" fw={600}>
-              Centre of the map
+              Centre of the path
             </Text>
           ) : isOrphan ? (
             <Text size="sm" c="dimmed">
@@ -279,7 +279,7 @@ function Settings({ project, page, store }: { project: Project; page: Page; stor
       {isRoot ? (
         <Textarea
           label="Description"
-          description="One line under the map's title."
+          description="One line under the path's title."
           autosize
           minRows={2}
           value={project.description ?? ''}

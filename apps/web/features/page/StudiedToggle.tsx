@@ -21,7 +21,7 @@ export function StudiedToggle({
 }) {
   const effect = progress
     ? `Studied pages count toward ${progress.map}'s progress: ${progress.studied} of ${progress.total} so far.`
-    : 'Studied pages count toward the map’s progress.';
+    : 'Studied pages count toward the path’s progress.';
   return (
     <Tooltip
       label={studied ? `${effect} Click to mark it as not studied yet.` : `Tick it once you've learned what this page covers. ${effect}`}

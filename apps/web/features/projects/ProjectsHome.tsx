@@ -30,15 +30,15 @@ export function ProjectsHome() {
             <Title order={1} fz={34} lts={-0.6}>
               My paths
             </Title>
-            <Text c="dimmed">Each map is a subject you are learning, page by page, connected by the links you write.</Text>
+            <Text c="dimmed">Each path is a subject you are learning, page by page, connected by the links you write.</Text>
           </Stack>
           <Button leftSection={<IconPlus size={16} />} onClick={() => setCreating(true)}>
-            New map
+            New path
           </Button>
         </Group>
 
         {projects === null ? null : projects.length === 0 ? (
-          <Text c="dimmed">No maps yet. Start one with New map.</Text>
+          <Text c="dimmed">No paths yet. Start one with New path.</Text>
         ) : (
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
             {projects.map((project) => (
@@ -82,7 +82,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
             </Menu.Target>
             <Menu.Dropdown>
               <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setDeleting(true)}>
-                Delete map
+                Delete path
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
@@ -110,7 +110,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
           variant={next ? 'filled' : 'light'}
           className={classes.action}
         >
-          {next ? 'Continue studying' : 'Open map'}
+          {next ? 'Continue studying' : 'Open path'}
         </Button>
       </Stack>
       <DeleteMapModal opened={deleting} project={project} onClose={() => setDeleting(false)} />
@@ -134,7 +134,7 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!title.trim()) return setError('Give the map a name');
+    if (!title.trim()) return setError('Give the path a name');
     setBusy(true);
     const result = await create(title);
     setBusy(false);
@@ -145,11 +145,11 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
   };
 
   return (
-    <Modal opened={opened} onClose={close} title="New map" centered radius="lg" size="md">
+    <Modal opened={opened} onClose={close} title="New path" centered radius="lg" size="md">
       <form onSubmit={submit} noValidate>
         <TextInput
           label="What are you learning?"
-          description="The map's main page takes this name. Link new pages from it with [[Title]]."
+          description="The path's main page takes this name. Add pages to it by typing / and choosing Page."
           placeholder="Rust, Linear algebra, Japanese…"
           value={title}
           onChange={(e) => {
@@ -165,7 +165,7 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
             Cancel
           </Button>
           <Button type="submit" loading={busy}>
-            Create map
+            Create path
           </Button>
         </Group>
       </form>
@@ -187,7 +187,7 @@ function DeleteMapModal({ opened, project, onClose }: { opened: boolean; project
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Delete map?" centered radius="lg" size="md">
+    <Modal opened={opened} onClose={onClose} title="Delete path?" centered radius="lg" size="md">
       <Text size="sm">
         <b>{project.title}</b> and its {project.total + 1} pages will be deleted, with what you marked as studied. This
         can&apos;t be undone.
@@ -202,7 +202,7 @@ function DeleteMapModal({ opened, project, onClose }: { opened: boolean; project
           Keep it
         </Button>
         <Button color="red" onClick={confirm} loading={busy}>
-          Delete map
+          Delete path
         </Button>
       </Group>
     </Modal>
