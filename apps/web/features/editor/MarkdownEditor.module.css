@@ -94,51 +94,96 @@
   width: 18rem;
 }
 
-/* The page's outline, above its text */
+/* The page's outline: a rail of dashes on the right edge that follows the scroll, Notion-style */
+.outlineTrack {
+  position: absolute;
+  /* Below the toolbar, which sits first in the editor */
+  top: 64px;
+  bottom: 0;
+  right: -16px;
+  width: 16px;
+  z-index: 3;
+  pointer-events: none;
+}
+
 .outline {
-  margin-bottom: var(--mantine-spacing-sm);
-  padding: 6px 10px 8px;
-  border-left: 2px solid var(--mantine-color-gray-3);
-}
-
-.outlineToggle {
+  position: sticky;
+  top: 96px;
   display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--mantine-color-dimmed);
+  justify-content: flex-end;
+  pointer-events: auto;
 }
 
-.outlineChevron {
-  transition: transform 120ms ease;
+.outlineDashes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 7px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  max-height: 60vh;
+  overflow: hidden;
+}
 
-  &[data-open] {
-    transform: rotate(90deg);
+.outlineDash {
+  display: block;
+  height: 2px;
+  width: 16px;
+  border-radius: 1px;
+  background: var(--mantine-color-gray-4);
+  transition: background 120ms ease;
+
+  &[data-level='1'] {
+    width: 11px;
   }
+
+  &[data-level='2'] {
+    width: 7px;
+  }
+
+  &[data-active] {
+    background: var(--mantine-color-blue-6);
+  }
+}
+
+.outlinePanel {
+  position: absolute;
+  top: 0;
+  right: 6px;
+  width: 15rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 8px 10px;
 }
 
 .outlineList {
   list-style: none;
-  margin: 6px 0 0;
+  margin: 0;
   padding: 0;
 }
 
 .outlineItem {
   display: block;
-  padding: 2px 0;
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--mantine-color-text);
+  width: 100%;
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--mantine-color-dimmed);
 
   &[data-level='0'] {
     font-weight: 600;
+    color: var(--mantine-color-text);
+  }
+
+  &[data-active] {
+    color: var(--mantine-color-blue-6);
   }
 
   &:hover {
-    color: var(--mantine-color-blue-6);
+    background: var(--mantine-color-gray-0);
   }
 }
 

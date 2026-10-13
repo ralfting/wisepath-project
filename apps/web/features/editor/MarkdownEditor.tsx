@@ -15,7 +15,6 @@ import { Link, RichTextEditor, getTaskListExtension } from '@mantine/tiptap';
 import { Box, Button, Group, Paper, Popover, Portal, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import {
   IconBlockquote,
-  IconChevronRight,
   IconBrackets,
   IconBrandYoutube,
   IconCode,
@@ -643,40 +642,101 @@ function sameHeadings(current: ReadonlyArray<Heading>, next: Heading[]): Readonl
   return same ? current : next;
 }
 
+/** The nearest ancestor that scrolls, or the window */
+function scrollerOf(el: HTMLElement): HTMLElement | Window {
+  for (let node = el.parentElement; node; node = node.parentElement) {
+    if (/(auto|scroll)/.test(getComputedStyle(node).overflowY)) return node;
+  }
+  return window;
+}
+
 /**
  * Outline
- * The page's headings, indented by level, above its text. A click scrolls to
- * that heading and puts the cursor at its end. Shown once there are two.
+ * The page's headings as a quiet rail on the right edge, like Notion's: one
+ * dash per heading, longer for higher levels, the one being read in blue. It
+ * stays in view while the text scrolls. Hovering (or a tap) opens the
+ * headings by name; a click scrolls to one and puts the cursor at its end.
  */
 function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray<Heading> }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const railRef = useRef<HTMLDivElement>(null);
   const top = Math.min(...headings.map((h) => h.level));
+
+  // The heading being read: the last one whose top has passed below the toolbar
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const scroller = scrollerOf(rail);
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const edge = (scroller instanceof Window ? 0 : scroller.getBoundingClientRect().top) + 80;
+      let current = 0;
+      headings.forEach((h, i) => {
+        const dom = editor.view.nodeDOM(h.pos) as HTMLElement | null;
+        if (dom && dom.getBoundingClientRect().top <= edge) current = i;
+      });
+      setActive(current);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [editor, headings]);
 
   const go = (heading: Heading) => {
     const node = editor.state.doc.nodeAt(heading.pos);
     if (!node) return;
+    setOpen(false);
     editor.chain().focus(heading.pos + node.nodeSize - 1, { scrollIntoView: false }).run();
     (editor.view.nodeDOM(heading.pos) as HTMLElement | null)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
-    <nav aria-label="Contents" className={classes.outline}>
-      <UnstyledButton onClick={() => setOpen((o) => !o)} aria-expanded={open} className={classes.outlineToggle}>
-        <IconChevronRight size={14} className={classes.outlineChevron} data-open={open || undefined} />
-        Contents
-      </UnstyledButton>
-      {open && (
-        <ul className={classes.outlineList}>
-          {headings.map((h) => (
-            <li key={h.pos} style={{ paddingLeft: (h.level - top) * 14 }}>
-              <UnstyledButton onClick={() => go(h)} className={classes.outlineItem} data-level={h.level - top}>
-                {h.text}
-              </UnstyledButton>
-            </li>
+    <div className={classes.outlineTrack} aria-hidden={false}>
+      <nav
+        ref={railRef}
+        aria-label="Contents"
+        className={classes.outline}
+        data-open={open || undefined}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setOpen(false)}
+      >
+        <button type="button" className={classes.outlineDashes} onClick={() => setOpen((o) => !o)} aria-label="Contents" aria-expanded={open}>
+          {headings.map((h, i) => (
+            <span key={h.pos} className={classes.outlineDash} data-level={Math.min(h.level - top, 2)} data-active={i === active || undefined} />
           ))}
-        </ul>
-      )}
-    </nav>
+        </button>
+        {open && (
+          <Paper withBorder shadow="md" className={classes.outlinePanel}>
+            <ul className={classes.outlineList}>
+              {headings.map((h, i) => (
+                <li key={h.pos} style={{ paddingLeft: (h.level - top) * 12 }}>
+                  <UnstyledButton
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => go(h)}
+                    className={classes.outlineItem}
+                    data-level={h.level - top}
+                    data-active={i === active || undefined}
+                    aria-current={i === active ? 'location' : undefined}
+                  >
+                    {h.text}
+                  </UnstyledButton>
+                </li>
+              ))}
+            </ul>
+          </Paper>
+        )}
+      </nav>
+    </div>
   );
 }
 
