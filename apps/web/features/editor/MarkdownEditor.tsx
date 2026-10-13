@@ -12,7 +12,9 @@ import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
 import { Markdown } from 'tiptap-markdown';
 import { Link, RichTextEditor, getTaskListExtension } from '@mantine/tiptap';
-import { Box, Button, Group, Paper, Popover, Portal, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
+import { Box, Button, Group, Paper, Popover, Portal, Stack, Text, TextInput, Transition, UnstyledButton } from '@mantine/core';
+import type { MantineTransition } from '@mantine/core';
+import { useReducedMotion } from '@mantine/hooks';
 import {
   IconBlockquote,
   IconBrackets,
@@ -650,6 +652,13 @@ function scrollerOf(el: HTMLElement): HTMLElement | Window {
   return window;
 }
 
+/** The outline's panel grows out of the rail: a short fade with a nudge from the right */
+const unfold: MantineTransition = {
+  in: { opacity: 1, transform: 'translateX(0) scale(1)' },
+  out: { opacity: 0, transform: 'translateX(6px) scale(0.98)' },
+  transitionProperty: 'opacity, transform',
+};
+
 /**
  * Outline
  * The page's headings as a quiet rail on the right edge, like Notion's: one
@@ -661,6 +670,8 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const railRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const openBefore = useRef(false);
   const top = Math.min(...headings.map((h) => h.level));
 
   // The heading being read: the last one whose top has passed below the toolbar
@@ -710,31 +721,47 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
         onFocus={() => setOpen(true)}
         onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setOpen(false)}
       >
-        <button type="button" className={classes.outlineDashes} onClick={() => setOpen((o) => !o)} aria-label="Contents" aria-expanded={open}>
+        <button
+          type="button"
+          className={classes.outlineDashes}
+          // A tap also fires mouseenter and focus, which open the panel first: toggle from how it was before the touch
+          onPointerDown={() => (openBefore.current = open)}
+          onClick={(e) => setOpen(e.detail === 0 ? (o) => !o : !openBefore.current)}
+          aria-label="Contents"
+          aria-expanded={open}
+        >
           {headings.map((h, i) => (
             <span key={h.pos} className={classes.outlineDash} data-level={Math.min(h.level - top, 2)} data-active={i === active || undefined} />
           ))}
         </button>
-        {open && (
-          <Paper withBorder shadow="md" className={classes.outlinePanel}>
-            <ul className={classes.outlineList}>
-              {headings.map((h, i) => (
-                <li key={h.pos} style={{ paddingLeft: (h.level - top) * 12 }}>
-                  <UnstyledButton
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => go(h)}
-                    className={classes.outlineItem}
-                    data-level={h.level - top}
-                    data-active={i === active || undefined}
-                    aria-current={i === active ? 'location' : undefined}
-                  >
-                    {h.text}
-                  </UnstyledButton>
-                </li>
-              ))}
-            </ul>
-          </Paper>
-        )}
+        <Transition mounted={open} transition={unfold} duration={reduceMotion ? 0 : 140} exitDuration={reduceMotion ? 0 : 90} timingFunction="ease-out">
+          {(style) => (
+            <div className={classes.outlinePop} style={style}>
+              <Paper className={classes.outlinePanel}>
+                <Text component="div" className={classes.outlineTitle} aria-hidden>
+                  On this page
+                </Text>
+                <ul className={classes.outlineList}>
+                  {headings.map((h, i) => (
+                    <li key={h.pos}>
+                      <UnstyledButton
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => go(h)}
+                        className={classes.outlineItem}
+                        data-level={Math.min(h.level - top, 2)}
+                        data-active={i === active || undefined}
+                        aria-current={i === active ? 'location' : undefined}
+                        title={h.text}
+                      >
+                        <span className={classes.outlineText}>{h.text}</span>
+                      </UnstyledButton>
+                    </li>
+                  ))}
+                </ul>
+              </Paper>
+            </div>
+          )}
+        </Transition>
       </nav>
     </div>
   );
