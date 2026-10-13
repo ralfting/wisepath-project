@@ -19,6 +19,7 @@ import {
   sampleProject,
   setLook,
   titleTaken,
+  unlinkPages,
   updatePage
 } from "../src/projects/index"
 
@@ -133,6 +134,13 @@ describe("project rules", () => {
     const authentication = renamed.pages.find((p) => p.id === "authentication")!
     assert.isTrue(authentication.content.includes("[[JSON Web Tokens]]"))
     assert.deepStrictEqual(titles(renamed, mapTree(renamed).root.children.map((c) => c.page.id)).length, 8)
+  })
+
+  it("turns links to a page into plain text, for a page about to be deleted", () => {
+    const p = project({ Root: "Start with [[Basics]] and [[basics ]].", Basics: "", Other: "Nothing here" })
+    const changed = unlinkPages(p, "Basics")
+    assert.deepStrictEqual(changed.map((page) => page.content), ["Start with Basics and Basics."])
+    assert.deepStrictEqual(unlinkPages(p, "Missing"), [])
   })
 })
 

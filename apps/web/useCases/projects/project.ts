@@ -4,7 +4,7 @@ import { useContext, useEffect, useSyncExternalStore } from "react"
 import { Cause, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
-import { PageId, ProjectId, findPageByTitle, summarize } from "@wisepath/domain/projects"
+import { PageId, ProjectId, findPageByTitle, summarize, unlinkPages } from "@wisepath/domain/projects"
 import type { LinkPreview, Page, PageColor, PageIcon, Project, ProjectSummary } from "@wisepath/domain/projects"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import { messageFor } from "../messages"
@@ -130,7 +130,17 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
       // A title that exists already opens that page instead
       return (pages.find((p) => p.id === id) ?? findPageByTitle(pages, title))!
     },
-    deletePage: (pageId) => dispatch({ _tag: "RemovePage", pageId: PageId.make(pageId) }),
+    // Links to the page become plain text first, so no page points at one that is gone
+    deletePage: (pageId) => {
+      const project = current()
+      const page = project?.pages.find((p) => p.id === pageId)
+      if (project && page) {
+        for (const p of unlinkPages(project, page.title)) {
+          if (p.id !== page.id) dispatch({ _tag: "UpdatePage", pageId: p.id, edit: { content: p.content } })
+        }
+      }
+      dispatch({ _tag: "RemovePage", pageId: PageId.make(pageId) })
+    },
     setLook: (pageId, look) => dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: look }),
     setDescription: (description) => dispatch({ _tag: "UpdateProject", edit: { description } })
   }

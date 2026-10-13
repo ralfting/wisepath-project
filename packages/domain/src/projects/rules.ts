@@ -95,16 +95,34 @@ export function deletePage(project: Project, pageId: PageId): Project {
   return { ...project, pages: project.pages.filter((p) => p.id !== pageId) };
 }
 
+/** A [[Title]] link to this page, any case, as a pattern */
+function linkPattern(title: string): RegExp {
+  return new RegExp(`\\[\\[\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\]\\]`, 'gi');
+}
+
+/**
+ * Turns [[Title]] links into plain text across the project, for a page about
+ * to be deleted: the words stay where they were written, without pointing at
+ * a page that is gone. Returns the pages whose text changed.
+ */
+export function unlinkPages(project: Project, title: string): Page[] {
+  const name = title.trim();
+  if (!name) return [];
+  return project.pages.flatMap((p) => {
+    const content = p.content.replace(linkPattern(name), name);
+    return content === p.content ? [] : [{ ...p, content }];
+  });
+}
+
 /** Rewrites [[Old]] links to [[New]] across the project after a page is renamed */
 export function renameLinks(project: Project, oldTitle: string, newTitle: string): Project {
   const from = oldTitle.trim();
   const to = newTitle.trim();
   if (!from || !to || from === to) return project;
-  const source = `\\[\\[\\s*${from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\]\\]`;
   return {
     ...project,
     pages: project.pages.map((p) => {
-      const content = p.content.replace(new RegExp(source, 'gi'), `[[${to}]]`);
+      const content = p.content.replace(linkPattern(from), `[[${to}]]`);
       return content === p.content ? p : { ...p, content };
     }),
   };
