@@ -4,15 +4,17 @@ import { Cause, Effect, Exit, Layer, ManagedRuntime, Predicate, Schema, SchemaAS
 import type { PasswordHasher } from '../../auth/application/PasswordHasher';
 import type { UserStore } from '../../auth/application/UserStore';
 import { BcryptPasswordHasher } from '../../auth/infrastructure/BcryptPasswordHasher';
-import { SqlUserStore } from '../../auth/infrastructure/SqlUserStore';
+import { DrizzleUserStore } from '../../auth/infrastructure/DrizzleUserStore';
 import type { PageFetcher } from '../../links/application/PageFetcher';
 import { SafePageFetcher } from '../../links/infrastructure/SafePageFetcher';
 import type { ProjectStore } from '../../projects/application/ProjectStore';
-import { SqlProjectStore } from '../../projects/infrastructure/SqlProjectStore';
+import { DrizzleProjectStore } from '../../projects/infrastructure/DrizzleProjectStore';
+import { DatabaseLive } from './database/Database';
 import { SqlLive } from './Sql';
 
 /** Everything the use cases need, built once for the app over one connection pool */
-const AppLive = Layer.mergeAll(SqlProjectStore, SqlUserStore, BcryptPasswordHasher, SafePageFetcher).pipe(
+const AppLive = Layer.mergeAll(DrizzleProjectStore, DrizzleUserStore, BcryptPasswordHasher, SafePageFetcher).pipe(
+  Layer.provide(DatabaseLive),
   Layer.provide(SqlLive),
 );
 

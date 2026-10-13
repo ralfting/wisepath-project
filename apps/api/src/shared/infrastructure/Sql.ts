@@ -1,10 +1,10 @@
-import { Config, Effect, Layer, Redacted, String } from 'effect';
+import { Config, Effect, Layer, Redacted } from 'effect';
 import { PgClient } from '@effect/sql-pg';
 
 /**
- * The Postgres connection pool, from DATABASE_URL (the same database Prisma
- * migrates). Queries are written in snake_case and rows come back camelCase.
- * Hosted databases that ask for TLS in the URL (sslmode=require) get it.
+ * The Postgres connection pool, from DATABASE_URL. Queries reach it through
+ * Drizzle (see database/Database.ts). Hosted databases that ask for TLS in
+ * the URL (sslmode=require) get it.
  */
 export const SqlLive = Layer.unwrap(
   Effect.gen(function* () {
@@ -15,8 +15,6 @@ export const SqlLive = Layer.unwrap(
       url,
       ssl,
       applicationName: 'wisepath-api',
-      transformQueryNames: String.camelToSnake,
-      transformResultNames: String.snakeToCamel,
     });
   }),
 );

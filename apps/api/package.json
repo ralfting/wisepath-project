@@ -29,6 +29,7 @@
     "@wisepath/domain": "workspace:^",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.7",
+    "drizzle-orm": "0.45.3",
     "effect": "4.0.3",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1"
@@ -42,6 +43,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.21",
     "@types/node": "^20.0.0",
+    "drizzle-kit": "0.31.11",
     "eslint": "9.39.5",
     "globals": "^17.13.0",
     "prisma": "^5.11.0",
