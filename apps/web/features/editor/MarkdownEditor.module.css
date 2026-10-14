@@ -280,7 +280,8 @@
 /* [[Page]] links: a tinted chip; dashed when the page does not exist yet */
 .content :global(.wikilink) {
   font-weight: 600;
-  color: var(--mantine-color-blue-6);
+  /* Dark enough to read as text (AA) on the page's white, light enough on dark */
+  color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-4));
   text-decoration: underline;
   text-decoration-color: alpha(var(--mantine-color-blue-6), 0.35);
   text-underline-offset: 0.2em;

@@ -52,6 +52,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     '--mantine-color-dimmed': '#5F6670',
     // Blue text on its light tint (the active link, light buttons): shade 9 for AA contrast
     '--mantine-color-blue-light-color': t.colors.blue[9],
+    // And teal (the Studied toggle): Mantine's teal 9 falls just short, so a step darker
+    '--mantine-color-teal-light-color': '#06704F',
   },
   dark: {},
 });
