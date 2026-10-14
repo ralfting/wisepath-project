@@ -10,7 +10,8 @@ import type { CSSVariablesResolver } from '@mantine/core';
 
 export const theme = createTheme({
   primaryColor: 'blue',
-  primaryShade: 6,
+  // Shade 8: white labels on filled buttons pass WCAG AA contrast (shade 6 gave 3.5:1)
+  primaryShade: 8,
   fontFamily: 'var(--font-sans), system-ui, sans-serif',
   fontFamilyMonospace: 'ui-monospace, SFMono-Regular, Menlo, monospace',
   headings: {
@@ -47,7 +48,10 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     '--wp-line': t.colors.gray[3],
     '--mantine-color-body': t.white,
     '--mantine-color-text': t.colors.dark[7],
-    '--mantine-color-dimmed': t.colors.gray[6],
+    // Between Mantine's gray 6 and 7: secondary text passes AA (4.5:1) on white and on the light tints behind it
+    '--mantine-color-dimmed': '#5F6670',
+    // Blue text on its light tint (the active link, light buttons): shade 9 for AA contrast
+    '--mantine-color-blue-light-color': t.colors.blue[9],
   },
   dark: {},
 });
