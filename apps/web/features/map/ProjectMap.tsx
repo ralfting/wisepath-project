@@ -21,6 +21,7 @@ import type { FocusRequest } from './MindMap';
 import { MapList } from './MapList';
 import { MapOrphans } from './MapOrphans';
 import { ContinueButton } from './ContinueButton';
+import { MapSearchResults, SEARCH_RESULTS_ID } from './MapSearchResults';
 import classes from './ProjectMap.module.css';
 
 /**
@@ -86,6 +87,14 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
     if (!q) return null;
     return new Set<string>(project.pages.filter((p) => displayTitle(p).toLowerCase().includes(q)).map((p) => p.id));
   }, [project.pages, query]);
+  // What it finds, in the map's reading order, then the pages off the map
+  const results = useMemo(
+    () => (matchIds ? [...pagesInMapOrder(project), ...mapTree(project).orphans].filter((p) => matchIds.has(p.id)) : []),
+    [project, matchIds],
+  );
+  // The result the arrow keys mark, opened by Enter; back to the first as the search changes
+  const [active, setActive] = useState(0);
+  useEffect(() => setActive(0), [query]);
 
   // The search stays folded until it is wanted: a click or ⌘K (Ctrl K) opens it
   const [searchOpen, setSearchOpen] = useState(false);
@@ -114,9 +123,15 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
         searchRef.current?.blur();
       }
     }
-    if (event.key !== 'Enter' || !matchIds || matchIds.size === 0) return;
-    const first = [...pagesInMapOrder(project), ...mapTree(project).orphans].find((p) => matchIds.has(p.id));
-    if (first) select(first.id);
+    if (results.length === 0) return;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      const to = (active + step + results.length) % results.length;
+      setActive(to);
+      document.getElementById(`${SEARCH_RESULTS_ID}-${to}`)?.scrollIntoView({ block: 'nearest' });
+    }
+    if (event.key === 'Enter') select(results[Math.min(active, results.length - 1)].id);
   };
 
   const search = searchOpen ? (
@@ -132,6 +147,10 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
       value={query}
       onChange={(e) => setQuery(e.currentTarget.value)}
       onKeyDown={onSearchKeyDown}
+      role="combobox"
+      aria-expanded={!!matchIds}
+      aria-controls={SEARCH_RESULTS_ID}
+      aria-activedescendant={matchIds && results.length > 0 ? `${SEARCH_RESULTS_ID}-${active}` : undefined}
       w={{ base: '100%', xs: 280 }}
       maw={280}
       className={classes.search}
@@ -182,6 +201,19 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
         {viewSwitch}
         {search}
       </Group>
+      {/* On the map, what the search finds is also a list to open from; the list view is that list already */}
+      {view === 'map' && searchOpen && matchIds && (
+        <MapSearchResults
+          project={project}
+          query={query}
+          results={results}
+          active={active}
+          selectedId={selectedId}
+          currentId={next?.id ?? null}
+          onActive={setActive}
+          onSelect={select}
+        />
+      )}
       <MapOrphans project={project} selectedId={selectedId} onSelect={select} />
     </Stack>
   );
