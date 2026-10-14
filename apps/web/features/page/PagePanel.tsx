@@ -68,6 +68,8 @@ interface PagePanelProps {
   back?: { page: Page; onClick: () => void };
   /** Puts the cursor in the text on open: at a position, its start or its end */
   focusEditor?: EditorFocus | null;
+  /** Puts the focus on the title on open instead */
+  focusTitle?: boolean;
   /** Follows the cursor in the text */
   onCursor?: (pos: number) => void;
 }
@@ -86,7 +88,7 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; label: string; hint
   { relation: 'linkedFrom', label: 'Linked from', hint: 'Pages that mention this one with [[ ]]', icon: IconArrowLeft },
 ];
 
-export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
+export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
@@ -208,6 +210,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
             page={page}
             actions={store}
             size={26}
+            autoFocus={focusTitle}
             onEnter={() => {
               setTab('content');
               setTextFocus((n) => n + 1);

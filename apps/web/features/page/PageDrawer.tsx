@@ -58,6 +58,19 @@ interface Trail {
   at: string | null;
 }
 
+/** What Tab stops on */
+const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex], [contenteditable=true]';
+
+/**
+ * Whether the page is being opened from the keyboard: the control that opened it (a map node, the
+ * Continue button) still has the focus, and shows it, as the browser does only for keys
+ */
+function openedByKeyboard(): boolean {
+  if (typeof document === 'undefined') return false;
+  const active = document.activeElement;
+  return !!active && active !== document.body && !active.closest('.mantine-Drawer-content') && active.matches(':focus-visible');
+}
+
 /** Matches the leave animation in PagePanel.module.css */
 const LEAVE_MS = 180;
 
@@ -126,6 +139,24 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   };
   closeRef.current = close;
 
+  // The drawer comes last in the document: Tab past its end would start the whole page over (logo,
+  // sidebar, map). It goes back to the page open on the map instead, where the drawer is a Tab away
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || event.shiftKey || event.defaultPrevented) return;
+      const drawer = (event.target as Element).closest?.('.mantine-Drawer-content');
+      if (!drawer) return;
+      const tabbable = [...drawer.querySelectorAll<HTMLElement>(TABBABLE)].filter((el) => el.tabIndex >= 0 && el.getClientRects().length > 0);
+      if (!tabbable.at(-1)?.contains(event.target as Node)) return;
+      const node = document.querySelector<HTMLElement>('[role=tree] [tabindex="0"]');
+      if (!node) return;
+      event.preventDefault();
+      node.focus();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   // The dialog is what screen readers announce, and Drawer gives it no name without a visible title
   useEffect(() => {
     const frame = requestAnimationFrame(() =>
@@ -176,11 +207,14 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
   // Opened from the map (or just made, ?new=1): at the end of the text, to add to it
   const isNew = useSearchParams().get('new') === '1';
   const fromDrawer = trail.at === pageId && !isNew;
-  const cursor = fromDrawer ? (cursors.get(pageId) ?? 'start') : 'end';
   // A page that replaces another in the open drawer, rather than the drawer's first
-  const swap = useRef<{ id: string; swapped: boolean } | null>(null);
-  if (swap.current?.id !== pageId) swap.current = { id: pageId, swapped: shown.current !== null && shown.current !== pageId };
+  const swap = useRef<{ id: string; swapped: boolean; byKeyboard: boolean } | null>(null);
+  if (swap.current?.id !== pageId) swap.current = { id: pageId, swapped: shown.current !== null && shown.current !== pageId, byKeyboard: openedByKeyboard() };
   const swapped = swap.current.swapped;
+  // Opened with the keys (from the map, say): the title takes the focus, so the page is announced and
+  // the next keys don't land in its text
+  const byKeyboard = swap.current.byKeyboard && !fromDrawer && !isNew;
+  const cursor = byKeyboard ? null : fromDrawer ? (cursors.get(pageId) ?? 'start') : 'end';
   useEffect(() => {
     shown.current = pageId;
   }, [shown, pageId]);
@@ -250,6 +284,7 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
             store={store}
             onSelect={go}
             focusEditor={cursor}
+            focusTitle={byKeyboard}
             onCursor={(pos) => cursors.set(page.id, pos)}
             back={back && { page: back, onClick: () => goBack(back.id, before.slice(0, backIndex)) }}
             onExpand={toggleExpanded}
