@@ -42,6 +42,8 @@ interface MindMapProps {
   currentId: string | null;
   /** Pages matching the search; null when not searching */
   matchIds: Set<string> | null;
+  /** The search result marked in its list (by the pointer or the arrow keys) */
+  searchActiveId?: string | null;
   focusRequest: FocusRequest | null;
   /** Width covered on the right (by the page drawer); focusing centres pages in what is left */
   coveredRight?: number;
@@ -67,6 +69,7 @@ export function MindMap({
   selectedId,
   currentId,
   matchIds,
+  searchActiveId = null,
   focusRequest,
   coveredRight = 0,
   onSelect,
@@ -205,8 +208,10 @@ export function MindMap({
   };
 
   const dimmed = (id: string) => matchIds !== null && !matchIds.has(id);
-  // A page opened from the search's results stands out from the others it found, which step back a little
-  const picked = matchIds !== null && selectedId !== null && matchIds.has(selectedId) ? selectedId : null;
+  // The result marked in the search's list (else the page opened from it) stands out from the others it found,
+  // which step back a little
+  const picked =
+    matchIds === null ? null : searchActiveId ?? (selectedId !== null && matchIds.has(selectedId) ? selectedId : null);
   const searchMark = (id: string) => ({
     'data-picked': picked === id || undefined,
     'data-receded': (picked !== null && picked !== id && !dimmed(id)) || undefined,

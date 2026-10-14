@@ -119,6 +119,22 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   useHotkeys([['mod+K', openSearch]], []);
   useWindowEvent(OPEN_SEARCH_EVENT, openSearch);
 
+  // A page opened from the search keeps the cursor in it, to go on to the next result: the drawer would take it
+  // for the page's text. Only while the page opens; a click anywhere lets go
+  const openFromSearch = (pageId: string) => {
+    const stop = () => {
+      window.removeEventListener('focusin', onFocusIn, true);
+      window.removeEventListener('pointerdown', stop, true);
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      if ((event.target as Element).closest?.('.mantine-Drawer-content')) searchRef.current?.focus();
+    };
+    window.addEventListener('focusin', onFocusIn, true);
+    window.addEventListener('pointerdown', stop, true);
+    setTimeout(stop, 1500);
+    select(pageId);
+  };
+
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       // Esc empties it, then closes it; the drawer, if open, is left alone
@@ -135,9 +151,11 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
       const step = event.key === 'ArrowDown' ? 1 : -1;
       const to = (active + step + results.length) % results.length;
       setActive(to);
+      // Brings the page it marks into view on the map
+      setFocusRequest((r) => ({ pageId: results[to].id, nonce: (r?.nonce ?? 0) + 1 }));
       document.getElementById(`${SEARCH_RESULTS_ID}-${to}`)?.scrollIntoView({ block: 'nearest' });
     }
-    if (event.key === 'Enter') select(results[Math.min(active, results.length - 1)].id);
+    if (event.key === 'Enter') openFromSearch(results[Math.min(active, results.length - 1)].id);
   };
 
   const search = searchOpen ? (
@@ -173,7 +191,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
           selectedId={selectedId}
           currentId={next?.id ?? null}
           onActive={setActive}
-          onSelect={select}
+          onSelect={openFromSearch}
         />
       )}
     </div>
@@ -264,6 +282,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
               coveredRight={selectedId ? DRAWER_WIDTH + DRAWER_GAP * 2 : 0}
               currentId={next?.id ?? null}
               matchIds={matchIds}
+              searchActiveId={searchOpen && results.length > 0 ? results[Math.min(active, results.length - 1)].id : null}
               focusRequest={focusRequest}
               onSelect={(pageId) => select(pageId)}
               onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
