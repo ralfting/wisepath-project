@@ -17,6 +17,7 @@ import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepat
 import { PageGlyph, shade } from '@/features/shared/look';
 import { layoutMind, rootShape } from './mindLayout';
 import type { PlacedNode, Point, RootShape } from './mindLayout';
+import { SelectionBeam } from './SelectionBeam';
 import classes from './MindMap.module.css';
 
 /**
@@ -322,6 +323,7 @@ export function MindMap({
                   className={classes.module}
                   style={place(n, look.color)}
                   data-status={status}
+                  data-page-id={n.page.id}
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   {...searchMark(n.page.id)}
@@ -349,6 +351,7 @@ export function MindMap({
                   className={classes.topic}
                   style={place(n, look.color)}
                   data-status={status}
+                  data-page-id={n.page.id}
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   {...searchMark(n.page.id)}
@@ -375,6 +378,7 @@ export function MindMap({
 
       {/* Top left: what the page puts here (the search) */}
       <div className={classes.topLeft}>{topLeft}</div>
+      <SelectionBeam selectedId={selectedId} />
 
       {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
       <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label="Map view">
@@ -516,6 +520,7 @@ function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, 
     <UnstyledButton
       className={classes.root}
       style={{ ...placeBox(shape, color), '--lines': shape.lines } as CSSProperties}
+      data-page-id={page.id}
       data-selected={selected || undefined}
       data-dimmed={dimmed || undefined}
       {...mark}

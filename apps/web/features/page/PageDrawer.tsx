@@ -35,6 +35,8 @@ interface DrawerControls {
   setTrail: (trail: Trail) => void;
   /** Where the cursor last was in each page's text, to put it back on return */
   cursors: Map<string, number>;
+  /** The page the drawer showed last: the route remounts the page for each one, the drawer stays */
+  shown: { current: string | null };
 }
 const DrawerContext = createContext<DrawerControls>({
   close: () => {},
@@ -43,6 +45,7 @@ const DrawerContext = createContext<DrawerControls>({
   trail: { before: [], at: null },
   setTrail: () => {},
   cursors: new Map(),
+  shown: { current: null },
 });
 
 /**
@@ -71,6 +74,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   const [expanded, setExpanded] = useState(false);
   const [trail, setTrail] = useState<Trail>({ before: [], at: null });
   const cursors = useRef(new Map<string, number>()).current;
+  const shown = useRef<string | null>(null);
   // Expanded, the drawer stops at the sidebar, so it lands exactly where the full page sits
   const [sidebarEdge, setSidebarEdge] = useState(0);
   const toggleExpanded = () => {
@@ -148,7 +152,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       style={{ '--drawer-left': `${sidebarEdge}px` } as CSSProperties}
       aria-label="Page"
     >
-      <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail, cursors }}>
+      <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail, cursors, shown }}>
         {children}
       </DrawerContext.Provider>
     </Drawer>
@@ -157,13 +161,18 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
 
 export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: string }) {
   const router = useRouter();
-  const { close, expanded, toggleExpanded, trail, setTrail, cursors } = useContext(DrawerContext);
+  const { close, expanded, toggleExpanded, trail, setTrail, cursors, shown } = useContext(DrawerContext);
   const before = trail.at === pageId ? trail.before : [];
   // Ready to write on arrival. Reached from another page in the drawer: where the cursor was last, else the start.
   // Opened from the map (or just made, ?new=1): at the end of the text, to add to it
   const isNew = useSearchParams().get('new') === '1';
   const fromDrawer = trail.at === pageId && !isNew;
   const cursor = fromDrawer ? (cursors.get(pageId) ?? 'start') : 'end';
+  // A page that replaces another in the open drawer, rather than the drawer's first
+  const [swapped] = useState(() => shown.current !== null && shown.current !== pageId);
+  useEffect(() => {
+    shown.current = pageId;
+  }, [shown, pageId]);
 
   // Moving between pages replaces the entry, so back still closes the drawer in one step
   const go = (id: string) => {
@@ -222,6 +231,8 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
           );
         }
         return (
+          // Keyed by the page: another page slides in, so the change is seen
+          <div key={page.id} className={classes.swap} data-swapped={swapped || undefined}>
           <PagePanel
             project={project}
             page={page}
@@ -234,6 +245,7 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
             onClose={close}
             flat
           />
+          </div>
         );
       }}
     </ProjectGate>
