@@ -24,7 +24,9 @@ export function MapSearchResults({
   currentId,
   onActive,
   onSelect,
+  className,
 }: {
+  className?: string;
   project: Project;
   query: string;
   results: ReadonlyArray<Page>;
@@ -43,7 +45,7 @@ export function MapSearchResults({
   };
 
   return (
-    <div className={classes.panel}>
+    <div className={`${classes.panel} ${className ?? ''}`}>
       <Text size="xs" c="dimmed" fw={600} px={10} pt={8} pb={4}>
         {results.length === 0 ? 'No page matches' : results.length === 1 ? '1 page' : `${results.length} pages`}
       </Text>

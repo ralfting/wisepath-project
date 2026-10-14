@@ -26,6 +26,23 @@
 
 
 
+/* Holds the field and, under it, what it finds */
+.searchWrap {
+  position: relative;
+  flex-shrink: 1;
+  min-width: 0;
+  width: 100%;
+  max-width: 280px;
+}
+
+.results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 2;
+}
+
 /* Inside the map: it searches the map, so it lives there; it unfolds from its icon */
 .search {
   flex-shrink: 1;
