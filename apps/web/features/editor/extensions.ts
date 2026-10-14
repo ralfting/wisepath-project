@@ -499,3 +499,62 @@ export const BlockKeys = Extension.create({
     };
   },
 });
+
+/**
+ * While the text has the focus, a bar in the left margin beside the block the
+ * cursor is in (a paragraph, a heading, a list item's line; a whole table or
+ * video), so it is plain where the keys go. It is one element beside the text,
+ * moved to the block's place, so it slides from block to block.
+ */
+export const ActiveBlockRail = Extension.create({
+  name: 'activeBlockRail',
+
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('activeBlockRail'),
+        view(view) {
+          const rail = document.createElement('div');
+          rail.className = 'wp-active-rail';
+          rail.setAttribute('aria-hidden', 'true');
+          view.dom.parentElement?.appendChild(rail);
+
+          const place = () => {
+            const { selection } = view.state;
+            if (!view.hasFocus()) return rail.removeAttribute('data-visible');
+            const { $from } = selection;
+            // A selected block, else the table the cursor is in, else the line's own block
+            let pos: number | null = selection instanceof NodeSelection ? selection.from : null;
+            for (let depth = $from.depth; pos === null && depth > 0; depth--) {
+              if ($from.node(depth).type.name === 'table') pos = $from.before(depth);
+            }
+            if (pos === null && $from.depth > 0) pos = $from.before($from.depth);
+            const block = pos === null ? null : view.nodeDOM(pos);
+            if (!(block instanceof HTMLElement)) return rail.removeAttribute('data-visible');
+            // Measured from what the bar is placed against (the nearest positioned box)
+            const host = rail.offsetParent ?? rail.parentElement;
+            if (!host) return;
+            const box = block.getBoundingClientRect();
+            const top = box.top - host.getBoundingClientRect().top + host.scrollTop;
+            rail.style.top = `${top}px`;
+            rail.style.height = `${Math.max(box.height, 18)}px`;
+            rail.setAttribute('data-visible', '');
+          };
+          const hide = () => rail.removeAttribute('data-visible');
+          view.dom.addEventListener('focus', place);
+          view.dom.addEventListener('blur', hide);
+          requestAnimationFrame(place);
+
+          return {
+            update: place,
+            destroy() {
+              view.dom.removeEventListener('focus', place);
+              view.dom.removeEventListener('blur', hide);
+              rail.remove();
+            },
+          };
+        },
+      }),
+    ];
+  },
+});
