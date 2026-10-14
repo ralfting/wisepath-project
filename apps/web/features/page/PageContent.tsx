@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Page, Project } from '@wisepath/domain/projects';
 import { titleTaken } from '@wisepath/domain/projects';
@@ -17,7 +17,9 @@ import classes from './PageContent.module.css';
 
 export interface PageActions {
   updatePage: (pageId: string, patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>) => void;
-  /** Rewrites [[Old]] links across the project after a rename */
+  /** A title starts being edited: links to the page follow it as it is typed */
+  beginRename: (pageId: string) => void;
+  /** Rewrites [[Old]] links across the project after a rename, ending it */
   renameLinks: (oldTitle: string, newTitle: string) => void;
   openPage: (pageId: string) => void;
   /** Creates the page a [[link]] already points to, and opens it */
@@ -106,7 +108,7 @@ export function PageTitleInput({
 }: {
   project: Project;
   page: Page;
-  actions: Pick<PageActions, 'updatePage' | 'renameLinks'>;
+  actions: Pick<PageActions, 'updatePage' | 'beginRename' | 'renameLinks'>;
   autoFocus?: boolean;
   size?: number;
   onEnter?: () => void;
@@ -114,6 +116,16 @@ export function PageTitleInput({
   const titleAtFocus = useRef(page.title);
   const [draft, setDraft] = useState(page.title);
   const clash = titleTaken(project, page.id, draft);
+  // Gone while still being edited (the drawer moved to another page): the rename ends as a blur would end it
+  const editing = useRef(false);
+  const latest = useRef({ title: page.title, actions });
+  latest.current = { title: page.title, actions };
+  useEffect(
+    () => () => {
+      if (editing.current) latest.current.actions.renameLinks(titleAtFocus.current, latest.current.title);
+    },
+    [],
+  );
   return (
     <TextInput
       id={`title-${page.id}`}
@@ -124,11 +136,16 @@ export function PageTitleInput({
       autoFocus={autoFocus}
       onFocus={() => {
         titleAtFocus.current = page.title;
+        editing.current = true;
+        actions.beginRename(page.id);
       }}
       onBlur={() => {
+        editing.current = false;
         if (clash) {
           setDraft(titleAtFocus.current);
           actions.updatePage(page.id, { title: titleAtFocus.current });
+          // Back to the title it had: nothing to rewrite, only the rename to end
+          actions.renameLinks(titleAtFocus.current, titleAtFocus.current);
           return;
         }
         actions.renameLinks(titleAtFocus.current, page.title);

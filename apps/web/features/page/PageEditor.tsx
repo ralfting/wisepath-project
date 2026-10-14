@@ -130,6 +130,7 @@ export function PageSheet({
 
   const actions: PageActions = {
     updatePage: store.updatePage,
+    beginRename: store.beginRename,
     renameLinks: store.renameLinks,
     openPage: onOpenPage,
     createLinkedPage: (title) => onOpenPage(store.createPage(title).id),

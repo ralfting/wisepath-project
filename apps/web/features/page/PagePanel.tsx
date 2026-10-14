@@ -103,6 +103,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
 
   const pageActions: PageActions = {
     updatePage: store.updatePage,
+    beginRename: store.beginRename,
     renameLinks: store.renameLinks,
     openPage: onSelect,
     createLinkedPage: (title) => onSelect(store.createPage(title).id),

@@ -1,10 +1,10 @@
 "use client"
 
-import { useContext, useEffect, useSyncExternalStore } from "react"
+import { useContext, useEffect, useMemo, useSyncExternalStore } from "react"
 import { Cause, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
-import { PageId, ProjectId, findPageByTitle, summarize, unlinkPages } from "@wisepath/domain/projects"
+import { PageId, ProjectId, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/projects"
 import type { LinkPreview, Page, PageColor, PageIcon, Project, ProjectSummary } from "@wisepath/domain/projects"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import { messageFor } from "../messages"
@@ -54,6 +54,23 @@ const createProjectAtom = appRuntime.fn(programs.createProject, { reactivityKeys
 const removeProjectAtom = appRuntime.fn(programs.removeProject, { reactivityKeys: [ReactivityKeys.projects] })
 const linkPreviewAtom = Atom.family((url: string) => appRuntime.atom(programs.previewLink(url)))
 
+/**
+ * A title being edited: the page's title changes with every key, but its
+ * [[links]] are rewritten once, when editing ends. Until then the map shows
+ * them as already renamed, so the page doesn't look cut off (an orphan)
+ */
+interface Renaming {
+  readonly pageId: PageId
+  readonly from: string
+}
+const renamingAtom = Atom.family((_: ProjectId) => Atom.keepAlive(Atom.make<Renaming | null>(null)))
+
+/** The map as it will be once the title being edited is done: its old [[links]] point at the new one */
+const withRename = (project: Project, renaming: Renaming | null): Project => {
+  const page = renaming && project.pages.find((p) => p.id === renaming.pageId)
+  return page ? renameLinks(project, renaming.from, page.title) : project
+}
+
 /** Nothing to show yet while the session's atom is still loading */
 const loadingState: Atom.Atom<{ readonly project: Project | null } & Omit<SyncState, "project">> = Atom.make({
   project: null,
@@ -72,7 +89,9 @@ const useHydrated = () => useSyncExternalStore(noSubscription, () => true, () =>
 export interface ProjectActions {
   /** Edits a page; a title another page has is ignored, so check titleTaken first */
   updatePage: (pageId: string, patch: Partial<Pick<Page, "title" | "content" | "studied">>) => void
-  /** After a page was renamed to newTitle: rewrites the [[oldTitle]] links across the map */
+  /** A page's title starts being edited: its links show the new title as it is typed */
+  beginRename: (pageId: string) => void
+  /** After a page was renamed to newTitle: rewrites the [[oldTitle]] links across the map, ending the rename */
   renameLinks: (oldTitle: string, newTitle: string) => void
   /** Creates the page a [[link]] points to; the link connects it */
   createPage: (title: string) => Page
@@ -105,6 +124,8 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
   const session = useAtomValue(sessionAtom(id))
   const ready = hydrated && AsyncResult.isSuccess(session) ? session.value : null
   const sync = useAtomValue(ready ? stateAtomOf(ready) : loadingState)
+  const renaming = useAtomValue(renamingAtom(id))
+  const project = useMemo(() => sync.project && withRename(sync.project, renaming), [sync.project, renaming])
 
   // Count this map as open, so the list of maps reflects its edits
   useEffect(() => {
@@ -118,7 +139,12 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
 
   const actions: ProjectActions = {
     updatePage: (pageId, patch) => dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: patch }),
+    beginRename: (pageId) => {
+      const page = current()?.pages.find((p) => p.id === pageId)
+      if (page) registry.set(renamingAtom(id), { pageId: page.id, from: page.title })
+    },
     renameLinks: (oldTitle, newTitle) => {
+      registry.set(renamingAtom(id), null)
       const page = findPageByTitle(current()?.pages ?? [], newTitle)
       if (!page || oldTitle.trim() === newTitle.trim()) return
       dispatch({ _tag: "UpdatePage", pageId: page.id, edit: { title: page.title, previousTitle: oldTitle } })
@@ -147,7 +173,7 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
 
   let state: ProjectState
   if (!hydrated) state = { status: "loading" }
-  else if (sync.project) state = { status: "ready", project: sync.project }
+  else if (project) state = { status: "ready", project }
   else
     state = AsyncResult.match(session, {
       onInitial: (): ProjectState => ({ status: "loading" }),
