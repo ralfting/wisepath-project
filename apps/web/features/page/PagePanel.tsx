@@ -61,8 +61,6 @@ interface PagePanelProps {
   onSelect: (pageId: string) => void;
   /** Grows the drawer into the full page, in place */
   onExpand?: () => void;
-  /** What the expand button says it does */
-  expandLabel?: string;
   onClose?: () => void;
   /** Without the card frame, inside the drawer */
   flat?: boolean;
@@ -88,7 +86,7 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; label: string; hint
   { relation: 'linkedFrom', label: 'Linked from', hint: 'Pages that mention this one with [[ ]]', icon: IconArrowLeft },
 ];
 
-export function PagePanel({ project, page, store, onSelect, onExpand, expandLabel = 'Open as a full page', onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
+export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
@@ -155,7 +153,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, expandLabe
         </Group>
         <Group gap={2} wrap="nowrap">
           {onExpand && (
-            <Tooltip label={expandLabel}>
+            <Tooltip label="Open as a full page">
               <ActionIcon variant="subtle" color="gray" onClick={onExpand} aria-label="Expand">
                 <IconArrowsDiagonal size={17} />
               </ActionIcon>

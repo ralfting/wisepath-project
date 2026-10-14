@@ -1,6 +1,5 @@
 /* Hangs under the search, as wide as it */
 .panel {
-  max-height: var(--panel-max, none);
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
   background: var(--mantine-color-body);
@@ -36,44 +35,4 @@
   flex-direction: column;
   min-width: 0;
   line-height: 1.25;
-}
-
-/* A page opened from the results: as tall as the map allows, the page itself scrolling */
-.pagePanel {
-  display: flex;
-  flex-direction: column;
-  height: var(--panel-max, 520px);
-  animation: page-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-}
-
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateX(12px);
-  }
-}
-
-.back {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--wp-line);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mantine-color-blue-7);
-
-  &:hover {
-    background: var(--mantine-color-default-hover);
-  }
-}
-
-.pageBody {
-  flex: 1;
-  min-height: 0;
 }
