@@ -43,6 +43,10 @@ export const projects = pgTable(
     ownerId: text('owner_id').notNull(),
     title: text().notNull(),
     description: text(),
+    /** 'study' (open notes, no progress) or 'learningPath' (followed to the end, with progress) */
+    kind: text({ enum: ['study', 'learningPath'] })
+      .notNull()
+      .default('study'),
     rootPageId: text('root_page_id').notNull(),
     createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
       .notNull()

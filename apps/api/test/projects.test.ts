@@ -70,7 +70,8 @@ describe('projects API', () => {
       const again = yield* client.projects.list();
       assert.strictEqual(first.length, 1);
       assert.deepStrictEqual(again, first);
-      assert.deepStrictEqual([first[0].title, first[0].total, first[0].next?.title], ['NestJS', 41, 'Modules']);
+      // A study: no next page to continue to
+      assert.deepStrictEqual([first[0].title, first[0].kind, first[0].total, first[0].next], ['NestJS', 'study', 41, null]);
       // Deleting it does not bring it back
       yield* client.projects.remove({ params: { projectId: first[0].id } });
       assert.strictEqual((yield* client.projects.list()).length, 0);
@@ -88,7 +89,14 @@ describe('projects API', () => {
       assert.deepStrictEqual(retried, made);
       yield* client.projects.update({ params: { projectId: id }, payload: { description: 'Ownership first' } });
       const got = yield* client.projects.get({ params: { projectId: id } });
-      assert.deepStrictEqual([got.title, got.description, got.pages.length], ['Rust', 'Ownership first', 1]);
+      assert.deepStrictEqual([got.title, got.description, got.kind, got.pages.length], ['Rust', 'Ownership first', 'study', 1]);
+      // Turned into a learning path, and made as one
+      yield* client.projects.update({ params: { projectId: id }, payload: { kind: 'learningPath' } });
+      assert.strictEqual((yield* client.projects.get({ params: { projectId: id } })).kind, 'learningPath');
+      const courseId = pid();
+      const course = yield* client.projects.create({ payload: { id: courseId, rootPageId: pgid(), title: 'Go', kind: 'learningPath' } });
+      assert.strictEqual(course.kind, 'learningPath');
+      yield* client.projects.remove({ params: { projectId: courseId } });
       yield* client.projects.remove({ params: { projectId: id } });
       const gone = yield* Effect.flip(client.projects.get({ params: { projectId: id } }));
       assert.strictEqual(gone._tag, 'ProjectNotFound');

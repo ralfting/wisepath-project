@@ -20,6 +20,7 @@ const toDomain = (row: ProjectRow) =>
     id: row.id,
     title: row.title,
     ...(row.description !== null ? { description: row.description } : {}),
+    kind: row.kind,
     rootPageId: row.rootPageId,
     pages: row.pages.map((page) => ({
       id: page.id,
@@ -113,6 +114,7 @@ export const DrizzleProjectStore = Layer.effect(
                 ownerId,
                 title: project.title,
                 description: project.description ?? null,
+                kind: project.kind,
                 rootPageId: project.rootPageId,
               })
               .onConflictDoNothing()
@@ -129,11 +131,11 @@ export const DrizzleProjectStore = Layer.effect(
     const save = Effect.fn('ProjectStore.save')(function* (before: Project, after: Project) {
       yield* transaction(
         Effect.gen(function* () {
-          if (before.title !== after.title || before.description !== after.description) {
+          if (before.title !== after.title || before.description !== after.description || before.kind !== after.kind) {
             yield* run(
               db
                 .update(projects)
-                .set({ title: after.title, description: after.description ?? null })
+                .set({ title: after.title, description: after.description ?? null, kind: after.kind })
                 .where(eq(projects.id, after.id)),
             );
           }
