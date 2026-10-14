@@ -273,6 +273,24 @@ export function MindMap({
     document.querySelector<HTMLElement>(`[data-page-id="${to}"]`)?.focus({ preventScroll: true });
     frameOn(to);
   };
+  // Closing the drawer takes the focus with it: give it back to the page that was open, so the keyboard goes on
+  // from there instead of from the top of the window
+  const lastOpen = useRef<string | null>(null);
+  useEffect(() => {
+    if (selectedId) {
+      lastOpen.current = selectedId;
+      return;
+    }
+    const was = lastOpen.current;
+    if (!was) return;
+    const timer = setTimeout(() => {
+      const focus = document.activeElement;
+      if (focus && focus !== document.body) return;
+      setRovingId(was);
+      document.querySelector<HTMLElement>(`[data-page-id="${was}"]`)?.focus({ preventScroll: true });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [selectedId]);
   const treeItem = (id: string, level: number, expanded: boolean) => ({
     role: 'treeitem',
     'aria-level': level,
