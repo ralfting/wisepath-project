@@ -1,16 +1,17 @@
 'use client';
 
-import { RingProgress, Text, Tooltip, UnstyledButton, VisuallyHidden } from '@mantine/core';
-import { IconChevronRight } from '@tabler/icons-react';
+import { Button, Group, RingProgress, Text, Tooltip } from '@mantine/core';
+import { IconArrowRight, IconCircleCheckFilled } from '@tabler/icons-react';
 import type { Page } from '@wisepath/domain/projects';
 import { displayTitle } from '@wisepath/domain/projects';
 import classes from './ContinueButton.module.css';
 
 /**
  * ContinueButton
- * Where the learner stands and where they go next, in one control: a ring
- * with how much of the map is studied, then "Continue studying" and the name
- * of the page it opens. Once every page is studied it says so and rests.
+ * Where the learner stands and the way on, side by side: a small ring with
+ * how many pages are studied, then a plain button that opens the next one
+ * (named in its tooltip). Once every page is studied the ring closes into a
+ * check and the button goes: nothing is left to continue.
  */
 export function ContinueButton({
   next,
@@ -23,49 +24,43 @@ export function ContinueButton({
   studied: number;
   total: number;
   onContinue: () => void;
-  /** Ring and arrow only, for a phone */
+  /** The count without "pages", for a phone */
   compact?: boolean;
 }) {
   const percent = total ? Math.round((studied / total) * 100) : 0;
   const done = total > 0 && !next;
-  const title = done ? 'All pages studied' : !total ? 'No pages yet' : studied === 0 ? 'Start studying' : 'Continue studying';
-  const detail = next ? `Next: ${displayTitle(next)}` : done ? 'Every page on the map' : 'Link pages from the centre';
   const summary = `${studied} of ${total} pages studied`;
+  const count = compact ? `${studied}/${total}` : `${studied}/${total} pages`;
+  // A path with no pages yet has nothing to count or continue
+  if (total === 0) return null;
 
   return (
-    <Tooltip label={next ? `${summary}. Opens ${displayTitle(next)}.` : summary} withArrow>
-      <UnstyledButton
-        className={classes.button}
-        data-done={done || undefined}
-        data-compact={compact || undefined}
-        disabled={!next}
-        onClick={onContinue}
-        aria-label={next ? `${title}: ${displayTitle(next)}. ${summary}.` : `${title}. ${summary}.`}
-      >
-        <RingProgress
-          size={compact ? 30 : 42}
-          thickness={compact ? 3 : 3}
-          roundCaps
-          rootColor="rgba(255, 255, 255, 0.28)"
-          sections={[{ value: percent, color: done ? 'white' : 'teal.2' }]}
-          label={
-            compact ? null : (
-              <Text ta="center" fz={10.5} fw={700} c="white" lh={1} lts={-0.2}>
-                {percent}%
-              </Text>
-            )
-          }
-          aria-hidden
-        />
-        {!compact && (
-          <span className={classes.text}>
-            <span className={classes.title}>{title}</span>
-            <span className={classes.detail}>{detail}</span>
-          </span>
-        )}
-        {next && <IconChevronRight size={16} className={classes.arrow} aria-hidden="true" />}
-        <VisuallyHidden>{summary}</VisuallyHidden>
-      </UnstyledButton>
-    </Tooltip>
+    <Group gap={compact ? 8 : 12} wrap="nowrap" className={classes.root}>
+      <Tooltip label={done ? `All ${total} pages studied` : summary} withArrow>
+        <span className={classes.progress} data-done={done || undefined} aria-label={summary} role="img">
+          {done ? (
+            <IconCircleCheckFilled size={18} color="var(--mantine-color-teal-6)" aria-hidden />
+          ) : (
+            <RingProgress size={22} thickness={3} roundCaps sections={[{ value: percent, color: 'teal.6' }]} aria-hidden />
+          )}
+          <Text component="span" size="sm" fw={600} className={classes.count} aria-hidden>
+            {count}
+          </Text>
+        </span>
+      </Tooltip>
+      {next && (
+        <Tooltip label={`Opens ${displayTitle(next)}`} withArrow>
+          <Button
+            size={compact ? 'xs' : 'sm'}
+            radius="md"
+            rightSection={<IconArrowRight size={16} />}
+            onClick={onContinue}
+            aria-label={`${studied === 0 ? 'Start' : 'Continue'}: ${displayTitle(next)}`}
+          >
+            {studied === 0 ? 'Start' : 'Continue'}
+          </Button>
+        </Tooltip>
+      )}
+    </Group>
   );
 }

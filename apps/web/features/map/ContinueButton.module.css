@@ -1,68 +1,20 @@
-/* The primary action, carrying the map's progress */
-.button {
+/* Progress, then the way on: quiet status beside a plain button */
+.root {
   flex-shrink: 0;
+}
+
+.progress {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 44px;
-  max-width: 300px;
-  padding: 0 12px 0 1px;
-  border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-blue-filled);
-  color: var(--mantine-color-white);
-  box-shadow: 0 6px 14px -8px alpha(var(--mantine-color-blue-6), 0.8);
-  transition:
-    background-color 150ms ease,
-    transform 150ms ease;
-
-  &:hover:not(:disabled) {
-    background: var(--mantine-color-blue-filled-hover);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(1px);
-  }
-
-  &:disabled {
-    cursor: default;
-    box-shadow: none;
-    background: var(--mantine-color-gray-5);
-  }
+  gap: 6px;
+  color: var(--mantine-color-dimmed);
+  white-space: nowrap;
 
   &[data-done] {
-    background: var(--mantine-color-teal-6);
-  }
-
-  &[data-compact] {
-    height: 38px;
-    padding: 0 8px 0 4px;
-    gap: 4px;
+    color: var(--mantine-color-teal-7);
   }
 }
 
-.text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.2;
-  text-align: left;
-}
-
-.title {
-  font-size: 14px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.detail {
-  font-size: 12px;
-  opacity: 0.85;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.arrow {
-  flex-shrink: 0;
-  opacity: 0.85;
+.count {
+  font-variant-numeric: tabular-nums;
 }
