@@ -10,6 +10,8 @@ import Table from '@tiptap/extension-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableHeader from '@tiptap/extension-table-header';
 import TableCell from '@tiptap/extension-table-cell';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import { common, createLowlight } from 'lowlight';
 import { Markdown } from 'tiptap-markdown';
 import { Link, RichTextEditor, getTaskListExtension } from '@mantine/tiptap';
 import { Box, Button, Group, Paper, Popover, Portal, Stack, Text, TextInput, Transition, UnstyledButton } from '@mantine/core';
@@ -43,6 +45,13 @@ import { LinkPreview } from './LinkPreview';
 import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
+
+/**
+ * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,
+ * shell, Python and so on). A block's language comes from its markdown fence (```ts); a block without one
+ * is guessed. Mantine's editor styles colour the tokens, in light and dark
+ */
+const lowlight = createLowlight(common);
 
 /**
  * MarkdownEditor
@@ -153,7 +162,9 @@ export function MarkdownEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      // The code block comes from CodeBlockLowlight instead, for syntax colours
+      StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false }),
+      CodeBlockLowlight.configure({ lowlight }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
       Placeholder.configure({
         placeholder: 'Write here, or type / for commands',
