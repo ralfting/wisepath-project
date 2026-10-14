@@ -456,7 +456,8 @@
   margin: 0 1px;
   border-radius: var(--mantine-radius-sm);
   background: var(--mantine-primary-color-light);
-  color: var(--mantine-primary-color-light-color);
+  /* Lighter in dark: the theme's light-colour text falls short of AA on its tint, more so on the playing note's */
+  color: light-dark(var(--mantine-primary-color-light-color), var(--mantine-color-blue-2));
   font-size: 0.9em;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
