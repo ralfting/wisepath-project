@@ -1,8 +1,8 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import { Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
 import { useHotkeys, useMediaQuery, useWindowEvent } from '@mantine/hooks';
 import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
@@ -10,7 +10,7 @@ import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { SaveStatus } from '@/features/projects/SaveStatus';
-import type { SaveState } from '@/useCases/projects';
+import type { ProjectActions, SaveState } from '@/useCases/projects';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
@@ -22,6 +22,7 @@ import { MapList } from './MapList';
 import { MapOrphans } from './MapOrphans';
 import { ContinueButton } from './ContinueButton';
 import { MapSearchResults, SEARCH_RESULTS_ID } from './MapSearchResults';
+import { MapSearchPage } from './MapSearchPage';
 import classes from './ProjectMap.module.css';
 
 /**
@@ -35,14 +36,16 @@ import classes from './ProjectMap.module.css';
 type View = 'map' | 'list';
 
 export function ProjectMap({ projectId }: { projectId: string }) {
-  return <ProjectGate projectId={projectId}>{(project, _actions, save) => <MapView project={project} save={save} />}</ProjectGate>;
+  return <ProjectGate projectId={projectId}>{(project, actions, save) => <MapView project={project} store={actions} save={save} />}</ProjectGate>;
 }
 
-function MapView({ project, save }: { project: Project; save: SaveState }) {
+function MapView({ project, store, save }: { project: Project; store: ProjectActions; save: SaveState }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchRef = useRef<HTMLInputElement>(null);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   // A phone opens the outline: the drawing needs room to read; the map renders only in the browser, so the width is known
   const [view, setView] = useState<View>(() =>
@@ -100,7 +103,18 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   );
   // The result the arrow keys mark, opened by Enter; back to the first as the search changes
   const [active, setActive] = useState(0);
-  useEffect(() => setActive(0), [query]);
+  // A result opened in the search's panel, in place of the list, as a map app opens a place; typing goes back to the list
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detail = detailId ? project.pages.find((p) => p.id === detailId) : undefined;
+  useEffect(() => {
+    setActive(0);
+    setDetailId(null);
+  }, [query]);
+  const focusOn = (pageId: string) => setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1 }));
+  const showDetail = (pageId: string) => {
+    setDetailId(pageId);
+    focusOn(pageId);
+  };
 
   // The search stays folded until it is wanted: a click or ⌘K (Ctrl K) opens it
   const [searchOpen, setSearchOpen] = useState(false);
@@ -119,27 +133,16 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   useHotkeys([['mod+K', openSearch]], []);
   useWindowEvent(OPEN_SEARCH_EVENT, openSearch);
 
-  // A page opened from the search keeps the cursor in it, to go on to the next result: the drawer would take it
-  // for the page's text. Only while the page opens; a click anywhere lets go
-  const openFromSearch = (pageId: string) => {
-    const stop = () => {
-      window.removeEventListener('focusin', onFocusIn, true);
-      window.removeEventListener('pointerdown', stop, true);
-    };
-    const onFocusIn = (event: FocusEvent) => {
-      if ((event.target as Element).closest?.('.mantine-Drawer-content')) searchRef.current?.focus();
-    };
-    window.addEventListener('focusin', onFocusIn, true);
-    window.addEventListener('pointerdown', stop, true);
-    setTimeout(stop, 1500);
-    select(pageId);
-  };
-
   const onSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       // Esc empties it, then closes it; the drawer, if open, is left alone
       event.stopPropagation();
-      if (query) setQuery('');
+      if (detailId) {
+        // A search field empties itself on Esc; here Esc only goes back to the list
+        event.preventDefault();
+        setDetailId(null);
+      }
+      else if (query) setQuery('');
       else {
         setSearchOpen(false);
         searchRef.current?.blur();
@@ -151,16 +154,36 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
       const step = event.key === 'ArrowDown' ? 1 : -1;
       const to = (active + step + results.length) % results.length;
       setActive(to);
-      // Brings the page it marks into view on the map
-      setFocusRequest((r) => ({ pageId: results[to].id, nonce: (r?.nonce ?? 0) + 1 }));
+      // Brings the page it marks into view on the map; with a result open, the next one opens in its place
+      if (detailId) setDetailId(results[to].id);
+      focusOn(results[to].id);
       document.getElementById(`${SEARCH_RESULTS_ID}-${to}`)?.scrollIntoView({ block: 'nearest' });
     }
-    if (event.key === 'Enter') openFromSearch(results[Math.min(active, results.length - 1)].id);
+    if (event.key === 'Enter' && !detailId) showDetail(results[Math.min(active, results.length - 1)].id);
   };
+
+  // The search's panel reaches down toward the map's bottom edge, and the map keeps what it shows clear of it
+  const [panelMax, setPanelMax] = useState(520);
+  const [panelRight, setPanelRight] = useState(0);
+  const measurePanel = useCallback(() => {
+    const wrap = searchWrapRef.current?.getBoundingClientRect();
+    const canvas = canvasRef.current?.getBoundingClientRect();
+    if (!wrap || !canvas) return;
+    // Stops above the zoom controls in the map's bottom corner
+    setPanelMax(Math.max(240, canvas.bottom - wrap.bottom - 70));
+    setPanelRight(wrap.right - canvas.left);
+  }, []);
+  useLayoutEffect(measurePanel, [measurePanel, searchOpen, matchIds !== null, view]);
+  useWindowEvent('resize', measurePanel);
 
   const search = searchOpen ? (
     // The results hang from the field, lined up with its left edge
-    <div className={classes.searchWrap}>
+    <div
+      ref={searchWrapRef}
+      className={classes.searchWrap}
+      data-expanded={(view === 'map' && !!matchIds) || undefined}
+      style={{ '--panel-max': `${panelMax}px` } as CSSProperties}
+    >
       <TextInput
         ref={searchRef}
         onBlur={() => !query && setSearchOpen(false)}
@@ -181,7 +204,26 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
         radius="md"
       />
       {/* On the map, what the search finds is also a list to open from; the list view is that list already */}
-      {view === 'map' && matchIds && (
+      {view === 'map' && matchIds && detail && (
+        <MapSearchPage
+          className={classes.results}
+          project={project}
+          page={detail}
+          store={store}
+          resultCount={results.length}
+          onBack={() => {
+            setDetailId(null);
+            searchRef.current?.focus();
+          }}
+          onSelect={showDetail}
+          onOpenInDrawer={() => {
+            select(detail.id);
+            setQuery('');
+            setSearchOpen(false);
+          }}
+        />
+      )}
+      {view === 'map' && matchIds && !detail && (
         <MapSearchResults
           className={classes.results}
           project={project}
@@ -191,7 +233,10 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
           selectedId={selectedId}
           currentId={next?.id ?? null}
           onActive={setActive}
-          onSelect={openFromSearch}
+          onSelect={(pageId) => {
+            setActive(results.findIndex((p) => p.id === pageId));
+            showDetail(pageId);
+          }}
         />
       )}
     </div>
@@ -274,7 +319,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   return (
     <AppFrame header={header}>
       <div className={classes.page}>
-        <div className={classes.canvas}>
+        <div className={classes.canvas} ref={canvasRef}>
           {view === 'map' ? (
             <MindMap
               project={project}
@@ -282,7 +327,8 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
               coveredRight={selectedId ? DRAWER_WIDTH + DRAWER_GAP * 2 : 0}
               currentId={next?.id ?? null}
               matchIds={matchIds}
-              searchActiveId={searchOpen && results.length > 0 ? results[Math.min(active, results.length - 1)].id : null}
+              searchActiveId={detailId ?? (searchOpen && results.length > 0 ? results[Math.min(active, results.length - 1)].id : null)}
+              coveredLeft={view === 'map' && matchIds ? panelRight : 0}
               focusRequest={focusRequest}
               onSelect={(pageId) => select(pageId)}
               onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}

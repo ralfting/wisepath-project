@@ -50,7 +50,7 @@ export function MapSearchResults({
         {results.length === 0 ? 'No page matches' : results.length === 1 ? '1 page' : `${results.length} pages`}
       </Text>
       {results.length > 0 && (
-        <ScrollArea.Autosize mah={300} type="auto">
+        <ScrollArea.Autosize mah="calc(var(--panel-max, 340px) - 36px)" type="auto">
           <div id={SEARCH_RESULTS_ID} role="listbox" aria-label="Pages found" className={classes.list}>
             {results.map((page, i) => (
               <UnstyledButton

@@ -47,6 +47,8 @@ interface MindMapProps {
   focusRequest: FocusRequest | null;
   /** Width covered on the right (by the page drawer); focusing centres pages in what is left */
   coveredRight?: number;
+  /** Width the search's panel covers on the left */
+  coveredLeft?: number;
   onSelect: (pageId: string) => void;
   /** The pointer or focus rests on a page: a good moment to load it ahead of the click */
   onIntent?: (pageId: string) => void;
@@ -72,6 +74,7 @@ export function MindMap({
   searchActiveId = null,
   focusRequest,
   coveredRight = 0,
+  coveredLeft = 0,
   onSelect,
   onIntent,
   topLeft,
@@ -141,7 +144,9 @@ export function MindMap({
     // The part of the viewport the drawer leaves visible
     const frameRight = viewportRef.current?.getBoundingClientRect().right ?? 0;
     const covered = Math.max(0, Math.min(coveredRight - (window.innerWidth - frameRight), size.w - 200));
-    const visibleW = size.w - covered;
+    // And the part the search's panel leaves on the left
+    const left = Math.max(0, Math.min(coveredLeft, size.w - covered - 200));
+    const visibleW = size.w - covered - left;
     // The page and the pages branching from it, so opening a page shows where it leads
     const branch = [c, ...(tree.nodes.get(focusRequest.pageId as Page['id'])?.children ?? [])
       .map((child) => layout.centres.get(child.page.id))
@@ -154,7 +159,7 @@ export function MindMap({
     };
     smoothly((v) => {
       const margin = 40;
-      const inView = (x: number, y: number) => x > margin && x < visibleW - margin && y > margin && y < size.h - margin;
+      const inView = (x: number, y: number) => x > left + margin && x < left + visibleW - margin && y > margin && y < size.h - margin;
       if (inView(v.x + box.minX * v.k, v.y + box.minY * v.k) && inView(v.x + box.maxX * v.k, v.y + box.maxY * v.k)) return v;
       // The whole branch beside the drawer, zooming out for it down to half size; past that, the page itself
       const fitK = Math.min((visibleW - 2 * margin) / (box.maxX - box.minX), (size.h - 2 * margin) / (box.maxY - box.minY));
@@ -162,7 +167,7 @@ export function MindMap({
       const fits = fitK >= MIN_FRAME_ZOOM;
       const cx = fits ? (box.minX + box.maxX) / 2 : c.x;
       const cy = fits ? (box.minY + box.maxY) / 2 : c.y;
-      return { k, x: visibleW / 2 - cx * k, y: size.h / 2 - cy * k };
+      return { k, x: left + visibleW / 2 - cx * k, y: size.h / 2 - cy * k };
     });
     // Runs again once the size is known, so a page opened from the URL is brought into view
     // eslint-disable-next-line react-hooks/exhaustive-deps
