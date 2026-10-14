@@ -55,5 +55,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     // And teal (the Studied toggle): Mantine's teal 9 falls just short, so a step darker
     '--mantine-color-teal-light-color': '#06704F',
   },
-  dark: {},
+  dark: {
+    // Mantine's dark 2 (#828282) falls short on the drawer's ground (#2E2E2E); this passes AA on it and on the body
+    '--mantine-color-dimmed': '#9A9A9A',
+  },
 });
