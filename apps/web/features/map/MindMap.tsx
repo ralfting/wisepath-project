@@ -62,6 +62,8 @@ interface View {
 
 const MIN_ZOOM = 0.3;
 const MAX_ZOOM = 2.2;
+/** The least zoom at which a page's 13px title still reads at 11px on screen: the map opens no smaller */
+const READABLE_ZOOM = 0.85;
 const clampZoom = (k: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
 
 export function MindMap({
@@ -92,7 +94,7 @@ export function MindMap({
       const pad = 48;
       const whole = Math.min((w - pad) / (maxX - minX), (h - pad) / (maxY - minY), 1);
       // On a phone the whole map would be unreadable: start readable, around the root
-      if (w < 640 && whole < 0.7) return { k: 0.7, x: w / 2, y: h / 2 };
+      if (w < 640 && whole < READABLE_ZOOM) return { k: READABLE_ZOOM, x: w / 2, y: h / 2 };
       const k = clampZoom(Math.max(whole, Math.min(floor, 1)));
       return { k, x: w / 2 - k * ((minX + maxX) / 2), y: h / 2 - k * ((minY + maxY) / 2) };
     },
@@ -107,7 +109,7 @@ export function MindMap({
     const measure = (w: number, h: number) => {
       if (!w || !h) return;
       setSize({ w, h });
-      setView((v) => v ?? fit(w, h, 0.62));
+      setView((v) => v ?? fit(w, h, READABLE_ZOOM));
     };
     const rect = el.getBoundingClientRect();
     measure(rect.width, rect.height);
