@@ -19,10 +19,27 @@
 
   & :global(.ProseMirror) {
     min-height: 14rem;
+    /* Room for the writing tint's edge below the toolbar */
+    margin-top: 12px;
     padding-inline: 0;
     font-size: 15px;
     line-height: 1.65;
     caret-color: var(--mantine-color-blue-6);
+    border-radius: var(--mantine-radius-sm);
+    transition:
+      background-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  /* While writing, a faint tint with a soft edge says where the keys go. The
+     shadow spreads the tint past the text and the outline draws the edge round
+     it, so nothing moves */
+  & :global(.ProseMirror-focused) {
+    --editing-tint: color-mix(in srgb, var(--mantine-color-blue-6) 5%, transparent);
+    background: var(--editing-tint);
+    box-shadow: 0 0 0 10px var(--editing-tint);
+    outline: 1px solid color-mix(in srgb, var(--mantine-color-blue-6) 30%, transparent);
+    outline-offset: 10px;
   }
 }
 
