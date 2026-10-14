@@ -3,14 +3,15 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Box, Center, Group, Kbd, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
+import { ActionIcon, Box, Center, Group, Kbd, Menu, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
 import { useHotkeys, useMediaQuery, useWindowEvent } from '@mantine/hooks';
-import { IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
+import { IconDots, IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { SaveStatus } from '@/features/projects/SaveStatus';
-import type { SaveState } from '@/useCases/projects';
+import type { ProjectActions, SaveState } from '@/useCases/projects';
+import { KindSwitchItem } from '@/features/projects/ProjectKind';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
@@ -35,10 +36,10 @@ import classes from './ProjectMap.module.css';
 type View = 'map' | 'list';
 
 export function ProjectMap({ projectId }: { projectId: string }) {
-  return <ProjectGate projectId={projectId}>{(project, _actions, save) => <MapView project={project} save={save} />}</ProjectGate>;
+  return <ProjectGate projectId={projectId}>{(project, actions, save) => <MapView project={project} actions={actions} save={save} />}</ProjectGate>;
 }
 
-function MapView({ project, save }: { project: Project; save: SaveState }) {
+function MapView({ project, actions, save }: { project: Project; actions: ProjectActions; save: SaveState }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -260,6 +261,17 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
             {project.title}
           </Title>
         </Tooltip>
+        {/* What can be done to the path itself */}
+        <Menu position="bottom-start">
+          <Menu.Target>
+            <ActionIcon variant="subtle" color="gray" aria-label={`More for ${project.title}`} style={{ flexShrink: 0 }}>
+              <IconDots size={18} />
+            </ActionIcon>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <KindSwitchItem kind={project.kind} onSwitch={actions.setKind} />
+          </Menu.Dropdown>
+        </Menu>
         {/* Only while something is on its way, or was undone */}
         <Box visibleFrom="sm" style={{ flexShrink: 0 }}>
           <SaveStatus save={save} hideSaved />

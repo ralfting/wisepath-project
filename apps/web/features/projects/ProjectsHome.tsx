@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { ActionIcon, Button, Card, Group, Menu, Modal, Progress, SimpleGrid, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
+import { ActionIcon, Button, Card, Group, Menu, Modal, Progress, Radio, SimpleGrid, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
 import { IconDotsVertical, IconPlayerPlayFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
-import type { ProjectSummary } from '@wisepath/domain/projects';
-import { useCreateProject, useProjects, useRemoveProject } from '@/useCases/projects';
+import type { ProjectKind, ProjectSummary } from '@wisepath/domain/projects';
+import { useCreateProject, useProjects, useRemoveProject, useSetProjectKind } from '@/useCases/projects';
+import { KIND_OPTIONS, KindSwitchItem } from './ProjectKind';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { mapHref, mapWithPageHref } from '@/features/shared/routes';
@@ -17,7 +18,7 @@ import classes from './ProjectsHome.module.css';
  * ProjectsHome
  * Where a logged-in learner lands: one card per map (a learning path with its
  * progress and the way back to where they stopped; a study with its size), a
- * search over them, a way to start a new map, and to delete one.
+ * search over them, a way to start a new map, switch its kind, and delete one.
  */
 export function ProjectsHome() {
   const projects = useProjects();
@@ -78,6 +79,8 @@ export function ProjectsHome() {
 function ProjectCard({ project }: { project: ProjectSummary }) {
   const { studied, total, modules, orphans, next } = project;
   const [deleting, setDeleting] = useState(false);
+  const [kindError, setKindError] = useState<string | null>(null);
+  const setKind = useSetProjectKind();
   const href = mapHref(project.id);
   // A study shows its size only: no progress, nothing to continue; the whole card opens it
   const progress = project.kind === 'learningPath';
@@ -106,6 +109,8 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
+              <KindSwitchItem kind={project.kind} onSwitch={async (kind) => setKindError(await setKind(project.id, kind))} />
+              <Menu.Divider />
               <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setDeleting(true)}>
                 Delete path
               </Menu.Item>
@@ -115,6 +120,11 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
         {project.description && (
           <Text size="sm" c="dimmed" lineClamp={2}>
             {project.description}
+          </Text>
+        )}
+        {kindError && (
+          <Text size="sm" c="red" role="alert">
+            {kindError}
           </Text>
         )}
         {progress && (
@@ -148,16 +158,18 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
   );
 }
 
-/** Names a new map, which starts as its root page */
+/** Names a new map, which starts as its root page, and says what it is for: a study unless chosen otherwise */
 function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
   const router = useRouter();
   const create = useCreateProject();
   const [title, setTitle] = useState('');
+  const [kind, setKind] = useState<ProjectKind>('study');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const close = () => {
     setTitle('');
+    setKind('study');
     setError(null);
     onClose();
   };
@@ -166,7 +178,7 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
     event.preventDefault();
     if (!title.trim()) return setError('Give the path a name');
     setBusy(true);
-    const result = await create(title);
+    const result = await create(title, kind);
     setBusy(false);
     if (!result.ok) return setError(result.message);
     close();
@@ -190,6 +202,28 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
           maxLength={200}
           data-autofocus
         />
+        <Radio.Group value={kind} onChange={(v) => setKind(v as ProjectKind)} label="What kind of path?" description="You can switch it later from the path's menu." mt="lg">
+          <Stack gap="xs" mt="xs">
+            {KIND_OPTIONS.map((option) => (
+              <Radio.Card key={option.value} value={option.value} radius="md" p="sm" className={classes.kindCard}>
+                <Group wrap="nowrap" align="flex-start" gap="sm">
+                  <Radio.Indicator mt={2} />
+                  <ThemeIcon variant="light" color={option.color} radius="md" size={34}>
+                    <option.icon size={19} />
+                  </ThemeIcon>
+                  <div>
+                    <Text fw={600} size="sm">
+                      {option.label}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {option.hint}
+                    </Text>
+                  </div>
+                </Group>
+              </Radio.Card>
+            ))}
+          </Stack>
+        </Radio.Group>
         <Group justify="flex-end" gap="sm" mt="lg">
           <Button variant="default" onClick={close}>
             Cancel
