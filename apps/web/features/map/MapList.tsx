@@ -5,14 +5,15 @@ import { ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/cor
 import type { MapNode, Project } from '@wisepath/domain/projects';
 import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
 import { PageGlyph } from '@/features/shared/look';
-import { StatusIcon } from './MindMap';
+import { PageIcon, StatusIcon } from './MindMap';
 import classes from './MapList.module.css';
 
 /**
  * MapList
  * The map as an indented list, branch by branch in map order, with each
  * page's studied state and, for pages with branches, how many below are
- * studied. Orphans close the list.
+ * studied; in a study, just the pages and how many are below. Orphans close
+ * the list.
  */
 
 interface MapListProps {
@@ -21,11 +22,13 @@ interface MapListProps {
   project: Project;
   selectedId: string | null;
   currentId: string | null;
+  /** A learning path shows what was studied; a study doesn't */
+  progress: boolean;
   matchIds: Set<string> | null;
   onSelect: (pageId: string) => void;
 }
 
-export function MapList({ header, project, selectedId, currentId, matchIds, onSelect }: MapListProps) {
+export function MapList({ header, project, selectedId, currentId, progress, matchIds, onSelect }: MapListProps) {
   const tree = mapTree(project);
   const visible = (node: MapNode): boolean =>
     matchIds === null || matchIds.has(node.page.id) || node.children.some(visible);
@@ -47,15 +50,17 @@ export function MapList({ header, project, selectedId, currentId, matchIds, onSe
             <ThemeIcon size={30} radius="xl" variant="light" color={look.color}>
               <PageGlyph icon={look.icon} size={16} />
             </ThemeIcon>
-          ) : (
+          ) : progress ? (
             <StatusIcon status={status} />
+          ) : (
+            <PageIcon />
           )}
           <Text size="sm" fw={node.page.module ? 700 : 400} truncate style={{ flex: 1 }}>
             {displayTitle(node.page)}
           </Text>
           {below && (
             <Text size="xs" c="dimmed">
-              {below.studied}/{below.total}
+              {progress ? `${below.studied}/${below.total}` : `${below.total} ${below.total === 1 ? 'page' : 'pages'}`}
             </Text>
           )}
         </UnstyledButton>
@@ -92,7 +97,7 @@ export function MapList({ header, project, selectedId, currentId, matchIds, onSe
                     onClick={() => onSelect(p.id)}
                     style={{ '--depth': 0 } as CSSProperties}
                   >
-                    <StatusIcon status={p.studied ? 'done' : 'todo'} />
+                    {progress ? <StatusIcon status={p.studied ? 'done' : 'todo'} /> : <PageIcon />}
                     <Text size="sm" truncate>
                       {displayTitle(p)}
                     </Text>

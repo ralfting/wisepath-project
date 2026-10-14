@@ -250,12 +250,14 @@ function Rail() {
       {(projects ?? []).map((project) => {
         const href = `/projects/${project.id}`;
         const percent = project.total ? Math.round((project.studied / project.total) * 100) : 0;
+        const progress = project.kind === 'learningPath';
         return (
-          // A thin ring around the icon fills with the path's progress
+          // A thin ring around the icon fills with a learning path's progress; a study's stays plain
           <Box
             key={project.id}
             className={classes.railMap}
             data-active={pathname.startsWith(href) || undefined}
+            data-plain={!progress || undefined}
             style={{ '--progress': `${percent}%` }}
           >
             <ActionIcon
@@ -265,7 +267,7 @@ function Rail() {
               radius="xl"
               variant="light"
               color={project.color}
-              aria-label={`${project.title}, ${percent}% studied`}
+              aria-label={progress ? `${project.title}, ${percent}% studied` : project.title}
             >
               <PageGlyph icon={project.icon} size={19} />
             </ActionIcon>
@@ -325,6 +327,8 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
         {(projects ?? []).map((project) => {
           const { studied, total } = project;
           const href = `/projects/${project.id}`;
+          // Only a learning path has a share studied to show
+          const progress = project.kind === 'learningPath';
           return (
             <NavLink
               key={project.id}
@@ -338,9 +342,11 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
                 </ThemeIcon>
               }
               rightSection={
-                <Text size="sm" c="dimmed">
-                  {total ? Math.round((studied / total) * 100) : 0}%
-                </Text>
+                progress && (
+                  <Text size="sm" c="dimmed">
+                    {total ? Math.round((studied / total) * 100) : 0}%
+                  </Text>
+                )
               }
               className={classes.navLink}
             />

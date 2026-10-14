@@ -53,7 +53,9 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   const [query, setQuery] = useState('');
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const selectedId = openPageId(pathname, project.id);
-  const next = nextPage(project);
+  // A study has no progress and nothing to continue; a learning path has both
+  const progress = project.kind === 'learningPath';
+  const next = progress ? nextPage(project) : undefined;
   const { studied, total } = projectProgress(project);
   const look = lookOf(project, project.rootPageId);
 
@@ -191,6 +193,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
           active={active}
           selectedId={selectedId}
           currentId={next?.id ?? null}
+          progress={progress}
           onActive={setActive}
           onSelect={openFromSearch}
         />
@@ -262,13 +265,17 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
           <SaveStatus save={save} hideSaved />
         </Box>
       </Group>
-      {/* Progress and the way on, as one control */}
-      <Box visibleFrom="sm">
-        <ContinueButton next={next} studied={studied} total={total} onContinue={() => next && select(next.id)} />
-      </Box>
-      <Box hiddenFrom="sm">
-        <ContinueButton next={next} studied={studied} total={total} onContinue={() => next && select(next.id)} compact />
-      </Box>
+      {/* Progress and the way on, as one control; a study's top bar keeps just its title */}
+      {progress && (
+        <>
+          <Box visibleFrom="sm">
+            <ContinueButton next={next} studied={studied} total={total} onContinue={() => next && select(next.id)} />
+          </Box>
+          <Box hiddenFrom="sm">
+            <ContinueButton next={next} studied={studied} total={total} onContinue={() => next && select(next.id)} compact />
+          </Box>
+        </>
+      )}
     </Group>
   );
 
@@ -282,6 +289,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
               selectedId={selectedId}
               coveredRight={selectedId ? DRAWER_WIDTH + DRAWER_GAP * 2 : 0}
               currentId={next?.id ?? null}
+              progress={progress}
               matchIds={matchIds}
               searchActiveId={searchOpen && results.length > 0 ? results[Math.min(active, results.length - 1)].id : null}
               focusRequest={focusRequest}
@@ -295,6 +303,7 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
               project={project}
               selectedId={selectedId}
               currentId={next?.id ?? null}
+              progress={progress}
               matchIds={matchIds}
               onSelect={(pageId) => select(pageId)}
             />

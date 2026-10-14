@@ -3,7 +3,7 @@
 import { Highlight, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import type { Page, Project } from '@wisepath/domain/projects';
 import { displayTitle, mapTree, pathTo } from '@wisepath/domain/projects';
-import { StatusIcon } from './MindMap';
+import { PageIcon, StatusIcon } from './MindMap';
 import classes from './MapSearchResults.module.css';
 
 /**
@@ -22,6 +22,7 @@ export function MapSearchResults({
   active,
   selectedId,
   currentId,
+  progress,
   onActive,
   onSelect,
   className,
@@ -33,6 +34,8 @@ export function MapSearchResults({
   active: number;
   selectedId: string | null;
   currentId: string | null;
+  /** A learning path marks what was studied; a study doesn't */
+  progress: boolean;
   onActive: (index: number) => void;
   onSelect: (pageId: string) => void;
 }) {
@@ -66,7 +69,7 @@ export function MapSearchResults({
                 onMouseEnter={() => onActive(i)}
                 onClick={() => onSelect(page.id)}
               >
-                <StatusIcon status={page.studied ? 'done' : page.id === currentId ? 'current' : 'todo'} size={16} />
+                {progress ? <StatusIcon status={page.studied ? 'done' : page.id === currentId ? 'current' : 'todo'} size={16} /> : <PageIcon size={16} />}
                 <span className={classes.text}>
                   <Highlight highlight={query.trim()} size="sm" fw={500} truncate>
                     {displayTitle(page)}

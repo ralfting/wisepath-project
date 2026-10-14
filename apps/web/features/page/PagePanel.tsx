@@ -114,7 +114,10 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
   };
 
   const kind = isRoot ? 'The path' : isOrphan ? 'Orphan: no link reaches this page' : page.module ? 'Module' : 'Page';
-  const subtitle = below && below.total > 0 ? `${kind} · ${below.studied} of ${below.total} below studied` : kind;
+  // A learning path counts what below was studied; a study, how many pages are below
+  const progress = project.kind === 'learningPath';
+  const belowText = !below || below.total === 0 ? null : progress ? `${below.studied} of ${below.total} below studied` : `${below.total} ${below.total === 1 ? 'page' : 'pages'} below`;
+  const subtitle = belowText ? `${kind} · ${belowText}` : kind;
 
   return (
     <Card
@@ -226,7 +229,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         </Stack>
       </Group>
 
-      {!isRoot && (
+      {!isRoot && progress && (
         <Group gap="xs" px="lg" pt="md">
           <StudiedToggle
             studied={page.studied}

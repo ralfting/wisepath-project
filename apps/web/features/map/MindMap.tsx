@@ -6,6 +6,7 @@ import { ActionIcon, Divider, Group, HoverCard, Stack, Text, ThemeIcon, Tooltip,
 import {
   IconCircle,
   IconCircleCheckFilled,
+  IconBook2,
   IconCircleDotFilled,
   IconFocusCentered,
   IconInfoCircle,
@@ -42,6 +43,8 @@ interface MindMapProps {
   selectedId: string | null;
   /** The page "Continue studying" leads to */
   currentId: string | null;
+  /** A learning path shows what was studied; a study shows its pages plainly, with counts */
+  progress: boolean;
   /** Pages matching the search; null when not searching */
   matchIds: Set<string> | null;
   /** The search result marked in its list (by the pointer or the arrow keys) */
@@ -72,6 +75,7 @@ export function MindMap({
   project,
   selectedId,
   currentId,
+  progress,
   matchIds,
   searchActiveId = null,
   focusRequest,
@@ -319,6 +323,8 @@ export function MindMap({
   const rootLook = lookOf(project, rootId, tree);
   const overall = progressOf(descendants(tree.root));
   const statusOf = (page: Page): TopicStatus => (page.studied ? 'done' : page.id === currentId ? 'current' : 'todo');
+  /** What a branch holds: studied of all in a learning path, how many pages in a study */
+  const countText = (c: { studied: number; total: number }) => (progress ? `${c.studied}/${c.total}` : `${c.total} ${c.total === 1 ? 'page' : 'pages'}`);
   const counterOf = (id: Page['id']) => {
     const node = tree.nodes.get(id);
     return node ? progressOf(descendants(node)) : { studied: 0, total: 0 };
@@ -391,6 +397,7 @@ export function MindMap({
               icon={<PageGlyph icon={rootLook.icon} size={24} />}
               studied={overall.studied}
               total={overall.total}
+              progress={progress}
               selected={selectedId === rootId}
               dimmed={dimmed(rootId)}
               mark={searchMark(rootId)}
@@ -406,8 +413,8 @@ export function MindMap({
               const label = [
                 displayTitle(n.page),
                 n.module ? 'module' : null,
-                STATUS_LABEL[status].toLowerCase(),
-                counter ? `${counter.studied} of ${counter.total} below studied` : null,
+                progress ? STATUS_LABEL[status].toLowerCase() : null,
+                counter ? (progress ? `${counter.studied} of ${counter.total} below studied` : `${counter.total} ${counter.total === 1 ? 'page' : 'pages'} below`) : null,
               ]
                 .filter(Boolean)
                 .join(', ');
@@ -416,7 +423,7 @@ export function MindMap({
                   key={n.page.id}
                   className={classes.module}
                   style={place(n, look.color)}
-                  data-status={status}
+                  data-status={progress ? status : undefined}
                   data-page-id={n.page.id}
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
@@ -434,18 +441,16 @@ export function MindMap({
                   </ThemeIcon>
                   <span className={classes.moduleText}>
                     <span className={classes.moduleTitle}>{displayTitle(n.page)}</span>
-                    <span className={classes.count}>
-                      {counter ? `${counter.studied}/${counter.total}` : STATUS_LABEL[status]}
-                    </span>
+                    {(counter || progress) && <span className={classes.count}>{counter ? countText(counter) : STATUS_LABEL[status]}</span>}
                   </span>
-                  {n.page.studied && <IconCircleCheckFilled size={18} color="var(--mantine-color-teal-6)" className={classes.moduleCheck} aria-hidden="true" />}
+                  {progress && n.page.studied && <IconCircleCheckFilled size={18} color="var(--mantine-color-teal-6)" className={classes.moduleCheck} aria-hidden="true" />}
                 </UnstyledButton>
               ) : (
                 <UnstyledButton
                   key={n.page.id}
                   className={classes.topic}
                   style={place(n, look.color)}
-                  data-status={status}
+                  data-status={progress ? status : undefined}
                   data-page-id={n.page.id}
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
@@ -458,13 +463,9 @@ export function MindMap({
                   aria-label={label}
                   title={displayTitle(n.page)}
                 >
-                  <StatusIcon status={status} />
+                  {progress ? <StatusIcon status={status} /> : <PageIcon />}
                   <span className={classes.topicTitle}>{displayTitle(n.page)}</span>
-                  {counter && (
-                    <span className={classes.chip}>
-                      {counter.studied}/{counter.total}
-                    </span>
-                  )}
+                  {counter && <span className={classes.chip}>{progress ? `${counter.studied}/${counter.total}` : counter.total}</span>}
                 </UnstyledButton>
               );
             })}
@@ -505,7 +506,7 @@ export function MindMap({
           </HoverCard.Target>
           <HoverCard.Dropdown>
             <Stack gap={8} aria-label="Legend">
-              {(['done', 'current', 'todo'] as const).map((s) => (
+              {(progress ? (['done', 'current', 'todo'] as const) : []).map((s) => (
                 <Group key={s} gap={8} wrap="nowrap">
                   <StatusIcon status={s} />
                   <Text size="sm">{STATUS_LABEL[s]}</Text>
@@ -536,6 +537,11 @@ export const STATUS_LABEL: Record<TopicStatus, string> = {
   current: 'Up next',
   todo: 'Not started',
 };
+
+/** A page in a study, which has no status to show: the page itself */
+export function PageIcon({ size = 18 }: { size?: number }) {
+  return <IconBook2 size={size} stroke={1.7} color="var(--mantine-color-dimmed)" aria-hidden="true" />;
+}
 
 export function StatusIcon({ status, size = 18 }: { status: TopicStatus; size?: number }) {
   if (status === 'done') return <IconCircleCheckFilled size={size} color="var(--mantine-color-teal-6)" aria-hidden="true" />;
@@ -574,6 +580,8 @@ interface RootNodeProps {
   icon: React.ReactNode;
   studied: number;
   total: number;
+  /** Show the ring and the studied count: a learning path */
+  progress: boolean;
   selected: boolean;
   dimmed: boolean;
   /** How it stands among what the search found */
@@ -612,8 +620,12 @@ function ProgressRing({ size, stroke, share }: { size: number; stroke: number; s
   );
 }
 
-/** The root: a card with the map's progress as a ring around its icon, and the title beside it, as long as it needs */
-function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, mark, item, onSelect, onIntent }: RootNodeProps) {
+/**
+ * The root: a card with the map's progress as a ring around its icon (in a learning path), and the title beside
+ * it, as long as it needs
+ */
+function RootNode({ shape, page, color, icon, studied, total, progress, selected, dimmed, mark, item, onSelect, onIntent }: RootNodeProps) {
+  const pages = `${total} ${total === 1 ? 'page' : 'pages'}`;
   return (
     <UnstyledButton
       className={classes.root}
@@ -626,20 +638,18 @@ function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, 
       onClick={() => onSelect(page.id)}
       onPointerEnter={() => onIntent?.(page.id)}
       onFocus={() => onIntent?.(page.id)}
-      aria-label={`${displayTitle(page)}, ${studied} of ${total} pages studied`}
+      aria-label={progress ? `${displayTitle(page)}, ${studied} of ${total} pages studied` : `${displayTitle(page)}, ${pages}`}
       title={displayTitle(page)}
     >
       <span className={classes.rootRing}>
-        <ProgressRing size={64} stroke={5} share={total ? studied / total : 0} />
+        {progress && <ProgressRing size={64} stroke={5} share={total ? studied / total : 0} />}
         <ThemeIcon size={44} radius="xl" variant="light" color={color}>
           {icon}
         </ThemeIcon>
       </span>
       <span className={classes.rootText}>
         <span className={classes.rootTitle}>{displayTitle(page)}</span>
-        <span className={classes.count}>
-          {studied} of {total} studied
-        </span>
+        <span className={classes.count}>{progress ? `${studied} of ${total} studied` : pages}</span>
       </span>
     </UnstyledButton>
   );

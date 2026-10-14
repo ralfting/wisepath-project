@@ -59,6 +59,11 @@
     pointer-events: none;
   }
 
+  /* A study: the ring stays a plain track, nothing to fill */
+  &[data-plain]::before {
+    background: var(--track, var(--wp-line));
+  }
+
   /* The open path: a full-strength ring on a darker track */
   &[data-active]::before {
     --track: var(--mantine-color-gray-4);

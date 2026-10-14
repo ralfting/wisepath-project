@@ -15,9 +15,9 @@ import classes from './ProjectsHome.module.css';
 
 /**
  * ProjectsHome
- * Where a logged-in learner lands: one card per map with its progress and the
- * way back to where they stopped, a search over them, a way to start a new
- * map, and to delete one.
+ * Where a logged-in learner lands: one card per map (a learning path with its
+ * progress and the way back to where they stopped; a study with its size), a
+ * search over them, a way to start a new map, and to delete one.
  */
 export function ProjectsHome() {
   const projects = useProjects();
@@ -79,6 +79,8 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
   const { studied, total, modules, orphans, next } = project;
   const [deleting, setDeleting] = useState(false);
   const href = mapHref(project.id);
+  // A study shows its size only: no progress, nothing to continue; the whole card opens it
+  const progress = project.kind === 'learningPath';
 
   return (
     <Card padding="lg" className={classes.card}>
@@ -115,27 +117,31 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
             {project.description}
           </Text>
         )}
-        <Stack gap={6} mt="auto">
-          <Group gap="sm" wrap="nowrap">
-            <Progress value={total ? (studied / total) * 100 : 0} size="md" style={{ flex: 1 }} classNames={{ section: classes.progress }} aria-label={`Progress in ${project.title}`} />
-            <Text fw={700} size="sm">
-              {total ? Math.round((studied / total) * 100) : 0}%
-            </Text>
-          </Group>
-          <Text size="xs" c="dimmed" truncate>
-            {studied} of {total} pages studied
-            {next ? ` · Next: ${next.title}` : ''}
-          </Text>
-        </Stack>
-        <Button
-          component={Link}
-          href={next ? mapWithPageHref(project.id, next.id) : href}
-          leftSection={next ? <IconPlayerPlayFilled size={14} /> : undefined}
-          variant={next ? 'filled' : 'light'}
-          className={classes.action}
-        >
-          {!next ? 'Open path' : studied === 0 ? 'Start studying' : 'Continue studying'}
-        </Button>
+        {progress && (
+          <>
+            <Stack gap={6} mt="auto">
+              <Group gap="sm" wrap="nowrap">
+                <Progress value={total ? (studied / total) * 100 : 0} size="md" style={{ flex: 1 }} classNames={{ section: classes.progress }} aria-label={`Progress in ${project.title}`} />
+                <Text fw={700} size="sm">
+                  {total ? Math.round((studied / total) * 100) : 0}%
+                </Text>
+              </Group>
+              <Text size="xs" c="dimmed" truncate>
+                {studied} of {total} pages studied
+                {next ? ` · Next: ${next.title}` : ''}
+              </Text>
+            </Stack>
+            <Button
+              component={Link}
+              href={next ? mapWithPageHref(project.id, next.id) : href}
+              leftSection={next ? <IconPlayerPlayFilled size={14} /> : undefined}
+              variant={next ? 'filled' : 'light'}
+              className={classes.action}
+            >
+              {!next ? 'Open path' : studied === 0 ? 'Start studying' : 'Continue studying'}
+            </Button>
+          </>
+        )}
       </Stack>
       <DeleteMapModal opened={deleting} project={project} onClose={() => setDeleting(false)} />
     </Card>
