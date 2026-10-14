@@ -14,7 +14,7 @@ import type { SaveState } from '@/useCases/projects';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
-import { openPageId, pageHref } from '@/features/shared/routes';
+import { openPageId, pageHref, swapOpenPage } from '@/features/shared/routes';
 import { OPEN_SEARCH_EVENT } from '@/features/editor/extensions';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';
@@ -61,7 +61,8 @@ function MapView({ project, save }: { project: Project; save: SaveState }) {
   const select = useCallback(
     (pageId: string) => {
       const href = pageHref(project.id, pageId);
-      if (selectedId) router.replace(href, { scroll: false });
+      // With the drawer open, the page changes in place at once; opening it is a navigation
+      if (selectedId) swapOpenPage(href);
       else router.push(href, { scroll: false });
     },
     [router, project.id, selectedId],

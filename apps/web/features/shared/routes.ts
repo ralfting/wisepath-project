@@ -13,6 +13,15 @@ export const pageHref = (projectId: string, pageId: string) => `/projects/${proj
 export const mapWithPageHref = (projectId: string, pageId: string) => `/projects/${projectId}?open=${encodeURIComponent(pageId)}`;
 
 /** The page open in the drawer, read from the URL; null on the map alone */
+/**
+ * Shows another page in the open drawer at once: the URL changes in place, and
+ * the map and the drawer read the page from it, so nothing waits for the
+ * router. The route itself (and a reload) is the same as a navigation's.
+ */
+export function swapOpenPage(href: string): void {
+  window.history.replaceState(null, '', href);
+}
+
 export function openPageId(pathname: string, projectId: string): string | null {
   const prefix = `${pageHref(projectId, '')}`;
   return pathname.startsWith(prefix) ? decodeURIComponent(pathname.slice(prefix.length).split('/')[0]) || null : null;

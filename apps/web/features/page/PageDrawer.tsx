@@ -1,12 +1,12 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
 import { Anchor, Drawer, Stack, Text, Title } from '@mantine/core';
 import { ProjectGate } from '@/features/projects/ProjectGate';
-import { pageHref } from '@/features/shared/routes';
+import { openPageId, pageHref, swapOpenPage } from '@/features/shared/routes';
 import { PagePanel } from './PagePanel';
 import { PageSheet, pageCrumbs } from './PageEditor';
 import { CrumbTrail, TopBar } from '@/features/shell/AppFrame';
@@ -159,8 +159,10 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: string }) {
+export function PageDrawer({ projectId, pageId: routePageId }: { projectId: string; pageId: string }) {
   const router = useRouter();
+  // The page in the URL: swapped in place (swapOpenPage) it is ahead of the route's own
+  const pageId = openPageId(usePathname(), projectId) ?? routePageId;
   const { close, expanded, toggleExpanded, trail, setTrail, cursors, shown } = useContext(DrawerContext);
   const before = trail.at === pageId ? trail.before : [];
   // Ready to write on arrival. Reached from another page in the drawer: where the cursor was last, else the start.
@@ -169,7 +171,9 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
   const fromDrawer = trail.at === pageId && !isNew;
   const cursor = fromDrawer ? (cursors.get(pageId) ?? 'start') : 'end';
   // A page that replaces another in the open drawer, rather than the drawer's first
-  const [swapped] = useState(() => shown.current !== null && shown.current !== pageId);
+  const swap = useRef<{ id: string; swapped: boolean } | null>(null);
+  if (swap.current?.id !== pageId) swap.current = { id: pageId, swapped: shown.current !== null && shown.current !== pageId };
+  const swapped = swap.current.swapped;
   useEffect(() => {
     shown.current = pageId;
   }, [shown, pageId]);
@@ -178,11 +182,11 @@ export function PageDrawer({ projectId, pageId }: { projectId: string; pageId: s
   const go = (id: string) => {
     if (id === pageId) return;
     setTrail({ before: [...before, pageId], at: id });
-    router.replace(pageHref(projectId, id), { scroll: false });
+    swapOpenPage(pageHref(projectId, id));
   };
   const goBack = (to: string, rest: ReadonlyArray<string>) => {
     setTrail({ before: rest, at: to });
-    router.replace(pageHref(projectId, to), { scroll: false });
+    swapOpenPage(pageHref(projectId, to));
   };
 
   return (

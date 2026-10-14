@@ -17,7 +17,6 @@ import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepat
 import { PageGlyph, shade } from '@/features/shared/look';
 import { layoutMind, rootShape } from './mindLayout';
 import type { PlacedNode, Point, RootShape } from './mindLayout';
-import { SelectionBeam } from './SelectionBeam';
 import classes from './MindMap.module.css';
 
 /**
@@ -378,7 +377,7 @@ export function MindMap({
 
       {/* Top left: what the page puts here (the search) */}
       <div className={classes.topLeft}>{topLeft}</div>
-      <SelectionBeam selectedId={selectedId} />
+
 
       {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
       <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label="Map view">

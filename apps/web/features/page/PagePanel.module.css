@@ -174,7 +174,7 @@
   height: 100%;
 
   &[data-swapped] {
-    animation: swap-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    animation: swap-in 200ms cubic-bezier(0.22, 1, 0.36, 1);
 
     &::before {
       content: '';
@@ -184,7 +184,7 @@
       z-index: 2;
       background: var(--mantine-color-blue-5);
       transform-origin: left;
-      animation: swap-flash 900ms ease-out both;
+      animation: swap-flash 600ms ease-out both;
     }
   }
 
