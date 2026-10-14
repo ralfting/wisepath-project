@@ -46,6 +46,7 @@ import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { CodeBlockView } from './CodeBlockView';
+import { VideoBlock } from './video/VideoBlock';
 import { Timestamp } from './video/timestamps';
 
 /**
@@ -181,8 +182,8 @@ export function MarkdownEditor({
       TableRow,
       TableHeader,
       TableCell,
-      YouTubeVideo,
-      // [01:25]: a moment of the video above
+      // A video to take notes on, and the [01:25] times that play it from there
+      YouTubeVideo.extend({ addNodeView: () => ReactNodeViewRenderer(VideoBlock) }),
       Timestamp,
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
       Markdown.configure({ html: false, linkify: false, tightLists: true, transformPastedText: true }),
