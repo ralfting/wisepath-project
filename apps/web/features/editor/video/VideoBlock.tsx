@@ -147,7 +147,8 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
   const closeComposer = (save: boolean) => {
     if (!composer) return;
     const pos = position();
-    if (save && pos !== undefined) addNote(editor, pos, composer.seconds, draft);
+    // Nothing written, nothing added: an Enter by mistake leaves the list as it was
+    if (save && pos !== undefined && draft.trim()) addNote(editor, pos, composer.seconds, draft);
     if (composer.resume) player.current?.playVideo();
     setComposer(null);
     // Back on the button, where N works again
