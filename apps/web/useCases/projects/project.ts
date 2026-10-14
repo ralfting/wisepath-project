@@ -5,7 +5,7 @@ import { Cause, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { PageId, ProjectId, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/projects"
-import type { LinkPreview, Page, PageColor, PageIcon, Project, ProjectSummary } from "@wisepath/domain/projects"
+import type { LinkPreview, Page, PageColor, PageIcon, Project, ProjectKind, ProjectSummary } from "@wisepath/domain/projects"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import { messageFor } from "../messages"
 import * as programs from "./programs"
@@ -52,6 +52,7 @@ const projectsViewAtom = Atom.make((get): ReadonlyArray<ProjectSummary> | null =
 
 const createProjectAtom = appRuntime.fn(programs.createProject, { reactivityKeys: [ReactivityKeys.projects] })
 const removeProjectAtom = appRuntime.fn(programs.removeProject, { reactivityKeys: [ReactivityKeys.projects] })
+const setProjectKindAtom = appRuntime.fn(programs.setProjectKind, { reactivityKeys: [ReactivityKeys.projects] })
 const linkPreviewAtom = Atom.family((url: string) => appRuntime.atom(programs.previewLink(url)))
 
 /**
@@ -101,6 +102,8 @@ export interface ProjectActions {
   setLook: (pageId: string, look: { module?: boolean; color?: PageColor; icon?: PageIcon }) => void
   /** The line under the map's title */
   setDescription: (description: string) => void
+  /** Turns the map into a study or a learning path; the studied marks stay */
+  setKind: (kind: ProjectKind) => void
 }
 
 export type ProjectState =
@@ -168,7 +171,8 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
       dispatch({ _tag: "RemovePage", pageId: PageId.make(pageId) })
     },
     setLook: (pageId, look) => dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: look }),
-    setDescription: (description) => dispatch({ _tag: "UpdateProject", edit: { description } })
+    setDescription: (description) => dispatch({ _tag: "UpdateProject", edit: { description } }),
+    setKind: (kind) => dispatch({ _tag: "UpdateProject", edit: { kind } })
   }
 
   let state: ProjectState
@@ -208,11 +212,11 @@ export type ProjectActionResult<A> = { readonly ok: true; readonly value: A } | 
 
 const unavailable = "Can't reach WisePath right now. Try again in a moment."
 
-/** Makes a new map; resolves to it, or to the message to show */
-export function useCreateProject(): (title: string) => Promise<ProjectActionResult<Project>> {
+/** Makes a new map, a study unless said otherwise; resolves to it, or to the message to show */
+export function useCreateProject(): (title: string, kind?: ProjectKind) => Promise<ProjectActionResult<Project>> {
   const run = useAtomSet(createProjectAtom, { mode: "promiseExit" })
-  return async (title) => {
-    const exit = await run(title)
+  return async (title, kind = "study") => {
+    const exit = await run({ title, kind })
     if (exit._tag === "Success") return { ok: true, value: exit.value }
     return { ok: false, message: messageFor(exit, { ProjectsUnavailable: unavailable }) ?? unavailable }
   }
@@ -241,4 +245,22 @@ export function useLinkPreview(url: string): LinkPreviewState {
         ? { status: "none" }
         : { status: "loading" }
   )
+}
+
+/**
+ * Turns any map into a study or a learning path, from the list of maps. A map
+ * open in this tab changes through its session, so what it shows stays in step;
+ * another is changed through the API. Resolves to null, or to the message to show
+ */
+export function useSetProjectKind(): (projectId: string, kind: ProjectKind) => Promise<string | null> {
+  const registry = useContext(RegistryContext)
+  const run = useAtomSet(setProjectKindAtom, { mode: "promiseExit" })
+  return async (projectId, kind) => {
+    const id = ProjectId.make(projectId)
+    if (registry.get(openedAtom).has(id)) {
+      const session = registry.get(sessionAtom(id))
+      if (AsyncResult.isSuccess(session) && session.value.dispatch({ _tag: "UpdateProject", edit: { kind } })) return null
+    }
+    return messageFor(await run({ id, kind }), { ProjectsUnavailable: unavailable, ProjectNotFound: "This path no longer exists." })
+  }
 }
