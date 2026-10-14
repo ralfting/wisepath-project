@@ -205,6 +205,12 @@ export function MindMap({
   };
 
   const dimmed = (id: string) => matchIds !== null && !matchIds.has(id);
+  // A page opened from the search's results stands out from the others it found, which step back a little
+  const picked = matchIds !== null && selectedId !== null && matchIds.has(selectedId) ? selectedId : null;
+  const searchMark = (id: string) => ({
+    'data-picked': picked === id || undefined,
+    'data-receded': (picked !== null && picked !== id && !dimmed(id)) || undefined,
+  });
   const touchesSelection = (from: string, to: string) => selectedId !== null && (from === selectedId || to === selectedId);
   // Links across the map stay faint until they matter: from or to the open page, or the one under the pointer
   const [hoveredId, setHoveredId] = useState<string | null>(null);
@@ -288,6 +294,7 @@ export function MindMap({
               total={overall.total}
               selected={selectedId === rootId}
               dimmed={dimmed(rootId)}
+              mark={searchMark(rootId)}
               onSelect={onSelect}
               onIntent={onIntent}
             />
@@ -312,6 +319,7 @@ export function MindMap({
                   data-status={status}
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
+                  {...searchMark(n.page.id)}
                   onClick={() => onSelect(n.page.id)}
                   onPointerEnter={() => intent(n.page.id)}
                   onPointerLeave={() => setHoveredId(null)}
@@ -338,6 +346,7 @@ export function MindMap({
                   data-status={status}
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
+                  {...searchMark(n.page.id)}
                   onClick={() => onSelect(n.page.id)}
                   onPointerEnter={() => intent(n.page.id)}
                   onPointerLeave={() => setHoveredId(null)}
@@ -462,6 +471,8 @@ interface RootNodeProps {
   total: number;
   selected: boolean;
   dimmed: boolean;
+  /** How it stands among what the search found */
+  mark: Record<string, true | undefined>;
   onSelect: (pageId: string) => void;
   onIntent?: (pageId: string) => void;
 }
@@ -495,13 +506,14 @@ function ProgressRing({ size, stroke, share }: { size: number; stroke: number; s
 }
 
 /** The root: a card with the map's progress as a ring around its icon, and the title beside it, as long as it needs */
-function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, onSelect, onIntent }: RootNodeProps) {
+function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, mark, onSelect, onIntent }: RootNodeProps) {
   return (
     <UnstyledButton
       className={classes.root}
       style={{ ...placeBox(shape, color), '--lines': shape.lines } as CSSProperties}
       data-selected={selected || undefined}
       data-dimmed={dimmed || undefined}
+      {...mark}
       onClick={() => onSelect(page.id)}
       onPointerEnter={() => onIntent?.(page.id)}
       onFocus={() => onIntent?.(page.id)}

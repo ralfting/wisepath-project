@@ -63,6 +63,24 @@
     opacity: 0.3;
   }
 
+  /* Among what the search found: the others step back, the one opened stands out */
+  &[data-receded] {
+    opacity: 0.55;
+  }
+
+  &[data-picked] {
+    z-index: 1;
+    border-color: var(--mantine-color-blue-6) !important;
+    box-shadow:
+      0 0 0 4px var(--mantine-color-blue-2),
+      var(--mantine-shadow-lg) !important;
+    animation: picked-pulse 900ms cubic-bezier(0.22, 1, 0.36, 1);
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
   &:focus-visible {
     outline: 2px solid var(--mantine-color-blue-6);
     outline-offset: 3px;
@@ -274,3 +292,22 @@
   }
 }
 
+
+/* A ring that swells out once from the page the search opened */
+@keyframes picked-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 0 alpha(var(--mantine-color-blue-5), 0.6),
+      var(--mantine-shadow-lg);
+  }
+  30% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 14px alpha(var(--mantine-color-blue-5), 0),
+      var(--mantine-shadow-lg);
+  }
+}
