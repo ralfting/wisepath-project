@@ -1,8 +1,8 @@
 import { Effect, Schema } from "effect"
 import { PageNotFound, RootPageProtected, TitleTaken } from "./errors"
-import { PageColor, PageIcon, PageId, ProjectId } from "./Project"
+import { PageColor, PageIcon, PageId, ProjectId, ProjectKind } from "./Project"
 import type { Page, Project } from "./Project"
-import { createPage, deletePage, newProject, renameLinks, setDescription, setLook, titleTaken, updatePage } from "./rules"
+import { createPage, deletePage, newProject, renameLinks, setDescription, setKind, setLook, titleTaken, updatePage } from "./rules"
 import { lookOf, mapTree, nextPage, projectProgress } from "./tree"
 
 /**
@@ -21,13 +21,16 @@ const Title = Schema.String.check(Schema.isMaxLength(200))
 export const NewProject = Schema.Struct({
   id: ProjectId.check(...idChecks),
   rootPageId: PageId.check(...idChecks),
-  title: Title.check(Schema.isMinLength(1, { message: "Give the map a name" }))
+  title: Title.check(Schema.isMinLength(1, { message: "Give the map a name" })),
+  /** A study unless said otherwise */
+  kind: Schema.optional(ProjectKind)
 })
 export type NewProject = typeof NewProject.Type
 
 /** What can change on the map itself; its title is its root page's */
 export const ProjectEdit = Schema.Struct({
-  description: Schema.optional(Schema.String.check(Schema.isMaxLength(500)))
+  description: Schema.optional(Schema.String.check(Schema.isMaxLength(500))),
+  kind: Schema.optional(ProjectKind)
 })
 export type ProjectEdit = typeof ProjectEdit.Type
 
@@ -58,22 +61,27 @@ export const ProjectSummary = Schema.Struct({
   description: Schema.optional(Schema.String),
   color: PageColor,
   icon: PageIcon,
+  kind: ProjectKind,
   studied: Schema.Number,
   total: Schema.Number,
   modules: Schema.Number,
   /** Pages no link reaches */
   orphans: Schema.Number,
-  /** Where "Continue" leads, if anything is left to study */
+  /** Where "Continue" leads, if anything is left to study; never set for a study */
   next: Schema.NullOr(Schema.Struct({ id: PageId, title: Schema.String }))
 })
 export type ProjectSummary = typeof ProjectSummary.Type
 
 export function startProject(command: NewProject, now = new Date()): Project {
-  return newProject(command.id, command.title, command.rootPageId, now)
+  return newProject(command.id, command.title, command.rootPageId, now, command.kind)
 }
 
-export const editProject = (project: Project, edit: ProjectEdit): Project =>
-  edit.description === undefined ? project : setDescription(project, edit.description)
+export function editProject(project: Project, edit: ProjectEdit): Project {
+  let next = project
+  if (edit.description !== undefined) next = setDescription(next, edit.description)
+  if (edit.kind !== undefined) next = setKind(next, edit.kind)
+  return next
+}
 
 /**
  * Adds a page. Sending the same page twice (a retry) changes nothing; a title
@@ -120,13 +128,15 @@ export const removePage = Effect.fnUntraced(function*(project: Project, pageId: 
 export function summarize(project: Project): ProjectSummary {
   const tree = mapTree(project)
   const look = lookOf(project, project.rootPageId, tree)
-  const next = nextPage(project)
+  // A study has nothing to continue
+  const next = project.kind === "learningPath" ? nextPage(project) : undefined
   return {
     id: project.id,
     title: project.title,
     ...(project.description !== undefined ? { description: project.description } : {}),
     color: look.color,
     icon: look.icon,
+    kind: project.kind,
     ...projectProgress(project),
     modules: [...tree.nodes.values()].filter((n) => n.page.module).length,
     orphans: tree.orphans.length,

@@ -3,6 +3,9 @@ import { Effect, Schema } from "effect"
 import {
   PageId,
   Project,
+  editProject,
+  startProject,
+  summarize,
   ProjectId,
   branchProgress,
   createPage,
@@ -32,6 +35,7 @@ function project(spec: Record<string, string>): Project {
   return {
     id: ProjectId.make("p"),
     title: entries[0][0],
+    kind: "learningPath",
     pages: entries.map(([title, content]) => ({ id: id(title.toLowerCase()), title, content, studied: false, updatedAt: "" })),
     rootPageId: id(entries[0][0].toLowerCase())
   }
@@ -106,6 +110,22 @@ describe("project rules", () => {
     const p = newProject(ProjectId.make("p"), " Rust ", id("rust"))
     assert.strictEqual(p.title, "Rust")
     assert.strictEqual(mapTree(p).root.children.length, 0)
+  })
+
+  it("starts a study unless told otherwise; a study has nothing to continue", () => {
+    const study = startProject({ id: ProjectId.make("s"), rootPageId: id("s"), title: "Notes" })
+    assert.strictEqual(study.kind, "study")
+    const course = startProject({ id: ProjectId.make("c"), rootPageId: id("c"), title: "Course", kind: "learningPath" })
+    assert.strictEqual(course.kind, "learningPath")
+    assert.isNull(summarize(sampleProject).next)
+    assert.strictEqual(summarize(editProject(sampleProject, { kind: "learningPath" })).next?.title, "Modules")
+  })
+
+  it("keeps the studied marks when a map switches kind, so they come back with the progress", () => {
+    const course = editProject(sampleProject, { kind: "learningPath" })
+    const study = editProject(course, { kind: "study" })
+    assert.deepStrictEqual(projectProgress(editProject(study, { kind: "learningPath" })), projectProgress(course))
+    assert.strictEqual(editProject(study, { description: "x" }).kind, "study")
   })
 
   it("creates the page a [[link]] points to, which the link then connects", () => {

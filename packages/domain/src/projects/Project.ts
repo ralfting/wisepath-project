@@ -51,6 +51,14 @@ export const PageIcon = Schema.Literals([
 ])
 export type PageIcon = typeof PageIcon.Type
 
+/**
+ * What a map is for. A study is open notes, organised as a map with nothing to
+ * finish; a learning path is followed to the end, page by page, and tracks
+ * what was studied. Switching keeps the studied marks, hidden in a study.
+ */
+export const ProjectKind = Schema.Literals(["study", "learningPath"])
+export type ProjectKind = typeof ProjectKind.Type
+
 export const Page = Schema.Struct({
   id: PageId,
   title: Schema.String,
@@ -73,6 +81,7 @@ export const Project = Schema.Struct({
   title: Schema.String,
   /** One line on what the map covers, shown under its title */
   description: Schema.optional(Schema.String),
+  kind: ProjectKind,
   pages: Schema.Array(Page),
   /** The single page at the centre of the map */
   rootPageId: PageId

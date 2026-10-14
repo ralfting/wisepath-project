@@ -8,6 +8,8 @@ import {
   addPage,
   copyProject,
   editPage,
+  editProject,
+  mapTree,
   removePage,
   sampleProject,
   startProject,
@@ -74,8 +76,8 @@ describe("projects", () => {
   })
 
   it("summarizes a map for its card", () => {
-    const s = summarize(sampleProject)
-    assert.deepStrictEqual([s.studied, s.total, s.modules, s.orphans, s.next?.title, s.color], [8, 41, 8, 0, "Modules", "red"])
+    const s = summarize(editProject(sampleProject, { kind: "learningPath" }))
+    assert.deepStrictEqual([s.kind, s.studied, s.total, s.modules, s.orphans, s.next?.title, s.color], ["learningPath", 8, 41, 8, 0, "Modules", "red"])
   })
 
   it("copies the sample with fresh ids and the same map", () => {
@@ -83,6 +85,7 @@ describe("projects", () => {
     const copy = copyProject(sampleProject, ProjectId.make("mine"), () => id(`p${n++}`))
     assert.strictEqual(copy.id, "mine")
     assert.isFalse(copy.pages.some((p) => sampleProject.pages.some((s) => s.id === p.id)))
-    assert.deepStrictEqual(summarize(copy).next?.title, "Modules")
+    assert.strictEqual(copy.kind, "study")
+    assert.deepStrictEqual(mapTree(copy).root.children.length, mapTree(sampleProject).root.children.length)
   })
 })

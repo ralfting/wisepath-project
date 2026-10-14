@@ -153,6 +153,7 @@ export const sampleProject: Project = {
   id: ProjectId.make('nestjs'),
   title: 'NestJS',
   description: 'From the basics to advanced: learning the NestJS framework by building real applications.',
+  kind: 'study',
   pages,
   rootPageId: pages[0].id,
 };

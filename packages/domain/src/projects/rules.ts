@@ -1,4 +1,4 @@
-import type { Page, PageColor, PageIcon, PageId, Project } from './Project';
+import type { Page, PageColor, PageIcon, PageId, Project, ProjectKind } from './Project';
 
 /**
  * Rules
@@ -32,9 +32,9 @@ export function titleTaken(project: Project, pageId: PageId, title: string): boo
 }
 
 /** A new, empty project: just its root page */
-export function newProject(id: Project['id'], title: string, rootId: PageId, now = new Date()): Project {
+export function newProject(id: Project['id'], title: string, rootId: PageId, now = new Date(), kind: ProjectKind = 'study'): Project {
   const root: Page = { id: rootId, title: title.trim(), content: '', studied: false, updatedAt: now.toISOString() };
-  return { id, title: root.title, pages: [root], rootPageId: rootId };
+  return { id, title: root.title, kind, pages: [root], rootPageId: rootId };
 }
 
 /**
@@ -84,6 +84,11 @@ export function setLook(
 
 export function setDescription(project: Project, description: string): Project {
   return { ...project, description };
+}
+
+/** Turns a study into a learning path or back; the pages' studied marks stay as they are */
+export function setKind(project: Project, kind: ProjectKind): Project {
+  return { ...project, kind };
 }
 
 /**
