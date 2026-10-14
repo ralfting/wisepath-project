@@ -1,0 +1,35 @@
+/* The language sits in the block's top corner, out of the way of the code */
+.block {
+  position: relative;
+
+  /* A strip above the code for the language, so a long first line never runs under it */
+  & pre {
+    padding-top: 30px;
+  }
+}
+
+.language {
+  position: absolute;
+  top: 5px;
+  right: 8px;
+  z-index: 1;
+}
+
+.input {
+  width: 13ch;
+  height: 22px;
+  min-height: 22px;
+  padding: 0 6px;
+  border-radius: var(--mantine-radius-sm);
+  font-family: var(--mantine-font-family);
+  font-size: 12px;
+  text-align: right;
+  color: var(--mantine-color-dimmed);
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    background: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+    color: var(--mantine-color-text);
+  }
+}

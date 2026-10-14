@@ -1,6 +1,6 @@
 'use client';
 
-import { BubbleMenu, useEditor } from '@tiptap/react';
+import { BubbleMenu, ReactNodeViewRenderer, useEditor } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -45,6 +45,7 @@ import { LinkPreview } from './LinkPreview';
 import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
+import { CodeBlockView } from './CodeBlockView';
 
 /**
  * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,
@@ -162,9 +163,9 @@ export function MarkdownEditor({
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      // The code block comes from CodeBlockLowlight instead, for syntax colours
+      // The code block comes from CodeBlockLowlight instead, for syntax colours, with a language picker
       StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false }),
-      CodeBlockLowlight.configure({ lowlight }),
+      CodeBlockLowlight.extend({ addNodeView: () => ReactNodeViewRenderer(CodeBlockView) }).configure({ lowlight }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
       Placeholder.configure({
         placeholder: 'Write here, or type / for commands',
