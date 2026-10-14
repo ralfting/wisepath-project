@@ -171,7 +171,9 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       // Esc first closes a popover or menu open in the drawer (they close themselves), then shrinks
       // an expanded drawer back, then closes it
       onClose={() => {
-        if (document.querySelector('.mantine-Popover-dropdown, [role=menu]')) return;
+        // Only one on screen counts: a closed Select (a code block's language) keeps its dropdown in the page, hidden
+        const open = [...document.querySelectorAll('.mantine-Popover-dropdown, [role=menu]')].some((el) => el.getClientRects().length > 0);
+        if (open) return;
         if (expanded) setExpanded(false);
         else close();
       }}
