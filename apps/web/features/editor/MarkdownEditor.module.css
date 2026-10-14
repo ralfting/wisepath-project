@@ -26,6 +26,15 @@
     caret-color: var(--mantine-color-blue-6);
   }
 
+  /* Syntax colours a shade deeper than Mantine's in light, so every token reads at AA on the block's grey */
+  & pre {
+    --code-color-comment: var(--mantine-color-dimmed);
+    --code-color-var: light-dark(var(--mantine-color-red-9), var(--mantine-color-red-5));
+    --code-color-number: light-dark(var(--mantine-color-blue-8), var(--mantine-color-cyan-5));
+    --code-color-title: light-dark(var(--mantine-color-pink-8), var(--mantine-color-yellow-5));
+    --code-color-keyword: light-dark(var(--mantine-color-violet-8), var(--mantine-color-violet-3));
+  }
+
   /* While writing, a short bar in the margin marks the block the cursor is in,
      sliding along as it moves (ActiveBlockRail places it) */
   & :global(.wp-active-rail) {
