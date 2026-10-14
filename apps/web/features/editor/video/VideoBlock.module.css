@@ -64,29 +64,36 @@
   box-shadow: var(--mantine-shadow-sm);
 }
 
-/* Fullscreen: the video large, the notes in a column beside it (below it on a narrow screen) */
+/* Fullscreen: the video fills the screen beside a column of notes (below it on a narrow screen); the player
+   letterboxes the picture itself, on black */
 .stage[data-fullscreen] {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 16px;
-  padding: 16px;
+  grid-template-rows: 100%;
+  height: 100%;
   background: var(--mantine-color-body);
 
   .screen {
-    display: flex;
-    align-items: center;
     min-width: 0;
+    background: #000;
   }
 
   .iframe {
-    height: auto;
-    aspect-ratio: 16 / 9;
-    max-height: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  .side {
+    padding: 16px;
   }
 
   @media (max-width: 48em) {
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
+
+    .screen {
+      aspect-ratio: 16 / 9;
+    }
   }
 }
 
