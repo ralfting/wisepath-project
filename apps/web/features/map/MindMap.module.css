@@ -283,6 +283,7 @@
 /* Top left: the search */
 .topLeft {
   position: absolute;
+  z-index: 2;
   top: var(--mantine-spacing-sm);
   left: var(--mantine-spacing-sm);
   right: var(--mantine-spacing-sm);

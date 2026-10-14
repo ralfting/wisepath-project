@@ -237,6 +237,8 @@ export function MindMap({
 
   return (
     <div className={classes.frame}>
+      {/* Top left: what the page puts here (the search); first in the tab order, before the map's pages */}
+      <div className={classes.topLeft}>{topLeft}</div>
       <div
         ref={viewportRef}
         className={classes.viewport}
@@ -374,9 +376,6 @@ export function MindMap({
           </div>
         )}
       </div>
-
-      {/* Top left: what the page puts here (the search) */}
-      <div className={classes.topLeft}>{topLeft}</div>
 
 
       {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
