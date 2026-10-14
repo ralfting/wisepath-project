@@ -46,6 +46,7 @@ import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { CodeBlockView } from './CodeBlockView';
+import { Timestamp } from './video/timestamps';
 
 /**
  * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,
@@ -181,6 +182,8 @@ export function MarkdownEditor({
       TableHeader,
       TableCell,
       YouTubeVideo,
+      // [01:25]: a moment of the video above
+      Timestamp,
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
       Markdown.configure({ html: false, linkify: false, tightLists: true, transformPastedText: true }),
       PageLinkSuggestion.configure({
