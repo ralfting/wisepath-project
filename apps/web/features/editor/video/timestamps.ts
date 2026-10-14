@@ -57,7 +57,18 @@ export const Timestamp = Node.create({
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    return ['span', mergeAttributes(HTMLAttributes, { class: 'wp-timestamp', title: `Play from ${node.attrs.time}` }), node.attrs.time];
+    // A control: announced as one, with what it does; from the keyboard, ⌘↵ on its line plays it
+    return [
+      'span',
+      mergeAttributes(HTMLAttributes, {
+        class: 'wp-timestamp',
+        role: 'button',
+        'aria-label': `Play video from ${node.attrs.time}`,
+        'aria-keyshortcuts': 'Meta+Enter Control+Enter',
+        title: `Play from ${node.attrs.time} (⌘↵ on this line)`,
+      }),
+      node.attrs.time,
+    ];
   },
 
   renderText({ node }) {
@@ -96,6 +107,29 @@ export const Timestamp = Node.create({
             }
           },
         },
+      },
+    };
+  },
+
+  // ⌘↵ (Ctrl+Enter) plays the time on the cursor's line: the last one before the cursor, else the first
+  addKeyboardShortcuts() {
+    return {
+      'Mod-Enter': () => {
+        const { $from } = this.editor.state.selection;
+        const line = $from.parent;
+        const start = $from.start();
+        let chosen: { pos: number; time: string } | null = null;
+        line.forEach((child, offset) => {
+          if (child.type.name !== this.name) return;
+          const pos = start + offset;
+          if (!chosen || pos < $from.pos) chosen = { pos, time: child.attrs.time };
+        });
+        if (!chosen) return false;
+        const { pos, time } = chosen;
+        const video = videoAbove(this.editor, pos);
+        if (!video) return false;
+        video.seek(parseTime(time));
+        return true;
       },
     };
   },
