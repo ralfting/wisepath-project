@@ -15,6 +15,8 @@ import {
 import type { Page, PageColor, Project } from '@wisepath/domain/projects';
 import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
 import { PageGlyph, shade } from '@/features/shared/look';
+import { RELATED_HOVER_EVENT, relatedFromEvent } from '@/features/shared/relatedHover';
+import { useWindowEvent } from '@mantine/hooks';
 import { layoutMind, rootShape } from './mindLayout';
 import type { PlacedNode, Point, RootShape } from './mindLayout';
 import classes from './MindMap.module.css';
@@ -217,14 +219,27 @@ export function MindMap({
   // which step back a little
   const picked =
     matchIds === null ? null : searchActiveId ?? (selectedId !== null && matchIds.has(selectedId) ? selectedId : null);
+  // A page pointed at in the drawer's Related list: its connection to the open page is singled out
+  const [relatedId, setRelatedId] = useState<string | null>(null);
+  useWindowEvent(RELATED_HOVER_EVENT, (event) => setRelatedId(relatedFromEvent(event)));
+  useEffect(() => setRelatedId(null), [selectedId]);
+  const pointed = relatedId !== null && selectedId !== null ? relatedId : null;
   const searchMark = (id: string) => ({
     'data-picked': picked === id || undefined,
     'data-receded': (picked !== null && picked !== id && !dimmed(id)) || undefined,
+    'data-related': pointed === id || undefined,
   });
   const touchesSelection = (from: string, to: string) => selectedId !== null && (from === selectedId || to === selectedId);
-  // Links across the map stay faint until they matter: from or to the open page, or the one under the pointer
+  /** The line between the open page and the related one pointed at, either way */
+  const isPointedLink = (from: string, to: string) =>
+    pointed !== null && ((from === selectedId && to === pointed) || (from === pointed && to === selectedId));
+  // Links across the map stay faint until they matter: from or to the open page, or the one under the pointer.
+  // While a related page is pointed at, only its link does
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const arrowActive = (from: string, to: string) => touchesSelection(from, to) || (hoveredId !== null && (from === hoveredId || to === hoveredId));
+  const arrowActive = (from: string, to: string) =>
+    pointed !== null
+      ? isPointedLink(from, to)
+      : touchesSelection(from, to) || (hoveredId !== null && (from === hoveredId || to === hoveredId));
   const intent = (pageId: string) => {
     setHoveredId(pageId);
     onIntent?.(pageId);
@@ -350,8 +365,8 @@ export function MindMap({
                   key={line.key}
                   d={line.d}
                   fill="none"
-                  stroke={shade(lookOf(project, line.to, tree).color, line.from === rootId ? 4 : 3)}
-                  strokeWidth={line.from === rootId ? 2.4 : 1.6}
+                  stroke={shade(lookOf(project, line.to, tree).color, isPointedLink(line.from, line.to) ? 6 : line.from === rootId ? 4 : 3)}
+                  strokeWidth={isPointedLink(line.from, line.to) ? 3.4 : line.from === rootId ? 2.4 : 1.6}
                   opacity={dimmed(line.to) ? 0.25 : 0.9}
                 />
               ))}
@@ -361,7 +376,7 @@ export function MindMap({
                   d={line.d}
                   fill="none"
                   stroke="var(--mantine-color-blue-6)"
-                  strokeWidth={arrowActive(line.from, line.to) ? 2.6 : 1.4}
+                  strokeWidth={isPointedLink(line.from, line.to) ? 3.2 : arrowActive(line.from, line.to) ? 2.6 : 1.4}
                   strokeLinecap="round"
                   markerEnd="url(#wp-arrow)"
                   opacity={arrowActive(line.from, line.to) ? 0.95 : 0.16}

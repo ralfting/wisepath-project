@@ -82,6 +82,15 @@
     }
   }
 
+  /* The page pointed at in the drawer's Related list */
+  &[data-related] {
+    z-index: 1;
+    box-shadow:
+      0 0 0 3px alpha(var(--mantine-color-blue-5), 0.55),
+      var(--mantine-shadow-md) !important;
+    transform: scale(1.04);
+  }
+
   &:focus-visible {
     outline: 2px solid var(--mantine-color-blue-6);
     outline-offset: 3px;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActionIcon,
   Anchor,
@@ -40,6 +40,7 @@ import {
 } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { PageGlyph } from '@/features/shared/look';
+import { pointAtRelated } from '@/features/shared/relatedHover';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import type { PageActions } from './PageContent';
@@ -90,6 +91,8 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; label: string; hint
 
 export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
   const [tab, setTab] = useState<PanelTab>('content');
+  // A related page still pointed at when the panel goes (another page opened, the drawer closed) lets go
+  useEffect(() => () => pointAtRelated(null), [page.id]);
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -288,7 +291,16 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
                       {pages.map(({ page: p }) => {
                         const l = lookOf(project, p.id, tree);
                         return (
-                          <UnstyledButton key={p.id} className={classes.related} onClick={() => onSelect(p.id)}>
+                          <UnstyledButton
+                            key={p.id}
+                            className={classes.related}
+                            onClick={() => onSelect(p.id)}
+                            // The map beside the drawer singles out this page and its link to the open one
+                            onPointerEnter={() => pointAtRelated(p.id)}
+                            onPointerLeave={() => pointAtRelated(null)}
+                            onFocus={() => pointAtRelated(p.id)}
+                            onBlur={() => pointAtRelated(null)}
+                          >
                             <ThemeIcon size={28} radius="xl" variant="light" color={l.color}>
                               <PageGlyph icon={p.module || p.id === project.rootPageId ? l.icon : 'book'} size={15} />
                             </ThemeIcon>
