@@ -372,7 +372,8 @@ export function MarkdownEditor({
         {editor && (
           <BubbleMenu
             editor={editor}
-            tippyOptions={{ duration: 120, placement: 'top' }}
+            // No ARIA from tippy: it would mark the text itself as expanded, which a text box cannot be
+            tippyOptions={{ duration: 120, placement: 'top', aria: { content: null, expanded: false } }}
             shouldShow={({ editor: e, from, to }) => !e.isActive('youtube') && !e.isActive('wikiLink') && from !== to}
           >
             <RichTextEditor.ControlsGroup className={classes.bubble}>

@@ -126,6 +126,14 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   };
   closeRef.current = close;
 
+  // The dialog is what screen readers announce, and Drawer gives it no name without a visible title
+  useEffect(() => {
+    const frame = requestAnimationFrame(() =>
+      document.querySelector('.mantine-Drawer-content')?.setAttribute('aria-label', 'Page beside the map'),
+    );
+    return () => cancelAnimationFrame(frame);
+  });
+
   return (
     <Drawer
       opened
@@ -150,7 +158,6 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       data-leaving={leaving || undefined}
       data-expanded={expanded || undefined}
       style={{ '--drawer-left': `${sidebarEdge}px` } as CSSProperties}
-      aria-label="Page"
     >
       <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail, cursors, shown }}>
         {children}

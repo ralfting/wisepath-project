@@ -31,6 +31,9 @@ export function ContinueButton({
   const done = total > 0 && !next;
   const summary = `${studied} of ${total} pages studied`;
   const count = compact ? `${studied}/${total}` : `${studied}/${total} pages`;
+  // Worded as on the home's cards; a phone has room for the verb only
+  const action = studied === 0 ? 'Start' : 'Continue';
+  const label = compact ? action : `${action} studying`;
   // A path with no pages yet has nothing to count or continue
   if (total === 0) return null;
 
@@ -55,9 +58,9 @@ export function ContinueButton({
             radius="md"
             rightSection={<IconArrowRight size={16} />}
             onClick={onContinue}
-            aria-label={`${studied === 0 ? 'Start' : 'Continue'}: ${displayTitle(next)}`}
+            aria-label={`${action} studying: ${displayTitle(next)}`}
           >
-            {studied === 0 ? 'Start' : 'Continue'}
+            {label}
           </Button>
         </Tooltip>
       )}
