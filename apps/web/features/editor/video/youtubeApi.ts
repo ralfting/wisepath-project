@@ -32,17 +32,30 @@ export const PLAYING = 1;
 
 let loading: Promise<YouTubeApi> | null = null;
 
+/** How long YouTube gets to answer before the video's controls say they are unavailable */
+export const LOAD_TIMEOUT_MS = 12_000;
+
+/** Fails when the script can't load (offline, blocked) or takes too long; the next call tries again */
 export function loadYouTubeApi(): Promise<YouTubeApi> {
   if (window.YT?.Player) return Promise.resolve(window.YT);
-  loading ??= new Promise((resolve) => {
+  loading ??= new Promise<YouTubeApi>((resolve, reject) => {
+    const script = document.createElement('script');
+    const fail = () => {
+      clearTimeout(timer);
+      script.remove();
+      loading = null;
+      reject(new Error("YouTube's player didn't load"));
+    };
+    const timer = setTimeout(fail, LOAD_TIMEOUT_MS);
     const previous = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
+      clearTimeout(timer);
       previous?.();
       resolve(window.YT!);
     };
-    const script = document.createElement('script');
     script.src = 'https://www.youtube.com/iframe_api';
     script.async = true;
+    script.onerror = fail;
     document.head.appendChild(script);
   });
   return loading;

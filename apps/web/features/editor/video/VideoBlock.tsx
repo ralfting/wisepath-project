@@ -7,7 +7,7 @@ import { IconArrowsMaximize, IconArrowsMinimize, IconLayoutSidebarRightCollapse,
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { youTubeId } from '../extensions';
-import { PLAYING, embedUrl, loadYouTubeApi } from './youtubeApi';
+import { LOAD_TIMEOUT_MS, PLAYING, embedUrl, loadYouTubeApi } from './youtubeApi';
 import type { YouTubePlayer } from './youtubeApi';
 import { addNote, formatTime, noteAt, notesAfter, setActiveNote } from './timestamps';
 import type { VideoNote } from './timestamps';
@@ -35,6 +35,9 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
   const player = useRef<YouTubePlayer | null>(null);
   const self = useRef({}).current;
   const [ready, setReady] = useState(false);
+  // YouTube didn't answer (offline, blocked): the notes can't follow the video, and the block says so
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [inView, setInView] = useState(true);
@@ -61,16 +64,28 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     };
   }, [editor, position]);
 
-  // The player, attached to the iframe once the API is in
+  // The player, attached to the iframe once the API is in. Neither the API nor the video answering in time
+  // counts as failed; Retry reloads both
   useEffect(() => {
     let cancelled = false;
     const iframe = iframeRef.current;
     if (!iframe) return;
+    if (attempt > 0) iframe.src = src;
+    const timer = setTimeout(() => !cancelled && setFailed(true), LOAD_TIMEOUT_MS + 3000);
+    const fail = () => {
+      if (cancelled) return;
+      clearTimeout(timer);
+      setFailed(true);
+    };
     loadYouTubeApi().then((YT) => {
       if (cancelled) return;
       player.current = new YT.Player(iframe, {
         events: {
-          onReady: () => setReady(true),
+          onReady: () => {
+            clearTimeout(timer);
+            setFailed(false);
+            setReady(true);
+          },
           onStateChange: (event) => {
             setPlaying(event.data === PLAYING);
             if (event.data === PLAYING) lastUsed = self;
@@ -78,13 +93,14 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           },
         },
       });
-    });
+    }, fail);
     // Let go without destroy(), which takes the iframe out of the page: the block owns it
     return () => {
       cancelled = true;
+      clearTimeout(timer);
       player.current = null;
     };
-  }, [self]);
+  }, [self, attempt, src]);
 
   // The clock, while playing: for the button's time and the note to mark
   useEffect(() => {
@@ -263,7 +279,24 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           )}
         </div>
       </div>
-      {!fullscreen && (
+      {!fullscreen && failed && !ready && (
+        <Group gap="xs" mt={8} className={classes.bar} contentEditable={false} role="status">
+          <Text size="sm" c="dimmed">
+            Video notes unavailable: YouTube didn&apos;t load.
+          </Text>
+          <Button
+            size="compact-sm"
+            variant="subtle"
+            onClick={() => {
+              setFailed(false);
+              setAttempt((n) => n + 1);
+            }}
+          >
+            Retry
+          </Button>
+        </Group>
+      )}
+      {!fullscreen && !(failed && !ready) && (
         <Group gap="xs" mt={8} className={classes.bar} contentEditable={false}>
           {addButton}
           <Tooltip label="Fullscreen, with the notes">
