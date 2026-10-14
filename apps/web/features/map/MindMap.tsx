@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { ActionIcon, Divider, Group, HoverCard, Stack, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import {
   IconCircle,
@@ -133,17 +133,17 @@ export function MindMap({
   /** Keeps the zoom and brings the root to the middle */
   const centreOnRoot = () => size && smoothly((v) => ({ ...v, x: size.w / 2, y: size.h / 2 }));
 
-  // Bring a page into view, with its branches, when asked from outside the map (search, related pages)
-  useEffect(() => {
-    if (!focusRequest || !size) return;
-    const c = layout.centres.get(focusRequest.pageId as Page['id']);
+  // Bring a page into view, with its branches: asked from outside the map (search, related pages), or moved to by keyboard
+  const frameOn = (pageId: string) => {
+    if (!size) return;
+    const c = layout.centres.get(pageId as Page['id']);
     if (!c) return;
     // The part of the viewport the drawer leaves visible
     const frameRight = viewportRef.current?.getBoundingClientRect().right ?? 0;
     const covered = Math.max(0, Math.min(coveredRight - (window.innerWidth - frameRight), size.w - 200));
     const visibleW = size.w - covered;
     // The page and the pages branching from it, so opening a page shows where it leads
-    const branch = [c, ...(tree.nodes.get(focusRequest.pageId as Page['id'])?.children ?? [])
+    const branch = [c, ...(tree.nodes.get(pageId as Page['id'])?.children ?? [])
       .map((child) => layout.centres.get(child.page.id))
       .filter((p): p is NonNullable<typeof p> => !!p)];
     const box = {
@@ -164,6 +164,9 @@ export function MindMap({
       const cy = fits ? (box.minY + box.maxY) / 2 : c.y;
       return { k, x: visibleW / 2 - cx * k, y: size.h / 2 - cy * k };
     });
+  };
+  useEffect(() => {
+    if (focusRequest) frameOn(focusRequest.pageId);
     // Runs again once the size is known, so a page opened from the URL is brought into view
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusRequest?.nonce, size !== null]);
@@ -227,6 +230,57 @@ export function MindMap({
   const { minX, minY, maxX, maxY } = layout.bounds;
   const pad = 40;
   const rootId = tree.root.page.id;
+
+  // The map is one stop for Tab, like a tree: the arrow keys move between its pages. → and ← go along the
+  // branches as they are drawn (outward to the nearest page branching off, inward to the one it grows from),
+  // ↑ and ↓ to the page above or below on the same branch, Home to the centre. Enter opens the page.
+  const placed = useMemo(() => new Map(layout.nodes.map((n) => [n.page.id as string, n])), [layout.nodes]);
+  const [rovingId, setRovingId] = useState<string | null>(null);
+  const tabStop = [rovingId, selectedId, currentId].find((id) => id && (id === rootId || placed.has(id))) ?? rootId;
+  const nearest = (ids: ReadonlyArray<string>, y: number) =>
+    ids.reduce<string | null>((best, id) => {
+      if (best === null) return id;
+      return Math.abs(placed.get(id)!.inner.y - y) < Math.abs(placed.get(best)!.inner.y - y) ? id : best;
+    }, null);
+  const neighbour = (id: string, key: string): string | null => {
+    if (key === 'Home') return rootId;
+    if (id === rootId) {
+      if (key !== 'ArrowRight' && key !== 'ArrowLeft') return null;
+      const side = key === 'ArrowRight' ? 1 : -1;
+      return nearest(layout.nodes.filter((n) => n.depth === 1 && n.side === side).map((n) => n.page.id), 0);
+    }
+    const n = placed.get(id);
+    const node = tree.nodes.get(id as Page['id']);
+    if (!n || !node) return null;
+    const outward = n.side === 1 ? 'ArrowRight' : 'ArrowLeft';
+    const inward = n.side === 1 ? 'ArrowLeft' : 'ArrowRight';
+    if (key === outward) return nearest(node.children.map((c) => c.page.id), n.inner.y);
+    if (key === inward) return node.parentId;
+    if (key !== 'ArrowUp' && key !== 'ArrowDown') return null;
+    const column = layout.nodes
+      .filter((m) => tree.nodes.get(m.page.id)?.parentId === node.parentId && m.side === n.side)
+      .sort((a, b) => a.inner.y - b.inner.y);
+    const at = column.findIndex((m) => m.page.id === id);
+    return column[at + (key === 'ArrowDown' ? 1 : -1)]?.page.id ?? null;
+  };
+  const onTreeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const from = (event.target as HTMLElement).closest<HTMLElement>('[data-page-id]')?.dataset.pageId;
+    if (!from || !['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Home'].includes(event.key)) return;
+    event.preventDefault();
+    const to = neighbour(from, event.key);
+    if (!to) return;
+    setRovingId(to);
+    document.querySelector<HTMLElement>(`[data-page-id="${to}"]`)?.focus({ preventScroll: true });
+    frameOn(to);
+  };
+  const treeItem = (id: string, level: number, expanded: boolean) => ({
+    role: 'treeitem',
+    'aria-level': level,
+    'aria-selected': selectedId === id,
+    'aria-expanded': expanded || undefined,
+    tabIndex: id === tabStop ? 0 : -1,
+    onFocusCapture: () => setRovingId(id),
+  });
   const rootLook = lookOf(project, rootId, tree);
   const overall = progressOf(descendants(tree.root));
   const statusOf = (page: Page): TopicStatus => (page.studied ? 'done' : page.id === currentId ? 'current' : 'todo');
@@ -251,6 +305,9 @@ export function MindMap({
         {view && (
           <div
             className={classes.stage}
+            role="tree"
+            aria-label={`Map of ${displayTitle(tree.root.page)}. Arrow keys move between pages, Enter opens one.`}
+            onKeyDown={onTreeKeyDown}
             data-animate={animate || undefined}
             onTransitionEnd={() => setAnimate(false)}
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})` }}
@@ -302,6 +359,7 @@ export function MindMap({
               selected={selectedId === rootId}
               dimmed={dimmed(rootId)}
               mark={searchMark(rootId)}
+              item={treeItem(rootId, 1, tree.root.children.length > 0)}
               onSelect={onSelect}
               onIntent={onIntent}
             />
@@ -328,6 +386,7 @@ export function MindMap({
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   {...searchMark(n.page.id)}
+                  {...treeItem(n.page.id, n.depth + 1, n.branches > 0)}
                   onClick={() => onSelect(n.page.id)}
                   onPointerEnter={() => intent(n.page.id)}
                   onPointerLeave={() => setHoveredId(null)}
@@ -356,6 +415,7 @@ export function MindMap({
                   data-selected={selectedId === n.page.id || undefined}
                   data-dimmed={dimmed(n.page.id) || undefined}
                   {...searchMark(n.page.id)}
+                  {...treeItem(n.page.id, n.depth + 1, n.branches > 0)}
                   onClick={() => onSelect(n.page.id)}
                   onPointerEnter={() => intent(n.page.id)}
                   onPointerLeave={() => setHoveredId(null)}
@@ -423,6 +483,9 @@ export function MindMap({
                 </svg>
                 <Text size="sm">Link between pages on different branches</Text>
               </Group>
+              <Text size="xs" c="dimmed" maw={260}>
+                Tab into the map, then the arrow keys move between pages and Enter opens one.
+              </Text>
             </Stack>
           </HoverCard.Dropdown>
         </HoverCard>
@@ -480,6 +543,8 @@ interface RootNodeProps {
   dimmed: boolean;
   /** How it stands among what the search found */
   mark: Record<string, true | undefined>;
+  /** Its place in the map as a tree, for the keyboard and screen readers */
+  item: Record<string, unknown>;
   onSelect: (pageId: string) => void;
   onIntent?: (pageId: string) => void;
 }
@@ -513,7 +578,7 @@ function ProgressRing({ size, stroke, share }: { size: number; stroke: number; s
 }
 
 /** The root: a card with the map's progress as a ring around its icon, and the title beside it, as long as it needs */
-function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, mark, onSelect, onIntent }: RootNodeProps) {
+function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, mark, item, onSelect, onIntent }: RootNodeProps) {
   return (
     <UnstyledButton
       className={classes.root}
@@ -522,6 +587,7 @@ function RootNode({ shape, page, color, icon, studied, total, selected, dimmed, 
       data-selected={selected || undefined}
       data-dimmed={dimmed || undefined}
       {...mark}
+      {...item}
       onClick={() => onSelect(page.id)}
       onPointerEnter={() => onIntent?.(page.id)}
       onFocus={() => onIntent?.(page.id)}
