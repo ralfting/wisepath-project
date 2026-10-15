@@ -111,11 +111,18 @@ export const Timestamp = Node.create({
     };
   },
 
-  // ⌘↵ (Ctrl+Enter) plays the time on the cursor's line: the last one before the cursor, else the first
+  // ⌘↵ (Ctrl+Enter) plays the time on the cursor's line: the last one before the cursor, else the first.
+  // ⌥N (Alt+N) takes a note on the video above the cursor, without leaving the text
   addKeyboardShortcuts() {
     return {
+      'Alt-n': () => {
+        const video = videoAbove(this.editor, cursorPos(this.editor));
+        if (!video) return false;
+        video.openNote();
+        return true;
+      },
       'Mod-Enter': () => {
-        const { $from } = this.editor.state.selection;
+        const $from = this.editor.state.doc.resolve(cursorPos(this.editor));
         const line = $from.parent;
         const start = $from.start();
         let chosen: { pos: number; time: string } | null = null;
@@ -171,6 +178,22 @@ export const Timestamp = Node.create({
     ];
   },
 });
+
+/**
+ * Where the cursor is, read from the page's own selection: a shortcut pressed right after a click can come
+ * before the editor has caught up with the selection, and would act on where the cursor was before
+ */
+function cursorPos(editor: Editor): number {
+  const { view } = editor;
+  const selection = window.getSelection();
+  const node = selection?.focusNode;
+  if (!node || !view.dom.contains(node)) return view.state.selection.from;
+  try {
+    return view.posAtDOM(node, selection.focusOffset);
+  } catch {
+    return view.state.selection.from;
+  }
+}
 
 /* ---------- The notes under a video ---------- */
 

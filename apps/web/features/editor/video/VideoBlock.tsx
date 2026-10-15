@@ -3,9 +3,19 @@
 import { NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
 import { ActionIcon, Button, Group, Kbd, Popover, Text, TextInput, Tooltip, UnstyledButton } from '@mantine/core';
-import { IconArrowsMaximize, IconArrowsMinimize, IconLayoutSidebarRightCollapse, IconLayoutSidebarRightExpand, IconPlus, IconX } from '@tabler/icons-react';
+import { useMediaQuery } from '@mantine/hooks';
+import {
+  IconArrowBackUp,
+  IconArrowsMaximize,
+  IconArrowsMinimize,
+  IconGripHorizontal,
+  IconLayoutSidebarRightCollapse,
+  IconLayoutSidebarRightExpand,
+  IconPlus,
+  IconX,
+} from '@tabler/icons-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { youTubeId } from '../extensions';
 import { LOAD_TIMEOUT_MS, PLAYING, embedUrl, loadYouTubeApi } from './youtubeApi';
 import type { YouTubePlayer } from './youtubeApi';
@@ -16,15 +26,34 @@ import classes from './VideoBlock.module.css';
 
 /**
  * VideoBlock
- * A YouTube video to take notes on. "Add note" (or N) pauses it and asks for a
- * line; Enter puts "[01:25] the line" in the list below the video, in time
- * order, and the video goes on. A time in the text plays it from there. Scrolled
- * away while playing, the video floats small in the corner; fullscreen shows it
+ * A YouTube video to take notes on. "Note at" (N on the video, ⌥N while
+ * writing below it) pauses it and asks for a line; Enter puts "[01:25] the
+ * line" in the list below the video, in time order, and the video goes on. A
+ * time in the text plays it from there. Scrolled away while playing, the video
+ * floats small in a corner, dragged to whichever suits; fullscreen shows it
  * large with its notes beside it. The note for what is playing is marked.
+ *
+ * Keys pressed inside YouTube's frame never reach the page, so a click on the
+ * video hands the focus back to the block, which then answers YouTube's own
+ * keys (Space or K, ← →, F) as well as N.
  */
 
 /** The video most recently used, which N reaches when the focus is on the page itself */
 let lastUsed: object | null = null;
+
+type Corner = 'tl' | 'tr' | 'bl' | 'br';
+const CORNER_KEY = 'wp-video-corner';
+/** Where the floating video went last time, for this viewer */
+function savedCorner(): Corner {
+  try {
+    const c = localStorage.getItem(CORNER_KEY);
+    return c === 'tl' || c === 'tr' || c === 'bl' || c === 'br' ? c : 'br';
+  } catch {
+    return 'br';
+  }
+}
+
+const isMac = () => typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent);
 
 export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
   const videoId = youTubeId(node.attrs.src ?? '');
@@ -41,10 +70,16 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(0);
   const [inView, setInView] = useState(true);
+  const inViewRef = useRef(true);
   const [dismissed, setDismissed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [showNotes, setShowNotes] = useState(true);
-  const [composer, setComposer] = useState<{ seconds: number; resume: boolean } | null>(null);
+  // Opened from the page's text (⌥N), the cursor goes back there when the note is done
+  const [composer, setComposer] = useState<{ seconds: number; resume: boolean; fromText: boolean } | null>(null);
+  const [corner, setCorner] = useState<Corner>('br');
+  useEffect(() => setCorner(savedCorner()), []);
+  const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
+  const hasKeyboard = useMediaQuery('(hover: hover) and (pointer: fine)', true);
   const [draft, setDraft] = useState('');
   // The embed address is fixed once: changing it would reload the video
   const [src] = useState(() => (videoId ? embedUrl(videoId, Number(node.attrs.start) || 0) : ''));
@@ -124,7 +159,6 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     setTime(seconds);
   }, [self]);
 
-  useEffect(() => registerVideo(editor, { getPos: position, seek }), [editor, position, seek]);
 
   // Out of view while playing: it floats in the corner, until it is back in view or closed
   useEffect(() => {
@@ -132,33 +166,114 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     if (!slot) return;
     const observer = new IntersectionObserver(([entry]) => {
       setInView(entry.isIntersecting);
+      inViewRef.current = entry.isIntersecting;
       if (entry.isIntersecting) setDismissed(false);
     }, { threshold: 0.35 });
     observer.observe(slot);
     return () => observer.disconnect();
   }, []);
-  const floating = playing && !inView && !dismissed && !fullscreen;
+  // Paused for a note it stays afloat, so the popup shows where the video is
+  const floating = (playing || !!composer?.resume) && !inView && !dismissed && !fullscreen;
+
+  // The corners are those of the area the text is in (the page beside the sidebar, or the drawer), not the
+  // window's. The drawer moves what is fixed inside it to its own box, so that offset comes off
+  const [place, setPlace] = useState<CSSProperties>({});
+  useEffect(() => {
+    if (!floating) return;
+    const measure = () => {
+      const stage = stageRef.current;
+      const slot = slotRef.current;
+      const area = slot?.closest('.mantine-Drawer-content, .mantine-AppShell-main')?.getBoundingClientRect();
+      if (!stage || !slot || !area) return;
+      const bottomOf = (selector: string, within: ParentNode = document) => within.querySelector(selector)?.getBoundingClientRect().bottom ?? 0;
+      // What of the area is on screen: past the sidebar, below the top bar and the editor's toolbar that stays up
+      const visible = {
+        left: Math.max(area.left, document.querySelector('.mantine-AppShell-navbar')?.getBoundingClientRect().right ?? 0, 0),
+        right: Math.min(area.right, window.innerWidth),
+        top: Math.max(area.top, 0, bottomOf('.mantine-AppShell-header'), bottomOf('.mantine-RichTextEditor-toolbar', slot.closest('.mantine-RichTextEditor-root') ?? document)),
+        bottom: Math.min(area.bottom, window.innerHeight),
+      };
+      // Fixed inside the drawer means fixed to the drawer's box, not the window's
+      const box = stage.offsetParent?.getBoundingClientRect() ?? { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+      const gap = 16;
+      setPlace({
+        ...(corner[0] === 't' ? { top: visible.top + gap - box.top } : { bottom: box.bottom - visible.bottom + gap }),
+        ...(corner[1] === 'l' ? { left: visible.left + gap - box.left } : { right: box.right - visible.right + gap }),
+      });
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', measure, true);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure, true);
+    };
+  }, [floating, corner]);
 
   // Our own fullscreen: the video with its notes, which the browser's video-only fullscreen can't show
   useEffect(() => {
-    const onChange = () => setFullscreen(document.fullscreenElement === stageRef.current);
+    const onChange = () => {
+      const on = !!stageRef.current && document.fullscreenElement === stageRef.current;
+      setFullscreen(on);
+      // The button that opened it goes away: the video takes the focus, so its keys work from the start
+      if (on) {
+        lastUsed = self;
+        stageRef.current?.focus({ preventScroll: true });
+      }
+    };
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
-  }, []);
+  }, [self]);
   const toggleFullscreen = () => {
     if (document.fullscreenElement) void document.exitFullscreen();
     else void stageRef.current?.requestFullscreen();
   };
+  const toggleFullscreenRef = useRef(toggleFullscreen);
+  toggleFullscreenRef.current = toggleFullscreen;
 
-  const openComposer = useCallback(() => {
+  // The floating video moves with the pointer, then settles in the nearest corner
+  const startDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.button !== 0 || (event.target as HTMLElement).closest('button')) return;
+    const start = { x: event.clientX, y: event.clientY };
+    const handle = event.currentTarget;
+    handle.setPointerCapture(event.pointerId);
+    const move = (e: PointerEvent) => setDrag({ x: e.clientX - start.x, y: e.clientY - start.y });
+    const end = (e: PointerEvent) => {
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', end);
+      handle.removeEventListener('pointercancel', end);
+      const box = stageRef.current?.getBoundingClientRect();
+      setDrag(null);
+      if (!box || (Math.abs(e.clientX - start.x) < 4 && Math.abs(e.clientY - start.y) < 4)) return;
+      const next: Corner = `${box.top + box.height / 2 < window.innerHeight / 2 ? 't' : 'b'}${box.left + box.width / 2 < window.innerWidth / 2 ? 'l' : 'r'}`;
+      setCorner(next);
+      try {
+        localStorage.setItem(CORNER_KEY, next);
+      } catch {
+        // Private mode: the corner holds for this page only
+      }
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', end);
+    handle.addEventListener('pointercancel', end);
+  };
+
+  const openComposer = useCallback((fromText = false) => {
     const p = player.current;
     if (!p) return;
     const resume = p.getPlayerState() === PLAYING;
     if (resume) p.pauseVideo();
     lastUsed = self;
+    // Paused out of view, nothing floats: bring the video to where the note is written
+    if (!resume && !inViewRef.current) slotRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     setDraft('');
-    setComposer({ seconds: p.getCurrentTime(), resume });
+    setComposer({ seconds: p.getCurrentTime(), resume, fromText });
   }, [self]);
+
+  useEffect(
+    () => registerVideo(editor, { getPos: position, seek, openNote: () => openComposer(true) }),
+    [editor, position, seek, openComposer],
+  );
 
   const closeComposer = (save: boolean) => {
     if (!composer) return;
@@ -166,10 +281,56 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     // Nothing written, nothing added: an Enter by mistake leaves the list as it was
     if (save && pos !== undefined && draft.trim()) addNote(editor, pos, composer.seconds, draft);
     if (composer.resume) player.current?.playVideo();
+    const { fromText } = composer;
     setComposer(null);
-    // Back on the button, where N works again
-    requestAnimationFrame(() => addRef.current?.focus());
+    // Back where the note was asked for: the text, or the video itself, where its keys (← →, Space, N) work again
+    requestAnimationFrame(() => (fromText ? editor.commands.focus() : stageRef.current?.focus({ preventScroll: true })));
   };
+
+  // A click on the video puts the focus inside YouTube's frame, where keys never reach the page: hand it back
+  // to the block, which answers YouTube's keys itself
+  useEffect(() => {
+    const onBlur = () =>
+      setTimeout(() => {
+        if (document.activeElement !== iframeRef.current) return;
+        lastUsed = self;
+        stageRef.current?.focus({ preventScroll: true });
+      }, 250);
+    window.addEventListener('blur', onBlur);
+    return () => window.removeEventListener('blur', onBlur);
+  }, [self]);
+
+  // YouTube's keys on the block. Listened to on the element itself, ahead of the editor, which would move
+  // its cursor on the arrows
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const onKey = (event: KeyboardEvent) => {
+      const p = player.current;
+      const target = event.target as HTMLElement;
+      if (!p || event.metaKey || event.ctrlKey || event.altKey) return;
+      // On the video or any of its buttons (the notes beside it in fullscreen too); a field keeps its keys
+      if (!stage.contains(target) || target.closest('input, textarea, select') || target.isContentEditable) return;
+      const key = event.key.toLowerCase();
+      // Space on a button presses it; K always plays and pauses
+      if (key === ' ' && target !== stage) return;
+      if (key === ' ' || key === 'k') {
+        if (p.getPlayerState() === PLAYING) p.pauseVideo();
+        else p.playVideo();
+      } else if (key === 'arrowleft' || key === 'arrowright') {
+        const to = Math.max(0, p.getCurrentTime() + (key === 'arrowleft' ? -5 : 5));
+        p.seekTo(to, true);
+        setTime(to);
+      } else if (key === 'f') {
+        toggleFullscreenRef.current();
+      } else {
+        return;
+      }
+      event.preventDefault();
+    };
+    stage.addEventListener('keydown', onKey);
+    return () => stage.removeEventListener('keydown', onKey);
+  }, []);
 
   // N adds a note: in fullscreen, or with the focus on the page rather than in a field or the video
   useEffect(() => {
@@ -189,9 +350,11 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
 
   if (!videoId) return <NodeViewWrapper data-youtube-video />;
 
-  const addButton = (
+  // The popup sits by whichever "Note" button is on screen: the bar, the fullscreen column or the floating video
+  const anchor = fullscreen ? 'side' : floating ? 'float' : 'bar';
+  const notePopover = (where: typeof anchor, target: ReactNode) => (
     <Popover
-      opened={composer !== null}
+      opened={composer !== null && anchor === where}
       onChange={(open) => !open && closeComposer(false)}
       position="bottom-start"
       shadow="md"
@@ -200,21 +363,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       trapFocus
       withinPortal={false}
     >
-      <Popover.Target>
-        <Tooltip label={<>Pause and write a note <Kbd size="xs">N</Kbd></>} disabled={composer !== null}>
-          <Button
-            ref={addRef}
-            size="compact-sm"
-            variant="light"
-            leftSection={<IconPlus size={14} />}
-            onClick={openComposer}
-            disabled={!ready}
-            onMouseDown={(event) => event.preventDefault()}
-          >
-            Note at {formatTime(composer?.seconds ?? time)}
-          </Button>
-        </Tooltip>
-      </Popover.Target>
+      <Popover.Target>{target}</Popover.Target>
       <Popover.Dropdown p="xs">
         <TextInput
           data-autofocus
@@ -242,11 +391,60 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       </Popover.Dropdown>
     </Popover>
   );
+  const noteButton = (
+    <Tooltip label={<>Pause and write a note <Kbd size="xs">N</Kbd></>} disabled={composer !== null}>
+      <Button
+        ref={addRef}
+        size="compact-sm"
+        variant="light"
+        leftSection={<IconPlus size={14} />}
+        onClick={() => openComposer()}
+        disabled={!ready}
+        onMouseDown={(event) => event.preventDefault()}
+      >
+        Note at {formatTime(composer?.seconds ?? time)}
+      </Button>
+    </Tooltip>
+  );
+  const alt = isMac() ? '⌥' : 'Alt+';
+  const mod = isMac() ? '⌘' : 'Ctrl+';
 
   return (
     <NodeViewWrapper className={classes.block} data-youtube-video>
       <div ref={slotRef} className={classes.slot} contentEditable={false}>
-        <div ref={stageRef} className={classes.stage} data-floating={floating || undefined} data-fullscreen={fullscreen || undefined} data-notes={(fullscreen && showNotes) || undefined}>
+        <div
+          ref={stageRef}
+          tabIndex={-1}
+          aria-label="Video. Space or K plays and pauses, the arrows skip 5 seconds, F is fullscreen, N takes a note"
+          className={classes.stage}
+          data-floating={floating || undefined}
+          data-corner={floating ? corner : undefined}
+          data-dragging={drag ? true : undefined}
+          data-fullscreen={fullscreen || undefined}
+          data-notes={(fullscreen && showNotes) || undefined}
+          style={floating ? ({ ...place, ...(drag ? { '--drag-x': `${drag.x}px`, '--drag-y': `${drag.y}px` } : {}) } as CSSProperties) : undefined}
+        >
+          {floating && (
+            <div className={classes.handle} onPointerDown={startDrag} title="Drag to another corner">
+              <IconGripHorizontal size={16} className={classes.grip} aria-hidden />
+              {notePopover(
+                'float',
+                <Button size="compact-xs" variant="light" leftSection={<IconPlus size={12} />} onClick={() => openComposer()}>
+                  Note at {formatTime(composer?.seconds ?? time)}
+                </Button>,
+              )}
+              <Group gap={2} wrap="nowrap" ml="auto">
+                <Tooltip label="Back to the video">
+                  <ActionIcon size="sm" variant="subtle" color="gray" aria-label="Back to the video" onClick={() => slotRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
+                    <IconArrowBackUp size={15} />
+                  </ActionIcon>
+                </Tooltip>
+                <ActionIcon size="sm" variant="subtle" color="gray" aria-label="Stop floating the video" onClick={() => setDismissed(true)}>
+                  <IconX size={15} />
+                </ActionIcon>
+              </Group>
+            </div>
+          )}
           <div className={classes.screen}>
             <iframe
               ref={iframeRef}
@@ -255,16 +453,11 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               className={classes.iframe}
             />
-            {floating && (
-              <ActionIcon className={classes.unfloat} size="sm" radius="xl" variant="filled" color="dark" aria-label="Stop floating the video" onClick={() => setDismissed(true)}>
-                <IconX size={14} />
-              </ActionIcon>
-            )}
           </div>
           {fullscreen && (
             <aside className={classes.side} aria-label="Notes on this video">
               <Group justify="space-between" wrap="nowrap" gap="xs" className={classes.sideHead}>
-                {addButton}
+                {notePopover('side', noteButton)}
                 <Group gap={4} wrap="nowrap">
                   <ActionIcon variant="subtle" color="gray" onClick={() => setShowNotes((s) => !s)} aria-label={showNotes ? 'Hide notes' : 'Show notes'}>
                     {showNotes ? <IconLayoutSidebarRightCollapse size={18} /> : <IconLayoutSidebarRightExpand size={18} />}
@@ -298,12 +491,18 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       )}
       {!fullscreen && !(failed && !ready) && (
         <Group gap="xs" mt={8} className={classes.bar} contentEditable={false}>
-          {addButton}
+          {notePopover('bar', noteButton)}
           <Tooltip label="Fullscreen, with the notes">
             <ActionIcon variant="subtle" color="gray" onClick={toggleFullscreen} aria-label="Fullscreen, with the notes" disabled={!ready}>
               <IconArrowsMaximize size={17} />
             </ActionIcon>
           </Tooltip>
+          {/* The keys, where there is a keyboard: N needs the focus on the video, ⌥N works while writing */}
+          {hasKeyboard && ready && (
+            <Text size="xs" c="dimmed" className={classes.keys}>
+              <Kbd size="xs">N</Kbd> note · <Kbd size="xs">{alt}N</Kbd> while writing · <Kbd size="xs">{mod}↵</Kbd> plays a line&apos;s time
+            </Text>
+          )}
         </Group>
       )}
     </NodeViewWrapper>

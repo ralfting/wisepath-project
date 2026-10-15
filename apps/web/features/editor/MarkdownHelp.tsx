@@ -39,6 +39,10 @@ const SYNTAX: { group: string; rows: { type: string; does: string }[] }[] = [
       { type: '/', does: 'Lists commands. Page asks for a name, then Enter links that page and goes to it, creating it if needed; Cmd/Ctrl+Enter stays here' },
       { type: 'https://…', does: 'A website address links itself; to link words, select them and use the link button (or paste [text](https://…))' },
       { type: 'https://youtu.be/…', does: 'A YouTube address alone on its line becomes an embedded video' },
+      {
+        type: '[01:25]',
+        does: "A moment of the video above: a click plays it from there, and Cmd/Ctrl+Enter plays the time on the cursor's line. Note at, under a video, pauses it to add one (N with the video focused, Alt+N while writing)",
+      },
     ],
   },
   {
