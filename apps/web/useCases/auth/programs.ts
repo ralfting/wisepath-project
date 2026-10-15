@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { Auth, Credentials, SignupDetails } from "@wisepath/domain/auth"
+import { AccountSettings, Auth, Credentials, SignupDetails } from "@wisepath/domain/auth"
 
 /**
  * Account use cases as Effect programs: decode what the person typed with the
@@ -22,3 +22,8 @@ export const logout = Effect.fn("useCases.auth.logout")(function*() {
 })
 
 export const currentUser = Auth.use((auth) => auth.currentUser())
+
+export const updateSettings = Effect.fn("useCases.auth.updateSettings")(function*(input: { locale: string | null }) {
+  const settings = yield* Schema.decodeUnknownEffect(AccountSettings)(input)
+  return yield* Auth.use((auth) => auth.updateSettings(settings))
+})

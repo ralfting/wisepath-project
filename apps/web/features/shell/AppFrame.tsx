@@ -29,11 +29,16 @@ import {
   IconHome,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
+  IconCheck,
+  IconLanguage,
   IconLogout,
   IconRoute,
   IconSelector,
 } from '@tabler/icons-react';
-import { useLogout, useSession } from '@/useCases/auth';
+import { useLogout, useSaveLocale, useSession } from '@/useCases/auth';
+import { useLocale, useT } from '@/i18n/I18nProvider';
+import { LOCALES, LOCALE_NAMES } from '@/i18n/locales';
+import type { Locale } from '@/i18n/locales';
 import { useProjects } from '@/useCases/projects';
 import { PageGlyph } from '@/features/shared/look';
 import classes from './AppFrame.module.css';
@@ -365,6 +370,14 @@ function AccountMenu() {
   const router = useRouter();
   const session = useSession();
   const logout = useLogout();
+  const t = useT();
+  const { choice, setChoice } = useLocale();
+  const saveLocale = useSaveLocale();
+  // Changes at once here, and on the account for every other device
+  const pick = (next: Locale | null) => {
+    setChoice(next);
+    void saveLocale(next);
+  };
   const user = session.status === 'signedIn' ? session.user : null;
 
   const onLogout = async () => {
@@ -392,8 +405,30 @@ function AccountMenu() {
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
+        <Menu.Label>
+          <Group gap={6} wrap="nowrap">
+            <IconLanguage size={14} />
+            {t('common.language.menu')}
+          </Group>
+        </Menu.Label>
+        {[null, ...LOCALES].map((option) => {
+          const name = option === null ? t('common.language.sameAsBrowser') : LOCALE_NAMES[option];
+          // Menu items can't be checked: the one in use says so in its name, and wears a tick
+          return (
+            <Menu.Item
+              key={option ?? 'browser'}
+              onClick={() => pick(option)}
+              rightSection={option === choice ? <IconCheck size={14} aria-hidden /> : null}
+              aria-label={option === choice ? t('common.language.current', { name }) : name}
+              data-locale-option={option ?? 'browser'}
+            >
+              {name}
+            </Menu.Item>
+          );
+        })}
+        <Menu.Divider />
         <Menu.Item leftSection={<IconLogout size={16} />} onClick={onLogout}>
-          Log out
+          {t('shell.account.logout')}
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>

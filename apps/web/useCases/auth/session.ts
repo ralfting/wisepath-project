@@ -18,6 +18,7 @@ const sessionAtom = appRuntime.atom(programs.currentUser).pipe(Atom.withReactivi
 const loginAtom = appRuntime.fn(programs.login, { reactivityKeys: [ReactivityKeys.session] })
 const signupAtom = appRuntime.fn(programs.signup, { reactivityKeys: [ReactivityKeys.session] })
 const logoutAtom = appRuntime.fn(programs.logout, { reactivityKeys: [ReactivityKeys.session] })
+const settingsAtom = appRuntime.fn(programs.updateSettings, { reactivityKeys: [ReactivityKeys.session] })
 
 export type Session =
   | { readonly status: "loading" }
@@ -64,6 +65,14 @@ export function useLogout(): () => Promise<void> {
   const run = useAtomSet(logoutAtom, { mode: "promiseExit" })
   return async () => {
     await run()
+  }
+}
+
+/** Saves the language on the account (null: follow the browser); a failure leaves it for this browser only */
+export function useSaveLocale(): (locale: string | null) => Promise<void> {
+  const run = useAtomSet(settingsAtom, { mode: "promiseExit" })
+  return async (locale) => {
+    await run({ locale })
   }
 }
 
