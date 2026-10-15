@@ -38,13 +38,24 @@ The map is a reading of the links, never stored on its own.
 The editor shows formatting as you type and saves markdown. The **?** in its toolbar lists the markdown it understands.
 
 - **`[[Page]]`** links another page of the path (shown with a book icon); a name that doesn't exist yet is shown dashed and offers to create the page. Typing `[[` opens a picker of pages; a new name there creates it.
-- **`/` commands:** headings, lists, checklists, code, quote, table, video, and Page, which asks for a name, links it and goes to it (Cmd/Ctrl+Enter stays here).
+- **`/` commands:** headings, lists, checklists, code, quote, table, video, templates, and Page, which asks for a name, links it and goes to it (Cmd/Ctrl+Enter stays here).
 - **Tables:** a markdown header row (`| A | B |`) then Enter makes a table with a row to fill; pasted markdown tables work too.
 - **Code blocks** have syntax colours, and the language in their top corner: a searchable picker (TypeScript, Python, SQL… or Auto, which guesses). The fence keeps the language (```` ```ts ````).
 - **Web addresses** written on their own read as the site's icon and the page's title, in the line; the cursor on one brings the address back to edit it. A link with its own words (`[text](https://…)`) shows those.
 - **Hover cards.** Pointing at a link shows a card: another page's title and opening lines, or a site's icon, title and description. The whole card opens it (a site in a new tab).
 - **Where the keys go:** a bar in the left margin marks the block the cursor is in.
 - Backspace at the start of the line after a table, code block or video selects that block, so a second Backspace removes it.
+
+## Page templates
+
+A template lays a page out in the order a subject is best understood: **In one line**, **Why it exists**, **How it works**, **Example**, **Practice**, **Pitfalls**, **Questions** (`Question :: Answer` lines) and **Sources**.
+
+- **Four templates.** **Concept** has the eight sections. **Video** starts with a line to paste the video's address in, and its **How it works** is **Notes** (times from the video). **Article** starts with a line for the article's address, and collects **Passages**. **Tool** has **Install and use**, with a code block for the setup.
+- **On an empty page,** a quiet row: "Start with: Concept · Video · Article · Tool · Blank". A click, or ← → and Enter, fills the page; typing anything makes the row go. Nothing is applied on its own.
+- **`/template`** lists the four and inserts one where the cursor is.
+- **Hints, not text:** under each heading whose section is empty, a grey hint ("What problem does it solve? What did people do before?"). Hints are never saved: the markdown has only the headings and what the learner writes.
+- **Following the order:** **⌘↓ / Ctrl+↓** moves the cursor to the next empty section (going round to the first). A page with a template opens with the cursor in its first empty section, unless a place in it was remembered. The outline marks each section written (a dot) or empty (a ring).
+- Headings and hints come in the learner's language; a page keeps the language it was filled in. Sections are recognised by their heading in either language, so hints and the outline still work after switching, and on pages written by hand with the same headings.
 
 ## Video notes
 
@@ -69,6 +80,8 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 | Text | `[[` | Pick or create a page to link |
 | Text | `/` | Commands |
 | Text | ⌘K / Ctrl K | With text selected, make it a link; otherwise search |
+| Text | ⌘↓ / Ctrl+↓ | Next empty template section |
+| Empty page | ← → · Enter | Pick a template · fill the page with it |
 | Title | Enter | On to the text |
 | Text | ⌘↵ / Ctrl+Enter | Play the time on the line, or open its link |
 | Text | ⇧⌘↵ / Shift+Ctrl+Enter | Play the time on the line in fullscreen |
