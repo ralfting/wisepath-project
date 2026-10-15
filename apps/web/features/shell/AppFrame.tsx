@@ -485,8 +485,10 @@ function AccountMenu() {
   return (
     <Menu position="top-start" width="target" withinPortal>
       <Menu.Target>
-        <UnstyledButton aria-label={t('shell.account.menu')} className={classes.accountButton}>
-          <Avatar radius="xl" color="blue" variant="filled" name={user?.displayName} />
+        {/* Named by what it shows, after the word for it: a label that hid the name would not match what is read on screen */}
+        <UnstyledButton className={classes.accountButton}>
+          <VisuallyHidden>{t('shell.account.menu')}</VisuallyHidden>
+          <Avatar radius="xl" color="blue" variant="filled" name={user?.displayName} aria-hidden="true" />
           <Stack gap={0} miw={0} style={{ flex: 1 }}>
             <Text size="sm" fw={600} truncate>
               {user?.displayName ?? ' '}
