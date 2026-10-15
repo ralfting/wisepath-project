@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ClipboardEvent, KeyboardEvent } from 'react';
 import { ActionIcon, Group, Image, Loader, SegmentedControl, Text, Textarea, Tooltip } from '@mantine/core';
 import { IconLink, IconX } from '@tabler/icons-react';
@@ -54,6 +54,9 @@ export function QuickCapture({
   const [link, setLink] = useState<Link | null>(null);
   const [toPage, setToPage] = useState(false);
   const pageTitle = useRef('');
+  const rememberTitle = useCallback((title: string) => {
+    pageTitle.current = title;
+  }, []);
 
   // Every opening starts blank, headed for the Inbox
   useEffect(() => {
@@ -145,7 +148,7 @@ export function QuickCapture({
           </Tooltip>
         </Group>
       )}
-      {page && <Destination page={page} toPage={toPage} onChange={setToPage} onTitle={(title) => (pageTitle.current = title)} />}
+      {page && <Destination page={page} toPage={toPage} onChange={setToPage} onTitle={rememberTitle} />}
     </CaptureBox>
   );
 }
@@ -166,7 +169,9 @@ function Destination({
   const { state } = useProject(page.projectId);
   const found = state.status === 'ready' ? state.project.pages.find((p) => p.id === page.pageId) : undefined;
   const title = found ? displayTitle(found) : '';
-  useEffect(() => onTitle(title), [title, onTitle]);
+  useEffect(() => {
+    onTitle(title);
+  }, [title, onTitle]);
   if (!found) return null;
   return (
     <Group className={classes.destination} gap="sm" wrap="nowrap">
