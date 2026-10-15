@@ -46,6 +46,8 @@ import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { CodeBlockView } from './CodeBlockView';
+import { LinkTitles } from './linkTitles';
+import { useLinkPreviewLoader } from '@/useCases/projects';
 import { VideoBlock } from './video/VideoBlock';
 import { Timestamp } from './video/timestamps';
 
@@ -155,6 +157,10 @@ export function MarkdownEditor({
   // Extensions are created once; they read the latest props through refs
   const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor });
   latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor };
+  // Pasted addresses read as their page's title; the previews come from the same cache as the hover card
+  const loadPreview = useLinkPreviewLoader();
+  const loadPreviewRef = useRef(loadPreview);
+  loadPreviewRef.current = loadPreview;
 
   const askPageName = (e: Editor) => {
     const at = e.state.selection.from;
@@ -185,6 +191,7 @@ export function MarkdownEditor({
       // A video to take notes on, and the [01:25] times that play it from there
       YouTubeVideo.extend({ addNodeView: () => ReactNodeViewRenderer(VideoBlock) }),
       Timestamp,
+      LinkTitles.configure({ load: (url: string) => loadPreviewRef.current(url) }),
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
       LinkKeys.configure({
         onOpen: (link, element) => (link.kind === 'web' ? openUrl(link.href) : element && openWikiLink(link.title, element)),
