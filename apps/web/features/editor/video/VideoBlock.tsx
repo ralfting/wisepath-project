@@ -36,7 +36,8 @@ import classes from './VideoBlock.module.css';
  * A click on the video leaves the focus inside YouTube's frame, where its own
  * controls and keys work and the page's don't. Taking it back at once would
  * close YouTube's menus (settings, captions, volume), so the block takes it
- * back when the video starts or pauses from there, or when the pointer leaves
+ * back once one of them has done its part (the volume, the captions or the
+ * speed changed; the video started or paused), or when the pointer leaves
  * the video. With the focus on the block it answers YouTube's keys (Space or
  * K, ← →, M, F) as well as N.
  */
@@ -299,6 +300,38 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     // Back to the video, where its keys (← →, Space, N) work again
     requestAnimationFrame(() => stageRef.current?.focus({ preventScroll: true }));
   };
+
+  // One of YouTube's controls has done its part: the volume, the captions or the speed changed. Its frame says
+  // so in the messages it sends the API; a while after the last one (a volume being dragged sends many), the
+  // block takes the focus back
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onMessage = (event: MessageEvent) => {
+      if (event.source !== iframeRef.current?.contentWindow || typeof event.data !== 'string') return;
+      let data: { event?: string; info?: Record<string, unknown> };
+      try {
+        data = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+      // Captions turned on may load YouTube's captions module, which it reports
+      let changed = data.event === 'apiInfoDelivery';
+      // The volume and the speed come on their own when they change; the speed also rides along with the time
+      // in every report while playing, which isn't a change
+      if (data.event === 'infoDelivery' && data.info) {
+        const { info } = data;
+        if ('volume' in info || 'muted' in info || ('playbackRate' in info && !('currentTime' in info))) changed = true;
+      }
+      if (!changed) return;
+      clearTimeout(timer);
+      timer = setTimeout(reclaimFocus, 700);
+    };
+    window.addEventListener('message', onMessage);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('message', onMessage);
+    };
+  }, [reclaimFocus]);
 
   // The pointer back on the page after using YouTube's controls: N, and the block's keys, work again
   useEffect(() => {
