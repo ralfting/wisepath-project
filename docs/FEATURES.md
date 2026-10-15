@@ -69,6 +69,16 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 - If YouTube can't load (offline, blocked), the block says so and offers Retry.
 - Stored as plain markdown: the video's watch URL on its line, the notes as a list of `[mm:ss]` lines.
 
+## Spaced review
+
+Questions are written in the notes themselves, where they belong; a few minutes a day of being asked them, at growing intervals, keeps what was learned.
+
+- **Cards.** A line `Question :: Answer` in any page is a card (in a list, a heading or a quote too; `::` needs a space each side, so `std::vector` isn't one). A line with `==words==` is a fill-in-the-blank: the marked words are hidden, one card per mark. Code is never a card. In the editor a card line has a small card in the left margin, and `==words==` are highlighted; the markdown stays as written.
+- **Identity.** A card is its path, its page and its question: editing the answer keeps its history, editing the question starts a new card. A card whose line is removed keeps its history, in case it comes back.
+- **Review** (in the sidebar, with the number due today): one card at a time, with the page it comes from (a link to it). **Space** shows the answer, then **1 Again · 2 Hard · 3 Good · 4 Easy**; each button says when the card comes back. The next card shows at once. Again asks the card once more before the end; then "Done for today".
+- **Scheduling** is FSRS (v5, default weights): a card comes back when it is about 90% likely to still be remembered, so intervals grow with every Good and start over after Again. Up to 20 new cards a day are started, across every path; "today" ends at the learner's midnight.
+- **Per path.** A path's home card and its centre page show its cards and how many are due, with a Review link that reviews that path only (`/review?path=`); the Review page can switch between paths.
+
 ## Keyboard shortcuts
 
 | Where | Keys | Does |
@@ -87,6 +97,8 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 | Text | ⇧⌘↵ / Shift+Ctrl+Enter | Play the time on the line in fullscreen |
 | Video | N | Pause and write a note |
 | Video | Space or K · ← → · F | Play/pause · skip 5 s · fullscreen |
+| Review | Space (or Enter) | Show the answer |
+| Review | 1 · 2 · 3 · 4 | Again · Hard · Good · Easy |
 
 ## Accessibility and themes
 
@@ -100,3 +112,4 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 - N doesn't work while typing in the text (it would type an n) or with the focus inside YouTube's player.
 - Fullscreen is the app's own (with the notes); YouTube's fullscreen button is off.
 - The floating video snaps to the corners; it can't be resized.
+- Review cards are one line: no images or multi-line answers, no statistics, no reminders outside the app.
