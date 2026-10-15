@@ -5,6 +5,8 @@ import type { PasswordHasher } from '../../auth/application/PasswordHasher';
 import type { UserStore } from '../../auth/application/UserStore';
 import { BcryptPasswordHasher } from '../../auth/infrastructure/BcryptPasswordHasher';
 import { DrizzleUserStore } from '../../auth/infrastructure/DrizzleUserStore';
+import type { InboxStore } from '../../inbox/application/InboxStore';
+import { DrizzleInboxStore } from '../../inbox/infrastructure/DrizzleInboxStore';
 import type { PageFetcher } from '../../links/application/PageFetcher';
 import { SafePageFetcher } from '../../links/infrastructure/SafePageFetcher';
 import type { ProjectStore } from '../../projects/application/ProjectStore';
@@ -22,6 +24,7 @@ const AppLive = Layer.mergeAll(
   DrizzleReviewStore,
   DrizzleSearchStore,
   DrizzleUserStore,
+  DrizzleInboxStore,
   BcryptPasswordHasher,
   SafePageFetcher,
 ).pipe(
@@ -30,7 +33,7 @@ const AppLive = Layer.mergeAll(
 );
 
 /** The services a use case may ask for; anything per request (like the current user) is provided by its caller */
-export type AppServices = ProjectStore | ReviewStore | SearchStore | UserStore | PasswordHasher | PageFetcher;
+export type AppServices = ProjectStore | ReviewStore | SearchStore | UserStore | InboxStore | PasswordHasher | PageFetcher;
 
 /**
  * EffectRuntime

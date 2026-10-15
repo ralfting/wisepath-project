@@ -127,6 +127,30 @@ export const reviewStates = pgTable(
   ],
 );
 
+/** What a learner captured to file later: one Inbox per learner. Ids come from the client. */
+export const inboxItems = pgTable(
+  'inbox_items',
+  {
+    id: text().primaryKey(),
+    ownerId: text('owner_id').notNull(),
+    text: text().notNull(),
+    url: text(),
+    /** The address's title, from its link preview */
+    title: text(),
+    /** A moment of the video at the address, in seconds */
+    videoTime: integer('video_time'),
+    createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index('inbox_items_owner_id_created_at_idx').on(t.ownerId, t.createdAt),
+    foreignKey({ name: 'inbox_items_owner_id_fkey', columns: [t.ownerId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
 }));
