@@ -14,7 +14,7 @@ Secondary: followers who receive a copy of someone else's path and work through 
 
 ## Product Purpose
 
-WisePath lets a learner map what they are learning. Every map has one root page named after the subject ("NestJS"); every other page is a page of free-form markdown (explanations, notes, links, embedded videos), at any depth. Pages connect only through `[[Title]]` links written in their text: linking a title that does not exist yet and clicking it creates the page. The map is read from those links, outward from the root. The core loop is authoring: write a page, link the next ones, click to create them. Learners mark pages studied and pick up where they stopped.
+WisePath lets a learner map what they are learning. Every map has one root page named after the subject ("NestJS"); every other page is a page of free-form markdown (explanations, notes, links, embedded videos), at any depth. Pages connect only through `[[Title]]` links written in their text: linking a title that does not exist yet and clicking it creates the page. The map is read from those links, outward from the root. The core loop is authoring: write a page, link the next ones, click to create them. A path is a **Study** (open notes, no progress) unless it is made a **Learning path**, where learners mark pages studied and pick up where they stopped.
 
 Success: a learner can come back months later — or hand the project to someone else — and find what they wrote about each concept, the resources they kept, and how the pieces connect.
 
@@ -31,7 +31,7 @@ Typical workflow:
 4. Keep going in each page, as deep as the subject needs; mark the big areas as modules so they stand out.
 5. For each page, write free-form markdown: the concept, notes, links, YouTube embeds.
 6. Reference related pages anywhere in the map with `[[Title]]`.
-7. Mark pages studied; "Continue studying" opens the next one.
+7. In a learning path, mark pages studied; "Continue studying" opens the next one. Watching a video, take timestamped notes under it without leaving it.
 8. Share the map; the recipient gets an independent copy.
 
 Used in a desktop browser alongside the material being studied (video, docs, IDE), often over many sessions.
@@ -43,9 +43,10 @@ Used in a desktop browser alongside the material being studied (video, docs, IDE
 - Pages connect only through `[[Title]]` links, and are created only from one: a link to a title no page has is shown as missing, and clicking it offers to create the page. Titles are unique within a map.
 - The map is read from the links, level by level from the root, in the order the links are written: the first link that reaches a page makes it a branch of the linking page; other links show as arrows, except links back to the root or to the page's own ancestors, which only appear as related pages. Pages no link reaches are orphans, listed apart and left out of progress.
 - Any page can be shown as a module: drawn larger, with a colour and icon the learner picks; pages below it take its colour. Nothing else changes.
-- Resources live inside the page's markdown; there is no separate resource model.
+- Resources live inside the page's markdown; there is no separate resource model. A YouTube address on its own line embeds the video, with `[mm:ss]` notes below it that play it from there; a web address shows as its site's icon and title. The features as they stand are in `docs/FEATURES.md`.
 - Views: a horizontal mind map (root in the centre, branches split left and right, each level a column further out) and an indented list. The selected page opens in a side panel with its related pages (where it branches from, its branches, links out, links in); a full-screen editor is one click away.
-- Progress: every page but the root has a studied flag. The root shows the whole map's count, every page with branches shows the count of the pages below it, and "Continue studying" goes to the first page not studied yet, in map order.
+- Kinds: a map is a Study (the default: no progress anywhere) or a Learning path; switching keeps the studied flags, hidden in a Study.
+- Progress (learning paths): every page but the root has a studied flag. The root shows the whole map's count, every page with branches shows the count of the pages below it, and "Continue studying" goes to the first page not studied yet, in map order.
 - Sharing creates a full independent copy; each user owns their own copy and progress.
 - Out of scope for v1: real-time collaboration, built-in templates, social features (likes, comments on others' projects), mobile apps.
 - Stack: Turborepo monorepo — Next.js 15 + Mantine 8 (design system, customised only through `apps/web/theme.ts`) + Effect 4 (`apps/web`), NestJS + Effect + Drizzle (`apps/api`), the domain model (`packages/domain`) and API contract (`packages/contract`).
