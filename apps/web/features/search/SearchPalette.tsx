@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Group, Kbd, Loader, Modal, ScrollArea, Text, UnstyledButton, VisuallyHidden } from '@mantine/core';
 import { IconFileText, IconSearch } from '@tabler/icons-react';
@@ -107,8 +107,8 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
   const recent = useRecentPages();
   const projects = useProjects();
 
-  // Each opening starts afresh, on the recent pages
-  useEffect(() => setQuery(''), [setQuery]);
+  // Each opening starts afresh, on the recent pages; before the field can take a key
+  useLayoutEffect(() => setQuery(''), [setQuery]);
 
   const rows = useMemo((): ReadonlyArray<Row> => {
     if (state.status === 'ready') {
@@ -147,8 +147,10 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
 
   const open = (row: Row, full: boolean) => {
     onDone();
-    // On its map, the page opens in the drawer; ⌘ asks for the full page instead
-    router.push(full ? pageHref(row.projectId, row.pageId) : mapWithPageHref(row.projectId, row.pageId));
+    // A page URL loaded directly is the full page; navigating to it inside the app would open the drawer instead
+    if (full) window.location.assign(pageHref(row.projectId, row.pageId));
+    // On its map, the page opens in the drawer
+    else router.push(mapWithPageHref(row.projectId, row.pageId));
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -202,7 +204,11 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
       <div className={classes.field}>
         <IconSearch size={20} stroke={1.8} className={classes.fieldIcon} aria-hidden />
         <input
+          // Focused at once, not after the card's transition, so the keys typed right after ⌘P land here
+          autoFocus
           data-autofocus
+          // Mantine's drawer closes on any Esc in the window, unless told this one is taken
+          data-mantine-stop-propagation
           className={classes.input}
           value={query}
           onChange={(event) => setQuery(event.currentTarget.value)}
@@ -225,7 +231,7 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
 
       <VisuallyHidden role="status">{announcement}</VisuallyHidden>
 
-      <ScrollArea.Autosize mah="min(420px, 60vh)" type="auto">
+      <ScrollArea.Autosize mah="min(420px, 60vh)" type="auto" scrollbars="y">
         {heading && (
           <Text size="xs" fw={600} c="dimmed" className={classes.heading}>
             {heading}
