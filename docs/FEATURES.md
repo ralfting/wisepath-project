@@ -86,6 +86,20 @@ Questions are written in the notes themselves, where they belong; a few minutes 
 - **Scheduling** is FSRS (v5, default weights): a card comes back when it is about 90% likely to still be remembered, so intervals grow with every Good and start over after Again. Up to 20 new cards a day are started, across every path; "today" ends at the learner's midnight.
 - **Per path.** A path's home card and its centre page show its cards and how many are due, with a Review link that reviews that path only (`/review?path=`); the Review page can switch between paths.
 
+## Inbox and quick capture
+
+Write it down now, file it later: capturing never asks where something goes.
+
+- **Quick capture (⌘⇧Space / Ctrl+Shift+Space),** anywhere in the app, even while typing in a page, opens a small box in the middle of the screen with one field. Enter saves to the Inbox and closes; Shift+Enter starts a new line; Esc closes without saving. The Capture button on the Inbox opens it too.
+- **A pasted address** is kept with its title (from the link preview), shown under the field; a YouTube address with a time (`?t=85`, `t=1m25s`) keeps that moment. The address is dropped if it is taken out of the text, or with the ✕ beside it.
+- **Over a page** (in the drawer or full), the box also offers **Add to "this page"**: chosen there, or with ⌘Enter / Ctrl+Enter, the text goes straight to the end of that page instead of the Inbox.
+- **The Inbox** is one per learner, not per path: a page in the sidebar above the paths, with how many items are waiting (a dot on the rail). Each item shows its text, where it came from (the site's icon and name, linked, and the video's moment; or "Written in WisePath") and when it came in, newest first.
+- **File to…** picks a path, then one of its pages, each a searchable list (the path last opened first); the item is added to the end of that page and leaves the Inbox once the page is saved. A video moment goes into the notes right below that video, in time order, as `- [01:25] text`; when the page doesn't have the video, the video is added at the end with the note below it.
+- **Make it a page** picks a path and the page to link it from: a new page titled from the item (its link's title or first line) holds it, and a `[[link]]` to it is added at the end of the chosen page.
+- **Delete** takes it out at once, with Undo for a few seconds.
+- **From the keyboard:** ↑ ↓ move between items, F files, D deletes, Enter opens where it came from. In the pickers ↑ ↓ choose, Enter picks, Backspace in an empty search goes back to the paths.
+- Stored as plain markdown once filed: text as written, an address as a `[title](address)` link on its line (a YouTube address alone, which shows as the video), a moment as a `[mm:ss]` note.
+
 ## Keyboard shortcuts
 
 | Where | Keys | Does |
@@ -108,6 +122,9 @@ Questions are written in the notes themselves, where they belong; a few minutes 
 | Video | Space or K · ← → · F | Play/pause · skip 5 s · fullscreen |
 | Review | Space (or Enter) | Show the answer |
 | Review | 1 · 2 · 3 · 4 | Again · Hard · Good · Easy |
+| Anywhere | ⌘⇧Space / Ctrl+Shift+Space | Quick capture to the Inbox |
+| Capture box | Enter · Shift+Enter · ⌘Enter / Ctrl+Enter · Esc | Save · new line · add to the open page · close |
+| Inbox | ↑ ↓ · F · D · Enter | Move · file to a page · delete · open the source |
 
 ## Accessibility and themes
 
