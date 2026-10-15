@@ -1,4 +1,5 @@
 export * from "./AuthApi"
+export * from "./CaptureApi"
 export * from "./InvalidRequest"
 export * from "./LinksApi"
 export * from "./ProjectsApi"

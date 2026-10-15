@@ -1,5 +1,6 @@
 import { HttpApi } from "effect/http-api"
 import { AuthApiGroup } from "./AuthApi"
+import { CaptureApiGroup } from "./CaptureApi"
 import { LinksApiGroup } from "./LinksApi"
 import { ProjectsApiGroup } from "./ProjectsApi"
 import { ReviewApiGroup } from "./ReviewApi"
@@ -12,4 +13,4 @@ export class WisePathApi extends HttpApi.make("wisepath")
   .add(LinksApiGroup)
   .add(ReviewApiGroup)
   .add(SearchApiGroup)
-{}
+  .add(CaptureApiGroup) {}
