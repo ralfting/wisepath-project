@@ -19,16 +19,16 @@ a {
   text-underline-offset: 0.2em;
 }
 
-/* The key the cursor's line answers to (▶ ⌘↵ plays its time, ↗ ⌘↵ opens its link), beside the editor's rail
-   (ActiveBlockRail places it). Fixed to the screen, so in the page drawer it stands out from the drawer's left
-   edge, held against it like a tab */
+/* In the page drawer, the key the cursor's line answers to (▶ ⌘↵ plays its time, ↗ ⌘↵ opens its link), held
+   against the drawer's left edge like a tab (ActiveBlockRail places it; on a page the rail carries it) */
 .wp-rail-tag {
   position: fixed;
   z-index: 250;
   display: flex;
   align-items: center;
-  padding: 0 7px;
-  border-radius: 4px;
+  padding: 0 8px 0 10px;
+  border-radius: 6px 0 0 6px;
+  box-shadow: -3px 2px 8px alpha(var(--mantine-color-black), 0.14);
   background: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
   color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-9));
   font-size: 12px;
@@ -44,12 +44,6 @@ a {
 
   &[data-visible] {
     opacity: 1;
-  }
-
-  &[data-edge] {
-    padding: 0 8px 0 10px;
-    border-radius: 6px 0 0 6px;
-    box-shadow: -3px 2px 8px alpha(var(--mantine-color-black), 0.14);
   }
 
   @media (prefers-reduced-motion: reduce) {

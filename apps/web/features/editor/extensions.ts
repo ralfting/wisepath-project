@@ -579,8 +579,9 @@ export const ActiveBlockRail = Extension.create({
           rail.className = 'wp-active-rail';
           rail.setAttribute('aria-hidden', 'true');
           view.dom.parentElement?.appendChild(rail);
-          // The key's tag lives on the page itself, fixed to the screen: in the page drawer it stands out past the
-          // drawer's left edge, which the drawer (and the text's scrolling box) would otherwise cut off
+          // The key's tag: on a page, on the rail itself (data-hint), scrolling with the text. In the page drawer,
+          // whose scrolling box would cut it off, it lives on the page, fixed to the screen, and stands out past
+          // the drawer's left edge
           const tag = document.createElement('div');
           tag.className = 'wp-rail-tag';
           tag.setAttribute('aria-hidden', 'true');
@@ -588,18 +589,19 @@ export const ActiveBlockRail = Extension.create({
           let line: { block: HTMLElement; hint: string } | null = null;
 
           const placeTag = () => {
-            if (!line || !rail.hasAttribute('data-visible')) return tag.removeAttribute('data-visible');
+            const drawer = rail.closest('.mantine-Drawer-content');
+            if (line && !drawer) rail.setAttribute('data-hint', line.hint);
+            else rail.removeAttribute('data-hint');
+            if (!line || !drawer || !rail.hasAttribute('data-visible')) return tag.removeAttribute('data-visible');
             const box = line.block.getBoundingClientRect();
             // Gone with its line when the text scrolls it out of view
             const scroller = scrollingBox(rail);
             const clip = scroller?.getBoundingClientRect();
             if (clip && (box.top + 8 < clip.top || box.top + 16 > clip.bottom)) return tag.removeAttribute('data-visible');
-            const drawer = rail.closest('.mantine-Drawer-content');
             tag.textContent = line.hint;
-            tag.toggleAttribute('data-edge', !!drawer);
             tag.style.top = `${box.top}px`;
             tag.style.height = `${Math.min(Math.max(box.height, 18), 26)}px`;
-            tag.style.left = `${drawer ? drawer.getBoundingClientRect().left : rail.getBoundingClientRect().right}px`;
+            tag.style.left = `${drawer.getBoundingClientRect().left}px`;
             tag.setAttribute('data-visible', '');
           };
           const hide = () => {

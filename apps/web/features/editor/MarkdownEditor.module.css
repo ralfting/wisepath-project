@@ -54,6 +54,26 @@
       opacity: 1;
     }
 
+    /* On a line with a video's time or a link it carries a tag out into the margin: play or open, and the
+       key that does it (ActiveBlockRail writes it) */
+    &[data-hint]::after {
+      content: attr(data-hint);
+      position: absolute;
+      top: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      height: min(100%, 26px);
+      padding: 0 7px;
+      border-radius: 4px;
+      background: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
+      color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-9));
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
     @media (prefers-reduced-motion: reduce) {
       transition: opacity 160ms ease;
     }
