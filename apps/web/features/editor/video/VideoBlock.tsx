@@ -16,6 +16,7 @@ import {
 } from '@tabler/icons-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import { useT } from '@/i18n/I18nProvider';
 import { youTubeId } from '../extensions';
 import { LOAD_TIMEOUT_MS, PAUSED, PLAYING, embedUrl, loadYouTubeApi } from './youtubeApi';
 import type { YouTubePlayer } from './youtubeApi';
@@ -58,6 +59,7 @@ function savedCorner(): Corner {
 }
 
 export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
+  const t = useT();
   const videoId = youTubeId(node.attrs.src ?? '');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
@@ -418,8 +420,8 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           data-autofocus
           autoFocus={size === 'lg'}
           size={size}
-          placeholder="What happens here?"
-          aria-label={`Note at ${formatTime(composer?.seconds ?? 0)}`}
+          placeholder={t('video.note.placeholder')}
+          aria-label={t('video.note.at', { time: formatTime(composer?.seconds ?? 0) })}
           leftSection={<span className={classes.composerTime} data-size={size}>{formatTime(composer?.seconds ?? 0)}</span>}
           leftSectionWidth={size === 'lg' ? 84 : 64}
           value={draft}
@@ -436,13 +438,13 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           }}
         />
         <Text size="xs" c="dimmed" mt={6}>
-          Enter adds it and the video goes on · Esc cancels
+          {t('video.note.hint')}
         </Text>
       </>
     );
   }
   const noteButton = (
-    <Tooltip label={<>Pause and write a note <Kbd size="xs">N</Kbd></>} disabled={composer !== null}>
+    <Tooltip label={<>{t('video.note.tooltip')} <Kbd size="xs">N</Kbd></>} disabled={composer !== null}>
       <Button
         ref={addRef}
         size="compact-sm"
@@ -452,7 +454,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
         disabled={!ready}
         onMouseDown={(event) => event.preventDefault()}
       >
-        Note at {formatTime(composer?.seconds ?? time)}
+        {t('video.note.at', { time: formatTime(composer?.seconds ?? time) })}
       </Button>
     </Tooltip>
   );
@@ -463,7 +465,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
         <div
           ref={stageRef}
           tabIndex={-1}
-          aria-label="Video. Space or K plays and pauses, the arrows skip 5 seconds, M mutes, F is fullscreen, N takes a note"
+          aria-label={t('video.stage.label')}
           className={classes.stage}
           data-floating={floating || undefined}
           data-corner={floating ? corner : undefined}
@@ -473,21 +475,21 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           style={floating ? ({ ...place, ...(drag ? { '--drag-x': `${drag.x}px`, '--drag-y': `${drag.y}px` } : {}) } as CSSProperties) : undefined}
         >
           {floating && (
-            <div className={classes.handle} onPointerDown={startDrag} title="Drag to another corner">
+            <div className={classes.handle} onPointerDown={startDrag} title={t('video.floating.drag')}>
               <IconGripHorizontal size={16} className={classes.grip} aria-hidden />
               {notePopover(
                 'float',
                 <Button size="compact-xs" variant="light" leftSection={<IconPlus size={12} />} onClick={() => openComposer()}>
-                  Note at {formatTime(composer?.seconds ?? time)}
+                  {t('video.note.at', { time: formatTime(composer?.seconds ?? time) })}
                 </Button>,
               )}
               <Group gap={2} wrap="nowrap" ml="auto">
-                <Tooltip label="Back to the video">
-                  <ActionIcon size="sm" variant="subtle" color="gray" aria-label="Back to the video" onClick={() => slotRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
+                <Tooltip label={t('video.floating.back')}>
+                  <ActionIcon size="sm" variant="subtle" color="gray" aria-label={t('video.floating.back')} onClick={() => slotRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}>
                     <IconArrowBackUp size={15} />
                   </ActionIcon>
                 </Tooltip>
-                <ActionIcon size="sm" variant="subtle" color="gray" aria-label="Stop floating the video" onClick={() => setDismissed(true)}>
+                <ActionIcon size="sm" variant="subtle" color="gray" aria-label={t('video.floating.stop')} onClick={() => setDismissed(true)}>
                   <IconX size={15} />
                 </ActionIcon>
               </Group>
@@ -497,7 +499,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
             <iframe
               ref={iframeRef}
               src={src}
-              title="YouTube video"
+              title={t('video.stage.iframeTitle')}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               className={classes.iframe}
             />
@@ -505,20 +507,20 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           {/* In fullscreen the note is written in the middle of the screen, over the paused picture */}
           {fullscreen && composer && (
             <div className={classes.centre} onMouseDown={(event) => event.target === event.currentTarget && closeComposer(false)}>
-              <div className={classes.centreCard} role="dialog" aria-label={`Note at ${formatTime(composer.seconds)}`}>
+              <div className={classes.centreCard} role="dialog" aria-label={t('video.note.at', { time: formatTime(composer.seconds) })}>
                 {composerFields('lg')}
               </div>
             </div>
           )}
           {fullscreen && (
-            <aside className={classes.side} aria-label="Notes on this video">
+            <aside className={classes.side} aria-label={t('video.fullscreen.notes')}>
               <Group justify="space-between" wrap="nowrap" gap="xs" className={classes.sideHead}>
                 {noteButton}
                 <Group gap={4} wrap="nowrap">
-                  <ActionIcon variant="subtle" color="gray" onClick={() => setShowNotes((s) => !s)} aria-label={showNotes ? 'Hide notes' : 'Show notes'}>
+                  <ActionIcon variant="subtle" color="gray" onClick={() => setShowNotes((s) => !s)} aria-label={showNotes ? t('video.fullscreen.hideNotes') : t('video.fullscreen.showNotes')}>
                     {showNotes ? <IconLayoutSidebarRightCollapse size={18} /> : <IconLayoutSidebarRightExpand size={18} />}
                   </ActionIcon>
-                  <ActionIcon variant="subtle" color="gray" onClick={toggleFullscreen} aria-label="Exit fullscreen">
+                  <ActionIcon variant="subtle" color="gray" onClick={toggleFullscreen} aria-label={t('video.fullscreen.exit')}>
                     <IconArrowsMinimize size={18} />
                   </ActionIcon>
                 </Group>
@@ -531,7 +533,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       {!fullscreen && failed && !ready && (
         <Group gap="xs" mt={8} className={classes.bar} contentEditable={false} role="status">
           <Text size="sm" c="dimmed">
-            Video notes unavailable: YouTube didn&apos;t load.
+            {t('video.failed')}
           </Text>
           <Button
             size="compact-sm"
@@ -541,7 +543,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
               setAttempt((n) => n + 1);
             }}
           >
-            Retry
+            {t('common.actions.retry')}
           </Button>
         </Group>
       )}
@@ -553,11 +555,11 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           <Group gap="xs" wrap="nowrap" ml="auto">
             {hasKeyboard && ready && (
               <Text size="xs" c="dimmed" className={classes.keys}>
-                <Kbd size="xs">N</Kbd> note
+                <Kbd size="xs">N</Kbd> {t('video.note.key')}
               </Text>
             )}
-            <Tooltip label="Fullscreen, with the notes">
-              <ActionIcon variant="subtle" color="gray" onClick={toggleFullscreen} aria-label="Fullscreen, with the notes" disabled={!ready}>
+            <Tooltip label={t('video.fullscreen.enter')}>
+              <ActionIcon variant="subtle" color="gray" onClick={toggleFullscreen} aria-label={t('video.fullscreen.enter')} disabled={!ready}>
                 <IconArrowsMaximize size={17} />
               </ActionIcon>
             </Tooltip>
@@ -570,6 +572,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
 
 /** The notes beside the video in fullscreen, in time order: each plays from there; the one playing now is marked */
 function NoteList({ notes, current, onSeek }: { notes: ReadonlyArray<VideoNote>; current: VideoNote | undefined; onSeek: (seconds: number) => void }) {
+  const t = useT();
   const listRef = useRef<HTMLOListElement>(null);
   useEffect(() => {
     listRef.current?.querySelector('[data-current]')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -577,7 +580,7 @@ function NoteList({ notes, current, onSeek }: { notes: ReadonlyArray<VideoNote>;
   if (notes.length === 0) {
     return (
       <Text size="sm" c="dimmed" p="sm">
-        No notes yet. Add one at any moment: the video waits while you write.
+        {t('video.fullscreen.empty')}
       </Text>
     );
   }

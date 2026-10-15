@@ -4,6 +4,7 @@ import type { Node as PMNode } from '@tiptap/pm/model';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import type { EditorState } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import type { Translate } from '@/i18n/I18nProvider';
 import { videoAbove } from './videos';
 
 /**
@@ -31,16 +32,39 @@ export function parseTime(text: string): number {
   return text.split(':').reduce((total, part) => total * 60 + Number(part), 0);
 }
 
+/** What a chip says to assistive tech and on hover, for its time */
+export interface TimestampLabels {
+  readonly label: string;
+  readonly title: string;
+}
+
+export interface TimestampOptions {
+  /** The chip's words for a time; the editor passes them in its language. English until it does */
+  labels: (time: string) => TimestampLabels;
+}
+
+/** The chip's words in the app's language, for the editor to pass in: labels: (time) => timestampLabels(t, time) */
+export const timestampLabels = (t: Translate, time: string): TimestampLabels => ({
+  label: t('video.timestamp.play', { time }),
+  title: t('video.timestamp.title', { time }),
+});
+
 interface MarkdownState {
   write: (text: string) => void;
 }
 
-export const Timestamp = Node.create({
+export const Timestamp = Node.create<TimestampOptions>({
   name: 'timestamp',
   group: 'inline',
   inline: true,
   atom: true,
   selectable: true,
+
+  addOptions() {
+    return {
+      labels: (time: string) => ({ label: `Play video from ${time}`, title: `Play from ${time} (⌘↵ on this line)` }),
+    };
+  },
 
   addAttributes() {
     return {
@@ -58,14 +82,15 @@ export const Timestamp = Node.create({
 
   renderHTML({ node, HTMLAttributes }) {
     // A control: announced as one, with what it does; from the keyboard, ⌘↵ on its line plays it
+    const { label, title } = this.options.labels(node.attrs.time);
     return [
       'span',
       mergeAttributes(HTMLAttributes, {
         class: 'wp-timestamp',
         role: 'button',
-        'aria-label': `Play video from ${node.attrs.time}`,
+        'aria-label': label,
         'aria-keyshortcuts': 'Meta+Enter Control+Enter',
-        title: `Play from ${node.attrs.time} (⌘↵ on this line)`,
+        title,
       }),
       node.attrs.time,
     ];
