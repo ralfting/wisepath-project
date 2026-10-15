@@ -42,6 +42,7 @@ import { StudiedToggle } from './StudiedToggle';
 import { PageLook, moduleLook } from './PageLook';
 import { useT } from '@/i18n/I18nProvider';
 import { PathCards } from '@/features/review';
+import { useRememberOpened } from '@/useCases/search';
 import classes from './PagePanel.module.css';
 
 /**
@@ -87,6 +88,8 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
 export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
   const t = useT();
   const [tab, setTab] = useState<PanelTab>('content');
+  // Offered again by the search palette (⌘P), across paths
+  useRememberOpened({ projectId: project.id, pageId: page.id, title: page.title, projectTitle: project.title });
   // A related page still pointed at when the panel goes (another page opened, the drawer closed) lets go
   useEffect(() => () => pointAtRelated(null), [page.id]);
   // Enter in the title moves on to the text

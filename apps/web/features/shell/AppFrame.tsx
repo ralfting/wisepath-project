@@ -36,6 +36,7 @@ import {
   IconLanguage,
   IconLogout,
   IconRoute,
+  IconSearch,
   IconSelector,
 } from '@tabler/icons-react';
 import { useLogout, useSaveLocale, useSession } from '@/useCases/auth';
@@ -45,6 +46,7 @@ import type { Locale } from '@/i18n/locales';
 import { useProjects } from '@/useCases/projects';
 import { useReviewCounts } from '@/useCases/review';
 import { PageGlyph } from '@/features/shared/look';
+import { SearchPaletteHost, openSearchPalette } from '@/features/search';
 import classes from './AppFrame.module.css';
 
 /**
@@ -205,6 +207,7 @@ export function AppFrame({
         </Group>
         {children}
       </AppShell.Main>
+      <SearchPaletteHost />
     </AppShell>
   );
 }
@@ -264,6 +267,9 @@ function Rail() {
         <IconHome size={20} stroke={1.7} />
       </ActionIcon>
       <ReviewRailLink />
+      <ActionIcon size={40} radius="md" variant="subtle" color="gray" onClick={openSearchPalette} aria-label={t('search.open')}>
+        <IconSearch size={20} stroke={1.7} />
+      </ActionIcon>
       <div className={classes.railRule} />
       {(projects ?? []).map((project) => {
         const href = `/projects/${project.id}`;
@@ -338,6 +344,14 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
           className={classes.navLink}
         />
         <ReviewNavLink />
+        <NavLink
+          component="button"
+          onClick={openSearchPalette}
+          label={t('search.open')}
+          leftSection={<IconSearch size={20} stroke={1.7} />}
+          rightSection={<SearchShortcut />}
+          className={classes.navLink}
+        />
       </AppShell.Section>
 
       <AppShell.Section grow component={ScrollArea} px="sm" pt="lg">
@@ -433,6 +447,20 @@ function ReviewRailLink() {
       </ActionIcon>
     </Indicator>
   );
+}
+
+/** ⌘P (Ctrl P) beside the search link, where there is a keyboard */
+function SearchShortcut() {
+  const [keys, setKeys] = useState<string | null>(null);
+  useEffect(() => {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    setKeys(/Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘P' : 'Ctrl P');
+  }, []);
+  return keys ? (
+    <Text size="xs" c="dimmed" aria-hidden>
+      {keys}
+    </Text>
+  ) : null;
 }
 
 function AccountMenu() {
