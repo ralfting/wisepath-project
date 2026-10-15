@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext, useEffect, useMemo, useSyncExternalStore } from "react"
+import { useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react"
 import { Cause, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
@@ -244,6 +244,37 @@ export function useLinkPreview(url: string): LinkPreviewState {
       : AsyncResult.isFailure(result)
         ? { status: "none" }
         : { status: "loading" }
+  )
+}
+
+/**
+ * Looks up previews outside React (the editor's compact links): the same
+ * lookups, and the same cache, as useLinkPreview. Resolves to null when a page
+ * can't be previewed
+ */
+export function useLinkPreviewLoader(): (url: string) => Promise<LinkPreview | null> {
+  const registry = useContext(RegistryContext)
+  return useCallback(
+    (url) =>
+      new Promise((resolve) => {
+        const atom = linkPreviewAtom(url)
+        const settle = (result: AsyncResult.AsyncResult<Option.Option<LinkPreview>, unknown>) => {
+          if (AsyncResult.isSuccess(result)) resolve(Option.getOrNull(result.value))
+          else if (AsyncResult.isFailure(result)) resolve(null)
+          else return false
+          return true
+        }
+        let stop = () => {}
+        let settled = false
+        stop = registry.subscribe(atom, (result) => {
+          if (!settled && settle(result)) {
+            settled = true
+            queueMicrotask(stop)
+          }
+        }, { immediate: true })
+        if (settled) stop()
+      }),
+    [registry]
   )
 }
 
