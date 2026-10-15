@@ -17,7 +17,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { youTubeId } from '../extensions';
-import { LOAD_TIMEOUT_MS, PLAYING, embedUrl, loadYouTubeApi } from './youtubeApi';
+import { LOAD_TIMEOUT_MS, PAUSED, PLAYING, embedUrl, loadYouTubeApi } from './youtubeApi';
 import type { YouTubePlayer } from './youtubeApi';
 import { addNote, formatTime, noteAt, notesAfter, setActiveNote } from './timestamps';
 import type { VideoNote } from './timestamps';
@@ -34,10 +34,11 @@ import classes from './VideoBlock.module.css';
  * large with its notes beside it. The note for what is playing is marked.
  *
  * A click on the video leaves the focus inside YouTube's frame, where its own
- * controls and keys work and the page's don't: taking the focus back would
- * close YouTube's menus (settings, captions, volume). With the focus on the
- * block itself (after fullscreen or a note) it answers YouTube's keys (Space
- * or K, ← →, F) as well as N.
+ * controls and keys work and the page's don't. Taking it back at once would
+ * close YouTube's menus (settings, captions, volume), so the block takes it
+ * back when the video starts or pauses from there, or when the pointer leaves
+ * the video. With the focus on the block it answers YouTube's keys (Space or
+ * K, ← →, M, F) as well as N.
  */
 
 /** The video most recently used, which N reaches when the focus is on the page itself */
@@ -98,6 +99,13 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     };
   }, [editor, position]);
 
+  // The focus out of YouTube's frame, where keys never reach the page, and onto the block, which answers them
+  const reclaimFocus = useCallback(() => {
+    if (document.activeElement !== iframeRef.current) return;
+    lastUsed = self;
+    stageRef.current?.focus({ preventScroll: true });
+  }, [self]);
+
   // The player, attached to the iframe once the API is in. Neither the API nor the video answering in time
   // counts as failed; Retry reloads both
   useEffect(() => {
@@ -124,6 +132,8 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
             setPlaying(event.data === PLAYING);
             if (event.data === PLAYING) lastUsed = self;
             setTime(player.current?.getCurrentTime() ?? 0);
+            // Played or paused from YouTube's own controls: no menu of its is open, so N can work again
+            if (event.data === PLAYING || event.data === PAUSED) reclaimFocus();
           },
         },
       });
@@ -134,7 +144,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       clearTimeout(timer);
       player.current = null;
     };
-  }, [self, attempt, src]);
+  }, [self, attempt, src, reclaimFocus]);
 
   // The clock, while playing: for the button's time and the note to mark
   useEffect(() => {
@@ -288,6 +298,13 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     requestAnimationFrame(() => stageRef.current?.focus({ preventScroll: true }));
   };
 
+  // The pointer back on the page after using YouTube's controls: N, and the block's keys, work again
+  useEffect(() => {
+    const onMove = () => reclaimFocus();
+    document.addEventListener('pointermove', onMove);
+    return () => document.removeEventListener('pointermove', onMove);
+  }, [reclaimFocus]);
+
   // YouTube's keys on the block. Listened to on the element itself, ahead of the editor, which would move
   // its cursor on the arrows
   useEffect(() => {
@@ -309,6 +326,9 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
         const to = Math.max(0, p.getCurrentTime() + (key === 'arrowleft' ? -5 : 5));
         p.seekTo(to, true);
         setTime(to);
+      } else if (key === 'm') {
+        if (p.isMuted()) p.unMute();
+        else p.mute();
       } else if (key === 'f') {
         toggleFullscreenRef.current();
       } else {
@@ -408,7 +428,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
         <div
           ref={stageRef}
           tabIndex={-1}
-          aria-label="Video. Space or K plays and pauses, the arrows skip 5 seconds, F is fullscreen, N takes a note"
+          aria-label="Video. Space or K plays and pauses, the arrows skip 5 seconds, M mutes, F is fullscreen, N takes a note"
           className={classes.stage}
           data-floating={floating || undefined}
           data-corner={floating ? corner : undefined}

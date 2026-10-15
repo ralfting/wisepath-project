@@ -2,7 +2,7 @@
  * YouTube IFrame API
  * Loaded once, the first time a video needs it, then attached to the video's
  * own iframe (embedded with enablejsapi=1): it reads the current time, plays,
- * pauses and seeks.
+ * pauses, seeks and mutes.
  */
 
 export interface YouTubePlayer {
@@ -11,6 +11,9 @@ export interface YouTubePlayer {
   playVideo(): void;
   pauseVideo(): void;
   seekTo(seconds: number, allowSeekAhead: boolean): void;
+  isMuted(): boolean;
+  mute(): void;
+  unMute(): void;
 }
 
 interface YouTubeApi {
@@ -29,6 +32,8 @@ declare global {
 
 /** YT.PlayerState.PLAYING */
 export const PLAYING = 1;
+/** YT.PlayerState.PAUSED */
+export const PAUSED = 2;
 
 let loading: Promise<YouTubeApi> | null = null;
 
