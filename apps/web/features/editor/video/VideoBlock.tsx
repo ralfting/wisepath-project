@@ -26,8 +26,8 @@ import classes from './VideoBlock.module.css';
 
 /**
  * VideoBlock
- * A YouTube video to take notes on. "Note at" (N on the video, ⌥N while
- * writing below it) pauses it and asks for a line; Enter puts "[01:25] the
+ * A YouTube video to take notes on. "Note at" (or N on the video) pauses it
+ * and asks for a line; Enter puts "[01:25] the
  * line" in the list below the video, in time order, and the video goes on. A
  * time in the text plays it from there. Scrolled away while playing, the video
  * floats small in a corner, dragged to whichever suits; fullscreen shows it
@@ -55,8 +55,6 @@ function savedCorner(): Corner {
   }
 }
 
-const isMac = () => typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent);
-
 export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
   const videoId = youTubeId(node.attrs.src ?? '');
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -76,8 +74,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
   const [dismissed, setDismissed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [showNotes, setShowNotes] = useState(true);
-  // Opened from the page's text (⌥N), the cursor goes back there when the note is done
-  const [composer, setComposer] = useState<{ seconds: number; resume: boolean; fromText: boolean } | null>(null);
+  const [composer, setComposer] = useState<{ seconds: number; resume: boolean } | null>(null);
   const [corner, setCorner] = useState<Corner>('br');
   useEffect(() => setCorner(savedCorner()), []);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
@@ -263,7 +260,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     handle.addEventListener('pointercancel', end);
   };
 
-  const openComposer = useCallback((fromText = false) => {
+  const openComposer = useCallback(() => {
     const p = player.current;
     if (!p) return;
     const resume = p.getPlayerState() === PLAYING;
@@ -272,12 +269,12 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     // Paused out of view, nothing floats: bring the video to where the note is written
     if (!resume && !inViewRef.current) slotRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     setDraft('');
-    setComposer({ seconds: p.getCurrentTime(), resume, fromText });
+    setComposer({ seconds: p.getCurrentTime(), resume });
   }, [self]);
 
   useEffect(
-    () => registerVideo(editor, { getPos: position, seek, openNote: () => openComposer(true) }),
-    [editor, position, seek, openComposer],
+    () => registerVideo(editor, { getPos: position, seek }),
+    [editor, position, seek],
   );
 
   const closeComposer = (save: boolean) => {
@@ -286,10 +283,9 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     // Nothing written, nothing added: an Enter by mistake leaves the list as it was
     if (save && pos !== undefined && draft.trim()) addNote(editor, pos, composer.seconds, draft);
     if (composer.resume) player.current?.playVideo();
-    const { fromText } = composer;
     setComposer(null);
-    // Back where the note was asked for: the text, or the video itself, where its keys (← →, Space, N) work again
-    requestAnimationFrame(() => (fromText ? editor.commands.focus() : stageRef.current?.focus({ preventScroll: true })));
+    // Back to the video, where its keys (← →, Space, N) work again
+    requestAnimationFrame(() => stageRef.current?.focus({ preventScroll: true }));
   };
 
   // YouTube's keys on the block. Listened to on the element itself, ahead of the editor, which would move
@@ -405,7 +401,6 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       </Button>
     </Tooltip>
   );
-  const alt = isMac() ? '⌥' : 'Alt+';
 
   return (
     <NodeViewWrapper className={classes.block} data-youtube-video>
@@ -498,12 +493,12 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       {!fullscreen && !(failed && !ready) && (
         <Group gap="xs" mt={8} className={classes.bar} contentEditable={false}>
           {notePopover('bar', noteButton)}
-          {/* The keys, where there is a keyboard: N needs the focus on the video, ⌥N works while writing. The
-              one that plays a line's time shows on the line itself, in the cursor's rail */}
+          {/* The key, where there is a keyboard: N needs the focus on the video. The one that plays a line's
+              time shows on the line itself, in the cursor's rail */}
           <Group gap="xs" wrap="nowrap" ml="auto">
             {hasKeyboard && ready && (
               <Text size="xs" c="dimmed" className={classes.keys}>
-                <Kbd size="xs">N</Kbd> note · <Kbd size="xs">{alt}N</Kbd>
+                <Kbd size="xs">N</Kbd> note
               </Text>
             )}
             <Tooltip label="Fullscreen, with the notes">

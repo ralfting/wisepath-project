@@ -12,8 +12,6 @@ export interface VideoControl {
   readonly getPos: () => number | undefined;
   /** Plays from this second, floating the video into view if it scrolled away */
   readonly seek: (seconds: number) => void;
-  /** Pauses it and opens the note popup, as its Note button does */
-  readonly openNote: () => void;
 }
 
 const players = new WeakMap<Editor, Set<VideoControl>>();

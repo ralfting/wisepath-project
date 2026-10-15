@@ -111,16 +111,9 @@ export const Timestamp = Node.create({
     };
   },
 
-  // ⌘↵ (Ctrl+Enter) plays the time on the cursor's line: the last one before the cursor, else the first.
-  // ⌥N (Alt+N) takes a note on the video above the cursor, without leaving the text
+  // ⌘↵ (Ctrl+Enter) plays the time on the cursor's line: the last one before the cursor, else the first
   addKeyboardShortcuts() {
     return {
-      'Alt-n': () => {
-        const video = videoAbove(this.editor, cursorPos(this.editor));
-        if (!video) return false;
-        video.openNote();
-        return true;
-      },
       'Mod-Enter': () => {
         const $from = this.editor.state.doc.resolve(cursorPos(this.editor));
         const line = $from.parent;
