@@ -10,6 +10,7 @@ You are one of several agents, each building one plan from this folder in its ow
 | 3 Review | `plan/03-review` | 3013 | 3113 | `wisepath_review`, `wisepath_review_test` |
 | 4 Search | `plan/04-search` | 3014 | 3114 | `wisepath_search`, `wisepath_search_test` |
 | 7 Templates | `plan/07-templates` | 3017 | 3117 | `wisepath_templates`, `wisepath_templates_test` |
+| 2 Web capture | `plan/02-capture` | 3012 | 3112 | `wisepath_capture`, `wisepath_capture_test` |
 
 - Run `pnpm install` once in your worktree.
 - Postgres is the shared Docker container on `localhost:5432` (user and password `wisepath`). Use **only your own databases**. Create yours with `docker compose exec db createdb -U wisepath <name>` if missing.
