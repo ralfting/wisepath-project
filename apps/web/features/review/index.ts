@@ -1,2 +1,2 @@
 export { ReviewPage } from './ReviewPage';
-export { PathCards } from './PathCards';
+export { PathCards, PathReviewButton } from './PathCards';
