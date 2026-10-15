@@ -1,5 +1,5 @@
 # Local stack: Postgres + the NestJS API
-#   docker compose up --build    -> API on http://localhost:3001/api
+#   docker compose up --build    -> API on http://localhost:4001/api
 # Credentials below are for local development only.
 
 services:
@@ -26,9 +26,9 @@ services:
     environment:
       DATABASE_URL: postgresql://wisepath:wisepath@db:5432/wisepath
       JWT_SECRET: ${JWT_SECRET:-local-dev-only-change-me}
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3002}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:4002}
     ports:
-      - "3001:3001"
+      - "4001:4001"
     depends_on:
       db:
         condition: service_healthy

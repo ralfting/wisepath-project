@@ -21,7 +21,7 @@ You are one of several agents, each building one plan from this folder in its ow
     `DATABASE_URL=… JWT_SECRET=local-dev-only-change-me FRONTEND_URL=http://localhost:<web port> PORT=<api port> node dist/main.js`
   - Web: `cd apps/web && NEXT_PUBLIC_API_URL=http://localhost:<api port>/api pnpm exec next dev -p <web port>`
   - The demo account is `demo@wisepath.dev` / `wisepath-demo` once seeded.
-- Leave the main checkout's servers alone (web 3002, API 3001 in Docker).
+- Leave the main checkout's servers alone (web 4002, API 4001 in Docker).
 
 ## While building
 

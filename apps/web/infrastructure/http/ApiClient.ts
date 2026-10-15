@@ -4,7 +4,7 @@ import { HttpApiClient } from "effect/http-api"
 import { WisePathApi } from "@wisepath/contract"
 
 /** Base URL of the WisePath API; NEXT_PUBLIC_* is inlined by Next at build time */
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api"
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4001/api"
 
 /** Typed client for the WisePath API, generated from the shared contract */
 export class ApiClient extends Context.Service<ApiClient, HttpApiClient.ForApi<typeof WisePathApi>>()(

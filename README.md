@@ -6,8 +6,8 @@ Monorepo (pnpm + Turborepo):
 
 | Path | What |
 |---|---|
-| `apps/web` | Next.js 15 front end (React 19, Mantine 8, Effect 4) on port 3002 |
-| `apps/api` | NestJS API on port 3001 (`/api`): use cases in Effect 4, Postgres through Drizzle on `@effect/sql-pg` |
+| `apps/web` | Next.js 15 front end (React 19, Mantine 8, Effect 4) on port 4002 |
+| `apps/api` | NestJS API on port 4001 (`/api`): use cases in Effect 4, Postgres through Drizzle on `@effect/sql-pg` |
 | `packages/domain` | `@wisepath/domain`: the model in plain TypeScript and Effect Schema (auth, projects), no React |
 | `packages/contract` | `@wisepath/contract`: the API described with Effect `HttpApi`; the web's client is generated from it and the API serves it as OpenAPI |
 
@@ -33,15 +33,15 @@ docker compose exec api pnpm db:seed
 pnpm --filter @wisepath/web dev
 ```
 
-Then open <http://localhost:3002> and log in with:
+Then open <http://localhost:4002> and log in with:
 
 | Email | Password |
 |---|---|
 | `demo@wisepath.dev` | `wisepath-demo` |
 
-Maps are kept in Postgres by the API. Every account gets its own copy of the sample map once, the first time it lists its maps: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Deleting it doesn't bring it back. Start more paths from **New path** on <http://localhost:3002/projects>.
+Maps are kept in Postgres by the API. Every account gets its own copy of the sample map once, the first time it lists its maps: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Deleting it doesn't bring it back. Start more paths from **New path** on <http://localhost:4002/projects>.
 
-> Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 3001, which clashes with the one in Docker.
+> Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 4001, which clashes with the one in Docker.
 
 ## Everyday commands
 
@@ -67,7 +67,7 @@ cp apps/api/.env.example apps/api/.env      # points at the Postgres above
 pnpm --filter @wisepath/api build           # db:migrate and db:seed run the built scripts
 pnpm --filter @wisepath/api db:migrate
 pnpm --filter @wisepath/api db:seed
-pnpm --filter @wisepath/api dev             # http://localhost:3001/api, reloads on change
+pnpm --filter @wisepath/api dev             # http://localhost:4001/api, reloads on change
 ```
 
 ## Checks
@@ -132,20 +132,20 @@ docker compose up --build -d api          # the container applies it on start (d
 |---|---|---|
 | `DATABASE_URL` | Postgres connection | `postgresql://wisepath:wisepath@localhost:5432/wisepath` |
 | `JWT_SECRET` | Signs the session token. Required in production (32+ characters); elsewhere it falls back to a development key | any long random string |
-| `FRONTEND_URL` | Origin allowed by CORS | `http://localhost:3002` |
-| `HOST`, `PORT` | Where the API listens | `127.0.0.1`, `3001` (Docker uses `0.0.0.0`) |
+| `FRONTEND_URL` | Origin allowed by CORS | `http://localhost:4002` |
+| `HOST`, `PORT` | Where the API listens | `127.0.0.1`, `4001` (Docker uses `0.0.0.0`) |
 
 **Web** (`apps/web/.env.local`, optional)
 
 | Variable | Purpose | Default |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | API base URL | `http://localhost:3001/api` |
+| `NEXT_PUBLIC_API_URL` | API base URL | `http://localhost:4001/api` |
 
 Never commit real `.env` files; use the `.env.example` files as templates.
 
 ## API endpoints
 
-The full description, generated from the contract, is at <http://localhost:3001/api/openapi.json> (OpenAPI 3). Every endpoint except signup, login and logout needs the session: the `access_token` cookie, or the same token as `Authorization: Bearer`.
+The full description, generated from the contract, is at <http://localhost:4001/api/openapi.json> (OpenAPI 3). Every endpoint except signup, login and logout needs the session: the `access_token` cookie, or the same token as `Authorization: Bearer`.
 
 | Method | Path | |
 |---|---|---|
@@ -167,6 +167,6 @@ Sending the same create or delete twice changes nothing more, so clients can ret
 
 ## Troubleshooting
 
-- **Port 5432 or 3001 already in use**: stop the other Postgres or API, or change the left side of `ports` in `docker-compose.yml`.
+- **Port 5432 or 4001 already in use**: stop the other Postgres or API, or change the left side of `ports` in `docker-compose.yml`.
 - **Login from the web app fails with a network error**: the API isn't running. Check `docker compose ps`.
 - **Start over with an empty database**: `docker compose down -v && docker compose up --build -d`, then seed again.

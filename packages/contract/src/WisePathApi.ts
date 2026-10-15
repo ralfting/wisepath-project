@@ -6,7 +6,7 @@ import { ProjectsApiGroup } from "./ProjectsApi"
 import { ReviewApiGroup } from "./ReviewApi"
 import { SearchApiGroup } from "./SearchApi"
 
-/** The WisePath HTTP API. Clients prepend the base URL (e.g. http://localhost:3001/api). */
+/** The WisePath HTTP API. Clients prepend the base URL (e.g. http://localhost:4001/api). */
 export class WisePathApi extends HttpApi.make("wisepath")
   .add(AuthApiGroup)
   .add(ProjectsApiGroup)

@@ -23,8 +23,8 @@ RUN pnpm build
 
 ENV NODE_ENV=development \
     HOST=0.0.0.0 \
-    PORT=3001
-EXPOSE 3001
+    PORT=4001
+EXPOSE 4001
 
 # Apply pending migrations, then start the API
 CMD ["sh", "-c", "node dist/migrate.js && node dist/main.js"]
