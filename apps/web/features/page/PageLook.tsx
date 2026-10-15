@@ -8,6 +8,7 @@ import type { Page, Project } from '@wisepath/domain/projects';
 import { PageColor, PageIcon, lookOf } from '@wisepath/domain/projects';
 import type { ProjectActions } from '@/useCases/projects';
 import { PageGlyph, shade } from '@/features/shared/look';
+import { useT } from '@/i18n/I18nProvider';
 import classes from './PageLook.module.css';
 
 /**
@@ -18,6 +19,7 @@ import classes from './PageLook.module.css';
  * on the thing it changes.
  */
 export function PageLook({ project, page, store, size }: { project: Project; page: Page; store: ProjectActions; size: number }) {
+  const t = useT();
   const [opened, setOpened] = useState(false);
   // Esc closes the panel wherever focus is (a click on a swatch may leave it on the page)
   useWindowEvent('keydown', (event) => {
@@ -25,7 +27,7 @@ export function PageLook({ project, page, store, size }: { project: Project; pag
   });
   const isRoot = page.id === project.rootPageId;
   const look = lookOf(project, page.id);
-  const label = isRoot ? 'Change the look and description' : 'Change the look';
+  const label = t(isRoot ? 'page.look.changeWithDescription' : 'page.look.change');
 
   return (
     <Popover opened={opened} onChange={setOpened} position="bottom-start" shadow="md" radius="md" width={300} trapFocus>
@@ -62,13 +64,14 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
   const isRoot = page.id === project.rootPageId;
   const look = lookOf(project, page.id);
   const styled = isRoot || !!page.module;
+  const t = useT();
 
   return (
     <Stack gap="md">
       {isRoot ? (
         <Textarea
-          label="Description"
-          description="One line under the path's title."
+          label={t('page.look.description.label')}
+          description={t('page.look.description.hint')}
           autosize
           minRows={2}
           value={project.description ?? ''}
@@ -78,8 +81,8 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
         />
       ) : (
         <Switch
-          label="Show as a module"
-          description="Drawn larger on the map, with its own colour and icon; pages below it take the colour."
+          label={t('page.look.module.label')}
+          description={t('page.look.module.hint')}
           checked={!!page.module}
           onChange={(e) => store.setLook(page.id, moduleLook(project, page, e.currentTarget.checked))}
           data-autofocus
@@ -90,7 +93,7 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
         <>
           <Stack gap={6}>
             <Text size="sm" fw={500}>
-              Colour
+              {t('page.look.colour')}
             </Text>
             <Group gap={8}>
               {PageColor.literals.map((color) => (
@@ -100,7 +103,7 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
                   type="button"
                   color={shade(color, 6)}
                   size={24}
-                  aria-label={color}
+                  aria-label={t(`page.look.colours.${color}`)}
                   aria-pressed={look.color === color}
                   onClick={() => store.setLook(page.id, { color })}
                   className={classes.swatch}
@@ -113,7 +116,7 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
           </Stack>
           <Stack gap={6}>
             <Text size="sm" fw={500}>
-              Icon
+              {t('page.look.icon')}
             </Text>
             <SimpleGrid cols={7} spacing={6}>
               {PageIcon.literals.map((icon) => (
@@ -123,7 +126,7 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
                   radius="md"
                   variant={look.icon === icon ? 'light' : 'default'}
                   color={look.color}
-                  aria-label={icon}
+                  aria-label={t(`page.look.icons.${icon}`)}
                   aria-pressed={look.icon === icon}
                   onClick={() => store.setLook(page.id, { icon })}
                   data-mantine-stop-propagation

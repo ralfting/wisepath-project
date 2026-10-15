@@ -29,15 +29,8 @@ import {
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import type { Page, Project, Relation } from '@wisepath/domain/projects';
-import {
-  branchProgress,
-  displayTitle,
-  lookOf,
-  mapTree,
-  pathTo,
-  projectProgress,
-  relatedPages,
-} from '@wisepath/domain/projects';
+import { branchProgress, lookOf, mapTree, pathTo, projectProgress, relatedPages } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
 import type { ProjectActions } from '@/useCases/projects';
 import { PageGlyph } from '@/features/shared/look';
 import { pointAtRelated } from '@/features/shared/relatedHover';
@@ -47,6 +40,7 @@ import type { PageActions } from './PageContent';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
 import { PageLook, moduleLook } from './PageLook';
+import { useT } from '@/i18n/I18nProvider';
 import classes from './PagePanel.module.css';
 
 /**
@@ -82,14 +76,15 @@ type PanelTab = 'content' | 'related';
  * branch, down it, then [[links]] out and in. Each arrow reads from this page,
  * so a section says its direction once instead of every row repeating it.
  */
-const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; label: string; hint: string; icon: Icon }> = [
-  { relation: 'parent', label: 'Branches from', hint: 'The page this one grows out of on the map', icon: IconArrowUpLeft },
-  { relation: 'child', label: 'Branches into', hint: 'Pages that grow out of this one on the map', icon: IconArrowDownRight },
-  { relation: 'linksTo', label: 'Links to', hint: 'Pages this page mentions with [[ ]]', icon: IconArrowRight },
-  { relation: 'linkedFrom', label: 'Linked from', hint: 'Pages that mention this one with [[ ]]', icon: IconArrowLeft },
+const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
+  { relation: 'parent', icon: IconArrowUpLeft },
+  { relation: 'child', icon: IconArrowDownRight },
+  { relation: 'linksTo', icon: IconArrowRight },
+  { relation: 'linkedFrom', icon: IconArrowLeft },
 ];
 
 export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
+  const t = useT();
   const [tab, setTab] = useState<PanelTab>('content');
   // A related page still pointed at when the panel goes (another page opened, the drawer closed) lets go
   useEffect(() => () => pointAtRelated(null), [page.id]);
@@ -113,42 +108,47 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
     createPage: (title) => void store.createPage(title),
   };
 
-  const kind = isRoot ? 'The path' : isOrphan ? 'Orphan: no link reaches this page' : page.module ? 'Module' : 'Page';
+  const kind = t(isRoot ? 'page.kind.path' : isOrphan ? 'page.kind.orphan' : page.module ? 'page.kind.module' : 'page.kind.page');
   // A learning path counts what below was studied; a study, how many pages are below
   const progress = project.kind === 'learningPath';
-  const belowText = !below || below.total === 0 ? null : progress ? `${below.studied} of ${below.total} below studied` : `${below.total} ${below.total === 1 ? 'page' : 'pages'} below`;
+  const belowText =
+    !below || below.total === 0
+      ? null
+      : progress
+        ? t('page.below.studied', { studied: below.studied, count: below.total })
+        : t('page.below.pages', { count: below.total });
   const subtitle = belowText ? `${kind} · ${belowText}` : kind;
 
   return (
     <Card
       padding={0}
       className={`${classes.panel} ${flat ? classes.flat : ''}`}
-      aria-label="Selected page"
+      aria-label={t('page.panel.label')}
       component="aside"
     >
       <Group justify="space-between" wrap="nowrap" px="lg" pt="md" gap="xs">
         <Group gap={4} wrap="nowrap" miw={0}>
         {back && (
-          <Tooltip label={`Back to ${displayTitle(back.page)}`}>
-            <ActionIcon variant="subtle" color="gray" onClick={back.onClick} aria-label={`Back to ${displayTitle(back.page)}`}>
+          <Tooltip label={t('page.back', { title: displayTitle(back.page) })}>
+            <ActionIcon variant="subtle" color="gray" onClick={back.onClick} aria-label={t('page.back', { title: displayTitle(back.page) })}>
               <IconArrowLeft size={17} />
             </ActionIcon>
           </Tooltip>
         )}
         {/* Where the page sits; its own title is right below, so the trail stops at its parent */}
-        <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail} aria-label="Path to this page">
+        <Breadcrumbs separator={<IconChevronRight size={14} />} className={classes.trail} aria-label={t('page.panel.trail')}>
           {isRoot ? (
             <Text size="sm" fw={600}>
-              Centre of the path
+              {t('page.panel.centre')}
             </Text>
           ) : isOrphan ? (
             <Text size="sm" c="dimmed">
-              Orphans
+              {t('page.panel.orphans')}
             </Text>
           ) : (
             trailOf(path.slice(0, -1)).map((p) =>
               p === null ? (
-                <Text key="gap" size="sm" c="dimmed" aria-label="More pages">
+                <Text key="gap" size="sm" c="dimmed" aria-label={t('page.panel.morePages')}>
                   …
                 </Text>
               ) : (
@@ -162,8 +162,8 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         </Group>
         <Group gap={2} wrap="nowrap">
           {onExpand && (
-            <Tooltip label="Open as a full page">
-              <ActionIcon variant="subtle" color="gray" onClick={onExpand} aria-label="Expand">
+            <Tooltip label={t('page.panel.expandHint')}>
+              <ActionIcon variant="subtle" color="gray" onClick={onExpand} aria-label={t('page.panel.expand')}>
                 <IconArrowsDiagonal size={17} />
               </ActionIcon>
             </Tooltip>
@@ -171,24 +171,24 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
           {!isRoot && (
             <Menu position="bottom-end">
               <Menu.Target>
-                <ActionIcon variant="subtle" color="gray" aria-label="More">
+                <ActionIcon variant="subtle" color="gray" aria-label={t('page.menu.more')}>
                   <IconDotsVertical size={17} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(project, page, !page.module))}>
-                  {page.module ? 'Show as a page' : 'Show as a module'}
+                  {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
-                  Delete page
+                  {t('page.menu.delete')}
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
           )}
           {onClose && (
-            <Tooltip label="Close (Esc)">
-              <ActionIcon variant="subtle" color="gray" onClick={onClose} aria-label="Close page">
+            <Tooltip label={t('page.panel.closeHint')}>
+              <ActionIcon variant="subtle" color="gray" onClick={onClose} aria-label={t('page.panel.close')}>
                 <IconX size={17} />
               </ActionIcon>
             </Tooltip>
@@ -241,8 +241,8 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
 
       <Tabs value={tab} onChange={(v) => setTab((v as PanelTab) ?? 'content')} mt="md" className={classes.tabs}>
         <Tabs.List px="lg">
-          <Tabs.Tab value="content">Content</Tabs.Tab>
-          <Tabs.Tab value="related">Related ({related.length})</Tabs.Tab>
+          <Tabs.Tab value="content">{t('page.tabs.content')}</Tabs.Tab>
+          <Tabs.Tab value="related">{t('page.tabs.related', { count: related.length })}</Tabs.Tab>
         </Tabs.List>
 
         <Tabs.Panel value="content" className={classes.body}>
@@ -261,7 +261,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
           {/* Help while the page is empty; once there is writing it only takes room */}
           {!page.content.trim() && (
             <Text size="xs" c="dimmed" mt="md">
-              To add a page, type / and choose Page, then its name and Enter (Cmd/Ctrl+Enter to stay here). To connect pages, type [[ and a name.
+              {t('page.panel.emptyHelp')}
             </Text>
           )}
         </Tabs.Panel>
@@ -269,13 +269,14 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         <Tabs.Panel value="related" className={classes.body}>
           {related.length === 0 ? (
             <Text size="sm" c="dimmed">
-              Nothing related yet. Type [[ in the content to link another page.
+              {t('page.related.empty')}
             </Text>
           ) : (
             <Stack gap="lg">
-              {RELATION_SECTIONS.map(({ relation, label, hint, icon: Arrow }) => {
+              {RELATION_SECTIONS.map(({ relation, icon: Arrow }) => {
                 const pages = related.filter((r) => r.relation === relation);
                 if (pages.length === 0) return null;
+                const label = t(`page.related.${relation}.label`);
                 return (
                   <section key={relation} aria-label={`${label} (${pages.length})`}>
                     <Group gap={6} wrap="nowrap" className={classes.relationHead}>
@@ -288,7 +289,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
                       </Text>
                     </Group>
                     <Text size="xs" c="dimmed" mb={4}>
-                      {hint}
+                      {t(`page.related.${relation}.hint`)}
                     </Text>
                     <Stack gap={0}>
                       {pages.map(({ page: p }) => {

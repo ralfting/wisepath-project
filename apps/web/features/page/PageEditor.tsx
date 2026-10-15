@@ -6,8 +6,12 @@ import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash } from
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Page, Project } from '@wisepath/domain/projects';
-import { branchProgress, displayTitle, pathTo, projectProgress } from '@wisepath/domain/projects';
+import { branchProgress, pathTo, projectProgress } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
 import type { ProjectActions, SaveState } from '@/useCases/projects';
+import { useLocale, useT } from '@/i18n/I18nProvider';
+import type { Translate } from '@/i18n/I18nProvider';
+import { dateTime, relativeTime } from '@/i18n/dates';
 import { SaveStatus } from '@/features/projects/SaveStatus';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { AppFrame } from '@/features/shell/AppFrame';
@@ -35,21 +39,22 @@ export function PageEditor({ projectId, pageId }: { projectId: string; pageId: s
 
 function EditorView({ project, store, save, pageId }: { project: Project; store: ProjectActions; save: SaveState; pageId: string }) {
   const router = useRouter();
+  const t = useT();
   const page = project.pages.find((p) => p.id === pageId);
   const isFresh = useSearchParams().get('new') === '1';
   const pageHref = (id: string) => pageHrefOf(project.id, id);
 
   if (!page) {
     return (
-      <AppFrame crumbs={[{ label: 'My paths', href: '/projects' }, { label: project.title, href: mapHref(project.id) }]}>
+      <AppFrame crumbs={[{ label: t('page.crumbs.myPaths'), href: '/projects' }, { label: project.title, href: mapHref(project.id) }]}>
         <Center component="main" flex={1} p="md">
           <Stack gap="sm" align="center" maw={420} ta="center">
             <Title order={1} fz={30}>
-              Page not found
+              {t('page.notFound.title')}
             </Title>
-            <Text c="dimmed">It may have been deleted. The rest of the path is still there.</Text>
+            <Text c="dimmed">{t('page.notFound.body')}</Text>
             <Anchor component={Link} href={mapHref(project.id)} fw={700}>
-              Back to the map
+              {t('page.notFound.backToMap')}
             </Anchor>
           </Stack>
         </Center>
@@ -58,7 +63,7 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
   }
 
   return (
-    <AppFrame crumbs={pageCrumbs(project, page)}>
+    <AppFrame crumbs={pageCrumbs(project, page, t)}>
       <PageSheet
         project={project}
         page={page}
@@ -74,10 +79,10 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
 }
 
 /** My paths › map › the pages the branch passes through › this page */
-export function pageCrumbs(project: Project, page: Page): Crumb[] {
+export function pageCrumbs(project: Project, page: Page, t: Translate): Crumb[] {
   const between = pathTo(project, page.id).slice(1, -1);
   return [
-    { label: 'My paths', href: '/projects' },
+    { label: t('page.crumbs.myPaths'), href: '/projects' },
     { label: project.title, href: mapHref(project.id) },
     ...between.map((p) => ({ label: displayTitle(p), href: mapWithPageHref(project.id, p.id) })),
     ...(page.id === project.rootPageId ? [] : [{ label: displayTitle(page) }]),
@@ -122,6 +127,7 @@ export function PageSheet({
   focusEditor = null,
   onCursor,
 }: PageSheetProps) {
+  const t = useT();
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
@@ -142,8 +148,8 @@ export function PageSheet({
       <Group justify="space-between" align="center" wrap="nowrap" gap="lg" mb="lg" className={classes.header}>
         <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
           {back && (
-            <Tooltip label={`Back to ${displayTitle(back.page)}`}>
-              <ActionIcon variant="subtle" color="gray" size="lg" onClick={back.onClick} aria-label={`Back to ${displayTitle(back.page)}`}>
+            <Tooltip label={t('page.back', { title: displayTitle(back.page) })}>
+              <ActionIcon variant="subtle" color="gray" size="lg" onClick={back.onClick} aria-label={t('page.back', { title: displayTitle(back.page) })}>
                 <IconArrowLeft size={20} />
               </ActionIcon>
             </Tooltip>
@@ -171,13 +177,13 @@ export function PageSheet({
               progress={{ map: project.title, ...projectProgress(project) }}
             />
           )}
-          <Tooltip label="See it on the map">
+          <Tooltip label={t('page.seeOnMap')}>
             {'href' in showOnMap ? (
-              <ActionIcon component={Link} href={showOnMap.href} variant="default" size="lg" radius="md" aria-label="See it on the map">
+              <ActionIcon component={Link} href={showOnMap.href} variant="default" size="lg" radius="md" aria-label={t('page.seeOnMap')}>
                 <IconSitemap size={18} />
               </ActionIcon>
             ) : (
-              <ActionIcon onClick={showOnMap.onClick} variant="default" size="lg" radius="md" aria-label="See it on the map">
+              <ActionIcon onClick={showOnMap.onClick} variant="default" size="lg" radius="md" aria-label={t('page.seeOnMap')}>
                 <IconSitemap size={18} />
               </ActionIcon>
             )}
@@ -185,17 +191,17 @@ export function PageSheet({
           {!isRoot && (
             <Menu position="bottom-end">
               <Menu.Target>
-                <ActionIcon variant="default" size="lg" radius="md" aria-label="More">
+                <ActionIcon variant="default" size="lg" radius="md" aria-label={t('page.menu.more')}>
                   <IconDotsVertical size={18} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(project, page, !page.module))}>
-                  {page.module ? 'Show as a page' : 'Show as a module'}
+                  {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
-                  Delete page
+                  {t('page.menu.delete')}
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
@@ -228,28 +234,10 @@ export function PageSheet({
   );
 }
 
-const relative = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
-const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
-  ['second', 60],
-  ['minute', 60],
-  ['hour', 24],
-  ['day', 30],
-  ['month', 12],
-  ['year', Infinity],
-];
-
-/** "3 minutes ago" from an ISO date */
-function ago(iso: string, now: number): string {
-  let value = (new Date(iso).getTime() - now) / 1000;
-  for (const [unit, size] of STEPS) {
-    if (Math.abs(value) < size || unit === 'year') return relative.format(Math.round(value), unit);
-    value /= size;
-  }
-  return '';
-}
-
 /** When the page was last edited, once its edits are saved */
 function SavedAt({ updatedAt }: { updatedAt: string }) {
+  const t = useT();
+  const { locale } = useLocale();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     setNow(Date.now());
@@ -258,9 +246,9 @@ function SavedAt({ updatedAt }: { updatedAt: string }) {
   }, [updatedAt]);
   if (!updatedAt || Number.isNaN(new Date(updatedAt).getTime())) return null;
   return (
-    <Tooltip label={`Saved · ${new Date(updatedAt).toLocaleString()}`}>
+    <Tooltip label={t('page.savedAt.hint', { date: dateTime(updatedAt, locale) })}>
       <Text size="sm" c="dimmed" visibleFrom="md" style={{ whiteSpace: 'nowrap' }}>
-        Saved · edited {ago(updatedAt, now)}
+        {t('page.savedAt.label', { when: relativeTime(updatedAt, now, locale) })}
       </Text>
     </Tooltip>
   );

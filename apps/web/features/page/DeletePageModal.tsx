@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Group, Modal, Text } from '@mantine/core';
+import { useT } from '@/i18n/I18nProvider';
 
 /**
  * DeletePageModal
@@ -20,18 +21,18 @@ export function DeletePageModal({
   onClose: () => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   return (
-    <Modal opened={opened} onClose={onClose} title="Delete page?" centered radius="lg" size="md">
+    <Modal opened={opened} onClose={onClose} title={t('page.delete.title')} centered radius="lg" size="md" closeButtonProps={{ 'aria-label': t('common.actions.close') }}>
       <Text size="sm">
-        <b>{title}</b> will be deleted. Links to it stay in other pages and show as missing
-        {orphansPages ? ', and pages only it reaches become orphans' : ''}. This can&apos;t be undone.
+        <b>{title}</b> {t(orphansPages ? 'page.delete.bodyWithOrphans' : 'page.delete.body')}
       </Text>
       <Group justify="flex-end" gap="sm" mt="lg">
         <Button variant="default" onClick={onClose} data-autofocus>
-          Keep it
+          {t('page.delete.keep')}
         </Button>
         <Button color="red" onClick={onDelete}>
-          Delete page
+          {t('page.delete.confirm')}
         </Button>
       </Group>
     </Modal>

@@ -10,6 +10,7 @@ import { openPageId, pageHref, swapOpenPage } from '@/features/shared/routes';
 import { PagePanel } from './PagePanel';
 import { PageSheet, pageCrumbs } from './PageEditor';
 import { CrumbTrail, TopBar } from '@/features/shell/AppFrame';
+import { useT } from '@/i18n/I18nProvider';
 import classes from './PagePanel.module.css';
 
 /**
@@ -82,6 +83,7 @@ const LEAVE_MS = 180;
  */
 export function PageDrawerShell({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const t = useT();
   const reduceMotion = useReducedMotion();
   const [leaving, setLeaving] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -160,7 +162,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   // The dialog is what screen readers announce, and Drawer gives it no name without a visible title
   useEffect(() => {
     const frame = requestAnimationFrame(() =>
-      document.querySelector('.mantine-Drawer-content')?.setAttribute('aria-label', 'Page beside the map'),
+      document.querySelector('.mantine-Drawer-content')?.setAttribute('aria-label', t('page.drawer.label')),
     );
     return () => cancelAnimationFrame(frame);
   });
@@ -201,6 +203,7 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
 
 export function PageDrawer({ projectId, pageId: routePageId }: { projectId: string; pageId: string }) {
   const router = useRouter();
+  const t = useT();
   // The page in the URL: swapped in place (swapOpenPage) it is ahead of the route's own
   const pageId = openPageId(usePathname(), projectId) ?? routePageId;
   const { close, expanded, toggleExpanded, trail, setTrail, cursors, shown } = useContext(DrawerContext);
@@ -243,11 +246,11 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
           return (
             <Stack gap="sm" p="xl">
               <Title order={2} fz={22}>
-                Page not found
+                {t('page.notFound.title')}
               </Title>
-              <Text c="dimmed">It may have been deleted. The rest of the path is still there.</Text>
+              <Text c="dimmed">{t('page.notFound.body')}</Text>
               <Anchor component="button" type="button" onClick={close} fw={700} ta="left">
-                Close
+                {t('common.actions.close')}
               </Anchor>
             </Stack>
           );
@@ -257,7 +260,7 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
           return (
             <div className={classes.expanded}>
               <TopBar>
-                <CrumbTrail crumbs={pageCrumbs(project, page)} />
+                <CrumbTrail crumbs={pageCrumbs(project, page, t)} />
               </TopBar>
               <PageSheet
                 project={project}

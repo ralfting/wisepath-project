@@ -2,4 +2,123 @@ import type { Shape } from '../../format';
 import type { page as en } from '../en/page';
 
 /** Mensagens da área page, em português do Brasil */
-export const page = {} as const satisfies Shape<typeof en>;
+export const page = {
+  drawer: {
+    label: 'Página ao lado do mapa',
+  },
+  notFound: {
+    title: 'Página não encontrada',
+    body: 'Ela pode ter sido excluída. O resto da trilha continua lá.',
+    backToMap: 'Voltar ao mapa',
+  },
+  crumbs: {
+    myPaths: 'Minhas trilhas',
+  },
+  panel: {
+    label: 'Página selecionada',
+    trail: 'Caminho até esta página',
+    centre: 'Centro da trilha',
+    orphans: 'Órfãs',
+    morePages: 'Mais páginas',
+    expand: 'Expandir',
+    expandHint: 'Abrir como página inteira',
+    close: 'Fechar página',
+    closeHint: 'Fechar (Esc)',
+    emptyHelp:
+      'Para adicionar uma página, digite / e escolha Página, depois o nome e Enter (Cmd/Ctrl+Enter para ficar aqui). Para conectar páginas, digite [[ e um nome.',
+  },
+  kind: {
+    path: 'A trilha',
+    orphan: 'Órfã: nenhum link chega a esta página',
+    module: 'Módulo',
+    page: 'Página',
+  },
+  below: {
+    pages: { one: '{count} página abaixo', other: '{count} páginas abaixo' },
+    studied: { one: '{studied} de {count} abaixo estudada', other: '{studied} de {count} abaixo estudadas' },
+  },
+  back: 'Voltar para {title}',
+  seeOnMap: 'Ver no mapa',
+  savedAt: {
+    label: 'Salva · editada {when}',
+    hint: 'Salva · {date}',
+  },
+  menu: {
+    more: 'Mais opções',
+    showAsPage: 'Mostrar como página',
+    showAsModule: 'Mostrar como módulo',
+    delete: 'Excluir página',
+  },
+  tabs: {
+    content: 'Conteúdo',
+    related: 'Relacionadas ({count})',
+  },
+  related: {
+    empty: 'Nada relacionado ainda. Digite [[ no conteúdo para criar um link para outra página.',
+    parent: { label: 'Ramo de', hint: 'A página de onde esta sai no mapa' },
+    child: { label: 'Ramos', hint: 'Páginas que saem desta no mapa' },
+    linksTo: { label: 'Links para', hint: 'Páginas que esta menciona com [[ ]]' },
+    linkedFrom: { label: 'Links de', hint: 'Páginas que mencionam esta com [[ ]]' },
+  },
+  title: {
+    label: 'Título da página',
+    placeholder: 'Página sem título',
+    taken: 'Outra página já tem este título',
+  },
+  look: {
+    change: 'Mudar a aparência',
+    changeWithDescription: 'Mudar a aparência e a descrição',
+    description: { label: 'Descrição', hint: 'Uma linha abaixo do título da trilha.' },
+    module: { label: 'Mostrar como módulo', hint: 'Aparece maior no mapa, com cor e ícone próprios; as páginas abaixo dele ficam com a cor.' },
+    colour: 'Cor',
+    icon: 'Ícone',
+    colours: {
+      blue: 'Azul',
+      teal: 'Verde-azulado',
+      violet: 'Violeta',
+      orange: 'Laranja',
+      grape: 'Uva',
+      pink: 'Rosa',
+      yellow: 'Amarelo',
+      cyan: 'Ciano',
+      indigo: 'Índigo',
+      red: 'Vermelho',
+      green: 'Verde',
+      lime: 'Verde-limão',
+    },
+    icons: {
+      book: 'Livro',
+      box: 'Caixa',
+      cube: 'Cubo',
+      database: 'Banco de dados',
+      rocket: 'Foguete',
+      lock: 'Cadeado',
+      network: 'Rede',
+      flask: 'Frasco',
+      code: 'Código',
+      server: 'Servidor',
+      bolt: 'Raio',
+      puzzle: 'Quebra-cabeça',
+      layers: 'Camadas',
+      world: 'Mundo',
+      route: 'Rota',
+      school: 'Escola',
+    },
+  },
+  studied: {
+    on: 'Estudada',
+    off: 'Já estudei',
+    effect: 'Páginas estudadas contam para o progresso da trilha.',
+    effectWithProgress: 'Páginas estudadas contam para o progresso de {map}: {studied} de {total} até agora.',
+    unmark: '{effect} Clique para marcar como ainda não estudada.',
+    mark: 'Marque quando tiver aprendido o que esta página cobre. {effect}',
+  },
+  delete: {
+    title: 'Excluir página?',
+    body: 'será excluída. Os links para ela continuam nas outras páginas e aparecem como ausentes. Não dá para desfazer.',
+    bodyWithOrphans:
+      'será excluída. Os links para ela continuam nas outras páginas e aparecem como ausentes, e as páginas que só ela alcança ficam órfãs. Não dá para desfazer.',
+    keep: 'Manter',
+    confirm: 'Excluir página',
+  },
+} as const satisfies Shape<typeof en>;

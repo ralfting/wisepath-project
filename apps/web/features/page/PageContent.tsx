@@ -7,6 +7,7 @@ import { titleTaken } from '@wisepath/domain/projects';
 import { MarkdownEditor } from '@/features/editor/MarkdownEditor';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { Stack, TextInput } from '@mantine/core';
+import { useT } from '@/i18n/I18nProvider';
 import classes from './PageContent.module.css';
 
 /**
@@ -113,6 +114,7 @@ export function PageTitleInput({
   size?: number;
   onEnter?: () => void;
 }) {
+  const t = useT();
   const titleAtFocus = useRef(page.title);
   const [draft, setDraft] = useState(page.title);
   const clash = titleTaken(project, page.id, draft);
@@ -130,9 +132,9 @@ export function PageTitleInput({
     <TextInput
       id={`title-${page.id}`}
       variant="unstyled"
-      aria-label="Page title"
+      aria-label={t('page.title.label')}
       value={draft}
-      error={clash ? 'Another page already has this title' : undefined}
+      error={clash ? t('page.title.taken') : undefined}
       autoFocus={autoFocus}
       onFocus={() => {
         titleAtFocus.current = page.title;
@@ -161,7 +163,7 @@ export function PageTitleInput({
           onEnter?.();
         }
       }}
-      placeholder="Untitled page"
+      placeholder={t('page.title.placeholder')}
       classNames={{ input: classes.titleInput }}
       style={{ '--title-size': `${size}px` } as CSSProperties}
     />

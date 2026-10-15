@@ -2,6 +2,7 @@
 
 import { Button, Tooltip } from '@mantine/core';
 import { IconSquare, IconSquareCheckFilled } from '@tabler/icons-react';
+import { useT } from '@/i18n/I18nProvider';
 
 /**
  * StudiedToggle
@@ -19,12 +20,11 @@ export function StudiedToggle({
   /** The map's name and count, for the tooltip */
   progress?: { map: string; studied: number; total: number };
 }) {
-  const effect = progress
-    ? `Studied pages count toward ${progress.map}'s progress: ${progress.studied} of ${progress.total} so far.`
-    : 'Studied pages count toward the path’s progress.';
+  const t = useT();
+  const effect = progress ? t('page.studied.effectWithProgress', progress) : t('page.studied.effect');
   return (
     <Tooltip
-      label={studied ? `${effect} Click to mark it as not studied yet.` : `Tick it once you've learned what this page covers. ${effect}`}
+      label={t(studied ? 'page.studied.unmark' : 'page.studied.mark', { effect })}
       multiline
       w={260}
       withArrow
@@ -38,7 +38,7 @@ export function StudiedToggle({
         onClick={() => onChange(!studied)}
         leftSection={studied ? <IconSquareCheckFilled size={16} /> : <IconSquare size={16} stroke={1.8} />}
       >
-        {studied ? 'Studied' : "I've studied this"}
+        {t(studied ? 'page.studied.on' : 'page.studied.off')}
       </Button>
     </Tooltip>
   );
