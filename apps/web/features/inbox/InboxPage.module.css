@@ -21,18 +21,6 @@
     outline-offset: 2px;
   }
 
-  /* The actions show on the item being worked on; touch screens always show them */
-  @media (hover: hover) {
-    & .actions {
-      opacity: 0.55;
-      transition: opacity 120ms ease;
-    }
-
-    &:hover .actions,
-    &:focus-within .actions {
-      opacity: 1;
-    }
-  }
 }
 
 .text {
