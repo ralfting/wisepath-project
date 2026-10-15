@@ -93,14 +93,14 @@ export function rankHits<T extends { readonly title: string; readonly updatedAt:
 const LINE_MARKERS = /^\s*(?:#{1,6}\s+|>\s*|[-*+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/
 
 /** How much of the line is kept before the first match when the line is too long to show whole */
-const LEAD = 40
+const LEAD = 30
 
 /**
  * The line of the text where the query first appears, cut to about `width`
- * characters around it, with the matches marked; null when the text doesn't
- * contain any of its words.
+ * characters around it (about what one line of a result shows), with the
+ * matches marked; null when the text doesn't contain any of its words.
  */
-export function excerptOf(content: string, query: string, width = 120): Excerpt | null {
+export function excerptOf(content: string, query: string, width = 90): Excerpt | null {
   for (const raw of content.split("\n")) {
     const line = raw.replace(LINE_MARKERS, "").trim()
     const marks = marksIn(line, query)

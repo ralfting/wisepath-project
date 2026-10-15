@@ -63,8 +63,9 @@
   padding: 8px 10px;
   border-radius: var(--mantine-radius-md);
 
+  /* Dark 6, not 5: the dimmed line under the title keeps AA contrast on it */
   &[data-active] {
-    background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-5));
+    background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-6));
   }
 }
 
@@ -75,6 +76,7 @@
 }
 
 .rowText {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -106,8 +108,8 @@
 .mark {
   border-radius: 2px;
   padding: 0 1px;
-  background: light-dark(var(--mantine-color-yellow-2), var(--mantine-color-yellow-9));
-  color: inherit;
+  background: light-dark(var(--mantine-color-yellow-2), var(--mantine-color-yellow-3));
+  color: light-dark(var(--mantine-color-text), var(--mantine-color-black));
 }
 
 .message {
