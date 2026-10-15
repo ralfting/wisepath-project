@@ -11,17 +11,26 @@ import type { ProjectStore } from '../../projects/application/ProjectStore';
 import { DrizzleProjectStore } from '../../projects/infrastructure/DrizzleProjectStore';
 import type { ReviewStore } from '../../review/application/ReviewStore';
 import { DrizzleReviewStore } from '../../review/infrastructure/DrizzleReviewStore';
+import type { SearchStore } from '../../search/application/SearchStore';
+import { DrizzleSearchStore } from '../../search/infrastructure/DrizzleSearchStore';
 import { DatabaseLive } from './database/Database';
 import { SqlLive } from './Sql';
 
 /** Everything the use cases need, built once for the app over one connection pool */
-const AppLive = Layer.mergeAll(DrizzleProjectStore, DrizzleReviewStore, DrizzleUserStore, BcryptPasswordHasher, SafePageFetcher).pipe(
+const AppLive = Layer.mergeAll(
+  DrizzleProjectStore,
+  DrizzleReviewStore,
+  DrizzleSearchStore,
+  DrizzleUserStore,
+  BcryptPasswordHasher,
+  SafePageFetcher,
+).pipe(
   Layer.provide(DatabaseLive),
   Layer.provide(SqlLive),
 );
 
 /** The services a use case may ask for; anything per request (like the current user) is provided by its caller */
-export type AppServices = ProjectStore | ReviewStore | UserStore | PasswordHasher | PageFetcher;
+export type AppServices = ProjectStore | ReviewStore | SearchStore | UserStore | PasswordHasher | PageFetcher;
 
 /**
  * EffectRuntime

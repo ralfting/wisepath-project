@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { LinksModule } from './links/links.module';
 import { ProjectsModule } from './projects/projects.module';
 import { ReviewModule } from './review/review.module';
+import { SearchModule } from './search/search.module';
 import { SharedModule } from './shared/shared.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { SharedModule } from './shared/shared.module';
     LinksModule,
     ProjectsModule,
     ReviewModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

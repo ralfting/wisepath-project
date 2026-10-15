@@ -84,6 +84,9 @@ export const pages = pgTable(
   (t) => [
     primaryKey({ name: 'pages_pkey', columns: [t.projectId, t.id] }),
     uniqueIndex('pages_project_id_title_key_key').on(t.projectId, t.titleKey),
+    // Search everywhere: LIKE '%word%' on the folded title and text (wp_fold, made with the migration)
+    index('pages_title_search_idx').using('gin', sql`wp_fold(${t.title}) gin_trgm_ops`),
+    index('pages_content_search_idx').using('gin', sql`wp_fold(${t.content}) gin_trgm_ops`),
     foreignKey({ name: 'pages_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
