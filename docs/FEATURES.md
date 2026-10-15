@@ -100,6 +100,17 @@ Write it down now, file it later: capturing never asks where something goes.
 - **From the keyboard:** ↑ ↓ move between items, F files, D deletes, Enter opens where it came from. In the pickers ↑ ↓ choose, Enter picks, Backspace in an empty search goes back to the paths.
 - Stored as plain markdown once filed: text as written, an address as a `[title](address)` link on its line (a YouTube address alone, which shows as the video), a moment as a `[mm:ss]` note.
 
+## Capture from the web
+
+Keep what you read and watch on other sites without leaving them: one click sends the page to the Inbox.
+
+- **Send to WisePath** is a bookmark, set up once from **Capture from the web** in the account menu: drag its button to the bookmarks bar (or copy its address into a bookmark made by hand, for whoever can't drag).
+- **On any site,** a click opens a small WisePath window (420 × 360) already filled in: the page's title and site, the selected text as a quote, and on YouTube the moment the video is at (`at 12:34`). One field takes a note of your own.
+- **Enter** sends it to the Inbox and closes the window; Shift+Enter starts a new line; **Esc** closes it without sending. Where popups are blocked, the window opens in the tab instead, and says when it is saved.
+- **In the Inbox** it is an item like any other: the note, then the selection as a `>` quote, with the page's address and title. A YouTube moment filed into a page that has that video becomes a `- [12:34]` note under it.
+- **Logged out,** the window asks for the login first, then comes back filled in.
+- Long selections are cut (to 3000 characters, marked with …); an address too long to keep whole is left out.
+
 ## Keyboard shortcuts
 
 | Where | Keys | Does |
@@ -125,6 +136,7 @@ Write it down now, file it later: capturing never asks where something goes.
 | Anywhere | ⌘⇧Space / Ctrl+Shift+Space | Quick capture to the Inbox |
 | Capture box | Enter · Shift+Enter · ⌘Enter / Ctrl+Enter · Esc | Save · new line · add to the open page · close |
 | Inbox | ↑ ↓ · F · D · Enter | Move · file to a page · delete · open the source |
+| Capture window | Enter · Shift+Enter · Esc | Send to the Inbox · new line · close |
 
 ## Accessibility and themes
 
@@ -134,6 +146,7 @@ Write it down now, file it later: capturing never asks where something goes.
 
 ## Known limits
 
+- Capturing from the web is a bookmarklet: no browser extension, nothing on phones, no images.
 - Search everywhere looks at titles and text only: not inside videos, and without filters (by path, by kind) or operators.
 - N doesn't work while typing in the text (it would type an n) or with the focus inside YouTube's player.
 - Fullscreen is the app's own (with the notes); YouTube's fullscreen button is off.
