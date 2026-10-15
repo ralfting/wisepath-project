@@ -550,6 +550,14 @@ export const LinkKeys = Extension.create<{ onOpen: (link: LineLink, element: Ele
   },
 });
 
+/** The nearest box around this element that scrolls, and so cuts off what leaves it */
+function scrollingBox(element: Element): Element | null {
+  for (let e = element.parentElement; e && e !== document.body; e = e.parentElement) {
+    if (/auto|scroll/.test(getComputedStyle(e).overflowY)) return e;
+  }
+  return null;
+}
+
 /**
  * While the text has the focus, a bar in the left margin beside the block the
  * cursor is in (a paragraph, a heading, a list item's line; a whole table or
@@ -571,10 +579,37 @@ export const ActiveBlockRail = Extension.create({
           rail.className = 'wp-active-rail';
           rail.setAttribute('aria-hidden', 'true');
           view.dom.parentElement?.appendChild(rail);
+          // The key's tag lives on the page itself, fixed to the screen: in the page drawer it stands out past the
+          // drawer's left edge, which the drawer (and the text's scrolling box) would otherwise cut off
+          const tag = document.createElement('div');
+          tag.className = 'wp-rail-tag';
+          tag.setAttribute('aria-hidden', 'true');
+          document.body.appendChild(tag);
+          let line: { block: HTMLElement; hint: string } | null = null;
+
+          const placeTag = () => {
+            if (!line || !rail.hasAttribute('data-visible')) return tag.removeAttribute('data-visible');
+            const box = line.block.getBoundingClientRect();
+            // Gone with its line when the text scrolls it out of view
+            const scroller = scrollingBox(rail);
+            const clip = scroller?.getBoundingClientRect();
+            if (clip && (box.top + 8 < clip.top || box.top + 16 > clip.bottom)) return tag.removeAttribute('data-visible');
+            const drawer = rail.closest('.mantine-Drawer-content');
+            tag.textContent = line.hint;
+            tag.toggleAttribute('data-edge', !!drawer);
+            tag.style.top = `${box.top}px`;
+            tag.style.height = `${Math.min(Math.max(box.height, 18), 26)}px`;
+            tag.style.left = `${drawer ? drawer.getBoundingClientRect().left : rail.getBoundingClientRect().right}px`;
+            tag.setAttribute('data-visible', '');
+          };
+          const hide = () => {
+            rail.removeAttribute('data-visible');
+            tag.removeAttribute('data-visible');
+          };
 
           const place = () => {
             const { selection } = view.state;
-            if (!view.hasFocus()) return rail.removeAttribute('data-visible');
+            if (!view.hasFocus()) return hide();
             const { $from } = selection;
             // A selected block, else the table the cursor is in, else the line's own block
             let pos: number | null = selection instanceof NodeSelection ? selection.from : null;
@@ -583,7 +618,7 @@ export const ActiveBlockRail = Extension.create({
             }
             if (pos === null && $from.depth > 0) pos = $from.before($from.depth);
             const block = pos === null ? null : view.nodeDOM(pos);
-            if (!(block instanceof HTMLElement)) return rail.removeAttribute('data-visible');
+            if (!(block instanceof HTMLElement)) return hide();
             // Measured from what the bar is placed against (the nearest positioned box)
             const host = rail.offsetParent ?? rail.parentElement;
             if (!host) return;
@@ -591,19 +626,20 @@ export const ActiveBlockRail = Extension.create({
             const top = box.top - host.getBoundingClientRect().top + host.scrollTop;
             rail.style.top = `${top}px`;
             rail.style.height = `${Math.max(box.height, 18)}px`;
+            rail.setAttribute('data-visible', '');
             // A time on the line, under a video, plays; else a link opens
             let hasTime = false;
             $from.parent.forEach((child) => {
               if (child.type.name === 'timestamp') hasTime = true;
             });
             const hint = hasTime && videoAbove(editor, $from.pos) ? `\u25B6\uFE0E ${key}` : lineLink($from) ? `\u2197 ${key}` : null;
-            if (hint) rail.setAttribute('data-hint', hint);
-            else rail.removeAttribute('data-hint');
-            rail.setAttribute('data-visible', '');
+            line = hint ? { block, hint } : null;
+            placeTag();
           };
-          const hide = () => rail.removeAttribute('data-visible');
           view.dom.addEventListener('focus', place);
           view.dom.addEventListener('blur', hide);
+          window.addEventListener('scroll', placeTag, true);
+          window.addEventListener('resize', placeTag);
           requestAnimationFrame(place);
 
           return {
@@ -611,7 +647,10 @@ export const ActiveBlockRail = Extension.create({
             destroy() {
               view.dom.removeEventListener('focus', place);
               view.dom.removeEventListener('blur', hide);
+              window.removeEventListener('scroll', placeTag, true);
+              window.removeEventListener('resize', placeTag);
               rail.remove();
+              tag.remove();
             },
           };
         },
