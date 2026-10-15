@@ -1,0 +1,131 @@
+/* The card the palette sits in, over the dimmed app */
+.card {
+  overflow: hidden;
+  box-shadow: var(--mantine-shadow-xl);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.fieldIcon {
+  flex: none;
+  color: var(--mantine-color-dimmed);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--mantine-color-text);
+  font: inherit;
+  font-size: var(--mantine-font-size-lg);
+
+  &::placeholder {
+    color: var(--mantine-color-dimmed);
+  }
+}
+
+.escHint {
+  flex: none;
+}
+
+.heading {
+  padding: 10px 16px 4px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  padding: 0 8px 8px;
+
+  &:empty {
+    padding: 0;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-md);
+
+  &[data-active] {
+    background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-dark-5));
+  }
+}
+
+.rowIcon {
+  flex: none;
+  margin-top: 2px;
+  color: var(--mantine-color-dimmed);
+}
+
+.rowText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.title {
+  overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.where,
+.excerpt {
+  overflow: hidden;
+  font-size: var(--mantine-font-size-xs);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--mantine-color-dimmed);
+}
+
+.excerpt {
+  color: var(--mantine-color-text);
+}
+
+.mark {
+  border-radius: 2px;
+  padding: 0 1px;
+  background: light-dark(var(--mantine-color-yellow-2), var(--mantine-color-yellow-9));
+  color: inherit;
+}
+
+.message {
+  padding: 14px 16px 18px;
+}
+
+.retry {
+  color: var(--mantine-color-anchor);
+  font-size: inherit;
+  text-decoration: underline;
+}
+
+.hints {
+  padding: 8px 16px;
+  border-top: 1px solid var(--mantine-color-default-border);
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+
+  @media (max-width: 36em) {
+    display: none;
+  }
+}
