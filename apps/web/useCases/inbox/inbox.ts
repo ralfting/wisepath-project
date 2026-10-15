@@ -105,13 +105,11 @@ export function useCapture(): (input: CaptureInput) => InboxItem {
   )
 }
 
-/** Takes an item out of the Inbox; giving it back brings it back as it was (an undo) */
-export function useDiscard(): { discard: (item: InboxItem) => void; restore: (item: InboxItem) => void } {
+/** Hides an item from the Inbox on screen, or shows it again, without telling the API */
+function useHide(): (id: InboxItemId, hidden: boolean) => void {
   const registry = useContext(RegistryContext)
-  const runDiscard = useAtomSet(discardAtom)
-  const runCapture = useAtomSet(captureAtom)
-  const hide = useCallback(
-    (id: InboxItemId, hidden: boolean) => {
+  return useCallback(
+    (id, hidden) => {
       const local = registry.get(localAtom)
       const next = new Set(local.hidden)
       if (hidden) next.add(id)
@@ -120,6 +118,14 @@ export function useDiscard(): { discard: (item: InboxItem) => void; restore: (it
     },
     [registry]
   )
+}
+
+/** Takes an item out of the Inbox; giving it back brings it back as it was (an undo) */
+export function useDiscard(): { discard: (item: InboxItem) => void; restore: (item: InboxItem) => void } {
+  const registry = useContext(RegistryContext)
+  const runDiscard = useAtomSet(discardAtom)
+  const runCapture = useAtomSet(captureAtom)
+  const hide = useHide()
   return {
     discard: useCallback(
       (item) => {
@@ -138,6 +144,27 @@ export function useDiscard(): { discard: (item: InboxItem) => void; restore: (it
       [registry, hide, runCapture]
     )
   }
+}
+
+/**
+ * For filing: the item leaves the Inbox on screen at once, and is discarded
+ * on the API only once its page has it; a change that didn't happen shows it again
+ */
+function useLeaveAfter() {
+  const hide = useHide()
+  const runDiscard = useAtomSet(discardAtom)
+  return useCallback(
+    async (item: InboxItem | null, change: () => Promise<string | null>): Promise<string | null> => {
+      if (item) hide(item.id, true)
+      const message = await change()
+      if (item) {
+        if (message === null) runDiscard(item.id)
+        else hide(item.id, false)
+      }
+      return message
+    },
+    [hide, runDiscard]
+  )
 }
 
 /** Where an item goes: a page of one of the learner's maps */
@@ -182,46 +209,43 @@ function useChangeMap() {
 /** Appends an item to a page; with an Inbox item, takes it out of the Inbox once the page has it */
 export function useFileItem(): (item: CaptureInput & { readonly id?: InboxItemId }, target: PageTarget) => Promise<FileResult> {
   const change = useChangeMap()
-  const { discard, restore } = useDiscard()
+  const leaveAfter = useLeaveAfter()
   return useCallback(
     async (item, target) => {
-      const filed = item.id !== undefined ? (item as InboxItem) : null
-      if (filed) discard(filed)
       let title = ""
-      const message = await change(target, (project) => {
-        title = project.pages.find((p) => p.id === target.pageId)?.title ?? ""
-        return fileItem(project, PageId.make(target.pageId), item)
-      })
-      if (message === null) return { ok: true, title }
-      if (filed) restore(filed)
-      return { ok: false, message }
+      const message = await leaveAfter(item.id !== undefined ? (item as InboxItem) : null, () =>
+        change(target, (project) => {
+          title = project.pages.find((p) => p.id === target.pageId)?.title ?? ""
+          return fileItem(project, PageId.make(target.pageId), item)
+        })
+      )
+      return message === null ? { ok: true, title } : { ok: false, message }
     },
-    [change, discard, restore]
+    [change, leaveAfter]
   )
 }
 
 /** Makes an item a page of its own, linked from the chosen page; takes it out of the Inbox once the map has it */
 export function useMakePage(): (item: InboxItem, from: PageTarget) => Promise<FileResult & { readonly pageId?: string }> {
   const change = useChangeMap()
-  const { discard, restore } = useDiscard()
+  const leaveAfter = useLeaveAfter()
   const t = useT()
   return useCallback(
     async (item, from) => {
-      discard(item)
       const id = newPageId()
       let title = ""
-      const message = await change(from, (project) =>
-        makePage(project, PageId.make(from.pageId), item, id, { untitled: t("inbox.makePage.untitled") }).pipe(
-          Effect.map((made) => {
-            title = made.title
-            return made.project
-          })
+      const message = await leaveAfter(item, () =>
+        change(from, (project) =>
+          makePage(project, PageId.make(from.pageId), item, id, { untitled: t("inbox.makePage.untitled") }).pipe(
+            Effect.map((made) => {
+              title = made.title
+              return made.project
+            })
+          )
         )
       )
-      if (message === null) return { ok: true, title, pageId: id }
-      restore(item)
-      return { ok: false, message }
+      return message === null ? { ok: true, title, pageId: id } : { ok: false, message }
     },
-    [change, discard, restore, t]
+    [change, leaveAfter, t]
   )
 }
