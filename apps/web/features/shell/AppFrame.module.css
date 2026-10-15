@@ -71,6 +71,23 @@
   }
 }
 
+/* The Inbox on the rail: a dot says something is waiting */
+.railInbox {
+  position: relative;
+
+  &[data-count]::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--mantine-color-blue-6);
+    box-shadow: 0 0 0 2px var(--mantine-color-body);
+  }
+}
+
 .column {
   display: flex;
   flex-direction: column;

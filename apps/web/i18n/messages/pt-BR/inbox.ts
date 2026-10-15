@@ -17,7 +17,7 @@ export const inbox = {
     field: 'O que você quer guardar?',
     placeholder: 'Uma ideia, um link, uma pergunta… anote agora, organize depois',
     hint: 'Enter salva · Shift+Enter nova linha · Esc fecha',
-    hintOnPage: 'Enter salva · ⌘Enter adiciona a esta página · Esc fecha',
+    hintOnPage: 'Enter salva · {keys} adiciona a esta página · Esc fecha',
     destination: 'Para onde vai',
     toInbox: 'Caixa de entrada',
     toPage: 'Adicionar a “{title}”',

@@ -29,6 +29,7 @@ import { useDisclosure } from '@mantine/hooks';
 import {
   IconChevronRight,
   IconHome,
+  IconInbox,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconCards,
@@ -45,6 +46,8 @@ import { LOCALES, LOCALE_NAMES } from '@/i18n/locales';
 import type { Locale } from '@/i18n/locales';
 import { useProjects } from '@/useCases/projects';
 import { useReviewCounts } from '@/useCases/review';
+import { useInboxCount } from '@/useCases/inbox';
+import { CaptureLauncher } from '@/features/capture';
 import { PageGlyph } from '@/features/shared/look';
 import { SearchPaletteHost, openSearchPalette } from '@/features/search';
 import classes from './AppFrame.module.css';
@@ -206,6 +209,7 @@ export function AppFrame({
           )}
         </Group>
         {children}
+        <CaptureLauncher />
       </AppShell.Main>
       <SearchPaletteHost />
     </AppShell>
@@ -244,6 +248,7 @@ export function TopBar({ children }: { children: ReactNode }) {
 function Rail() {
   const pathname = usePathname();
   const projects = useProjects();
+  const inboxCount = useInboxCount();
   const session = useSession();
   const user = session.status === 'signedIn' ? session.user : null;
   const t = useT();
@@ -265,6 +270,19 @@ function Rail() {
         aria-label={t('shell.sidebar.myPaths')}
       >
         <IconHome size={20} stroke={1.7} />
+      </ActionIcon>
+      <ActionIcon
+        component={Link}
+        href="/inbox"
+        size={40}
+        radius="md"
+        variant={pathname === '/inbox' ? 'light' : 'subtle'}
+        color={pathname === '/inbox' ? 'blue' : 'gray'}
+        aria-label={t('inbox.sidebar.waiting', { count: inboxCount ?? 0 })}
+        className={classes.railInbox}
+        data-count={inboxCount || undefined}
+      >
+        <IconInbox size={20} stroke={1.7} />
       </ActionIcon>
       <ReviewRailLink />
       <ActionIcon size={40} radius="md" variant="subtle" color="gray" onClick={openSearchPalette} aria-label={t('search.open')}>
@@ -307,6 +325,7 @@ function Rail() {
 function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
   const pathname = usePathname();
   const projects = useProjects();
+  const inboxCount = useInboxCount();
   const t = useT();
 
   return (
@@ -338,6 +357,22 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
             projects && projects.length > 0 ? (
               <Badge size="sm" variant="light" circle>
                 {projects.length}
+              </Badge>
+            ) : null
+          }
+          className={classes.navLink}
+        />
+        <NavLink
+          component={Link}
+          href="/inbox"
+          label={t('inbox.sidebar.link')}
+          aria-label={inboxCount !== null ? t('inbox.sidebar.waiting', { count: inboxCount }) : undefined}
+          active={pathname === '/inbox'}
+          leftSection={<IconInbox size={20} stroke={1.7} />}
+          rightSection={
+            inboxCount ? (
+              <Badge size="sm" variant="light" circle aria-hidden>
+                {inboxCount}
               </Badge>
             ) : null
           }

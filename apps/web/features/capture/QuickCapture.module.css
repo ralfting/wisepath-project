@@ -1,0 +1,25 @@
+.field {
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg) !important;
+  font-size: var(--mantine-font-size-md);
+  line-height: 1.5;
+}
+
+.link {
+  margin: 0 var(--mantine-spacing-lg) var(--mantine-spacing-sm);
+  padding: 6px 8px 6px 10px;
+  border-radius: var(--mantine-radius-md);
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+}
+
+.destination {
+  padding: 0 var(--mantine-spacing-lg) var(--mantine-spacing-md);
+}
+
+.pageChoice {
+  display: inline-block;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}

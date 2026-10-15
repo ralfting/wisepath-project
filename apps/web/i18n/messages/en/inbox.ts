@@ -14,7 +14,7 @@ export const inbox = {
     field: 'What do you want to keep?',
     placeholder: 'An idea, a link, a question… write it now, file it later',
     hint: 'Enter saves · Shift+Enter new line · Esc closes',
-    hintOnPage: 'Enter saves · ⌘Enter adds to this page · Esc closes',
+    hintOnPage: 'Enter saves · {keys} adds to this page · Esc closes',
     destination: 'Where it goes',
     toInbox: 'Inbox',
     toPage: 'Add to “{title}”',

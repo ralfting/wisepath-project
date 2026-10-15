@@ -1,0 +1,24 @@
+.region {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 500;
+  max-width: calc(100vw - 32px);
+}
+
+.toast {
+  border: 1px solid var(--wp-line, var(--mantine-color-default-border));
+  animation: rise 160ms ease-out;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
