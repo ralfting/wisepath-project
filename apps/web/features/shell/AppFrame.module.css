@@ -98,7 +98,8 @@
   position: fixed;
   inset: 0 auto 0 0;
   width: 264px;
-  z-index: 200;
+  /* Above the page drawer (Mantine's 200), expanded over the whole page too; below popovers (300) and the palette */
+  z-index: 220;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--wp-line);
