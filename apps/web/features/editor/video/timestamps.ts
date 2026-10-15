@@ -111,26 +111,29 @@ export const Timestamp = Node.create({
     };
   },
 
-  // ⌘↵ (Ctrl+Enter) plays the time on the cursor's line: the last one before the cursor, else the first
+  // ⌘↵ (Ctrl+Enter) plays the time on the cursor's line: the last one before the cursor, else the first.
+  // ⇧⌘↵ plays it in fullscreen, with the notes
   addKeyboardShortcuts() {
+    const play = (fullscreen: boolean) => {
+      const $from = this.editor.state.doc.resolve(cursorPos(this.editor));
+      const line = $from.parent;
+      const start = $from.start();
+      let chosen: { pos: number; time: string } | null = null;
+      line.forEach((child, offset) => {
+        if (child.type.name !== this.name) return;
+        const pos = start + offset;
+        if (!chosen || pos < $from.pos) chosen = { pos, time: child.attrs.time };
+      });
+      if (!chosen) return false;
+      const { pos, time } = chosen;
+      const video = videoAbove(this.editor, pos);
+      if (!video) return false;
+      video.seek(parseTime(time), fullscreen);
+      return true;
+    };
     return {
-      'Mod-Enter': () => {
-        const $from = this.editor.state.doc.resolve(cursorPos(this.editor));
-        const line = $from.parent;
-        const start = $from.start();
-        let chosen: { pos: number; time: string } | null = null;
-        line.forEach((child, offset) => {
-          if (child.type.name !== this.name) return;
-          const pos = start + offset;
-          if (!chosen || pos < $from.pos) chosen = { pos, time: child.attrs.time };
-        });
-        if (!chosen) return false;
-        const { pos, time } = chosen;
-        const video = videoAbove(this.editor, pos);
-        if (!video) return false;
-        video.seek(parseTime(time));
-        return true;
-      },
+      'Mod-Enter': () => play(false),
+      'Mod-Shift-Enter': () => play(true),
     };
   },
 
@@ -149,8 +152,8 @@ export const Timestamp = Node.create({
   addProseMirrorPlugins() {
     const editor = this.editor;
     return [
-      // A press on a time plays the video above it from there, without selecting the chip (and opening the
-      // formatting menu) or moving the cursor
+      // A press on a time plays the video above it from there (with Shift, in fullscreen), without selecting
+      // the chip (and opening the formatting menu) or moving the cursor
       new Plugin({
         key: new PluginKey('timestampClick'),
         props: {
@@ -161,7 +164,7 @@ export const Timestamp = Node.create({
               const video = videoAbove(editor, view.posAtDOM(chip, 0));
               if (!video) return false;
               event.preventDefault();
-              video.seek(parseTime(chip.getAttribute('data-timestamp') ?? '0'));
+              video.seek(parseTime(chip.getAttribute('data-timestamp') ?? '0'), event.shiftKey);
               return true;
             },
           },

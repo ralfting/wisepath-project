@@ -10,8 +10,8 @@ import type { Editor } from '@tiptap/react';
 export interface VideoControl {
   /** The video block's position in the document; undefined once it is gone */
   readonly getPos: () => number | undefined;
-  /** Plays from this second, floating the video into view if it scrolled away */
-  readonly seek: (seconds: number) => void;
+  /** Plays from this second, floating the video into view if it scrolled away, or in fullscreen */
+  readonly seek: (seconds: number, fullscreen?: boolean) => void;
 }
 
 const players = new WeakMap<Editor, Set<VideoControl>>();

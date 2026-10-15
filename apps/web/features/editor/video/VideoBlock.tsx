@@ -158,7 +158,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     if (playing) setActiveNote(editor, current?.pos ?? null);
   }, [editor, playing, current?.pos]);
 
-  const seek = useCallback((seconds: number) => {
+  const seek = useCallback((seconds: number, fullscreen = false) => {
     lastUsed = self;
     setDismissed(false);
     const p = player.current;
@@ -169,6 +169,8 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     // In fullscreen, a time picked from the notes hands the focus to the video, where the arrows move it on
     const stage = stageRef.current;
     if (stage && document.fullscreenElement === stage) requestAnimationFrame(() => stage.focus({ preventScroll: true }));
+    // Asked for in fullscreen (⇧⌘↵, ⇧-click): the browser allows it only now, while the key or click is going on
+    else if (stage && fullscreen) void stage.requestFullscreen();
   }, [self]);
 
 

@@ -41,7 +41,7 @@ const SYNTAX: { group: string; rows: { type: string; does: string }[] }[] = [
       { type: 'https://youtu.be/…', does: 'A YouTube address alone on its line becomes an embedded video' },
       {
         type: '[01:25]',
-        does: "A moment of the video above: a click plays it from there, and Cmd/Ctrl+Enter plays the time on the cursor's line. Note at, under a video, pauses it to add one (or N with the video focused)",
+        does: "A moment of the video above: a click plays it from there, and Cmd/Ctrl+Enter plays the time on the cursor's line; with Shift, either plays it in fullscreen. Note at, under a video, pauses it to add one (or N with the video focused)",
       },
     ],
   },
