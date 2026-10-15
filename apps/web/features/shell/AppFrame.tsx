@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
+  Collapse,
   ActionIcon,
   Anchor,
   AppShell,
@@ -27,6 +28,7 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
+  IconChevronDown,
   IconChevronRight,
   IconHome,
   IconInbox,
@@ -507,6 +509,8 @@ function AccountMenu() {
   const t = useT();
   const { locale, setChoice } = useLocale();
   const saveLocale = useSaveLocale();
+  // The two languages, shown in the menu itself when its Language item is opened
+  const [languagesOpen, setLanguagesOpen] = useState(false);
   // Changes at once here, and on the account for every other device
   const pick = (next: Locale | null) => {
     setChoice(next);
@@ -520,7 +524,7 @@ function AccountMenu() {
   };
 
   return (
-    <Menu position="top-start" width="target" withinPortal>
+    <Menu position="top-start" width="target" withinPortal onClose={() => setLanguagesOpen(false)}>
       <Menu.Target>
         {/* Named by what it shows, after the word for it: a label that hid the name would not match what is read on screen */}
         <UnstyledButton className={classes.accountButton}>
@@ -541,34 +545,42 @@ function AccountMenu() {
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
-        {/* The language in a submenu: the one in use shows on the item, the two to pick from open beside it */}
-        <Menu.Sub position="right-start" offset={4}>
-          <Menu.Sub.Target>
-            <Menu.Sub.Item leftSection={<IconLanguage size={16} />} rightSection={<Flag locale={locale} size={16} />}>
-              {t('common.language.menu')}
-            </Menu.Sub.Item>
-          </Menu.Sub.Target>
-          <Menu.Sub.Dropdown>
-            {LOCALES.map((option) => {
-              const inUse = option === locale;
-              const name = LOCALE_NAMES[option];
-              return (
-                <Menu.Item
-                  key={option}
-                  onClick={() => pick(option)}
-                  leftSection={<Flag locale={option} />}
-                  rightSection={inUse ? <IconCheck size={14} aria-hidden /> : null}
-                  // Menu items can't be checked: the one in use says so in its name, and wears a tick
-                  aria-label={inUse ? t('common.language.current', { name }) : name}
-                  data-locale-option={option}
-                >
-                  {name}
-                </Menu.Item>
-              );
-            })}
-          </Menu.Sub.Dropdown>
-        </Menu.Sub>
-        <Menu.Divider />
+        {/* The language opens in place, inside this menu: a menu beside it would close as the pointer crossed over */}
+        <Menu.Item
+          closeMenuOnClick={false}
+          onClick={() => setLanguagesOpen((o) => !o)}
+          leftSection={<IconLanguage size={16} />}
+          rightSection={
+            <Group gap={6} wrap="nowrap">
+              <Flag locale={locale} size={16} />
+              <IconChevronDown size={14} className={classes.languageChevron} data-open={languagesOpen || undefined} aria-hidden />
+            </Group>
+          }
+          aria-expanded={languagesOpen}
+        >
+          {t('common.language.menu')}
+        </Menu.Item>
+        <Collapse in={languagesOpen} transitionDuration={160} role="group" aria-label={t('common.language.menu')}>
+          {LOCALES.map((option) => {
+            const inUse = option === locale;
+            const name = LOCALE_NAMES[option];
+            return (
+              <Menu.Item
+                key={option}
+                onClick={() => pick(option)}
+                leftSection={<Flag locale={option} />}
+                rightSection={inUse ? <IconCheck size={14} aria-hidden /> : null}
+                // Menu items can't be checked: the one in use says so in its name, and wears a tick
+                aria-label={inUse ? t('common.language.current', { name }) : name}
+                data-locale-option={option}
+                className={classes.languageOption}
+              >
+                {name}
+              </Menu.Item>
+            );
+          })}
+        </Collapse>
+        <Menu.Divider role="separator" />
         <Menu.Item component={Link} href="/settings/capture" leftSection={<IconBookmark size={16} />}>
           {t('capture.settings.menu')}
         </Menu.Item>

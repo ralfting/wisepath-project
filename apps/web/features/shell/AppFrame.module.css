@@ -139,3 +139,21 @@
   min-width: 0;
   flex-wrap: nowrap;
 }
+
+/* The account menu's languages, opened in place under its Language item */
+.languageOption {
+  padding-left: calc(var(--mantine-spacing-sm) + 14px);
+}
+
+.languageChevron {
+  color: var(--mantine-color-dimmed);
+  transition: transform 160ms ease;
+
+  &[data-open] {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
