@@ -56,6 +56,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     '--mantine-color-teal-light-color': '#06704F',
   },
   dark: {
+    // Without it the body has no background in dark, and contrast checkers measure the text against white
+    '--wp-ground': t.colors.dark[8],
     // Mantine's dark 2 (#828282) falls short on the drawer's ground (#2E2E2E); this passes AA on it and on the body
     '--mantine-color-dimmed': '#9A9A9A',
   },
