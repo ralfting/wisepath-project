@@ -1,9 +1,4 @@
 /* The card the palette sits in, over the dimmed app */
-.card {
-  overflow: hidden;
-  box-shadow: var(--mantine-shadow-xl);
-}
-
 .panel {
   display: flex;
   flex-direction: column;

@@ -3,7 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
-import { Group, Kbd, Loader, Modal, ScrollArea, Text, UnstyledButton, VisuallyHidden } from '@mantine/core';
+import { Group, Kbd, Loader, ScrollArea, Text, UnstyledButton, VisuallyHidden } from '@mantine/core';
+import { CaptureBox } from '@/features/capture/CaptureBox';
 import { IconFileText, IconSearch } from '@tabler/icons-react';
 import { marksIn } from '@wisepath/domain/search';
 import type { Mark } from '@wisepath/domain/search';
@@ -74,16 +75,16 @@ export function SearchPaletteHost() {
   return <SearchPalette opened={opened} onClose={() => setOpened(false)} />;
 }
 
-/** The search in a centred card: the focus stays inside until it closes, then goes back where it was */
+/**
+ * The search in the app's palette (the same card as quick capture's): the focus stays inside until it closes,
+ * then goes back where it was
+ */
 export function SearchPalette({ opened, onClose }: { opened: boolean; onClose: () => void }) {
   const t = useT();
   return (
-    <Modal.Root opened={opened} onClose={onClose} centered size={640} radius="lg" trapFocus returnFocus>
-      <Modal.Overlay backgroundOpacity={0.35} blur={2} />
-      <Modal.Content aria-label={t('search.palette.label')} className={classes.card}>
-        <SearchPanel onDone={onClose} />
-      </Modal.Content>
-    </Modal.Root>
+    <CaptureBox opened={opened} onClose={onClose} label={t('search.palette.label')}>
+      <SearchPanel onDone={onClose} />
+    </CaptureBox>
   );
 }
 
