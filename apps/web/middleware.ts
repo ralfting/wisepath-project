@@ -15,8 +15,8 @@ export function middleware(request: NextRequest) {
   // The old dashboard is replaced by the projects list
   if (pathname.startsWith('/dashboard')) return redirect(hasAccessToken ? HOME : '/login');
 
-  // Projects need an account
-  if (pathname.startsWith('/projects') && !hasAccessToken) return redirect('/login');
+  // Projects and the Inbox need an account
+  if ((pathname.startsWith('/projects') || pathname === '/inbox') && !hasAccessToken) return redirect('/login');
 
   // Logged-in users have no use for the login and signup pages
   if ((pathname === '/login' || pathname === '/signup') && hasAccessToken) return redirect(HOME);
@@ -26,5 +26,5 @@ export function middleware(request: NextRequest) {
 
 // Configure which routes to apply middleware to
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/projects/:path*', '/login', '/signup'],
+  matcher: ['/', '/dashboard/:path*', '/projects/:path*', '/inbox', '/login', '/signup'],
 };
