@@ -157,6 +157,9 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     p.seekTo(seconds, true);
     p.playVideo();
     setTime(seconds);
+    // In fullscreen, a time picked from the notes hands the focus to the video, where the arrows move it on
+    const stage = stageRef.current;
+    if (stage && document.fullscreenElement === stage) requestAnimationFrame(() => stage.focus({ preventScroll: true }));
   }, [self]);
 
 
