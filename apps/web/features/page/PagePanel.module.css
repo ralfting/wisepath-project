@@ -27,6 +27,12 @@
   min-height: 0;
   overflow-y: auto;
   padding: var(--mantine-spacing-md) var(--mantine-spacing-lg) var(--mantine-spacing-lg);
+
+  /* The text keeps a margin for the cursor's rail and the tag it carries (▶ ⌘↵): this box scrolls, so it
+     clips whatever leaves it */
+  & :global(.mantine-RichTextEditor-content) {
+    margin-left: 48px;
+  }
 }
 
 .related {
