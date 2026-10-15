@@ -8,7 +8,8 @@ import { clozeRanges, isCardLine } from '@wisepath/domain/review';
  * Review cards in the editor
  * A `Question :: Answer` line gets a small card icon in the margin, and
  * `==words==` are marked as the words a fill-in-the-blank card hides. Only
- * the look changes: the markdown stays as written. Code is never a card.
+ * the look changes: the markdown stays as written. Code is never a card, and
+ * nothing is marked where there is no reviewing (a learning path's pages).
  */
 
 /** A block's text as written, [[links]] included, so `::` reads as the domain reads it */
@@ -36,10 +37,15 @@ function decorate(doc: PmNode): DecorationSet {
   return DecorationSet.create(doc, decorations);
 }
 
-export const CardMarks = Extension.create({
+export const CardMarks = Extension.create<{ enabled: () => boolean }>({
   name: 'cardMarks',
 
+  addOptions() {
+    return { enabled: () => true };
+  },
+
   addProseMirrorPlugins() {
+    const { enabled } = this.options;
     return [
       new Plugin({
         key: new PluginKey('cardMarks'),
@@ -49,7 +55,7 @@ export const CardMarks = Extension.create({
         },
         props: {
           decorations(state) {
-            return this.getState(state);
+            return enabled() ? this.getState(state) : null;
           },
         },
       }),

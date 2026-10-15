@@ -78,6 +78,8 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 
 ## Spaced review
 
+Reviewing belongs to a **Study**: a Learning path's pages have no cards (their `::` lines stay plain text, and come back as cards if it turns into a study). Inside a study, **Review** in the map's top bar opens the review of that path alone, with how many of its cards are due today (a tick once none are).
+
 Questions are written in the notes themselves, where they belong; a few minutes a day of being asked them, at growing intervals, keeps what was learned.
 
 - **Cards.** A line `Question :: Answer` in any page is a card (in a list, a heading or a quote too; `::` needs a space each side, so `std::vector` isn't one). A line with `==words==` is a fill-in-the-blank: the marked words are hidden, one card per mark. Code is never a card. In the editor a card line has a small card in the left margin, and `==words==` are highlighted; the markdown stays as written.

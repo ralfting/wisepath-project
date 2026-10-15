@@ -75,6 +75,7 @@ export function PageContent({
         />
       )}
       <MarkdownEditor
+        reviewCards={project.kind !== 'learningPath'}
         key={page.id}
         content={page.content}
         onChange={(content) => actions.updatePage(page.id, { content })}

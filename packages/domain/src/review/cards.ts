@@ -145,9 +145,13 @@ export function cardsIn(
   return cards
 }
 
-/** Every card in a path, page by page in the order the pages were added */
+/**
+ * Every card in a path, page by page in the order the pages were added. Reviewing is a study's: a learning
+ * path, followed page by page, has none (its lines stay text, and come back as cards if it turns into a study)
+ */
 export function cardsOf(
-  project: Pick<Project, "id" | "title"> & { readonly pages: ReadonlyArray<Pick<Page, "id" | "title" | "content">> }
+  project: Pick<Project, "id" | "title"> & { readonly kind?: Project["kind"]; readonly pages: ReadonlyArray<Pick<Page, "id" | "title" | "content">> }
 ): Card[] {
+  if (project.kind === "learningPath") return []
   return project.pages.flatMap((page) => cardsIn(page, project))
 }
