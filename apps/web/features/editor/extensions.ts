@@ -5,6 +5,7 @@ import Suggestion from '@tiptap/suggestion';
 import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion';
 import { NodeSelection, Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import { videoAbove } from './video/videos';
 
 /**
  * Editor extensions
@@ -504,12 +505,15 @@ export const BlockKeys = Extension.create({
  * While the text has the focus, a bar in the left margin beside the block the
  * cursor is in (a paragraph, a heading, a list item's line; a whole table or
  * video), so it is plain where the keys go. It is one element beside the text,
- * moved to the block's place, so it slides from block to block.
+ * moved to the block's place, so it slides from block to block. On a line with
+ * a video's time it carries the key that plays it (⌘↵).
  */
 export const ActiveBlockRail = Extension.create({
   name: 'activeBlockRail',
 
   addProseMirrorPlugins() {
+    const editor = this.editor;
+    const playKey = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘↵' : 'Ctrl+↵';
     return [
       new Plugin({
         key: new PluginKey('activeBlockRail'),
@@ -538,6 +542,13 @@ export const ActiveBlockRail = Extension.create({
             const top = box.top - host.getBoundingClientRect().top + host.scrollTop;
             rail.style.top = `${top}px`;
             rail.style.height = `${Math.max(box.height, 18)}px`;
+            // A time on the line, under a video: ⌘↵ plays it
+            let hasTime = false;
+            $from.parent.forEach((child) => {
+              if (child.type.name === 'timestamp') hasTime = true;
+            });
+            if (hasTime && videoAbove(editor, $from.pos)) rail.setAttribute('data-hint', playKey);
+            else rail.removeAttribute('data-hint');
             rail.setAttribute('data-visible', '');
           };
           const hide = () => rail.removeAttribute('data-visible');

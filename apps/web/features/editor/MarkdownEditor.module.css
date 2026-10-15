@@ -54,8 +54,41 @@
       opacity: 1;
     }
 
+    /* On a line with a video's time it widens, leftwards, around the key that plays it */
+    &[data-hint] {
+      left: -27px;
+      width: 19px;
+      min-height: max-content;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      background: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
+      transition:
+        top 140ms ease-out,
+        height 140ms ease-out,
+        left 140ms ease-out,
+        width 140ms ease-out,
+        opacity 160ms ease;
+
+      &::after {
+        content: attr(data-hint);
+        padding: 4px 0;
+        writing-mode: vertical-rl;
+        text-orientation: upright;
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -1px;
+        color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-9));
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      transition: opacity 160ms ease;
+      &,
+      &[data-hint] {
+        transition: opacity 160ms ease;
+      }
     }
   }
 }
