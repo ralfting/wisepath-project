@@ -3,8 +3,10 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
 import type { MapNode, Project } from '@wisepath/domain/projects';
-import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
+import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
 import { PageGlyph } from '@/features/shared/look';
+import { useT } from '@/i18n/I18nProvider';
 import { PageIcon, StatusIcon } from './MindMap';
 import classes from './MapList.module.css';
 
@@ -29,6 +31,7 @@ interface MapListProps {
 }
 
 export function MapList({ header, project, selectedId, currentId, progress, matchIds, onSelect }: MapListProps) {
+  const t = useT();
   const tree = mapTree(project);
   const visible = (node: MapNode): boolean =>
     matchIds === null || matchIds.has(node.page.id) || node.children.some(visible);
@@ -60,7 +63,7 @@ export function MapList({ header, project, selectedId, currentId, progress, matc
           </Text>
           {below && (
             <Text size="xs" c="dimmed">
-              {progress ? `${below.studied}/${below.total}` : `${below.total} ${below.total === 1 ? 'page' : 'pages'}`}
+              {progress ? `${below.studied}/${below.total}` : t('map.pages', { count: below.total })}
             </Text>
           )}
         </UnstyledButton>
@@ -77,16 +80,14 @@ export function MapList({ header, project, selectedId, currentId, progress, matc
       <Stack gap="lg" p="sm" pb="lg">
         {header && <div>{header}</div>}
         {tree.root.children.length === 0 ? (
-          <Text c="dimmed">
-            Nothing on the map yet. Select {displayTitle(tree.root.page)} and type / in its content to add a page.
-          </Text>
+          <Text c="dimmed">{t('map.list.empty', { title: displayTitle(tree.root.page) })}</Text>
         ) : (
           <ul className={classes.list}>{tree.root.children.filter(visible).map(row)}</ul>
         )}
         {orphans.length > 0 && (
-          <section aria-label="Orphans">
+          <section aria-label={t('map.list.orphans')}>
             <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.6} mb={4}>
-              Orphans · no link reaches them
+              {t('map.list.orphansHeading')}
             </Text>
             <ul className={classes.list}>
               {orphans.map((p) => (

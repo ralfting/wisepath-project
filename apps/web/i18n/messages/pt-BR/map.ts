@@ -2,4 +2,77 @@ import type { Shape } from '../../format';
 import type { map as en } from '../en/map';
 
 /** Mensagens da área map, em português do Brasil */
-export const map = {} as const satisfies Shape<typeof en>;
+export const map = {
+  pages: { one: '{count} página', other: '{count} páginas' },
+  status: {
+    done: 'Estudada',
+    current: 'A seguir',
+    todo: 'Não iniciada',
+  },
+  view: {
+    label: 'Visualização',
+    map: 'Mapa',
+    list: 'Lista',
+  },
+  header: {
+    more: 'Mais opções para {title}',
+  },
+  search: {
+    label: 'Buscar nesta trilha',
+    placeholder: 'Buscar páginas…',
+    withQuery: 'Buscar nesta trilha: {query}',
+    clear: 'Limpar a busca',
+  },
+  results: {
+    count: { zero: 'Nenhuma página encontrada', one: '{count} página', other: '{count} páginas' },
+    label: 'Páginas encontradas',
+    centre: 'Centro da trilha',
+    offMap: 'Fora do mapa',
+    inPage: 'Em {title}',
+  },
+  continue: {
+    summary: { one: '{studied} de {count} página estudada', other: '{studied} de {count} páginas estudadas' },
+    count: { one: '{studied}/{count} página', other: '{studied}/{count} páginas' },
+    allStudied: { one: '{count} página estudada', other: 'Todas as {count} páginas estudadas' },
+    start: 'Começar',
+    continue: 'Continuar',
+    startStudying: 'Começar a estudar',
+    continueStudying: 'Continuar estudando',
+    startStudyingPage: 'Começar a estudar: {title}',
+    continueStudyingPage: 'Continuar estudando: {title}',
+    opens: 'Abre {title}',
+  },
+  mind: {
+    label: 'Mapa de {title}. As setas movem entre as páginas, Enter abre uma.',
+    module: 'módulo',
+    belowStudied: { one: '{studied} de {count} abaixo estudada', other: '{studied} de {count} abaixo estudadas' },
+    pagesBelow: { one: '{count} página abaixo', other: '{count} páginas abaixo' },
+    rootLabel: { one: '{title}, {count} página', other: '{title}, {count} páginas' },
+    rootLabelStudied: { one: '{title}, {studied} de {count} página estudada', other: '{title}, {studied} de {count} páginas estudadas' },
+    rootStudied: { one: '{studied} de {count} estudada', other: '{studied} de {count} estudadas' },
+  },
+  tools: {
+    label: 'Visualização do mapa',
+    zoomOut: 'Diminuir o zoom',
+    zoomIn: 'Aumentar o zoom',
+    fit: 'Ajustar o mapa à tela',
+    centreOn: 'Centralizar em {title}',
+    legend: 'Legenda',
+  },
+  legend: {
+    crossLink: 'Link entre páginas de ramos diferentes',
+    keys: 'Entre no mapa com Tab; depois, as setas movem entre as páginas e Enter abre uma.',
+  },
+  list: {
+    empty: 'Nada no mapa ainda. Selecione {title} e digite / no conteúdo para adicionar uma página.',
+    orphans: 'Órfãs',
+    orphansHeading: 'Órfãs · nenhum link chega a elas',
+  },
+  orphans: {
+    count: { one: '{count} página fora do mapa', other: '{count} páginas fora do mapa' },
+    hint: {
+      one: 'Nenhum link chega a ela a partir de {title}. Ligue-a com [[Title]] em qualquer página da trilha.',
+      other: 'Nenhum link chega a elas a partir de {title}. Ligue-as com [[Title]] em qualquer página da trilha.',
+    },
+  },
+} as const satisfies Shape<typeof en>;

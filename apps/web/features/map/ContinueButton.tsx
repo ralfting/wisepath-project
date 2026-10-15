@@ -3,7 +3,8 @@
 import { Button, Group, RingProgress, Text, Tooltip } from '@mantine/core';
 import { IconArrowRight, IconCircleCheckFilled } from '@tabler/icons-react';
 import type { Page } from '@wisepath/domain/projects';
-import { displayTitle } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
+import { useT } from '@/i18n/I18nProvider';
 import classes from './ContinueButton.module.css';
 
 /**
@@ -27,19 +28,22 @@ export function ContinueButton({
   /** The count without "pages", for a phone */
   compact?: boolean;
 }) {
+  const t = useT();
   const percent = total ? Math.round((studied / total) * 100) : 0;
   const done = total > 0 && !next;
-  const summary = `${studied} of ${total} pages studied`;
-  const count = compact ? `${studied}/${total}` : `${studied}/${total} pages`;
+  const summary = t('map.continue.summary', { studied, count: total });
+  const count = compact ? `${studied}/${total}` : t('map.continue.count', { studied, count: total });
   // Worded as on the home's cards; a phone has room for the verb only
-  const action = studied === 0 ? 'Start' : 'Continue';
-  const label = compact ? action : `${action} studying`;
+  const starting = studied === 0;
+  const label = compact
+    ? t(starting ? 'map.continue.start' : 'map.continue.continue')
+    : t(starting ? 'map.continue.startStudying' : 'map.continue.continueStudying');
   // A path with no pages yet has nothing to count or continue
   if (total === 0) return null;
 
   return (
     <Group gap={compact ? 8 : 12} wrap="nowrap" className={classes.root}>
-      <Tooltip label={done ? `All ${total} pages studied` : summary} withArrow>
+      <Tooltip label={done ? t('map.continue.allStudied', { count: total }) : summary} withArrow>
         <span className={classes.progress} data-done={done || undefined} aria-label={summary} role="img">
           {done ? (
             <IconCircleCheckFilled size={18} color="var(--mantine-color-teal-6)" aria-hidden />
@@ -52,13 +56,13 @@ export function ContinueButton({
         </span>
       </Tooltip>
       {next && (
-        <Tooltip label={`Opens ${displayTitle(next)}`} withArrow>
+        <Tooltip label={t('map.continue.opens', { title: displayTitle(next) })} withArrow>
           <Button
             size={compact ? 'xs' : 'sm'}
             radius="md"
             rightSection={<IconArrowRight size={16} />}
             onClick={onContinue}
-            aria-label={`${action} studying: ${displayTitle(next)}`}
+            aria-label={t(starting ? 'map.continue.startStudyingPage' : 'map.continue.continueStudyingPage', { title: displayTitle(next) })}
           >
             {label}
           </Button>

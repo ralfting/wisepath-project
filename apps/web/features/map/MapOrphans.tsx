@@ -3,7 +3,9 @@
 import { Popover, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import { IconUnlink } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
-import { displayTitle, mapTree } from '@wisepath/domain/projects';
+import { mapTree } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
+import { useT } from '@/i18n/I18nProvider';
 import { StatusIcon } from './MindMap';
 import classes from './MapOrphans.module.css';
 
@@ -21,10 +23,11 @@ export function MapOrphans({
   selectedId: string | null;
   onSelect: (pageId: string) => void;
 }) {
+  const t = useT();
   const tree = mapTree(project);
   const count = tree.orphans.length;
   if (count === 0) return null;
-  const label = count === 1 ? "1 page isn't on the map" : `${count} pages aren't on the map`;
+  const label = t('map.orphans.count', { count });
 
   return (
     <Popover position="bottom-start" width={280} shadow="md">
@@ -39,8 +42,7 @@ export function MapOrphans({
           {label}
         </Text>
         <Text size="xs" c="dimmed" px={6} pb={6}>
-          No link reaches {count === 1 ? 'it' : 'them'} from {displayTitle(tree.root.page)}. Link {count === 1 ? 'it' : 'them'} with
-          [[Title]] in any page of the path.
+          {t('map.orphans.hint', { count, title: displayTitle(tree.root.page) })}
         </Text>
         <ScrollArea.Autosize mah={260}>
           {tree.orphans.map((p) => (

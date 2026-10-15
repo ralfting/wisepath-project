@@ -7,12 +7,14 @@ import { ActionIcon, Box, Center, Group, Kbd, Menu, SegmentedControl, Stack, Tex
 import { useClickOutside, useHotkeys, useMediaQuery, useWindowEvent } from '@mantine/hooks';
 import { IconDots, IconLayoutList, IconSearch, IconSitemap, IconX } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
-import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
+import { lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
 import { ProjectGate } from '@/features/projects/ProjectGate';
 import { SaveStatus } from '@/features/projects/SaveStatus';
 import type { ProjectActions, SaveState } from '@/useCases/projects';
 import { KindSwitchItem } from '@/features/projects/ProjectKind';
 import { AppFrame } from '@/features/shell/AppFrame';
+import { useT } from '@/i18n/I18nProvider';
 import { PageGlyph } from '@/features/shared/look';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
 import { openPageId, pageHref, swapOpenPage } from '@/features/shared/routes';
@@ -44,6 +46,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchRef = useRef<HTMLInputElement>(null);
+  const t = useT();
 
   // A phone opens the outline: the drawing needs room to read; the map renders only in the browser, so the width is known
   const [view, setView] = useState<View>(() =>
@@ -171,8 +174,8 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
         ref={searchRef}
         onBlur={() => !query && setSearchOpen(false)}
         type="search"
-        aria-label="Search this path"
-        placeholder="Search pages…"
+        aria-label={t('map.search.label')}
+        placeholder={t('map.search.placeholder')}
         leftSection={<IconSearch size={16} />}
         rightSection={hasKeyboard ? <Kbd size="xs">{shortcut}</Kbd> : undefined}
         rightSectionWidth={hasKeyboard ? (shortcut === '⌘K' ? 44 : 58) : undefined}
@@ -205,16 +208,16 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
   ) : query ? (
     // Folded with a search in it: the filter stays on, a click goes back to it, × drops it
     <div className={classes.searchButton} data-filter>
-      <UnstyledButton onClick={openSearch} aria-label={`Search this path: ${query}`} className={classes.searchReopen}>
+      <UnstyledButton onClick={openSearch} aria-label={t('map.search.withQuery', { query })} className={classes.searchReopen}>
         <IconSearch size={16} />
         <span className={classes.searchQuery}>{query}</span>
       </UnstyledButton>
-      <ActionIcon size="sm" variant="subtle" color="gray" aria-label="Clear the search" onClick={() => setQuery('')}>
+      <ActionIcon size="sm" variant="subtle" color="gray" aria-label={t('map.search.clear')} onClick={() => setQuery('')}>
         <IconX size={14} />
       </ActionIcon>
     </div>
   ) : (
-    <UnstyledButton onClick={openSearch} aria-label="Search this path" className={classes.searchButton}>
+    <UnstyledButton onClick={openSearch} aria-label={t('map.search.label')} className={classes.searchButton}>
       <IconSearch size={16} />
       {hasKeyboard && <Kbd size="xs">{shortcut}</Kbd>}
     </UnstyledButton>
@@ -226,7 +229,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
       size="sm"
       value={view}
       onChange={(v) => setView(v as View)}
-      aria-label="View"
+      aria-label={t('map.view.label')}
       className={classes.viewSwitch}
       data={[
         {
@@ -234,7 +237,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
           label: (
             <Center style={{ gap: 6 }}>
               <IconSitemap size={14} />
-              <span>Map</span>
+              <span>{t('map.view.map')}</span>
             </Center>
           ),
         },
@@ -243,7 +246,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
           label: (
             <Center style={{ gap: 6 }}>
               <IconLayoutList size={14} />
-              <span>List</span>
+              <span>{t('map.view.list')}</span>
             </Center>
           ),
         },
@@ -277,7 +280,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
         {/* What can be done to the path itself */}
         <Menu position="bottom-start">
           <Menu.Target>
-            <ActionIcon variant="subtle" color="gray" aria-label={`More for ${project.title}`} style={{ flexShrink: 0 }}>
+            <ActionIcon variant="subtle" color="gray" aria-label={t('map.header.more', { title: project.title })} style={{ flexShrink: 0 }}>
               <IconDots size={18} />
             </ActionIcon>
           </Menu.Target>

@@ -2,7 +2,9 @@
 
 import { Highlight, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import type { Page, Project } from '@wisepath/domain/projects';
-import { displayTitle, mapTree, pathTo } from '@wisepath/domain/projects';
+import { mapTree, pathTo } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
+import { useT } from '@/i18n/I18nProvider';
 import { PageIcon, StatusIcon } from './MindMap';
 import classes from './MapSearchResults.module.css';
 
@@ -39,22 +41,23 @@ export function MapSearchResults({
   onActive: (index: number) => void;
   onSelect: (pageId: string) => void;
 }) {
+  const t = useT();
   const tree = mapTree(project);
   const where = (page: Page) => {
-    if (page.id === project.rootPageId) return 'Centre of the path';
-    if (!tree.nodes.has(page.id)) return 'Not on the map';
+    if (page.id === project.rootPageId) return t('map.results.centre');
+    if (!tree.nodes.has(page.id)) return t('map.results.offMap');
     const path = pathTo(project, page.id, tree);
-    return `In ${displayTitle(path[path.length - 2] ?? tree.root.page)}`;
+    return t('map.results.inPage', { title: displayTitle(path[path.length - 2] ?? tree.root.page) });
   };
 
   return (
     <div className={`${classes.panel} ${className ?? ''}`}>
       <Text size="xs" c="dimmed" fw={600} px={10} pt={8} pb={4}>
-        {results.length === 0 ? 'No page matches' : results.length === 1 ? '1 page' : `${results.length} pages`}
+        {t('map.results.count', { count: results.length })}
       </Text>
       {results.length > 0 && (
         <ScrollArea.Autosize mah={300} type="auto">
-          <div id={SEARCH_RESULTS_ID} role="listbox" aria-label="Pages found" className={classes.list}>
+          <div id={SEARCH_RESULTS_ID} role="listbox" aria-label={t('map.results.label')} className={classes.list}>
             {results.map((page, i) => (
               <UnstyledButton
                 key={page.id}

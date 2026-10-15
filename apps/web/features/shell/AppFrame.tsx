@@ -102,6 +102,7 @@ export function AppFrame({
   const router = useRouter();
   const session = useSession();
   const logout = useLogout();
+  const t = useT();
 
   // A cookie that no longer opens a session: clear it, then log in again
   useEffect(() => {
@@ -145,8 +146,14 @@ export function AppFrame({
         ) : (
           <Sidebar
             sidebarAction={
-              <Tooltip label="Collapse sidebar" position="right">
-                <ActionIcon variant="subtle" color="gray" onClick={() => setCollapsed(true)} aria-label="Collapse sidebar" visibleFrom="sm">
+              <Tooltip label={t('shell.sidebar.collapse')} position="right">
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  onClick={() => setCollapsed(true)}
+                  aria-label={t('shell.sidebar.collapse')}
+                  visibleFrom="sm"
+                >
                   <IconLayoutSidebarLeftCollapse size={19} />
                 </ActionIcon>
               </Tooltip>
@@ -161,14 +168,14 @@ export function AppFrame({
             className={classes.peek}
             data-open={peeking || undefined}
             onMouseLeave={() => setPeeking(false)}
-            aria-label="Sidebar"
+            aria-label={t('shell.sidebar.label')}
             aria-hidden={!peeking}
             inert={!peeking}
           >
             <Sidebar
               sidebarAction={
-                <Tooltip label="Keep the sidebar open" position="right">
-                  <ActionIcon variant="subtle" color="gray" onClick={() => setCollapsed(false)} aria-label="Keep the sidebar open">
+                <Tooltip label={t('shell.sidebar.keepOpen')} position="right">
+                  <ActionIcon variant="subtle" color="gray" onClick={() => setCollapsed(false)} aria-label={t('shell.sidebar.keepOpen')}>
                     <IconLayoutSidebarLeftExpand size={19} />
                   </ActionIcon>
                 </Tooltip>
@@ -180,7 +187,7 @@ export function AppFrame({
 
       <AppShell.Main className={classes.main}>
         <Group component="header" className={classes.topbar} gap="md" wrap="nowrap">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" aria-label="Open navigation" />
+          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" aria-label={t('shell.sidebar.openNavigation')} />
           {header ?? (
             <>
               <CrumbTrail crumbs={crumbs} />
@@ -232,10 +239,11 @@ function Rail() {
   const projects = useProjects();
   const session = useSession();
   const user = session.status === 'signedIn' ? session.user : null;
+  const t = useT();
 
   return (
     <Stack h="100%" align="center" gap="xs" py="lg" className={classes.rail}>
-      <Anchor component={Link} href="/projects" aria-label="WisePath, my paths" mb="sm">
+      <Anchor component={Link} href="/projects" aria-label={t('shell.sidebar.home')} mb="sm">
         <ThemeIcon size={34} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }}>
           <IconRoute size={20} stroke={2} />
         </ThemeIcon>
@@ -247,7 +255,7 @@ function Rail() {
         radius="md"
         variant={pathname === '/projects' ? 'light' : 'subtle'}
         color={pathname === '/projects' ? 'blue' : 'gray'}
-        aria-label="My paths"
+        aria-label={t('shell.sidebar.myPaths')}
       >
         <IconHome size={20} stroke={1.7} />
       </ActionIcon>
@@ -272,7 +280,7 @@ function Rail() {
               radius="xl"
               variant="light"
               color={project.color}
-              aria-label={progress ? `${project.title}, ${percent}% studied` : project.title}
+              aria-label={progress ? t('shell.rail.pathProgress', { title: project.title, percent }) : project.title}
             >
               <PageGlyph icon={project.icon} size={19} />
             </ActionIcon>
@@ -288,6 +296,7 @@ function Rail() {
 function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
   const pathname = usePathname();
   const projects = useProjects();
+  const t = useT();
 
   return (
     <>
@@ -311,7 +320,7 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
         <NavLink
           component={Link}
           href="/projects"
-          label="My paths"
+          label={t('shell.sidebar.myPaths')}
           active={pathname === '/projects'}
           leftSection={<IconHome size={20} stroke={1.7} />}
           rightSection={
@@ -327,7 +336,7 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
 
       <AppShell.Section grow component={ScrollArea} px="sm" pt="lg">
         <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.6} px="sm" pb={6}>
-          Paths
+          {t('shell.sidebar.paths')}
         </Text>
         {(projects ?? []).map((project) => {
           const { studied, total } = project;
@@ -388,7 +397,7 @@ function AccountMenu() {
   return (
     <Menu position="top-start" width="target" withinPortal>
       <Menu.Target>
-        <UnstyledButton aria-label="Account" className={classes.accountButton}>
+        <UnstyledButton aria-label={t('shell.account.menu')} className={classes.accountButton}>
           <Avatar radius="xl" color="blue" variant="filled" name={user?.displayName} />
           <Stack gap={0} miw={0} style={{ flex: 1 }}>
             <Text size="sm" fw={600} truncate>

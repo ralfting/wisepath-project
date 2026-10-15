@@ -14,10 +14,13 @@ import {
   IconPlus,
 } from '@tabler/icons-react';
 import type { Page, PageColor, Project } from '@wisepath/domain/projects';
-import { descendants, displayTitle, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
+import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
+import { displayTitle } from '@/features/shared/title';
 import { PageGlyph, shade } from '@/features/shared/look';
 import { RELATED_HOVER_EVENT, relatedFromEvent } from '@/features/shared/relatedHover';
 import { useWindowEvent } from '@mantine/hooks';
+import { useT } from '@/i18n/I18nProvider';
+import type { TranslationKey } from '@/i18n/I18nProvider';
 import { layoutMind, rootShape } from './mindLayout';
 import type { PlacedNode, Point, RootShape } from './mindLayout';
 import classes from './MindMap.module.css';
@@ -84,6 +87,7 @@ export function MindMap({
   onIntent,
   topLeft,
 }: MindMapProps) {
+  const t = useT();
   const tree = useMemo(() => mapTree(project), [project]);
   const root = useMemo(() => rootShape(displayTitle(tree.root.page)), [tree]);
   const layout = useMemo(() => layoutMind(tree, root), [tree, root]);
@@ -324,7 +328,7 @@ export function MindMap({
   const overall = progressOf(descendants(tree.root));
   const statusOf = (page: Page): TopicStatus => (page.studied ? 'done' : page.id === currentId ? 'current' : 'todo');
   /** What a branch holds: studied of all in a learning path, how many pages in a study */
-  const countText = (c: { studied: number; total: number }) => (progress ? `${c.studied}/${c.total}` : `${c.total} ${c.total === 1 ? 'page' : 'pages'}`);
+  const countText = (c: { studied: number; total: number }) => (progress ? `${c.studied}/${c.total}` : t('map.pages', { count: c.total }));
   const counterOf = (id: Page['id']) => {
     const node = tree.nodes.get(id);
     return node ? progressOf(descendants(node)) : { studied: 0, total: 0 };
@@ -347,7 +351,7 @@ export function MindMap({
           <div
             className={classes.stage}
             role="tree"
-            aria-label={`Map of ${displayTitle(tree.root.page)}. Arrow keys move between pages, Enter opens one.`}
+            aria-label={t('map.mind.label', { title: displayTitle(tree.root.page) })}
             onKeyDown={onTreeKeyDown}
             data-animate={animate || undefined}
             onTransitionEnd={() => setAnimate(false)}
@@ -412,9 +416,13 @@ export function MindMap({
               const counter = n.branches > 0 ? counterOf(n.page.id) : null;
               const label = [
                 displayTitle(n.page),
-                n.module ? 'module' : null,
-                progress ? STATUS_LABEL[status].toLowerCase() : null,
-                counter ? (progress ? `${counter.studied} of ${counter.total} below studied` : `${counter.total} ${counter.total === 1 ? 'page' : 'pages'} below`) : null,
+                n.module ? t('map.mind.module') : null,
+                progress ? t(STATUS_KEY[status]).toLowerCase() : null,
+                counter
+                  ? progress
+                    ? t('map.mind.belowStudied', { studied: counter.studied, count: counter.total })
+                    : t('map.mind.pagesBelow', { count: counter.total })
+                  : null,
               ]
                 .filter(Boolean)
                 .join(', ');
@@ -441,7 +449,7 @@ export function MindMap({
                   </ThemeIcon>
                   <span className={classes.moduleText}>
                     <span className={classes.moduleTitle}>{displayTitle(n.page)}</span>
-                    {(counter || progress) && <span className={classes.count}>{counter ? countText(counter) : STATUS_LABEL[status]}</span>}
+                    {(counter || progress) && <span className={classes.count}>{counter ? countText(counter) : t(STATUS_KEY[status])}</span>}
                   </span>
                   {progress && n.page.studied && <IconCircleCheckFilled size={18} color="var(--mantine-color-teal-6)" className={classes.moduleCheck} aria-hidden="true" />}
                 </UnstyledButton>
@@ -475,41 +483,47 @@ export function MindMap({
 
 
       {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
-      <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label="Map view">
-        <Tooltip label="Zoom out">
-          <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1 / 1.2)} aria-label="Zoom out">
+      <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label={t('map.tools.label')}>
+        <Tooltip label={t('map.tools.zoomOut')}>
+          <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1 / 1.2)} aria-label={t('map.tools.zoomOut')}>
             <IconMinus size={17} />
           </ActionIcon>
         </Tooltip>
-        <Tooltip label="Fit the map to the screen">
-          <UnstyledButton className={classes.zoomValue} onClick={recentre} aria-label="Fit the map to the screen">
+        <Tooltip label={t('map.tools.fit')}>
+          <UnstyledButton className={classes.zoomValue} onClick={recentre} aria-label={t('map.tools.fit')}>
             {view ? Math.round(view.k * 100) : 100}%
           </UnstyledButton>
         </Tooltip>
-        <Tooltip label="Zoom in">
-          <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1.2)} aria-label="Zoom in">
+        <Tooltip label={t('map.tools.zoomIn')}>
+          <ActionIcon variant="subtle" color="gray" size="lg" onClick={() => zoomBy(1.2)} aria-label={t('map.tools.zoomIn')}>
             <IconPlus size={17} />
           </ActionIcon>
         </Tooltip>
         <Divider orientation="vertical" className={classes.toolsDivider} />
-        <Tooltip label={`Centre on ${displayTitle(tree.root.page)}`}>
-          <ActionIcon variant="subtle" color="gray" size="lg" onClick={centreOnRoot} aria-label={`Centre on ${displayTitle(tree.root.page)}`}>
+        <Tooltip label={t('map.tools.centreOn', { title: displayTitle(tree.root.page) })}>
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="lg"
+            onClick={centreOnRoot}
+            aria-label={t('map.tools.centreOn', { title: displayTitle(tree.root.page) })}
+          >
             <IconFocusCentered size={17} />
           </ActionIcon>
         </Tooltip>
         <Divider orientation="vertical" className={classes.toolsDivider} />
         <HoverCard position="top-start" shadow="md" openDelay={80}>
           <HoverCard.Target>
-            <ActionIcon variant="subtle" color="gray" size="lg" aria-label="Legend">
+            <ActionIcon variant="subtle" color="gray" size="lg" aria-label={t('map.tools.legend')}>
               <IconInfoCircle size={17} />
             </ActionIcon>
           </HoverCard.Target>
           <HoverCard.Dropdown>
-            <Stack gap={8} aria-label="Legend">
+            <Stack gap={8} aria-label={t('map.tools.legend')}>
               {(progress ? (['done', 'current', 'todo'] as const) : []).map((s) => (
                 <Group key={s} gap={8} wrap="nowrap">
                   <StatusIcon status={s} />
-                  <Text size="sm">{STATUS_LABEL[s]}</Text>
+                  <Text size="sm">{t(STATUS_KEY[s])}</Text>
                 </Group>
               ))}
               <Group gap={8} wrap="nowrap">
@@ -517,10 +531,10 @@ export function MindMap({
                   <path d="M1,5 L19,5" stroke="var(--mantine-color-blue-6)" strokeWidth="2.2" />
                   <path d="M17,1 L25,5 L17,9 z" fill="var(--mantine-color-blue-6)" />
                 </svg>
-                <Text size="sm">Link between pages on different branches</Text>
+                <Text size="sm">{t('map.legend.crossLink')}</Text>
               </Group>
               <Text size="xs" c="dimmed" maw={260}>
-                Tab into the map, then the arrow keys move between pages and Enter opens one.
+                {t('map.legend.keys')}
               </Text>
             </Stack>
           </HoverCard.Dropdown>
@@ -532,10 +546,11 @@ export function MindMap({
 
 export type TopicStatus = 'done' | 'current' | 'todo';
 
-export const STATUS_LABEL: Record<TopicStatus, string> = {
-  done: 'Studied',
-  current: 'Up next',
-  todo: 'Not started',
+/** The message naming each status */
+export const STATUS_KEY: Record<TopicStatus, TranslationKey> = {
+  done: 'map.status.done',
+  current: 'map.status.current',
+  todo: 'map.status.todo',
 };
 
 /** A page in a study, which has no status to show: the page itself */
@@ -625,7 +640,8 @@ function ProgressRing({ size, stroke, share }: { size: number; stroke: number; s
  * it, as long as it needs
  */
 function RootNode({ shape, page, color, icon, studied, total, progress, selected, dimmed, mark, item, onSelect, onIntent }: RootNodeProps) {
-  const pages = `${total} ${total === 1 ? 'page' : 'pages'}`;
+  const t = useT();
+  const title = displayTitle(page);
   return (
     <UnstyledButton
       className={classes.root}
@@ -638,7 +654,9 @@ function RootNode({ shape, page, color, icon, studied, total, progress, selected
       onClick={() => onSelect(page.id)}
       onPointerEnter={() => onIntent?.(page.id)}
       onFocus={() => onIntent?.(page.id)}
-      aria-label={progress ? `${displayTitle(page)}, ${studied} of ${total} pages studied` : `${displayTitle(page)}, ${pages}`}
+      aria-label={
+        progress ? t('map.mind.rootLabelStudied', { title, studied, count: total }) : t('map.mind.rootLabel', { title, count: total })
+      }
       title={displayTitle(page)}
     >
       <span className={classes.rootRing}>
@@ -649,7 +667,9 @@ function RootNode({ shape, page, color, icon, studied, total, progress, selected
       </span>
       <span className={classes.rootText}>
         <span className={classes.rootTitle}>{displayTitle(page)}</span>
-        <span className={classes.count}>{progress ? `${studied} of ${total} studied` : pages}</span>
+        <span className={classes.count}>
+          {progress ? t('map.mind.rootStudied', { studied, count: total }) : t('map.pages', { count: total })}
+        </span>
       </span>
     </UnstyledButton>
   );
