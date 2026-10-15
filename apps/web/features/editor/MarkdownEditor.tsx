@@ -39,7 +39,7 @@ import type { Icon } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, MouseEvent } from 'react';
 import { findPageByTitle } from '@wisepath/domain/projects';
-import { ActiveBlockRail, BlockKeys, BulletToChecklist, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
+import { ActiveBlockRail, BlockKeys, BulletToChecklist, LinkKeys, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
 import type { PageLinkItem, PageLinkPickerState, SlashCommand, SlashMenuState } from './extensions';
 import { LinkPreview } from './LinkPreview';
 import { MarkdownHelp } from './MarkdownHelp';
@@ -186,6 +186,9 @@ export function MarkdownEditor({
       YouTubeVideo.extend({ addNodeView: () => ReactNodeViewRenderer(VideoBlock) }),
       Timestamp,
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
+      LinkKeys.configure({
+        onOpen: (link, element) => (link.kind === 'web' ? openUrl(link.href) : element && openWikiLink(link.title, element)),
+      }),
       Markdown.configure({ html: false, linkify: false, tightLists: true, transformPastedText: true }),
       PageLinkSuggestion.configure({
         getItems: (query: string): PageLinkItem[] => {

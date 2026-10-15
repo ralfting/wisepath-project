@@ -54,9 +54,10 @@
       opacity: 1;
     }
 
-    /* On a line with a video's time it carries a tag out into the margin: play, and the key that does it */
+    /* On a line with a video's time or a link it carries a tag out into the margin: play or open, and the
+       key that does it (ActiveBlockRail writes it) */
     &[data-hint]::after {
-      content: '▶\FE0E  ' attr(data-hint);
+      content: attr(data-hint);
       position: absolute;
       top: 0;
       right: 0;

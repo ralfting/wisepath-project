@@ -5,6 +5,7 @@ import Suggestion from '@tiptap/suggestion';
 import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion';
 import { NodeSelection, Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import type { ResolvedPos } from '@tiptap/pm/model';
 import { videoAbove } from './video/videos';
 
 /**
@@ -501,19 +502,67 @@ export const BlockKeys = Extension.create({
   },
 });
 
+export type LineLink = { kind: 'web'; href: string; pos: number } | { kind: 'page'; title: string; pos: number };
+
+/**
+ * The link ⌘↵ opens from the cursor's line: the one the cursor is in or the
+ * last before it, else the first. Web links (http) and [[Page]] links count
+ */
+export function lineLink($from: ResolvedPos): LineLink | null {
+  const start = $from.start();
+  let chosen = null as LineLink | null;
+  $from.parent.forEach((child, offset) => {
+    const pos = start + offset;
+    const href = child.marks.find((mark) => mark.type.name === 'link')?.attrs.href;
+    const link: LineLink | null =
+      child.type.name === 'wikiLink'
+        ? { kind: 'page', title: child.attrs.title, pos }
+        : typeof href === 'string' && /^https?:/.test(href)
+          ? { kind: 'web', href, pos }
+          : null;
+    if (link && (!chosen || pos <= $from.pos)) chosen = link;
+  });
+  return chosen;
+}
+
+/**
+ * ⌘↵ (Ctrl+Enter) opens the link on the cursor's line. After the video's
+ * times, which take the same key on a line that has one
+ */
+export const LinkKeys = Extension.create<{ onOpen: (link: LineLink, element: Element | null) => void }>({
+  name: 'linkKeys',
+  priority: 50,
+
+  addOptions() {
+    return { onOpen: () => {} };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      'Mod-Enter': () => {
+        const link = lineLink(this.editor.state.selection.$from);
+        if (!link) return false;
+        const element = this.editor.view.nodeDOM(link.pos);
+        this.options.onOpen(link, element instanceof Element ? element : null);
+        return true;
+      },
+    };
+  },
+});
+
 /**
  * While the text has the focus, a bar in the left margin beside the block the
  * cursor is in (a paragraph, a heading, a list item's line; a whole table or
  * video), so it is plain where the keys go. It is one element beside the text,
  * moved to the block's place, so it slides from block to block. On a line with
- * a video's time it carries the key that plays it (⌘↵).
+ * a video's time or a link it carries the key that plays or opens it (⌘↵).
  */
 export const ActiveBlockRail = Extension.create({
   name: 'activeBlockRail',
 
   addProseMirrorPlugins() {
     const editor = this.editor;
-    const playKey = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘↵' : 'Ctrl+↵';
+    const key = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘↵' : 'Ctrl+↵';
     return [
       new Plugin({
         key: new PluginKey('activeBlockRail'),
@@ -542,12 +591,13 @@ export const ActiveBlockRail = Extension.create({
             const top = box.top - host.getBoundingClientRect().top + host.scrollTop;
             rail.style.top = `${top}px`;
             rail.style.height = `${Math.max(box.height, 18)}px`;
-            // A time on the line, under a video: ⌘↵ plays it
+            // A time on the line, under a video, plays; else a link opens
             let hasTime = false;
             $from.parent.forEach((child) => {
               if (child.type.name === 'timestamp') hasTime = true;
             });
-            if (hasTime && videoAbove(editor, $from.pos)) rail.setAttribute('data-hint', playKey);
+            const hint = hasTime && videoAbove(editor, $from.pos) ? `\u25B6\uFE0E ${key}` : lineLink($from) ? `\u2197 ${key}` : null;
+            if (hint) rail.setAttribute('data-hint', hint);
             else rail.removeAttribute('data-hint');
             rail.setAttribute('data-visible', '');
           };
