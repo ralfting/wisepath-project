@@ -33,9 +33,11 @@ import classes from './VideoBlock.module.css';
  * floats small in a corner, dragged to whichever suits; fullscreen shows it
  * large with its notes beside it. The note for what is playing is marked.
  *
- * Keys pressed inside YouTube's frame never reach the page, so a click on the
- * video hands the focus back to the block, which then answers YouTube's own
- * keys (Space or K, ← →, F) as well as N.
+ * A click on the video leaves the focus inside YouTube's frame, where its own
+ * controls and keys work and the page's don't: taking the focus back would
+ * close YouTube's menus (settings, captions, volume). With the focus on the
+ * block itself (after fullscreen or a note) it answers YouTube's keys (Space
+ * or K, ← →, F) as well as N.
  */
 
 /** The video most recently used, which N reaches when the focus is on the page itself */
@@ -289,19 +291,6 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     // Back where the note was asked for: the text, or the video itself, where its keys (← →, Space, N) work again
     requestAnimationFrame(() => (fromText ? editor.commands.focus() : stageRef.current?.focus({ preventScroll: true })));
   };
-
-  // A click on the video puts the focus inside YouTube's frame, where keys never reach the page: hand it back
-  // to the block, which answers YouTube's keys itself
-  useEffect(() => {
-    const onBlur = () =>
-      setTimeout(() => {
-        if (document.activeElement !== iframeRef.current) return;
-        lastUsed = self;
-        stageRef.current?.focus({ preventScroll: true });
-      }, 250);
-    window.addEventListener('blur', onBlur);
-    return () => window.removeEventListener('blur', onBlur);
-  }, [self]);
 
   // YouTube's keys on the block. Listened to on the element itself, ahead of the editor, which would move
   // its cursor on the arrows

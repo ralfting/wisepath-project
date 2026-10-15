@@ -101,7 +101,7 @@
   color: var(--mantine-color-dimmed);
 }
 
-/* After a click on the video the block holds the focus, for the keys; it shows only from the keyboard */
+/* After fullscreen or a note the block holds the focus, for the keys; it shows only from the keyboard */
 .stage:focus {
   outline: none;
 }
