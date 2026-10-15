@@ -154,8 +154,8 @@ function ReviewCard({ card, onGrade }: { card: DueCard; onGrade: (grade: Grade) 
                   return (
                     <Button
                       key={grade}
-                      variant="light"
-                      color={color}
+                      variant="default"
+                      style={{ '--grade-color': `var(--mantine-color-${color}-filled)` }}
                       onClick={() => onGrade(grade)}
                       aria-label={t('review.grade.full', { grade: t(`review.grade.${message}`), key: grade, when })}
                       className={classes.grade}

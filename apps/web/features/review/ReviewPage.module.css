@@ -45,9 +45,11 @@
   align-self: flex-start;
 }
 
+/* Plain buttons, each with its grade's colour along the top: coloured text would not read at AA */
 .grade {
   height: auto;
   padding-block: 8px;
+  border-top: 3px solid var(--grade-color);
 }
 
 .gradeLabel {
