@@ -356,14 +356,21 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       withinPortal={false}
     >
       <Popover.Target>{target}</Popover.Target>
-      <Popover.Dropdown p="xs">
+      <Popover.Dropdown p="xs">{composerFields('sm')}</Popover.Dropdown>
+    </Popover>
+  );
+  // The note's field and its keys, in the popup or, in fullscreen, a card in the middle of the screen
+  function composerFields(size: 'sm' | 'lg') {
+    return (
+      <>
         <TextInput
           data-autofocus
-          size="sm"
+          autoFocus={size === 'lg'}
+          size={size}
           placeholder="What happens here?"
           aria-label={`Note at ${formatTime(composer?.seconds ?? 0)}`}
-          leftSection={<span className={classes.composerTime}>{formatTime(composer?.seconds ?? 0)}</span>}
-          leftSectionWidth={64}
+          leftSection={<span className={classes.composerTime} data-size={size}>{formatTime(composer?.seconds ?? 0)}</span>}
+          leftSectionWidth={size === 'lg' ? 84 : 64}
           value={draft}
           onChange={(event) => setDraft(event.currentTarget.value)}
           onKeyDown={(event: ReactKeyboardEvent) => {
@@ -380,9 +387,9 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
         <Text size="xs" c="dimmed" mt={6}>
           Enter adds it and the video goes on · Esc cancels
         </Text>
-      </Popover.Dropdown>
-    </Popover>
-  );
+      </>
+    );
+  }
   const noteButton = (
     <Tooltip label={<>Pause and write a note <Kbd size="xs">N</Kbd></>} disabled={composer !== null}>
       <Button
@@ -446,10 +453,18 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
               className={classes.iframe}
             />
           </div>
+          {/* In fullscreen the note is written in the middle of the screen, over the paused picture */}
+          {fullscreen && composer && (
+            <div className={classes.centre} onMouseDown={(event) => event.target === event.currentTarget && closeComposer(false)}>
+              <div className={classes.centreCard} role="dialog" aria-label={`Note at ${formatTime(composer.seconds)}`}>
+                {composerFields('lg')}
+              </div>
+            </div>
+          )}
           {fullscreen && (
             <aside className={classes.side} aria-label="Notes on this video">
               <Group justify="space-between" wrap="nowrap" gap="xs" className={classes.sideHead}>
-                {notePopover('side', noteButton)}
+                {noteButton}
                 <Group gap={4} wrap="nowrap">
                   <ActionIcon variant="subtle" color="gray" onClick={() => setShowNotes((s) => !s)} aria-label={showNotes ? 'Hide notes' : 'Show notes'}>
                     {showNotes ? <IconLayoutSidebarRightCollapse size={18} /> : <IconLayoutSidebarRightExpand size={18} />}
