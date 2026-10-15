@@ -4,8 +4,8 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { ActionIcon, Box, Center, Group, Kbd, Menu, SegmentedControl, Stack, TextInput, ThemeIcon, Title, Tooltip, UnstyledButton } from '@mantine/core';
-import { useHotkeys, useMediaQuery, useWindowEvent } from '@mantine/hooks';
-import { IconDots, IconLayoutList, IconSearch, IconSitemap } from '@tabler/icons-react';
+import { useClickOutside, useHotkeys, useMediaQuery, useWindowEvent } from '@mantine/hooks';
+import { IconDots, IconLayoutList, IconSearch, IconSitemap, IconX } from '@tabler/icons-react';
 import type { Project } from '@wisepath/domain/projects';
 import { displayTitle, lookOf, mapTree, nextPage, pagesInMapOrder, projectProgress } from '@wisepath/domain/projects';
 import { ProjectGate } from '@/features/projects/ProjectGate';
@@ -119,6 +119,8 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
   useEffect(() => {
     if (searchFocus) searchRef.current?.focus();
   }, [searchFocus]);
+  // A click anywhere else folds it; what it found stays marked, and the folded search shows what it holds
+  const searchWrapRef = useClickOutside<HTMLDivElement>(() => setSearchOpen(false));
   // ⌘K works from fields too; in the page's text it comes as an event (with text selected there, it makes a link)
   useHotkeys([['mod+K', openSearch]], []);
   useWindowEvent(OPEN_SEARCH_EVENT, openSearch);
@@ -164,7 +166,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
 
   const search = searchOpen ? (
     // The results hang from the field, lined up with its left edge
-    <div className={classes.searchWrap}>
+    <div ref={searchWrapRef} className={classes.searchWrap}>
       <TextInput
         ref={searchRef}
         onBlur={() => !query && setSearchOpen(false)}
@@ -199,6 +201,17 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
           onSelect={openFromSearch}
         />
       )}
+    </div>
+  ) : query ? (
+    // Folded with a search in it: the filter stays on, a click goes back to it, × drops it
+    <div className={classes.searchButton} data-filter>
+      <UnstyledButton onClick={openSearch} aria-label={`Search this path: ${query}`} className={classes.searchReopen}>
+        <IconSearch size={16} />
+        <span className={classes.searchQuery}>{query}</span>
+      </UnstyledButton>
+      <ActionIcon size="sm" variant="subtle" color="gray" aria-label="Clear the search" onClick={() => setQuery('')}>
+        <IconX size={14} />
+      </ActionIcon>
     </div>
   ) : (
     <UnstyledButton onClick={openSearch} aria-label="Search this path" className={classes.searchButton}>

@@ -79,6 +79,40 @@
     color: var(--mantine-color-text);
     background: var(--mantine-color-gray-0);
   }
+
+  /* Folded with a search in it: what it holds, in the text's colour, and × to drop it */
+  &[data-filter] {
+    min-width: 0;
+    gap: 4px;
+    padding-right: 4px;
+    color: var(--mantine-color-text);
+
+    &:hover {
+      background: var(--mantine-color-body);
+    }
+  }
+}
+
+.searchReopen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  height: 100%;
+  color: inherit;
+
+  & svg {
+    flex-shrink: 0;
+    color: var(--mantine-color-dimmed);
+  }
+}
+
+.searchQuery {
+  max-width: 180px;
+  overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* Map / List, in the canvas beside the search */
