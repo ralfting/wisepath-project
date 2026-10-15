@@ -21,6 +21,7 @@ import {
   IconBlockquote,
   IconBrackets,
   IconBrandYoutube,
+  IconExternalLink,
   IconCode,
   IconColumnInsertRight,
   IconFilePlus,
@@ -425,40 +426,43 @@ export function MarkdownEditor({
           className={classes.card}
           style={{ top: card.top, left: card.left }}
         >
-          <Paper withBorder shadow="md" p="sm">
-            <LinkPreview target={card.target} />
-            <Group gap="xs" mt="sm">
-              {card.target.kind === 'page' && !card.target.page ? (
-                <>
-                  <Button size="compact-sm" autoFocus={card.confirmCreate} onClick={cardAction}>
-                    Create page
+          {/* An existing page or a site: the whole card opens it (a site in a new tab). A page not made yet asks */}
+          {card.target.kind === 'url' ? (
+            <Paper
+              component="a"
+              href={card.target.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              withBorder
+              shadow="md"
+              p="sm"
+              pr={32}
+              className={classes.cardLink}
+              aria-label={`Open ${card.target.href} in a new tab`}
+              onClick={() => setCard(null)}
+            >
+              <IconExternalLink size={14} className={classes.cardOpens} aria-hidden />
+              <LinkPreview target={card.target} />
+            </Paper>
+          ) : card.target.page ? (
+            <Paper component="button" type="button" withBorder shadow="md" p="sm" className={classes.cardLink} onClick={cardAction}>
+              <LinkPreview target={card.target} />
+            </Paper>
+          ) : (
+            <Paper withBorder shadow="md" p="sm">
+              <LinkPreview target={card.target} />
+              <Group gap="xs" mt="sm">
+                <Button size="compact-sm" autoFocus={card.confirmCreate} onClick={cardAction}>
+                  Create page
+                </Button>
+                {card.confirmCreate && (
+                  <Button size="compact-sm" variant="subtle" color="gray" onClick={() => setCard(null)}>
+                    Cancel
                   </Button>
-                  {card.confirmCreate && (
-                    <Button size="compact-sm" variant="subtle" color="gray" onClick={() => setCard(null)}>
-                      Cancel
-                    </Button>
-                  )}
-                </>
-              ) : card.target.kind === 'url' ? (
-                <Button
-                  component="a"
-                  href={card.target.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  size="compact-sm"
-                  variant="subtle"
-                  px={0}
-                  onClick={() => setCard(null)}
-                >
-                  Open link
-                </Button>
-              ) : (
-                <Button size="compact-sm" variant="subtle" px={0} onClick={cardAction}>
-                  Open page
-                </Button>
-              )}
-            </Group>
-          </Paper>
+                )}
+              </Group>
+            </Paper>
+          )}
         </Box>
       )}
 
