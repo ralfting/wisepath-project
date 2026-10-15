@@ -11,6 +11,7 @@ import { useCreateProject, useProjects, useRemoveProject, useSetProjectKind } fr
 import { KIND_OPTIONS, KindSwitchItem } from './ProjectKind';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
+import { PathCards } from '@/features/review';
 import { mapHref, mapWithPageHref } from '@/features/shared/routes';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './ProjectsHome.module.css';
@@ -125,6 +126,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
             {project.description}
           </Text>
         )}
+        <PathCards projectId={project.id} title={project.title} className={classes.action} />
         {kindError && (
           <Text size="sm" c="red" role="alert">
             {kindError}

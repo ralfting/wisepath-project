@@ -11,6 +11,7 @@ import { displayTitle } from '@/features/shared/title';
 import type { ProjectActions, SaveState } from '@/useCases/projects';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import type { Translate } from '@/i18n/I18nProvider';
+import { PathCards } from '@/features/review';
 import { dateTime, relativeTime } from '@/i18n/dates';
 import { SaveStatus } from '@/features/projects/SaveStatus';
 import { ProjectGate } from '@/features/projects/ProjectGate';
@@ -208,6 +209,7 @@ export function PageSheet({
           )}
         </Group>
       </Group>
+      {isRoot && <PathCards projectId={project.id} title={project.title} className={classes.pathCards} />}
       <DeletePageModal
         opened={confirmDelete}
         title={displayTitle(page)}
