@@ -406,7 +406,6 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     </Tooltip>
   );
   const alt = isMac() ? '⌥' : 'Alt+';
-  const mod = isMac() ? '⌘' : 'Ctrl+';
 
   return (
     <NodeViewWrapper className={classes.block} data-youtube-video>
@@ -499,17 +498,20 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       {!fullscreen && !(failed && !ready) && (
         <Group gap="xs" mt={8} className={classes.bar} contentEditable={false}>
           {notePopover('bar', noteButton)}
-          <Tooltip label="Fullscreen, with the notes">
-            <ActionIcon variant="subtle" color="gray" onClick={toggleFullscreen} aria-label="Fullscreen, with the notes" disabled={!ready}>
-              <IconArrowsMaximize size={17} />
-            </ActionIcon>
-          </Tooltip>
-          {/* The keys, where there is a keyboard: N needs the focus on the video, ⌥N works while writing */}
-          {hasKeyboard && ready && (
-            <Text size="xs" c="dimmed" className={classes.keys}>
-              <Kbd size="xs">N</Kbd> note · <Kbd size="xs">{alt}N</Kbd> while writing · <Kbd size="xs">{mod}↵</Kbd> plays a line&apos;s time
-            </Text>
-          )}
+          {/* The keys, where there is a keyboard: N needs the focus on the video, ⌥N works while writing. The
+              one that plays a line's time shows on the line itself, in the cursor's rail */}
+          <Group gap="xs" wrap="nowrap" ml="auto">
+            {hasKeyboard && ready && (
+              <Text size="xs" c="dimmed" className={classes.keys}>
+                <Kbd size="xs">N</Kbd> note · <Kbd size="xs">{alt}N</Kbd>
+              </Text>
+            )}
+            <Tooltip label="Fullscreen, with the notes">
+              <ActionIcon variant="subtle" color="gray" onClick={toggleFullscreen} aria-label="Fullscreen, with the notes" disabled={!ready}>
+                <IconArrowsMaximize size={17} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         </Group>
       )}
     </NodeViewWrapper>

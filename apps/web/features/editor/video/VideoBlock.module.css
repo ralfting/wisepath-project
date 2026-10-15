@@ -112,8 +112,6 @@
 }
 
 .keys {
-  margin-left: auto;
-
   & kbd {
     font-size: 10px;
   }
