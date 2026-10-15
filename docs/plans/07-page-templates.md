@@ -53,3 +53,7 @@ Templates the learner edits or adds come in a later step.
 
 - Unit: each template's markdown in both languages; recognising sections by heading; "next empty section".
 - Browser: empty page → row → Video → the page has the sections, cursor in the first empty one, hints shown and not saved; ⌘↓ moves along; `/template` mid-page; keyboard only; axe light and dark.
+
+## Next: a deeper study of the format
+
+From the onboarding (2026-10-15): the four templates read too alike. Before more work on them, study the format in depth: what each kind of page (concept, video, article, tool) really needs, in which order, and how much should differ between them.
