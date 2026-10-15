@@ -57,6 +57,19 @@ describe('auth API', () => {
     }),
   );
 
+  it.effect('keeps the language a user chooses, and back to the browser on null', () =>
+    Effect.gen(function* () {
+      const { client } = yield* makeClient;
+      const { user } = yield* client.auth.signup({ payload: { name: 'Ada', email: newEmail(), password } });
+      assert.strictEqual(user.locale ?? null, null);
+      const chosen = yield* client.auth.updateMe({ payload: { locale: 'pt-BR' } });
+      assert.strictEqual(chosen.user.locale, 'pt-BR');
+      assert.strictEqual((yield* client.auth.me()).user.locale, 'pt-BR');
+      yield* client.auth.updateMe({ payload: { locale: null } });
+      assert.strictEqual((yield* client.auth.me()).user.locale ?? null, null);
+    }),
+  );
+
   it.effect('refuses an email that already has an account', () =>
     Effect.gen(function* () {
       const { client } = yield* makeClient;

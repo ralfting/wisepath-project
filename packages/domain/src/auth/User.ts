@@ -12,16 +12,28 @@ export const Email = Schema.Trim.check(
 ).pipe(Schema.brand("Email"))
 export type Email = typeof Email.Type
 
+/** The languages WisePath speaks */
+export const Locale = Schema.Literals(["en", "pt-BR"])
+export type Locale = typeof Locale.Type
+
 /** A person with an account. Accounts made through Google or GitHub may have no name. */
 export class User extends Schema.Class<User>("User")({
   id: UserId,
   email: Schema.String,
-  name: Schema.NullOr(Schema.String)
+  name: Schema.NullOr(Schema.String),
+  /** The language they chose; none (null or absent) follows their browser */
+  locale: Schema.optional(Schema.NullOr(Locale))
 }) {
   get displayName(): string {
     return this.name?.trim() || this.email
   }
 }
+
+/** What a learner can change about their account */
+export const AccountSettings = Schema.Struct({
+  locale: Schema.NullOr(Locale)
+})
+export type AccountSettings = typeof AccountSettings.Type
 
 /** What someone types to log in */
 export const Credentials = Schema.Struct({

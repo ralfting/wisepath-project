@@ -38,7 +38,15 @@ export const MemoryAuth = (accounts: ReadonlyArray<{ email: string; password: st
           return user
         }),
         logout: () => Ref.set(session, Option.none()),
-        currentUser: () => Ref.get(session)
+        currentUser: () => Ref.get(session),
+        updateSettings: Effect.fn("MemoryAuth.updateSettings")(function*(settings) {
+          const current = yield* Ref.get(session)
+          if (Option.isNone(current)) return yield* Effect.die("No session")
+          const user = new User({ ...current.value, locale: settings.locale })
+          yield* Ref.update(store, (all) => all.map((a) => (a.user.id === user.id ? { ...a, user } : a)))
+          yield* Ref.set(session, Option.some(user))
+          return user
+        })
       })
     })
   )

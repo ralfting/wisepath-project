@@ -1,6 +1,6 @@
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema } from "effect/http-api"
-import { Credentials, EmailAlreadyRegistered, InvalidCredentials, NotAuthenticated, SignupDetails, UserId } from "@wisepath/domain/auth"
+import { AccountSettings, Credentials, EmailAlreadyRegistered, InvalidCredentials, Locale, NotAuthenticated, SignupDetails, UserId } from "@wisepath/domain/auth"
 import { InvalidRequest } from "./InvalidRequest"
 
 /**
@@ -14,7 +14,9 @@ import { InvalidRequest } from "./InvalidRequest"
 export const UserJson = Schema.Struct({
   id: UserId,
   email: Schema.String,
-  name: Schema.NullOr(Schema.String)
+  name: Schema.NullOr(Schema.String),
+  /** The language chosen; null (or absent) follows the browser */
+  locale: Schema.optional(Schema.NullOr(Locale))
 })
 
 export class AuthApiGroup extends HttpApiGroup.make("auth")
@@ -33,6 +35,11 @@ export class AuthApiGroup extends HttpApiGroup.make("auth")
     HttpApiEndpoint.get("me", "/me", {
       success: Schema.Struct({ user: UserJson }),
       error: NotAuthenticated
+    }),
+    HttpApiEndpoint.patch("updateMe", "/me", {
+      payload: AccountSettings,
+      success: Schema.Struct({ user: UserJson }),
+      error: [InvalidRequest, NotAuthenticated]
     })
   )
   .prefix("/auth")

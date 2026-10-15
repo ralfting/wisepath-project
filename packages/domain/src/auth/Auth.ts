@@ -1,7 +1,7 @@
 import type { Effect, Option } from "effect"
 import { Context } from "effect"
 import type { AuthUnavailable, EmailAlreadyRegistered, InvalidCredentials } from "./errors"
-import type { Credentials, SignupDetails, User } from "./User"
+import type { AccountSettings, Credentials, SignupDetails, User } from "./User"
 
 /**
  * Accounts and sessions. The domain only states what it needs; an
@@ -16,4 +16,6 @@ export class Auth extends Context.Service<Auth, {
   readonly logout: () => Effect.Effect<void, AuthUnavailable>
   /** The user of the current session, if any */
   readonly currentUser: () => Effect.Effect<Option.Option<User>, AuthUnavailable>
+  /** Saves the learner's settings (their language); answers with the updated user */
+  readonly updateSettings: (settings: AccountSettings) => Effect.Effect<User, AuthUnavailable>
 }>()("@wisepath/domain/auth/Auth") {}

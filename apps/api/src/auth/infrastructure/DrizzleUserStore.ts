@@ -1,14 +1,15 @@
 import { Effect, Layer, Option } from 'effect';
 import { eq } from 'drizzle-orm';
 import { User, UserId } from '@wisepath/domain/auth';
-import type { Email } from '@wisepath/domain/auth';
+import type { Email, Locale } from '@wisepath/domain/auth';
 import { Database } from '../../shared/infrastructure/database/Database';
 import { users } from '../../shared/infrastructure/database/schema';
 import { UserStore } from '../application/UserStore';
 
 /** Accounts in Postgres through Drizzle */
 
-const toUser = (row: typeof users.$inferSelect) => new User({ id: UserId.make(row.id), email: row.email, name: row.name });
+const toUser = (row: typeof users.$inferSelect) =>
+  new User({ id: UserId.make(row.id), email: row.email, name: row.name, locale: row.locale });
 
 export const DrizzleUserStore = Layer.effect(
   UserStore,
@@ -36,6 +37,10 @@ export const DrizzleUserStore = Layer.effect(
       return added.length > 0;
     });
 
-    return UserStore.of({ findByEmail, findById, insert });
+    const setLocale = Effect.fn('UserStore.setLocale')(function* (id: UserId, locale: Locale | null) {
+      yield* run(db.update(users).set({ locale, updatedAt: new Date() }).where(eq(users.id, id)));
+    });
+
+    return UserStore.of({ findByEmail, findById, insert, setLocale });
   }),
 );

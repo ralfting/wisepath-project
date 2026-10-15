@@ -1,9 +1,9 @@
-import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request, Response } from 'express';
-import { Schema } from 'effect';
+import { Option, Schema } from 'effect';
 import { UserJson } from '@wisepath/contract';
-import { Credentials, SignupDetails } from '@wisepath/domain/auth';
+import { AccountSettings, Credentials, SignupDetails } from '@wisepath/domain/auth';
 import type { User } from '@wisepath/domain/auth';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
@@ -55,5 +55,13 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   me(@Req() req: Request) {
     return bodyOf(req.user!);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  async updateMe(@Req() req: Request, @Body(new SchemaPipe(AccountSettings)) settings: AccountSettings) {
+    const user = await this.effect.run(auth.updateSettings(req.user!.id, settings));
+    if (Option.isNone(user)) throw new UnauthorizedException();
+    return bodyOf(user.value);
   }
 }

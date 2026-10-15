@@ -1,6 +1,6 @@
 import { Context } from 'effect';
 import type { Effect, Option } from 'effect';
-import type { Email, User, UserId } from '@wisepath/domain/auth';
+import type { Email, Locale, User, UserId } from '@wisepath/domain/auth';
 
 /** An account as stored: the user and the hash of their password (none for Google or GitHub accounts) */
 export interface Account {
@@ -17,5 +17,8 @@ export class UserStore extends Context.Service<
 
     /** Adds the account; false when its email is already registered */
     readonly insert: (user: User, passwordHash: string) => Effect.Effect<boolean>;
+
+    /** Saves the language the user chose; null follows their browser */
+    readonly setLocale: (id: UserId, locale: Locale | null) => Effect.Effect<void>;
   }
 >()('@wisepath/api/auth/application/UserStore') {}

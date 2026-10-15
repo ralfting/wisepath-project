@@ -44,6 +44,14 @@ export const ApiAuth = Layer.effect(
       Effect.mapError(unavailable)
     )
 
-    return Auth.of({ login, signup, logout, currentUser })
+    const updateSettings = Effect.fn("Auth.updateSettings")(
+      function*(settings: Parameters<Auth["Service"]["updateSettings"]>[0]) {
+        const { user } = yield* client.auth.updateMe({ payload: settings })
+        return new User(user)
+      },
+      Effect.mapError(unavailable)
+    )
+
+    return Auth.of({ login, signup, logout, currentUser, updateSettings })
   })
 ).pipe(Layer.provide(ApiClient.layer))

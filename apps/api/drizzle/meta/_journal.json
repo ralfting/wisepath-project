@@ -15,6 +15,13 @@
       "when": 1792012571269,
       "tag": "0001_project_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792082927898,
+      "tag": "0002_user_locale",
+      "breakpoints": true
     }
   ]
 }

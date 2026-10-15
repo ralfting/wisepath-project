@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Effect, Option } from 'effect';
 import { EmailAlreadyRegistered, InvalidCredentials, User, UserId } from '@wisepath/domain/auth';
-import type { Credentials, SignupDetails } from '@wisepath/domain/auth';
+import type { AccountSettings, Credentials, SignupDetails } from '@wisepath/domain/auth';
 import { PasswordHasher } from './PasswordHasher';
 import { UserStore } from './UserStore';
 
@@ -14,7 +14,7 @@ export const signup = Effect.fn('auth.signup')(function* (details: SignupDetails
   const users = yield* UserStore;
   const hasher = yield* PasswordHasher;
 
-  const user = new User({ id: UserId.make(randomUUID()), email: details.email, name: details.name });
+  const user = new User({ id: UserId.make(randomUUID()), email: details.email, name: details.name, locale: null });
   const passwordHash = yield* hasher.hash(details.password);
 
   const added = yield* users.insert(user, passwordHash);
@@ -35,6 +35,13 @@ export const login = Effect.fn('auth.login')(function* (credentials: Credentials
   if (Option.isNone(account) || !matches) return yield* new InvalidCredentials();
 
   return account.value.user;
+});
+
+/** Saves the account's settings and answers with the user as they now are */
+export const updateSettings = Effect.fn('auth.updateSettings')(function* (id: UserId, settings: AccountSettings) {
+  const users = yield* UserStore;
+  yield* users.setLocale(id, settings.locale);
+  return yield* users.findById(id);
 });
 
 /** The user a session belongs to, if the account still exists */
