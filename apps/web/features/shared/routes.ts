@@ -31,3 +31,12 @@ export function openPageId(pathname: string, projectId: string): string | null {
   const prefix = `${pageHref(projectId, '')}`;
   return pathname.startsWith(prefix) ? decodeURIComponent(pathname.slice(prefix.length).split('/')[0]) || null : null;
 }
+
+/** Where the app sends a learner once logged in, unless they were on their way somewhere */
+export const HOME = '/projects';
+
+/** The login page, coming back to an address of the app's own once logged in */
+export const loginHref = (next: string) => `/login?next=${encodeURIComponent(next)}`;
+
+/** Where to go after logging in: the address asked for, only when it is one of the app's own (not //other.site) */
+export const afterLogin = (next: string | null | undefined) => (next && /^\/(?![/\\])/.test(next) ? next : HOME);

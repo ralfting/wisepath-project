@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from '@tanstack/react-form';
 import { Alert, Anchor, Button, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
@@ -9,10 +9,12 @@ import { loginFormSchema, useLogin } from '@/useCases/auth';
 import { useDomainMessage } from '@/useCases/validation';
 import { useT } from '@/i18n/I18nProvider';
 import { fieldError } from '../shared/fieldError';
+import { afterLogin } from '../shared/routes';
 
-/** Log in with email and password, then go to the projects page */
+/** Log in with email and password, then go to the projects page, or back to where ?next= says */
 export function LoginForm() {
   const router = useRouter();
+  const next = useSearchParams().get('next');
   const login = useLogin();
   const t = useT();
   const domain = useDomainMessage();
@@ -25,7 +27,7 @@ export function LoginForm() {
       setError(null);
       const failure = await login(value);
       if (failure) setError(failure);
-      else router.push('/projects');
+      else router.push(afterLogin(next));
     },
   });
 
