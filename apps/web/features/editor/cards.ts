@@ -8,22 +8,34 @@ import { clozeRanges, isCardLine } from '@wisepath/domain/review';
  * Review cards in the editor
  * A `Question :: Answer` line gets a small card icon in the margin, and
  * `==words==` are marked as the words a fill-in-the-blank card hides. Only
- * the look changes: the markdown stays as written. Code is never a card, and
- * nothing is marked where there is no reviewing yet (a learning path's page
- * not studied).
+ * the look changes: the markdown stays as written. Code is never a card. On a
+ * learning path's page not studied yet the marks are faded, and the card icon
+ * says why: its cards join the review once the page is studied.
  */
 
 /** A block's text as written, [[links]] included, so `::` reads as the domain reads it */
 const lineOf = (block: PmNode) =>
   block.textBetween(0, block.content.size, undefined, (leaf) => (leaf.type.name === 'wikiLink' ? `[[${leaf.attrs.title}]]` : ''));
 
-function decorate(doc: PmNode): DecorationSet {
+/** The card icon's hover target on a page whose cards wait: it says what brings them into the review */
+function pendingTip(label: string): HTMLElement {
+  const tip = document.createElement('span');
+  tip.className = 'wp-card-tip';
+  tip.contentEditable = 'false';
+  tip.setAttribute('data-tip', label);
+  tip.setAttribute('aria-label', label);
+  tip.setAttribute('role', 'img');
+  return tip;
+}
+
+function decorate(doc: PmNode, pending: string | null): DecorationSet {
   const decorations: Decoration[] = [];
   doc.descendants((node, pos) => {
     if (node.type.name === 'codeBlock') return false;
     if (!node.isTextblock) return true;
     if (isCardLine(lineOf(node))) {
-      decorations.push(Decoration.node(pos, pos + node.nodeSize, { class: 'wp-card-line' }));
+      decorations.push(Decoration.node(pos, pos + node.nodeSize, { class: pending ? 'wp-card-line wp-card-pending' : 'wp-card-line' }));
+      if (pending) decorations.push(Decoration.widget(pos + 1, () => pendingTip(pending), { side: -1, key: `tip|${pending}` }));
       return false;
     }
     node.forEach((child, offset) => {
@@ -38,25 +50,31 @@ function decorate(doc: PmNode): DecorationSet {
   return DecorationSet.create(doc, decorations);
 }
 
-export const CardMarks = Extension.create<{ enabled: () => boolean }>({
+interface CardMarksOptions {
+  /** Why the cards wait (a learning path's page not studied yet), or null when they are reviewed */
+  pending: () => string | null;
+}
+
+export const CardMarks = Extension.create<CardMarksOptions>({
   name: 'cardMarks',
 
   addOptions() {
-    return { enabled: () => true };
+    return { pending: () => null };
   },
 
   addProseMirrorPlugins() {
-    const { enabled } = this.options;
+    const { pending } = this.options;
     return [
       new Plugin({
         key: new PluginKey('cardMarks'),
         state: {
-          init: (_, state) => decorate(state.doc),
-          apply: (tr, set) => (tr.docChanged ? decorate(tr.doc) : set),
+          init: (_, state) => decorate(state.doc, pending()),
+          // Redrawn when the text changes, or when the page's studied state does (a refresh meta)
+          apply: (tr, set) => (tr.docChanged || tr.getMeta('cardMarksRefresh') ? decorate(tr.doc, pending()) : set),
         },
         props: {
           decorations(state) {
-            return enabled() ? this.getState(state) : null;
+            return this.getState(state);
           },
         },
       }),

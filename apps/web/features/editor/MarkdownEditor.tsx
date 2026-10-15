@@ -93,8 +93,8 @@ interface MarkdownEditorProps {
   toolbarOffset?: number;
   /** Puts the cursor in the text once it is ready: at a position, its start or its end */
   focusOnOpen?: EditorFocus | null;
-  /** Marks review cards (`::` lines, `==cloze==`): a study's pages have them, a learning path's once studied */
-  reviewCards?: boolean;
+  /** Card lines wait to be reviewed (a learning path's page not studied yet): their marks fade and say why */
+  cardsPending?: boolean;
   /** Follows the cursor, so it can be put back later */
   onCursor?: (pos: number) => void;
 }
@@ -180,7 +180,7 @@ export function MarkdownEditor({
   focusSignal = 0,
   toolbarOffset = 0,
   focusOnOpen = null,
-  reviewCards = true,
+  cardsPending = false,
   onCursor,
 }: MarkdownEditorProps) {
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
@@ -193,9 +193,9 @@ export function MarkdownEditor({
   const t = useT();
 
   // Extensions are created once; they read the latest props (and the language's messages) through refs
-  // Read by the card marks each time they draw; a change of the path's kind redraws them (below)
-  const reviewCardsRef = useRef(reviewCards);
-  reviewCardsRef.current = reviewCards;
+  // Read by the card marks each time they draw; a change (the page studied, the path's kind) redraws them (below)
+  const cardsPendingRef = useRef(cardsPending);
+  cardsPendingRef.current = cardsPending;
   const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, t });
   latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, t };
   // Pasted addresses read as their page's title; the previews come from the same cache as the hover card
@@ -235,7 +235,7 @@ export function MarkdownEditor({
       Timestamp.configure({ labels: (time: string) => timestampLabels(latest.current.t, time) }),
       LinkTitles.configure({ load: (url: string) => loadPreviewRef.current(url) }),
       // Spaced review's cards: `Question :: Answer` lines and ==cloze== words
-      CardMarks.configure({ enabled: () => reviewCardsRef.current }),
+      CardMarks.configure({ pending: () => (cardsPendingRef.current ? latest.current.t('review.editor.pending') : null) }),
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
       LinkKeys.configure({
         onOpen: (link, element) => (link.kind === 'web' ? openUrl(link.href) : element && openWikiLink(link.title, element)),
@@ -350,7 +350,7 @@ export function MarkdownEditor({
   // Missing-link styling depends on the page list, and the placeholder on the language; redraw decorations when they change
   useEffect(() => {
     if (editor && !editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta('cardMarksRefresh', true));
-  }, [editor, reviewCards]);
+  }, [editor, cardsPending]);
 
   useEffect(() => {
     if (editor && !editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta('wikiLinkRefresh', true));

@@ -76,7 +76,7 @@ export function PageContent({
         />
       )}
       <MarkdownEditor
-        reviewCards={pageHasReview(project, page)}
+        cardsPending={!pageHasReview(project, page)}
         key={page.id}
         content={page.content}
         onChange={(content) => actions.updatePage(page.id, { content })}

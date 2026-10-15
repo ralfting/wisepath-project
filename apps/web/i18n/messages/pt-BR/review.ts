@@ -3,6 +3,9 @@ import type { review as en } from '../en/review';
 
 /** Mensagens da revisão espaçada (a página Revisar e suas contagens), em português do Brasil */
 export const review = {
+  editor: {
+    pending: 'Os cartões entram na revisão quando esta página for marcada como estudada',
+  },
   meta: {
     title: 'Revisar | WisePath',
   },

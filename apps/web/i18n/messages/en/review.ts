@@ -1,5 +1,8 @@
 /** Messages for spaced review (the Review page and its counts), in English: the source the other languages follow */
 export const review = {
+  editor: {
+    pending: 'Its cards join the review once this page is marked studied',
+  },
   meta: {
     title: 'Review | WisePath',
   },
