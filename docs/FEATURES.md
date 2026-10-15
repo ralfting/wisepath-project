@@ -13,6 +13,13 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 - **Home (My paths):** one card per path. A Learning path shows its progress bar, the next page and the Continue button; a Study shows its size ("57 pages · 10 modules"). Searchable by title or description. Delete from the card's menu.
 - **Sidebar:** every path, with its progress for Learning paths. Collapses to an icon rail that floats open on hover; on the rail a Learning path's icon has a thin progress ring.
 
+## Search everywhere
+
+- **⌘P (Ctrl P)** anywhere in the app — the home, a map, a page, even while writing — opens a search palette in the middle of the screen. So does **Search pages** in the sidebar (a magnifier on the rail).
+- **Empty,** it lists the pages opened most recently, across paths (kept in this browser, per viewer).
+- **Typing** searches every path, ignoring case and accents ("revisao" finds "Revisão"), for pages whose title or text holds every word: exact titles first, then titles that start with it, titles with all the words, then text matches; the most recently edited first within each. Each result says where it sits ("NestJS › Providers") and, for a text match, shows the line around it with the words marked.
+- **↑ ↓** move, **Enter** opens the page on its path's map, in the drawer, **⌘Enter** (Ctrl+Enter) as a full page, **Esc** closes the palette (a drawer behind it stays open).
+
 ## The map
 
 The map is a reading of the links, never stored on its own.
@@ -83,6 +90,8 @@ Questions are written in the notes themselves, where they belong; a few minutes 
 
 | Where | Keys | Does |
 | --- | --- | --- |
+| Anywhere | ⌘P / Ctrl P | Search every path |
+| Search | ↑ ↓ · Enter · ⌘↵ / Ctrl+Enter · Esc | Move · open on the map · open as a full page · close |
 | Map | ⌘K / Ctrl K | Search the path's pages |
 | Map | Tab, then ← → ↑ ↓, Home | Move through the map's pages |
 | Map | Enter / Space | Open the page |
@@ -108,7 +117,7 @@ Questions are written in the notes themselves, where they belong; a few minutes 
 
 ## Known limits
 
-- Search covers one path at a time.
+- Search everywhere looks at titles and text only: not inside videos, and without filters (by path, by kind) or operators.
 - N doesn't work while typing in the text (it would type an n) or with the focus inside YouTube's player.
 - Fullscreen is the app's own (with the notes); YouTube's fullscreen button is off.
 - The floating video snaps to the corners; it can't be resized.
