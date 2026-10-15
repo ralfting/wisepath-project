@@ -1,5 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
-import { boolean, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, doublePrecision, foreignKey, index, integer, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 /**
  * The database, as Drizzle sees it: the source of the migrations (drizzle-kit
@@ -85,6 +85,40 @@ export const pages = pgTable(
     primaryKey({ name: 'pages_pkey', columns: [t.projectId, t.id] }),
     uniqueIndex('pages_project_id_title_key_key').on(t.projectId, t.titleKey),
     foreignKey({ name: 'pages_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
+ * Where each card stands in the learner's spaced review. Cards themselves are
+ * read from the pages (`::` and ==cloze== lines); a card's id is a hash of
+ * its path, page and question. A state outlives its card's line, in case the
+ * line is written again, but goes with its path.
+ */
+export const reviewStates = pgTable(
+  'review_states',
+  {
+    ownerId: text('owner_id').notNull(),
+    cardId: text('card_id').notNull(),
+    projectId: text('project_id').notNull(),
+    pageId: text('page_id').notNull(),
+    due: timestamp({ precision: 3, withTimezone: true }).notNull(),
+    stability: doublePrecision().notNull(),
+    difficulty: doublePrecision().notNull(),
+    reps: integer().notNull(),
+    lapses: integer().notNull(),
+    lastReview: timestamp('last_review', { precision: 3, withTimezone: true }),
+    /** The card's first review: it counts among that day's new cards */
+    firstReview: timestamp('first_review', { precision: 3, withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ name: 'review_states_pkey', columns: [t.ownerId, t.cardId] }),
+    index('review_states_owner_id_first_review_idx').on(t.ownerId, t.firstReview),
+    foreignKey({ name: 'review_states_owner_id_fkey', columns: [t.ownerId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({ name: 'review_states_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
