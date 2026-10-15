@@ -14,7 +14,7 @@ import {
   IconPlus,
   IconX,
 } from '@tabler/icons-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { useT } from '@/i18n/I18nProvider';
 import { youTubeId } from '../extensions';
@@ -22,7 +22,7 @@ import { LOAD_TIMEOUT_MS, PAUSED, PLAYING, embedUrl, loadYouTubeApi } from './yo
 import type { YouTubePlayer } from './youtubeApi';
 import { addNote, formatTime, noteAt, notesAfter, setActiveNote } from './timestamps';
 import type { VideoNote } from './timestamps';
-import { registerVideo } from './videos';
+import { pauseOthers, registerVideo } from './videos';
 import classes from './VideoBlock.module.css';
 
 /**
@@ -133,7 +133,10 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           },
           onStateChange: (event) => {
             setPlaying(event.data === PLAYING);
-            if (event.data === PLAYING) lastUsed = self;
+            if (event.data === PLAYING) {
+              lastUsed = self;
+              pauseOthers(editor, controlRef.current);
+            }
             setTime(player.current?.getCurrentTime() ?? 0);
             // Played or paused from YouTube's own controls: no menu of its is open, so N can work again
             if (event.data === PLAYING || event.data === PAUSED) reclaimFocus();
@@ -287,10 +290,10 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
     setComposer({ seconds: p.getCurrentTime(), resume });
   }, [self]);
 
-  useEffect(
-    () => registerVideo(editor, { getPos: position, seek }),
-    [editor, position, seek],
-  );
+  const control = useMemo(() => ({ getPos: position, seek, pause: () => player.current?.pauseVideo() }), [position, seek]);
+  const controlRef = useRef(control);
+  controlRef.current = control;
+  useEffect(() => registerVideo(editor, control), [editor, control]);
 
   const closeComposer = (save: boolean) => {
     if (!composer) return;

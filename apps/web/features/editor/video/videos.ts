@@ -12,6 +12,8 @@ export interface VideoControl {
   readonly getPos: () => number | undefined;
   /** Plays from this second, floating the video into view if it scrolled away, or in fullscreen */
   readonly seek: (seconds: number, fullscreen?: boolean) => void;
+  /** Pauses it, when another video on the page starts */
+  readonly pause: () => void;
 }
 
 const players = new WeakMap<Editor, Set<VideoControl>>();
@@ -21,6 +23,11 @@ export function registerVideo(editor: Editor, control: VideoControl): () => void
   if (!set) players.set(editor, (set = new Set()));
   set.add(control);
   return () => set.delete(control);
+}
+
+/** One video plays at a time: the one starting pauses the rest, which would otherwise float on top of each other */
+export function pauseOthers(editor: Editor, playing: VideoControl): void {
+  for (const control of players.get(editor) ?? []) if (control !== playing) control.pause();
 }
 
 /** The video a time at this position belongs to: the last one before it */
