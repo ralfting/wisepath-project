@@ -105,6 +105,25 @@ export function useCapture(): (input: CaptureInput) => InboxItem {
   )
 }
 
+/**
+ * Puts something in the Inbox and resolves once the API has it, for a window
+ * that closes right after (the web capture popup): true when saved. It waits
+ * out a lost connection like any capture.
+ */
+export function useCaptureAndWait(): (input: CaptureInput) => Promise<boolean> {
+  const registry = useContext(RegistryContext)
+  const run = useAtomSet(captureAtom, { mode: "promiseExit" })
+  return useCallback(
+    async (input) => {
+      const item = captured(withId(input))
+      const local = registry.get(localAtom)
+      registry.set(localAtom, { ...local, added: [...local.added, item] })
+      return Exit.isSuccess(await run(item))
+    },
+    [registry, run]
+  )
+}
+
 /** Hides an item from the Inbox on screen, or shows it again, without telling the API */
 function useHide(): (id: InboxItemId, hidden: boolean) => void {
   const registry = useContext(RegistryContext)
