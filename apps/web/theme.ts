@@ -34,6 +34,8 @@ export const theme = createTheme({
     Button: { defaultProps: { radius: 'md' } },
     TextInput: { defaultProps: { radius: 'md' } },
     Progress: { defaultProps: { radius: 'xl' } },
+    // The dialogs' X is named for screen readers, which otherwise hear only "button"
+    Modal: { defaultProps: { closeButtonProps: { 'aria-label': 'Close' } } },
   },
 });
 
