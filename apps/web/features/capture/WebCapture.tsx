@@ -118,7 +118,7 @@ export function WebCapture({ page }: { page: WebPage }) {
   }
 
   return (
-    <Stack component="main" gap="sm" p="md" mih="100vh">
+    <Stack component="main" gap="sm" p="md" maw={520} mx="auto">
       <Group gap="xs" wrap="nowrap">
         <ThemeIcon size={24} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }} aria-hidden>
           <IconRoute size={15} stroke={2} />
@@ -153,7 +153,7 @@ export function WebCapture({ page }: { page: WebPage }) {
         disabled={sending !== 'idle'}
       />
 
-      <Group justify="space-between" wrap="nowrap" gap="sm" mt="auto">
+      <Group justify="space-between" wrap="nowrap" gap="sm">
         <Text size="xs" c="dimmed" role="status">
           {sending === 'waiting' ? t('capture.window.waiting') : t('capture.window.hint')}
         </Text>
