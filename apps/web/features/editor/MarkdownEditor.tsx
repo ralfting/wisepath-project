@@ -49,8 +49,11 @@ import classes from './MarkdownEditor.module.css';
 import { CodeBlockView } from './CodeBlockView';
 import { LinkTitles } from './linkTitles';
 import { useLinkPreviewLoader } from '@/useCases/projects';
+import { useT } from '@/i18n/I18nProvider';
+import type { TranslationKey } from '@/i18n/I18nProvider';
+import type { editor as editorMessages } from '@/i18n/messages/en/editor';
 import { VideoBlock } from './video/VideoBlock';
-import { Timestamp } from './video/timestamps';
+import { Timestamp, timestampLabels } from './video/timestamps';
 
 /**
  * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,
@@ -102,30 +105,58 @@ type PagePrompt = { at: number; anchor: Anchor };
 /** The text a popup belongs to, in window coordinates */
 type Anchor = { top: number; bottom: number; left: number };
 
-/** The / commands; Page is handled by the editor, since it asks for a name first */
-const SLASH_COMMANDS: ReadonlyArray<Omit<SlashCommand, 'run'> & { icon: Icon; run?: (editor: Editor) => void }> = [
-  { id: 'page', label: 'Page', hint: 'Create a page and go to it', keywords: 'new create', icon: IconFilePlus },
+/** A / command's messages: its label, its keywords and, for some, its hint */
+type SlashMessage = Exclude<keyof typeof editorMessages.slash, 'list'>;
+
+/**
+ * The / commands; Page is handled by the editor, since it asks for a name first. The hint beside the label is
+ * either the markdown that does the same (syntax, not translated) or a message saying what it does
+ */
+const SLASH_COMMANDS: ReadonlyArray<{
+  id: string;
+  message: SlashMessage;
+  hint: { syntax: string } | { message: TranslationKey };
+  icon: Icon;
+  run?: (editor: Editor) => void;
+}> = [
+  { id: 'page', message: 'page', hint: { message: 'editor.slash.page.hint' }, icon: IconFilePlus },
   {
     id: 'link',
-    label: 'Link to a page',
-    hint: 'Same as [[',
-    keywords: '[[ wiki',
+    message: 'link',
+    hint: { message: 'editor.slash.link.hint' },
     icon: IconBrackets,
     run: (e) => e.chain().focus().insertContent('[[').run(),
   },
-  { id: 'h2', label: 'Heading', hint: '##', keywords: 'h2 title', icon: IconH2, run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
-  { id: 'h3', label: 'Subheading', hint: '###', keywords: 'h3 title', icon: IconH3, run: (e) => e.chain().focus().toggleHeading({ level: 3 }).run() },
-  { id: 'bullets', label: 'Bulleted list', hint: '-', keywords: 'ul', icon: IconList, run: (e) => e.chain().focus().toggleBulletList().run() },
-  { id: 'numbers', label: 'Numbered list', hint: '1.', keywords: 'ol', icon: IconListNumbers, run: (e) => e.chain().focus().toggleOrderedList().run() },
-  { id: 'checklist', label: 'Checklist', hint: '- [ ]', keywords: 'todo task', icon: IconListCheck, run: (e) => e.chain().focus().toggleTaskList().run() },
-  { id: 'code', label: 'Code block', hint: '```', keywords: 'pre', icon: IconCode, run: (e) => e.chain().focus().toggleCodeBlock().run() },
-  { id: 'quote', label: 'Quote', hint: '>', keywords: 'blockquote', icon: IconBlockquote, run: (e) => e.chain().focus().toggleBlockquote().run() },
+  { id: 'h2', message: 'heading', hint: { syntax: '##' }, icon: IconH2, run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
+  {
+    id: 'h3',
+    message: 'subheading',
+    hint: { syntax: '###' },
+    icon: IconH3,
+    run: (e) => e.chain().focus().toggleHeading({ level: 3 }).run(),
+  },
+  { id: 'bullets', message: 'bullets', hint: { syntax: '-' }, icon: IconList, run: (e) => e.chain().focus().toggleBulletList().run() },
+  {
+    id: 'numbers',
+    message: 'numbers',
+    hint: { syntax: '1.' },
+    icon: IconListNumbers,
+    run: (e) => e.chain().focus().toggleOrderedList().run(),
+  },
+  {
+    id: 'checklist',
+    message: 'checklist',
+    hint: { syntax: '- [ ]' },
+    icon: IconListCheck,
+    run: (e) => e.chain().focus().toggleTaskList().run(),
+  },
+  { id: 'code', message: 'code', hint: { syntax: '```' }, icon: IconCode, run: (e) => e.chain().focus().toggleCodeBlock().run() },
+  { id: 'quote', message: 'quote', hint: { syntax: '>' }, icon: IconBlockquote, run: (e) => e.chain().focus().toggleBlockquote().run() },
   // A header and one row: Tab in the last cell adds the next row, so no empty rows are left over
   {
     id: 'table',
-    label: 'Table',
-    hint: 'Header and a row',
-    keywords: 'grid',
+    message: 'table',
+    hint: { message: 'editor.slash.table.hint' },
     icon: IconTable,
     run: (e) => e.chain().focus().insertTable({ rows: 2, cols: 3, withHeaderRow: true }).run(),
   },
@@ -154,10 +185,11 @@ export function MarkdownEditor({
   const [card, setCard] = useState<LinkCard | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const hoverTimer = useRef<number>(0);
+  const t = useT();
 
-  // Extensions are created once; they read the latest props through refs
-  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor });
-  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor };
+  // Extensions are created once; they read the latest props (and the language's messages) through refs
+  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, t });
+  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, t };
   // Pasted addresses read as their page's title; the previews come from the same cache as the hover card
   const loadPreview = useLinkPreviewLoader();
   const loadPreviewRef = useRef(loadPreview);
@@ -177,7 +209,7 @@ export function MarkdownEditor({
       CodeBlockLowlight.extend({ addNodeView: () => ReactNodeViewRenderer(CodeBlockView) }).configure({ lowlight }),
       Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
       Placeholder.configure({
-        placeholder: 'Write here, or type / for commands',
+        placeholder: () => latest.current.t('editor.content.placeholder'),
       }),
       getTaskListExtension(TaskList),
       TaskItem.configure({ nested: true }),
@@ -191,7 +223,8 @@ export function MarkdownEditor({
       TableCell,
       // A video to take notes on, and the [01:25] times that play it from there
       YouTubeVideo.extend({ addNodeView: () => ReactNodeViewRenderer(VideoBlock) }),
-      Timestamp,
+      // Its chip's label in the current language, read when a chip is drawn
+      Timestamp.configure({ labels: (time: string) => timestampLabels(latest.current.t, time) }),
       LinkTitles.configure({ load: (url: string) => loadPreviewRef.current(url) }),
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
       LinkKeys.configure({
@@ -217,13 +250,20 @@ export function MarkdownEditor({
         onState: setPicker,
       }),
       SlashCommands.configure({
-        commands: SLASH_COMMANDS.map(({ run, ...command }) => ({ ...command, run: run ?? askPageName })),
+        commands: () =>
+          SLASH_COMMANDS.map(({ id, message, hint, run }) => ({
+            id,
+            label: latest.current.t(`editor.slash.${message}.label`),
+            hint: 'syntax' in hint ? hint.syntax : latest.current.t(hint.message),
+            keywords: latest.current.t(`editor.slash.${message}.keywords`),
+            run: run ?? askPageName,
+          })),
         onState: setSlash,
       }),
     ],
     content,
     editorProps: {
-      attributes: { class: 'wp-editor', 'aria-label': 'Page content' },
+      attributes: () => ({ class: 'wp-editor', 'aria-label': latest.current.t('editor.content.label') }),
       handleDOMEvents: {
         click: (_view, event) => {
           const target = event.target as HTMLElement;
@@ -291,10 +331,10 @@ export function MarkdownEditor({
     setCard({ target: { kind: 'page', title, page: undefined }, confirmCreate: true, ...placeBelow(el) });
   };
 
-  // Missing-link styling depends on the page list; redraw decorations when it changes
+  // Missing-link styling depends on the page list, and the placeholder on the language; redraw decorations when they change
   useEffect(() => {
     if (editor && !editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta('wikiLinkRefresh', true));
-  }, [editor, pages]);
+  }, [editor, pages, t]);
 
   useEffect(() => {
     if (editor && focusSignal > 0) editor.commands.focus('end');
@@ -339,7 +379,32 @@ export function MarkdownEditor({
   return (
     <div ref={wrapperRef} className={classes.wrapper} onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
       {editor && headings.length >= 2 && <Outline editor={editor} headings={headings} />}
-      <RichTextEditor editor={editor} variant="subtle" classNames={{ root: classes.root, content: classes.content }}>
+      <RichTextEditor
+        editor={editor}
+        variant="subtle"
+        classNames={{ root: classes.root, content: classes.content }}
+        labels={{
+          h2ControlLabel: t('editor.toolbar.heading'),
+          h3ControlLabel: t('editor.toolbar.subheading'),
+          bulletListControlLabel: t('editor.toolbar.bulletList'),
+          orderedListControlLabel: t('editor.toolbar.numberedList'),
+          tasksControlLabel: t('editor.toolbar.checklist'),
+          tasksSinkLabel: t('editor.toolbar.checklistIndent'),
+          tasksLiftLabel: t('editor.toolbar.checklistOutdent'),
+          codeBlockControlLabel: t('editor.toolbar.codeBlock'),
+          blockquoteControlLabel: t('editor.toolbar.quote'),
+          boldControlLabel: t('editor.toolbar.bold'),
+          italicControlLabel: t('editor.toolbar.italic'),
+          strikeControlLabel: t('editor.toolbar.strike'),
+          codeControlLabel: t('editor.toolbar.code'),
+          linkControlLabel: t('editor.toolbar.link'),
+          unlinkControlLabel: t('editor.toolbar.unlink'),
+          linkEditorInputLabel: t('editor.toolbar.linkInput'),
+          linkEditorExternalLink: t('editor.toolbar.linkNewTab'),
+          linkEditorInternalLink: t('editor.toolbar.linkSameTab'),
+          linkEditorSave: t('common.actions.save'),
+        }}
+      >
         <RichTextEditor.Toolbar sticky stickyOffset={toolbarOffset} className={classes.toolbar}>
           <RichTextEditor.ControlsGroup>
             <RichTextEditor.H2 />
@@ -358,37 +423,57 @@ export function MarkdownEditor({
             {editor && <VideoControl editor={editor} />}
             <RichTextEditor.Control
               onClick={() => editor?.chain().focus().insertContent('[[').run()}
-              aria-label="Link to a page"
-              title="Link to a page ([[)"
+              aria-label={t('editor.toolbar.linkPage')}
+              title={t('editor.toolbar.linkPageTitle')}
             >
               <IconBrackets size={16} stroke={1.5} />
             </RichTextEditor.Control>
           </RichTextEditor.ControlsGroup>
           {/* Everything about tables in one group; editing controls show while the cursor is in a table */}
-          <RichTextEditor.ControlsGroup aria-label="Table">
+          <RichTextEditor.ControlsGroup aria-label={t('editor.table.group')}>
             <RichTextEditor.Control
               onClick={() => editor?.chain().focus().insertTable({ rows: 2, cols: 3, withHeaderRow: true }).run()}
               disabled={!editor || editor.isActive('table')}
-              aria-label="Insert table"
-              title="Insert table"
+              aria-label={t('editor.table.insert')}
+              title={t('editor.table.insert')}
             >
               <IconTable size={16} stroke={1.5} />
             </RichTextEditor.Control>
             {editor?.isActive('table') && (
               <>
-              <RichTextEditor.Control onClick={() => editor.chain().focus().addRowAfter().run()} aria-label="Add row below" title="Add row below">
+              <RichTextEditor.Control
+                onClick={() => editor.chain().focus().addRowAfter().run()}
+                aria-label={t('editor.table.addRow')}
+                title={t('editor.table.addRow')}
+              >
                 <IconRowInsertBottom size={16} stroke={1.5} />
               </RichTextEditor.Control>
-              <RichTextEditor.Control onClick={() => editor.chain().focus().addColumnAfter().run()} aria-label="Add column to the right" title="Add column to the right">
+              <RichTextEditor.Control
+                onClick={() => editor.chain().focus().addColumnAfter().run()}
+                aria-label={t('editor.table.addColumn')}
+                title={t('editor.table.addColumn')}
+              >
                 <IconColumnInsertRight size={16} stroke={1.5} />
               </RichTextEditor.Control>
-              <RichTextEditor.Control onClick={() => editor.chain().focus().deleteRow().run()} aria-label="Delete row" title="Delete row">
+              <RichTextEditor.Control
+                onClick={() => editor.chain().focus().deleteRow().run()}
+                aria-label={t('editor.table.deleteRow')}
+                title={t('editor.table.deleteRow')}
+              >
                 <IconRowRemove size={16} stroke={1.5} />
               </RichTextEditor.Control>
-              <RichTextEditor.Control onClick={() => editor.chain().focus().deleteColumn().run()} aria-label="Delete column" title="Delete column">
+              <RichTextEditor.Control
+                onClick={() => editor.chain().focus().deleteColumn().run()}
+                aria-label={t('editor.table.deleteColumn')}
+                title={t('editor.table.deleteColumn')}
+              >
                 <IconColumnRemove size={16} stroke={1.5} />
               </RichTextEditor.Control>
-              <RichTextEditor.Control onClick={() => editor.chain().focus().deleteTable().run()} aria-label="Delete table" title="Delete table">
+              <RichTextEditor.Control
+                onClick={() => editor.chain().focus().deleteTable().run()}
+                aria-label={t('editor.table.delete')}
+                title={t('editor.table.delete')}
+              >
                 <IconTableOff size={16} stroke={1.5} />
               </RichTextEditor.Control>
               </>
@@ -422,7 +507,7 @@ export function MarkdownEditor({
         <Box
           data-link-card
           role={card.confirmCreate ? 'dialog' : undefined}
-          aria-label={card.confirmCreate ? 'Create page' : undefined}
+          aria-label={card.confirmCreate ? t('editor.card.create') : undefined}
           className={classes.card}
           style={{ top: card.top, left: card.left }}
         >
@@ -438,7 +523,7 @@ export function MarkdownEditor({
               p="sm"
               pr={32}
               className={classes.cardLink}
-              aria-label={`Open ${card.target.href} in a new tab`}
+              aria-label={t('editor.card.openInNewTab', { href: card.target.href })}
               onClick={() => setCard(null)}
             >
               <IconExternalLink size={14} className={classes.cardOpens} aria-hidden />
@@ -453,11 +538,11 @@ export function MarkdownEditor({
               <LinkPreview target={card.target} />
               <Group gap="xs" mt="sm">
                 <Button size="compact-sm" autoFocus={card.confirmCreate} onClick={cardAction}>
-                  Create page
+                  {t('editor.card.create')}
                 </Button>
                 {card.confirmCreate && (
                   <Button size="compact-sm" variant="subtle" color="gray" onClick={() => setCard(null)}>
-                    Cancel
+                    {t('common.actions.cancel')}
                   </Button>
                 )}
               </Group>
@@ -474,13 +559,13 @@ export function MarkdownEditor({
             shadow="md"
             py={4}
             role="listbox"
-            aria-label="Pages to link"
+            aria-label={t('editor.picker.list')}
             className={classes.picker}
             style={placeNear(picker.rect, 256, picker.items.length * 34 + 10)}
           >
             {picker.items.length === 0 ? (
               <Text size="sm" c="dimmed" px="sm" py={6}>
-                Type a page name.
+                {t('editor.picker.empty')}
               </Text>
             ) : (
               picker.items.map((item, i) => (
@@ -500,7 +585,7 @@ export function MarkdownEditor({
                     <span className={classes.starName}>{item.title}</span>
                   ) : (
                     <Text span size="sm">
-                      Create page <span className={classes.starName}>{item.title}</span>
+                      {t('editor.picker.create')} <span className={classes.starName}>{item.title}</span>
                     </Text>
                   )}
                 </UnstyledButton>
@@ -517,7 +602,7 @@ export function MarkdownEditor({
             shadow="md"
             py={4}
             role="listbox"
-            aria-label="Commands"
+            aria-label={t('editor.slash.list')}
             className={`${classes.picker} ${classes.commands}`}
             style={placeNear(slash.rect, 320, slash.items.length * 36 + 10)}
           >
@@ -605,22 +690,23 @@ function PageNamePrompt({
   onCancel: () => void;
   onSubmit: (title: string, page: PreviewPage | undefined, stay: boolean) => void;
 }) {
+  const t = useT();
   const [name, setName] = useState('');
   const title = name.trim();
   const page = title ? findPageByTitle(pages, title) : undefined;
   const isThisPage = page?.id === currentPageId;
   const note = isThisPage
-    ? 'That is this page.'
+    ? t('editor.newPage.isThisPage')
     : page
-      ? `A page has this name: Enter opens it, ${MOD_KEY}Enter only links it.`
-      : `Enter creates it and takes you there. ${MOD_KEY}Enter creates it and stays here.`;
+      ? t('editor.newPage.exists', { mod: MOD_KEY })
+      : t('editor.newPage.creates', { mod: MOD_KEY });
 
   return (
-    <Paper withBorder shadow="md" p="sm" role="dialog" aria-label="New page" className={classes.prompt} style={placeNear(prompt.anchor, 288, 110)}>
+    <Paper withBorder shadow="md" p="sm" role="dialog" aria-label={t('editor.newPage.dialog')} className={classes.prompt} style={placeNear(prompt.anchor, 288, 110)}>
       <TextInput
         size="sm"
-        aria-label="Page name"
-        placeholder="Page name"
+        aria-label={t('editor.newPage.name')}
+        placeholder={t('editor.newPage.name')}
         leftSection={<IconFilePlus size={16} stroke={1.5} />}
         value={name}
         autoFocus
@@ -700,6 +786,7 @@ const unfold: MantineTransition = {
  * From the keyboard, Enter or ↓ on the dashes goes into the list.
  */
 function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray<Heading> }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const railRef = useRef<HTMLDivElement>(null);
@@ -782,7 +869,7 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
     <div className={classes.outlineTrack} aria-hidden={false}>
       <nav
         ref={railRef}
-        aria-label="Contents"
+        aria-label={t('editor.outline.label')}
         className={classes.outline}
         data-open={open || undefined}
         onMouseEnter={() => setOpen(true)}
@@ -800,7 +887,7 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
           onPointerDown={() => (openBefore.current = open)}
           // Enter or Space: into the list (the focus has opened it already)
           onClick={(e) => (e.detail === 0 ? enterList() : setOpen(!openBefore.current))}
-          aria-label="Contents"
+          aria-label={t('editor.outline.label')}
           aria-expanded={open}
         >
           {headings.map((h, i) => (
@@ -812,7 +899,7 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
             <div className={classes.outlinePop} style={style}>
               <Paper className={classes.outlinePanel}>
                 <Text component="div" className={classes.outlineTitle} aria-hidden>
-                  On this page
+                  {t('editor.outline.title')}
                 </Text>
                 <ul className={classes.outlineList}>
                   {headings.map((h, i) => (
@@ -843,6 +930,7 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
 
 /** Toolbar control that embeds a YouTube video from its link */
 function VideoControl({ editor }: { editor: Editor }) {
+  const t = useT();
   const [opened, setOpened] = useState(false);
   const [url, setUrl] = useState('');
   const [error, setError] = useState(false);
@@ -861,7 +949,11 @@ function VideoControl({ editor }: { editor: Editor }) {
   return (
     <Popover opened={opened} onChange={setOpened} position="bottom" withArrow shadow="md" trapFocus>
       <Popover.Target>
-        <RichTextEditor.Control onClick={() => setOpened((o) => !o)} aria-label="YouTube video" title="YouTube video">
+        <RichTextEditor.Control
+          onClick={() => setOpened((o) => !o)}
+          aria-label={t('editor.video.control')}
+          title={t('editor.video.control')}
+        >
           <IconBrandYoutube size={16} stroke={1.5} />
         </RichTextEditor.Control>
       </Popover.Target>
@@ -874,18 +966,18 @@ function VideoControl({ editor }: { editor: Editor }) {
         >
           <Stack gap="xs" w={260}>
             <TextInput
-              label="YouTube link"
+              label={t('editor.video.label')}
               placeholder="https://www.youtube.com/watch?v=…"
               value={url}
               onChange={(e) => {
                 setUrl(e.currentTarget.value);
                 setError(false);
               }}
-              error={error ? "That isn't a YouTube link. Paste the video's address." : undefined}
+              error={error ? t('editor.video.invalid') : undefined}
               data-autofocus
             />
             <Button type="submit" size="compact-sm" w="fit-content">
-              Add video
+              {t('editor.video.add')}
             </Button>
           </Stack>
         </form>

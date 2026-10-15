@@ -339,7 +339,8 @@ export interface SlashCommand {
 export type SlashMenuState = MenuState<SlashCommand>;
 
 interface SlashOptions {
-  commands: SlashCommand[];
+  /** Read on each keystroke, so the labels follow the language */
+  commands: () => ReadonlyArray<SlashCommand>;
   onState: (state: SlashMenuState | null) => void;
 }
 
@@ -348,7 +349,7 @@ export const SlashCommands = Extension.create<SlashOptions>({
   name: 'slashCommands',
 
   addOptions() {
-    return { commands: [], onState: () => {} };
+    return { commands: () => [], onState: () => {} };
   },
 
   addProseMirrorPlugins() {
@@ -361,7 +362,7 @@ export const SlashCommands = Extension.create<SlashOptions>({
         allowSpaces: false,
         getItems: (query) => {
           const q = query.toLowerCase();
-          return commands.filter((c) => `${c.label} ${c.keywords}`.toLowerCase().includes(q));
+          return commands().filter((c) => `${c.label} ${c.keywords}`.toLowerCase().includes(q));
         },
         choose: (editor, range, command) => {
           editor.chain().focus().deleteRange(range).run();

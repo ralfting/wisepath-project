@@ -3,6 +3,8 @@
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
 import { Select } from '@mantine/core';
+import { useT } from '@/i18n/I18nProvider';
+import type { TranslationKey } from '@/i18n/I18nProvider';
 import classes from './CodeBlockView.module.css';
 
 /**
@@ -13,8 +15,11 @@ import classes from './CodeBlockView.module.css';
  * language guessed.
  */
 
-/** The languages offered, by name, with the fence words that mean the same one */
-const LANGUAGES: ReadonlyArray<{ value: string; label: string; aliases?: ReadonlyArray<string> }> = [
+/**
+ * The languages offered, by name, with the fence words that mean the same one. A name that is a description, not
+ * a language's own name, comes from the messages
+ */
+const LANGUAGES: ReadonlyArray<{ value: string; label: string; message?: TranslationKey; aliases?: ReadonlyArray<string> }> = [
   { value: 'typescript', label: 'TypeScript', aliases: ['ts', 'tsx', 'mts', 'cts'] },
   { value: 'javascript', label: 'JavaScript', aliases: ['js', 'jsx', 'mjs', 'cjs'] },
   { value: 'json', label: 'JSON' },
@@ -22,7 +27,7 @@ const LANGUAGES: ReadonlyArray<{ value: string; label: string; aliases?: Readonl
   { value: 'css', label: 'CSS' },
   { value: 'scss', label: 'SCSS' },
   { value: 'bash', label: 'Bash', aliases: ['sh', 'zsh'] },
-  { value: 'shell', label: 'Shell session', aliases: ['console'] },
+  { value: 'shell', label: 'Shell session', message: 'editor.codeBlock.shellSession', aliases: ['console'] },
   { value: 'sql', label: 'SQL' },
   { value: 'graphql', label: 'GraphQL', aliases: ['gql'] },
   { value: 'yaml', label: 'YAML', aliases: ['yml'] },
@@ -40,11 +45,10 @@ const LANGUAGES: ReadonlyArray<{ value: string; label: string; aliases?: Readonl
   { value: 'ruby', label: 'Ruby', aliases: ['rb'] },
   { value: 'swift', label: 'Swift' },
   { value: 'ini', label: 'INI / TOML', aliases: ['toml'] },
-  { value: 'plaintext', label: 'Plain text', aliases: ['text', 'txt'] },
+  { value: 'plaintext', label: 'Plain text', message: 'editor.codeBlock.plainText', aliases: ['text', 'txt'] },
 ];
 
 const AUTO = 'auto';
-const OPTIONS = [{ value: AUTO, label: 'Auto' }, ...LANGUAGES.map(({ value, label }) => ({ value, label }))];
 
 /** The option a fence word stands for: "ts" is TypeScript. A word not offered keeps its own entry */
 function optionFor(language: string | null): string {
@@ -56,14 +60,19 @@ function optionFor(language: string | null): string {
 export function CodeBlockView({ node, updateAttributes, editor }: NodeViewProps) {
   const language: string | null = node.attrs.language ?? null;
   const value = optionFor(language);
+  const t = useT();
+  const options = [
+    { value: AUTO, label: t('editor.codeBlock.auto') },
+    ...LANGUAGES.map(({ value, label, message }) => ({ value, label: message ? t(message) : label })),
+  ];
   // A fence word the list doesn't know still shows, so it isn't lost by looking at it
-  const data = OPTIONS.some((o) => o.value === value) ? OPTIONS : [...OPTIONS, { value, label: value }];
+  const data = options.some((o) => o.value === value) ? options : [...options, { value, label: value }];
 
   return (
     <NodeViewWrapper className={classes.block}>
       <div className={classes.language} contentEditable={false}>
         <Select
-          aria-label="Code language"
+          aria-label={t('editor.codeBlock.language')}
           data={data}
           value={value}
           onChange={(next) => {

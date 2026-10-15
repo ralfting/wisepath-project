@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Group, Stack, Text } from '@mantine/core';
+import { useT } from '@/i18n/I18nProvider';
 import { useLinkPreview } from '@/useCases/projects';
 
 /**
@@ -27,6 +28,7 @@ export interface PreviewPage {
 export type PreviewTarget = { kind: 'page'; title: string; page: PreviewPage | undefined } | { kind: 'url'; href: string };
 
 export function LinkPreview({ target }: { target: PreviewTarget }) {
+  const t = useT();
   if (target.kind === 'page') {
     return (
       <Stack gap={4}>
@@ -34,7 +36,7 @@ export function LinkPreview({ target }: { target: PreviewTarget }) {
           {target.page?.title || target.title}
         </Text>
         <Text size="xs" c="dimmed" lineClamp={2}>
-          {target.page ? plainExcerpt(target.page.content) || 'Nothing written yet.' : "This page doesn't exist yet."}
+          {target.page ? plainExcerpt(target.page.content) || t('editor.preview.empty') : t('editor.preview.missing')}
         </Text>
       </Stack>
     );
@@ -43,6 +45,7 @@ export function LinkPreview({ target }: { target: PreviewTarget }) {
 }
 
 function ExternalLinkPreview({ href }: { href: string }) {
+  const t = useT();
   const state = useLinkPreview(href);
   const preview = state.status === 'ready' ? state.preview : null;
   let host = href;
@@ -62,7 +65,7 @@ function ExternalLinkPreview({ href }: { href: string }) {
       )}
       <Stack gap={2} miw={0}>
         <Text size="sm" fw={700} lh={1.3} lineClamp={2}>
-          {state.status === 'loading' ? 'Loading preview…' : preview?.title || host}
+          {state.status === 'loading' ? t('editor.preview.loading') : preview?.title || host}
         </Text>
         {preview?.description && (
           <Text size="xs" c="dimmed" lineClamp={2}>
