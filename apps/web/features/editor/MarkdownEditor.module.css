@@ -423,6 +423,26 @@
   text-decoration-color: currentColor;
 }
 
+/* A review card's line (`Question :: Answer`): a small card in the left margin, at the line's height */
+.content :global(.ProseMirror .wp-card-line)::before {
+  content: '';
+  position: absolute;
+  left: -30px;
+  width: 14px;
+  height: 1.65em;
+  background: var(--mantine-color-dimmed);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.604 7.197l7.138 -3.109a.96 .96 0 0 1 1.27 .527l4.924 11.902a1 1 0 0 1 -.514 1.304l-7.137 3.109a.96 .96 0 0 1 -1.271 -.527l-4.924 -11.903a1 1 0 0 1 .514 -1.304z'/%3E%3Cpath d='M15 4h1a1 1 0 0 1 1 1v3.5'/%3E%3Cpath d='M20 6c.264 .112 .52 .217 .768 .315a1 1 0 0 1 .53 1.311l-2.298 5.374'/%3E%3C/svg%3E")
+    center / 14px no-repeat;
+  pointer-events: none;
+}
+
+/* Words a fill-in-the-blank card hides (==words==) */
+.content :global(.ProseMirror .wp-cloze) {
+  padding-inline: 1px;
+  border-radius: 3px;
+  background: light-dark(var(--mantine-color-yellow-1), rgb(250 176 5 / 0.18));
+}
+
 /* A whole block picked by Backspace, about to go (a picked table shows every cell selected instead) */
 .content :global(.ProseMirror-selectednode:is(pre, div[data-youtube-video])) {
   outline: 2px solid var(--mantine-color-blue-5);

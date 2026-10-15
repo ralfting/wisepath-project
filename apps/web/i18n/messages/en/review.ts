@@ -1,4 +1,4 @@
-/** Messages for spaced review (the Review page, its counts, cards in the editor), in English: the source the other languages follow */
+/** Messages for spaced review (the Review page and its counts), in English: the source the other languages follow */
 export const review = {
   meta: {
     title: 'Review | WisePath',
@@ -48,10 +48,6 @@ export const review = {
     due: { zero: 'none due', one: '{count} due', other: '{count} due' },
     review: 'Review',
     reviewLabel: 'Review {path}: {due}',
-  },
-  editor: {
-    /** Shown on a card line in the editor */
-    card: 'Card for review',
   },
   errors: {
     notSaved: "A grade couldn't be saved. Check the connection; the card will come back.",

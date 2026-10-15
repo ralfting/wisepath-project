@@ -1,7 +1,7 @@
 import type { Shape } from '../../format';
 import type { review as en } from '../en/review';
 
-/** Mensagens da revisão espaçada (a página Revisar, suas contagens, os cartões no editor), em português do Brasil */
+/** Mensagens da revisão espaçada (a página Revisar e suas contagens), em português do Brasil */
 export const review = {
   meta: {
     title: 'Revisar | WisePath',
@@ -50,9 +50,6 @@ export const review = {
     due: { zero: 'nenhum para hoje', one: '{count} para hoje', other: '{count} para hoje' },
     review: 'Revisar',
     reviewLabel: 'Revisar {path}: {due}',
-  },
-  editor: {
-    card: 'Cartão de revisão',
   },
   errors: {
     notSaved: 'Uma avaliação não foi salva. Verifique a conexão; o cartão vai voltar.',

@@ -48,6 +48,7 @@ import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { CodeBlockView } from './CodeBlockView';
 import { LinkTitles } from './linkTitles';
+import { CardMarks } from './cards';
 import { useLinkPreviewLoader } from '@/useCases/projects';
 import { useT } from '@/i18n/I18nProvider';
 import type { TranslationKey } from '@/i18n/I18nProvider';
@@ -227,6 +228,8 @@ export function MarkdownEditor({
       // Its chip's label in the current language, read when a chip is drawn
       Timestamp.configure({ labels: (time: string) => timestampLabels(latest.current.t, time) }),
       LinkTitles.configure({ load: (url: string) => loadPreviewRef.current(url) }),
+      // Spaced review's cards: `Question :: Answer` lines and ==cloze== words
+      CardMarks,
       WikiLink.configure({ exists: (title: string) => !!findPageByTitle(latest.current.pages, title) }),
       LinkKeys.configure({
         onOpen: (link, element) => (link.kind === 'web' ? openUrl(link.href) : element && openWikiLink(link.title, element)),
