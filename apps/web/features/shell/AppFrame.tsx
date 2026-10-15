@@ -14,6 +14,7 @@ import {
   Breadcrumbs,
   Burger,
   Group,
+  Indicator,
   Menu,
   NavLink,
   ScrollArea,
@@ -22,6 +23,7 @@ import {
   ThemeIcon,
   Tooltip,
   UnstyledButton,
+  VisuallyHidden,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
@@ -29,6 +31,7 @@ import {
   IconHome,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
+  IconCards,
   IconCheck,
   IconLanguage,
   IconLogout,
@@ -40,6 +43,7 @@ import { useLocale, useT } from '@/i18n/I18nProvider';
 import { LOCALES, LOCALE_NAMES } from '@/i18n/locales';
 import type { Locale } from '@/i18n/locales';
 import { useProjects } from '@/useCases/projects';
+import { useReviewCounts } from '@/useCases/review';
 import { PageGlyph } from '@/features/shared/look';
 import classes from './AppFrame.module.css';
 
@@ -259,6 +263,7 @@ function Rail() {
       >
         <IconHome size={20} stroke={1.7} />
       </ActionIcon>
+      <ReviewRailLink />
       <div className={classes.railRule} />
       {(projects ?? []).map((project) => {
         const href = `/projects/${project.id}`;
@@ -332,6 +337,7 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
           }
           className={classes.navLink}
         />
+        <ReviewNavLink />
       </AppShell.Section>
 
       <AppShell.Section grow component={ScrollArea} px="sm" pt="lg">
@@ -372,6 +378,60 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
         <AccountMenu />
       </AppShell.Section>
     </>
+  );
+}
+
+/** Review, with the number of cards due today */
+function ReviewNavLink() {
+  const pathname = usePathname();
+  const counts = useReviewCounts();
+  const t = useT();
+  const due = counts?.due ?? 0;
+
+  return (
+    <NavLink
+      component={Link}
+      href="/review"
+      label={t('review.nav.label')}
+      active={pathname === '/review'}
+      leftSection={<IconCards size={20} stroke={1.7} />}
+      rightSection={
+        due > 0 ? (
+          <>
+            <Badge size="sm" variant="filled" circle aria-hidden>
+              {due}
+            </Badge>
+            <VisuallyHidden>{t('review.nav.due', { count: due })}</VisuallyHidden>
+          </>
+        ) : null
+      }
+      className={classes.navLink}
+    />
+  );
+}
+
+/** Review on the rail; a dot says something is due */
+function ReviewRailLink() {
+  const pathname = usePathname();
+  const counts = useReviewCounts();
+  const t = useT();
+  const due = counts?.due ?? 0;
+  const label = due > 0 ? `${t('review.nav.label')}, ${t('review.nav.due', { count: due })}` : t('review.nav.label');
+
+  return (
+    <Indicator disabled={due === 0} label={due} size={16} offset={6}>
+      <ActionIcon
+        component={Link}
+        href="/review"
+        size={40}
+        radius="md"
+        variant={pathname === '/review' ? 'light' : 'subtle'}
+        color={pathname === '/review' ? 'blue' : 'gray'}
+        aria-label={label}
+      >
+        <IconCards size={20} stroke={1.7} />
+      </ActionIcon>
+    </Indicator>
   );
 }
 
