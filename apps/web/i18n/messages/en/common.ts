@@ -1,5 +1,7 @@
 /** Messages shared across the app, in English: the source the other languages follow */
 export const common = {
+  /** A page that has no title yet */
+  untitledPage: 'Untitled page',
   language: {
     menu: 'Language',
     sameAsBrowser: 'Same as the browser',

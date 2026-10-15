@@ -9,6 +9,7 @@ import type { Locale } from './locales';
 import { en } from './messages/en';
 import type { Messages } from './messages/en';
 import { ptBR } from './messages/pt-BR';
+import { setUntitledLabel } from '@/features/shared/title';
 
 /**
  * I18nProvider
@@ -59,6 +60,8 @@ export function I18nProvider({ initialLocale, initialChoice, children }: { initi
   }, [locale]);
 
   const t = useCallback<Translate>((key, values) => translate(MESSAGES[locale], en, locale, key, values), [locale]);
+  // Pages without a title are named in the language too; set before the tree below renders with it
+  setUntitledLabel(t('common.untitledPage'));
   const value = useMemo(() => ({ locale, choice, t, setChoice }), [locale, choice, t, setChoice]);
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
