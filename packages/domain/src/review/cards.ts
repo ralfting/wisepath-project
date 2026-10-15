@@ -146,12 +146,20 @@ export function cardsIn(
 }
 
 /**
- * Every card in a path, page by page in the order the pages were added. Reviewing is a study's: a learning
- * path, followed page by page, has none (its lines stay text, and come back as cards if it turns into a study)
+ * Every card in a path, page by page in the order the pages were added. In a study every page's cards count;
+ * in a learning path a page's cards count once it is studied: there is nothing to remember from a page not
+ * read yet, and marking it studied is what brings its questions into the review
  */
 export function cardsOf(
-  project: Pick<Project, "id" | "title"> & { readonly kind?: Project["kind"]; readonly pages: ReadonlyArray<Pick<Page, "id" | "title" | "content">> }
+  project: Pick<Project, "id" | "title"> & {
+    readonly kind?: Project["kind"]
+    readonly pages: ReadonlyArray<Pick<Page, "id" | "title" | "content"> & { readonly studied?: boolean }>
+  }
 ): Card[] {
-  if (project.kind === "learningPath") return []
-  return project.pages.flatMap((page) => cardsIn(page, project))
+  const pages = project.kind === "learningPath" ? project.pages.filter((page) => page.studied) : project.pages
+  return pages.flatMap((page) => cardsIn(page, project))
 }
+
+/** Whether a page's cards are reviewed: always in a study, once the page is studied in a learning path */
+export const pageHasReview = (project: Pick<Project, "kind">, page: Pick<Page, "studied">): boolean =>
+  project.kind !== "learningPath" || page.studied

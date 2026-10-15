@@ -9,7 +9,8 @@ import { clozeRanges, isCardLine } from '@wisepath/domain/review';
  * A `Question :: Answer` line gets a small card icon in the margin, and
  * `==words==` are marked as the words a fill-in-the-blank card hides. Only
  * the look changes: the markdown stays as written. Code is never a card, and
- * nothing is marked where there is no reviewing (a learning path's pages).
+ * nothing is marked where there is no reviewing yet (a learning path's page
+ * not studied).
  */
 
 /** A block's text as written, [[links]] included, so `::` reads as the domain reads it */

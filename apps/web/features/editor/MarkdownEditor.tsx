@@ -93,7 +93,7 @@ interface MarkdownEditorProps {
   toolbarOffset?: number;
   /** Puts the cursor in the text once it is ready: at a position, its start or its end */
   focusOnOpen?: EditorFocus | null;
-  /** Marks review cards (`::` lines, `==cloze==`): a study's pages have them, a learning path's don't */
+  /** Marks review cards (`::` lines, `==cloze==`): a study's pages have them, a learning path's once studied */
   reviewCards?: boolean;
   /** Follows the cursor, so it can be put back later */
   onCursor?: (pos: number) => void;

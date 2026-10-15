@@ -78,7 +78,7 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 
 ## Spaced review
 
-Reviewing belongs to a **Study**: a Learning path's pages have no cards (their `::` lines stay plain text, and come back as cards if it turns into a study). Inside a study, **Review** in the map's top bar opens the review of that path alone, with how many of its cards are due today (a tick once none are).
+In a **Study** every card is reviewed. In a **Learning path** a page's cards join the review once the page is marked studied: there is nothing to remember from a page not read yet (until then its `::` lines read as plain text). **Review** in a path's map top bar opens the review of that path alone, with how many of its cards are due today (a tick once none are).
 
 Questions are written in the notes themselves, where they belong; a few minutes a day of being asked them, at growing intervals, keeps what was learned.
 

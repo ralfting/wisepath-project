@@ -78,10 +78,10 @@ describe("cards in a page", () => {
     assert.strictEqual(questions("Q? :: A\nQ? :: B").length, 1)
   })
 
-  it("finds no cards in a learning path: reviewing is a study's", () => {
-    const pages = [page("A? :: a", "1")]
-    assert.strictEqual(cardsOf({ ...path, kind: "learningPath", pages }).length, 0)
-    assert.strictEqual(cardsOf({ ...path, kind: "study", pages }).length, 1)
+  it("in a learning path, reads the cards of the pages studied only; in a study, every page's", () => {
+    const pages = [{ ...page("A? :: a", "1"), studied: false }, { ...page("B? :: b", "2"), studied: true }]
+    assert.deepStrictEqual(cardsOf({ ...path, kind: "learningPath", pages }).map((c) => c.pageId), ["2"])
+    assert.deepStrictEqual(cardsOf({ ...path, kind: "study", pages }).map((c) => c.pageId), ["1", "2"])
   })
 
   it("reads every page of a path", () => {
