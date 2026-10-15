@@ -6,6 +6,7 @@ import { Center, Stack, Text, Title } from '@mantine/core';
 import type { Project } from '@wisepath/domain/projects';
 import { useProject } from '@/useCases/projects';
 import type { ProjectActions, SaveState } from '@/useCases/projects';
+import { useT } from '@/i18n/I18nProvider';
 
 /**
  * ProjectGate
@@ -21,6 +22,7 @@ export function ProjectGate({
   children: (project: Project, actions: ProjectActions, save: SaveState) => ReactNode;
 }) {
   const { state, save, actions } = useProject(projectId);
+  const t = useT();
 
   if (state.status === 'loading') return null;
   if (state.status === 'notFound') notFound();
@@ -29,9 +31,9 @@ export function ProjectGate({
       <Center component="main" mih="100vh" p="md">
         <Stack gap="sm" align="center" maw={420} ta="center">
           <Title order={1} fz={30}>
-            Can&apos;t open this path
+            {t('home.gate.title')}
           </Title>
-          <Text c="dimmed">WisePath can&apos;t be reached right now. Reload the page to try again.</Text>
+          <Text c="dimmed">{t('home.gate.body')}</Text>
         </Stack>
       </Center>
     );

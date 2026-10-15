@@ -134,7 +134,7 @@ describe("project sync", () => {
         assert.strictEqual(page(shown.project, "guards")?.title, "Guards")
         assert.strictEqual(page(shown.project, "pipes")?.title, "Filters")
         assert.isTrue(page(shown.project, "scopes")?.studied)
-        assert.match(shown.notice ?? "", /title/)
+        assert.strictEqual(shown.notice, "titleTaken")
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 

@@ -33,12 +33,15 @@ export type Command =
   | { readonly _tag: "UpdatePage"; readonly pageId: PageId; readonly edit: PageEdit }
   | { readonly _tag: "RemovePage"; readonly pageId: PageId }
 
+/** Why a change was undone; the words are in the messages (home.save.notice) */
+export type Notice = "titleTaken" | "pageDeleted" | "rootProtected" | "notSaved"
+
 export interface SyncState {
   /** The map as the learner sees it: what the API has, plus what is still on its way */
   readonly project: Project
   readonly status: "saved" | "saving" | "offline"
   /** Why the last change was undone, until the next change */
-  readonly notice: string | null
+  readonly notice: Notice | null
 }
 
 export interface ProjectSession {
@@ -86,17 +89,17 @@ const send = (repo: ProjectRepository["Service"], projectId: ProjectId, command:
   }
 }
 
-/** What the learner is told when the API refuses a change */
-const noticeFor = (error: { readonly _tag: string }): string => {
+/** Why the API refused a change: what the learner is told (home.save.notice.* in the messages) */
+const noticeFor = (error: { readonly _tag: string }): Notice => {
   switch (error._tag) {
     case "TitleTaken":
-      return "Another page already has that title, so the change was undone."
+      return "titleTaken"
     case "PageNotFound":
-      return "That page was deleted elsewhere, so the change was undone."
+      return "pageDeleted"
     case "RootPageProtected":
-      return "The map's main page can't be changed that way."
+      return "rootProtected"
     default:
-      return "A change couldn't be saved and was undone."
+      return "notSaved"
   }
 }
 

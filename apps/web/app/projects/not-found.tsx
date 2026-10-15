@@ -1,16 +1,20 @@
+'use client';
+
 import Link from 'next/link';
 import { Anchor, Center, Stack, Text, Title } from '@mantine/core';
+import { useT } from '@/i18n/I18nProvider';
 
 export default function ProjectNotFound() {
+  const t = useT();
   return (
     <Center component="main" mih="100vh" p="md">
       <Stack gap="sm" align="center" maw={420} ta="center">
         <Title order={1} fz={30}>
-          Project not found
+          {t('home.notFound.title')}
         </Title>
-        <Text c="dimmed">This project doesn&apos;t exist or the link is wrong. Your projects are listed on the projects page.</Text>
+        <Text c="dimmed">{t('home.notFound.body')}</Text>
         <Anchor component={Link} href="/projects" fw={700}>
-          Go to your projects
+          {t('home.notFound.back')}
         </Anchor>
       </Stack>
     </Center>

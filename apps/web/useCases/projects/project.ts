@@ -6,8 +6,10 @@ import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { PageId, ProjectId, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/projects"
 import type { LinkPreview, Page, PageColor, PageIcon, Project, ProjectKind, ProjectSummary } from "@wisepath/domain/projects"
+import { useT } from "@/i18n/I18nProvider"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import { messageFor } from "../messages"
+import { useDomainMessage } from "../validation"
 import * as programs from "./programs"
 import { openProjectSession } from "./sync"
 import type { Command, ProjectSession, SyncState } from "./sync"
@@ -115,7 +117,7 @@ export type ProjectState =
 /** Whether the latest changes reached the API */
 export interface SaveState {
   readonly status: SyncState["status"]
-  /** Why a change was undone, if the API refused one */
+  /** Why a change was undone, if the API refused one, in the current language */
   readonly notice: string | null
 }
 
@@ -197,7 +199,8 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
     return () => window.removeEventListener("beforeunload", warn)
   }, [unsaved])
 
-  return { state, save: { status: sync.status, notice: sync.notice }, actions }
+  const t = useT()
+  return { state, save: { status: sync.status, notice: sync.notice && t(`home.save.notice.${sync.notice}`) }, actions }
 }
 
 /** Every map, for the list of maps and the sidebar; null until loaded */
@@ -210,22 +213,25 @@ export function useProjects(): ReadonlyArray<ProjectSummary> | null {
 /** Result of a map action: the message to show when it failed */
 export type ProjectActionResult<A> = { readonly ok: true; readonly value: A } | { readonly ok: false; readonly message: string }
 
-const unavailable = "Can't reach WisePath right now. Try again in a moment."
-
 /** Makes a new map, a study unless said otherwise; resolves to it, or to the message to show */
 export function useCreateProject(): (title: string, kind?: ProjectKind) => Promise<ProjectActionResult<Project>> {
   const run = useAtomSet(createProjectAtom, { mode: "promiseExit" })
+  const t = useT()
+  const domain = useDomainMessage()
   return async (title, kind = "study") => {
     const exit = await run({ title, kind })
     if (exit._tag === "Success") return { ok: true, value: exit.value }
-    return { ok: false, message: messageFor(exit, { ProjectsUnavailable: unavailable }) ?? unavailable }
+    const unavailable = t("common.errors.unavailable")
+    return { ok: false, message: domain(messageFor(exit, { ProjectsUnavailable: unavailable }, t("common.errors.generic"))) ?? unavailable }
   }
 }
 
 /** Deletes a map with all its pages; resolves to null, or to the message to show */
 export function useRemoveProject(): (projectId: string) => Promise<string | null> {
   const run = useAtomSet(removeProjectAtom, { mode: "promiseExit" })
-  return async (projectId) => messageFor(await run(ProjectId.make(projectId)), { ProjectsUnavailable: unavailable })
+  const t = useT()
+  return async (projectId) =>
+    messageFor(await run(ProjectId.make(projectId)), { ProjectsUnavailable: t("common.errors.unavailable") }, t("common.errors.generic"))
 }
 
 export type LinkPreviewState =
@@ -286,12 +292,17 @@ export function useLinkPreviewLoader(): (url: string) => Promise<LinkPreview | n
 export function useSetProjectKind(): (projectId: string, kind: ProjectKind) => Promise<string | null> {
   const registry = useContext(RegistryContext)
   const run = useAtomSet(setProjectKindAtom, { mode: "promiseExit" })
+  const t = useT()
   return async (projectId, kind) => {
     const id = ProjectId.make(projectId)
     if (registry.get(openedAtom).has(id)) {
       const session = registry.get(sessionAtom(id))
       if (AsyncResult.isSuccess(session) && session.value.dispatch({ _tag: "UpdateProject", edit: { kind } })) return null
     }
-    return messageFor(await run({ id, kind }), { ProjectsUnavailable: unavailable, ProjectNotFound: "This path no longer exists." })
+    return messageFor(
+      await run({ id, kind }),
+      { ProjectsUnavailable: t("common.errors.unavailable"), ProjectNotFound: t("home.errors.pathGone") },
+      t("common.errors.generic")
+    )
   }
 }

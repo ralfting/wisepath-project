@@ -1,7 +1,11 @@
 import type { Metadata } from 'next';
 import { ProjectsHome } from '@/features/projects';
+import { serverT } from '@/i18n/server';
 
-export const metadata: Metadata = { title: 'Your projects | WisePath' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await serverT();
+  return { title: t('home.meta.projects') };
+}
 
 export default function ProjectsPage() {
   return <ProjectsHome />;

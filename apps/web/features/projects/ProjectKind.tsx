@@ -4,6 +4,8 @@ import { Menu } from '@mantine/core';
 import { IconNotebook, IconRoute } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import type { PageColor, ProjectKind } from '@wisepath/domain/projects';
+import { useT } from '@/i18n/I18nProvider';
+import type { TranslationKey } from '@/i18n/I18nProvider';
 
 /**
  * ProjectKind
@@ -12,18 +14,28 @@ import type { PageColor, ProjectKind } from '@wisepath/domain/projects';
  * tracks what was studied. Switching keeps the studied marks.
  */
 
-export const KIND_OPTIONS: ReadonlyArray<{ value: ProjectKind; label: string; hint: string; icon: Icon; color: PageColor }> = [
+/** label, hint and switchTo are message keys (home.kind.*) */
+export const KIND_OPTIONS: ReadonlyArray<{
+  value: ProjectKind;
+  label: TranslationKey;
+  hint: TranslationKey;
+  switchTo: TranslationKey;
+  icon: Icon;
+  color: PageColor;
+}> = [
   {
     value: 'study',
-    label: 'Study',
-    hint: 'Create and organise pages freely. No progress to track.',
+    label: 'home.kind.study.label',
+    hint: 'home.kind.study.hint',
+    switchTo: 'home.kind.study.switchTo',
     icon: IconNotebook,
     color: 'violet',
   },
   {
     value: 'learningPath',
-    label: 'Learning path',
-    hint: 'Follow it page by page, marking what you studied.',
+    label: 'home.kind.learningPath.label',
+    hint: 'home.kind.learningPath.hint',
+    switchTo: 'home.kind.learningPath.switchTo',
     icon: IconRoute,
     color: 'teal',
   },
@@ -31,10 +43,11 @@ export const KIND_OPTIONS: ReadonlyArray<{ value: ProjectKind; label: string; hi
 
 /** The menu item that turns a path into the other kind */
 export function KindSwitchItem({ kind, onSwitch }: { kind: ProjectKind; onSwitch: (kind: ProjectKind) => void }) {
+  const t = useT();
   const other = KIND_OPTIONS.find((o) => o.value !== kind)!;
   return (
     <Menu.Item leftSection={<other.icon size={15} />} onClick={() => onSwitch(other.value)}>
-      Turn into {other.value === 'study' ? 'study' : 'learning path'}
+      {t(other.switchTo)}
     </Menu.Item>
   );
 }

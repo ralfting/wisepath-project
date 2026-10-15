@@ -5,8 +5,10 @@ import { AsyncResult, Atom } from "effect/reactivity"
 import { useAtomSet, useAtomValue } from "@effect/atom-react"
 import { Credentials, SignupDetails } from "@wisepath/domain/auth"
 import type { User } from "@wisepath/domain/auth"
+import { useT } from "@/i18n/I18nProvider"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import { messageFor } from "../messages"
+import { useDomainMessage } from "../validation"
 import * as programs from "./programs"
 
 /**
@@ -43,21 +45,31 @@ export type ActionError = string | null
 /** Logs in; resolves to null on success or a message to show */
 export function useLogin(): (input: { email: string; password: string }) => Promise<ActionError> {
   const run = useAtomSet(loginAtom, { mode: "promiseExit" })
+  const t = useT()
+  const domain = useDomainMessage()
   return async (input) =>
-    messageFor(await run(input), {
-      InvalidCredentials: "Email or password is incorrect.",
-      AuthUnavailable: "Can't reach WisePath right now. Try again in a moment."
-    })
+    domain(
+      messageFor(
+        await run(input),
+        { InvalidCredentials: t("auth.errors.invalidCredentials"), AuthUnavailable: t("common.errors.unavailable") },
+        t("common.errors.generic")
+      )
+    )
 }
 
 /** Creates an account; resolves to null on success or a message to show */
 export function useSignup(): (input: { name: string; email: string; password: string }) => Promise<ActionError> {
   const run = useAtomSet(signupAtom, { mode: "promiseExit" })
+  const t = useT()
+  const domain = useDomainMessage()
   return async (input) =>
-    messageFor(await run(input), {
-      EmailAlreadyRegistered: "An account with this email already exists. Log in instead.",
-      AuthUnavailable: "Can't reach WisePath right now. Try again in a moment."
-    })
+    domain(
+      messageFor(
+        await run(input),
+        { EmailAlreadyRegistered: t("auth.errors.emailTaken"), AuthUnavailable: t("common.errors.unavailable") },
+        t("common.errors.generic")
+      )
+    )
 }
 
 /** Logs out; failures are ignored because the session is dropped either way */

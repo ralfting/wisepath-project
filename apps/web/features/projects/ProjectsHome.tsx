@@ -12,6 +12,7 @@ import { KIND_OPTIONS, KindSwitchItem } from './ProjectKind';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { mapHref, mapWithPageHref } from '@/features/shared/routes';
+import { useT } from '@/i18n/I18nProvider';
 import classes from './ProjectsHome.module.css';
 
 /**
@@ -22,6 +23,7 @@ import classes from './ProjectsHome.module.css';
  */
 export function ProjectsHome() {
   const projects = useProjects();
+  const t = useT();
   const [creating, setCreating] = useState(false);
   const [query, setQuery] = useState('');
 
@@ -31,21 +33,21 @@ export function ProjectsHome() {
   );
 
   return (
-    <AppFrame crumbs={[{ label: 'My paths' }]}>
+    <AppFrame crumbs={[{ label: t('home.title') }]}>
       <Stack gap="xl" px={{ base: 'md', sm: 'xl' }} pb="xl" maw={1200}>
         <Group justify="space-between" align="flex-end" gap="md">
           <Stack gap={4}>
             <Title order={1} fz={34} lts={-0.6}>
-              My paths
+              {t('home.title')}
             </Title>
-            <Text c="dimmed">Each path is a subject you are learning, page by page, connected by the links you write.</Text>
+            <Text c="dimmed">{t('home.intro')}</Text>
           </Stack>
           <Group gap="sm" wrap="nowrap">
             {projects && projects.length > 0 && (
               <TextInput
                 type="search"
-                placeholder="Search paths"
-                aria-label="Search paths"
+                placeholder={t('home.search')}
+                aria-label={t('home.search')}
                 leftSection={<IconSearch size={16} />}
                 value={query}
                 onChange={(e) => setQuery(e.currentTarget.value)}
@@ -54,15 +56,15 @@ export function ProjectsHome() {
               />
             )}
             <Button leftSection={<IconPlus size={16} />} onClick={() => setCreating(true)} style={{ flexShrink: 0 }}>
-              New path
+              {t('home.newPath')}
             </Button>
           </Group>
         </Group>
 
         {projects === null ? null : projects.length === 0 ? (
-          <Text c="dimmed">No paths yet. Start one with New path.</Text>
+          <Text c="dimmed">{t('home.empty')}</Text>
         ) : shown.length === 0 ? (
-          <Text c="dimmed">No paths match &ldquo;{query.trim()}&rdquo;.</Text>
+          <Text c="dimmed">{t('home.noMatch', { query: query.trim() })}</Text>
         ) : (
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
             {shown.map((project) => (
@@ -81,6 +83,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
   const [deleting, setDeleting] = useState(false);
   const [kindError, setKindError] = useState<string | null>(null);
   const setKind = useSetProjectKind();
+  const t = useT();
   const href = mapHref(project.id);
   // A study shows its size only: no progress, nothing to continue; the whole card opens it
   const progress = project.kind === 'learningPath';
@@ -97,14 +100,14 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
               {project.title}
             </Text>
             <Text size="sm" c="dimmed">
-              {total} {total === 1 ? 'page' : 'pages'}
-              {modules > 0 ? ` · ${modules} ${modules === 1 ? 'module' : 'modules'}` : ''}
-              {orphans > 0 ? ` · ${orphans} orphan${orphans === 1 ? '' : 's'}` : ''}
+              {t('home.card.pages', { count: total })}
+              {modules > 0 ? ` · ${t('home.card.modules', { count: modules })}` : ''}
+              {orphans > 0 ? ` · ${t('home.card.orphans', { count: orphans })}` : ''}
             </Text>
           </Stack>
           <Menu position="bottom-end">
             <Menu.Target>
-              <ActionIcon variant="subtle" color="gray" aria-label={`More for ${project.title}`} className={classes.action}>
+              <ActionIcon variant="subtle" color="gray" aria-label={t('home.card.more', { title: project.title })} className={classes.action}>
                 <IconDotsVertical size={18} />
               </ActionIcon>
             </Menu.Target>
@@ -112,7 +115,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
               <KindSwitchItem kind={project.kind} onSwitch={async (kind) => setKindError(await setKind(project.id, kind))} />
               <Menu.Divider />
               <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setDeleting(true)}>
-                Delete path
+                {t('home.card.delete')}
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
@@ -131,14 +134,14 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
           <>
             <Stack gap={6} mt="auto">
               <Group gap="sm" wrap="nowrap">
-                <Progress value={total ? (studied / total) * 100 : 0} size="md" style={{ flex: 1 }} classNames={{ section: classes.progress }} aria-label={`Progress in ${project.title}`} />
+                <Progress value={total ? (studied / total) * 100 : 0} size="md" style={{ flex: 1 }} classNames={{ section: classes.progress }} aria-label={t('home.card.progress', { title: project.title })} />
                 <Text fw={700} size="sm">
                   {total ? Math.round((studied / total) * 100) : 0}%
                 </Text>
               </Group>
               <Text size="xs" c="dimmed" truncate>
-                {studied} of {total} pages studied
-                {next ? ` · Next: ${next.title}` : ''}
+                {t('home.card.studied', { studied, count: total })}
+                {next ? ` · ${t('home.card.next', { title: next.title })}` : ''}
               </Text>
             </Stack>
             <Button
@@ -148,7 +151,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
               variant={next ? 'filled' : 'light'}
               className={classes.action}
             >
-              {!next ? 'Open path' : studied === 0 ? 'Start studying' : 'Continue studying'}
+              {t(!next ? 'home.card.open' : studied === 0 ? 'home.card.start' : 'home.card.continue')}
             </Button>
           </>
         )}
@@ -162,6 +165,7 @@ function ProjectCard({ project }: { project: ProjectSummary }) {
 function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
   const router = useRouter();
   const create = useCreateProject();
+  const t = useT();
   const [title, setTitle] = useState('');
   const [kind, setKind] = useState<ProjectKind>('study');
   const [error, setError] = useState<string | null>(null);
@@ -176,7 +180,7 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!title.trim()) return setError('Give the path a name');
+    if (!title.trim()) return setError(t('home.create.nameRequired'));
     setBusy(true);
     const result = await create(title, kind);
     setBusy(false);
@@ -187,12 +191,12 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
   };
 
   return (
-    <Modal opened={opened} onClose={close} title="New path" centered radius="lg" size="md">
+    <Modal opened={opened} onClose={close} title={t('home.create.title')} centered radius="lg" size="md" closeButtonProps={{ 'aria-label': t('common.actions.close') }}>
       <form onSubmit={submit} noValidate>
         <TextInput
-          label="What are you learning?"
-          description="The path's main page takes this name. Add pages to it by typing / and choosing Page."
-          placeholder="Rust, Linear algebra, Japanese…"
+          label={t('home.create.name')}
+          description={t('home.create.nameHint')}
+          placeholder={t('home.create.namePlaceholder')}
           value={title}
           onChange={(e) => {
             setTitle(e.currentTarget.value);
@@ -202,7 +206,7 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
           maxLength={200}
           data-autofocus
         />
-        <Radio.Group value={kind} onChange={(v) => setKind(v as ProjectKind)} label="What kind of path?" description="You can switch it later from the path's menu." mt="lg">
+        <Radio.Group value={kind} onChange={(v) => setKind(v as ProjectKind)} label={t('home.create.kind')} description={t('home.create.kindHint')} mt="lg">
           <Stack gap="xs" mt="xs">
             {KIND_OPTIONS.map((option) => (
               <Radio.Card key={option.value} value={option.value} radius="md" p="sm" className={classes.kindCard}>
@@ -213,10 +217,10 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
                   </ThemeIcon>
                   <div>
                     <Text fw={600} size="sm">
-                      {option.label}
+                      {t(option.label)}
                     </Text>
                     <Text size="xs" c="dimmed">
-                      {option.hint}
+                      {t(option.hint)}
                     </Text>
                   </div>
                 </Group>
@@ -226,10 +230,10 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
         </Radio.Group>
         <Group justify="flex-end" gap="sm" mt="lg">
           <Button variant="default" onClick={close}>
-            Cancel
+            {t('common.actions.cancel')}
           </Button>
           <Button type="submit" loading={busy}>
-            Create path
+            {t('home.create.submit')}
           </Button>
         </Group>
       </form>
@@ -239,6 +243,7 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
 
 function DeleteMapModal({ opened, project, onClose }: { opened: boolean; project: ProjectSummary; onClose: () => void }) {
   const remove = useRemoveProject();
+  const t = useT();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -251,10 +256,9 @@ function DeleteMapModal({ opened, project, onClose }: { opened: boolean; project
   };
 
   return (
-    <Modal opened={opened} onClose={onClose} title="Delete path?" centered radius="lg" size="md">
+    <Modal opened={opened} onClose={onClose} title={t('home.delete.title')} centered radius="lg" size="md" closeButtonProps={{ 'aria-label': t('common.actions.close') }}>
       <Text size="sm">
-        <b>{project.title}</b> and its {project.total + 1} pages will be deleted, with what you marked as studied. This
-        can&apos;t be undone.
+        <b>{project.title}</b> {t('home.delete.body', { count: project.total + 1 })}
       </Text>
       {error && (
         <Text size="sm" c="red.7" mt="sm">
@@ -263,10 +267,10 @@ function DeleteMapModal({ opened, project, onClose }: { opened: boolean; project
       )}
       <Group justify="flex-end" gap="sm" mt="lg">
         <Button variant="default" onClick={onClose} data-autofocus>
-          Keep it
+          {t('home.delete.keep')}
         </Button>
         <Button color="red" onClick={confirm} loading={busy}>
-          Delete path
+          {t('home.delete.confirm')}
         </Button>
       </Group>
     </Modal>

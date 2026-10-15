@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { Button, Center, Group, Stack, Text, Title } from '@mantine/core';
+import { useT } from '@/i18n/I18nProvider';
 
 export default function Home() {
+  const t = useT();
   return (
     <Center component="main" mih="100vh" p="md">
       <Stack align="center" gap="lg">
@@ -9,14 +13,14 @@ export default function Home() {
           WisePath
         </Title>
         <Text size="lg" c="dimmed" ta="center">
-          Map what you are learning, page by page, down to &ldquo;Now I know it&rdquo;.
+          {t('auth.landing.tagline')}
         </Text>
         <Group>
           <Button component={Link} href="/login">
-            Log in
+            {t('auth.landing.logIn')}
           </Button>
           <Button component={Link} href="/signup" variant="default">
-            Sign up
+            {t('auth.landing.signUp')}
           </Button>
         </Group>
       </Stack>

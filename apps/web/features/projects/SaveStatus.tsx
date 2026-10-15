@@ -3,6 +3,7 @@
 import { Group, Loader, Text, Tooltip } from '@mantine/core';
 import { IconAlertTriangle, IconCloudCheck, IconCloudOff } from '@tabler/icons-react';
 import type { SaveState } from '@/useCases/projects';
+import { useT } from '@/i18n/I18nProvider';
 
 /**
  * SaveStatus
@@ -11,13 +12,14 @@ import type { SaveState } from '@/useCases/projects';
  * refused and undone, it says why instead.
  */
 export function SaveStatus({ save, hideSaved = false }: { save: SaveState; hideSaved?: boolean }) {
+  const t = useT();
   if (save.notice) {
     return (
       <Tooltip label={save.notice} multiline w={260}>
         <Group gap={6} wrap="nowrap" c="red.7" role="status">
           <IconAlertTriangle size={16} aria-hidden="true" />
           <Text size="sm" fw={500} truncate>
-            Change undone
+            {t('home.save.undone')}
           </Text>
         </Group>
       </Tooltip>
@@ -25,11 +27,11 @@ export function SaveStatus({ save, hideSaved = false }: { save: SaveState; hideS
   }
   if (save.status === 'offline') {
     return (
-      <Tooltip label="Your changes are kept here and will be saved as soon as WisePath can be reached." multiline w={260}>
+      <Tooltip label={t('home.save.offlineHint')} multiline w={260}>
         <Group gap={6} wrap="nowrap" c="orange.8" role="status">
           <IconCloudOff size={16} aria-hidden="true" />
           <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
-            Offline · retrying
+            {t('home.save.offline')}
           </Text>
         </Group>
       </Tooltip>
@@ -40,7 +42,7 @@ export function SaveStatus({ save, hideSaved = false }: { save: SaveState; hideS
       <Group gap={6} wrap="nowrap" c="dimmed" role="status">
         <Loader size={12} color="gray" />
         <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
-          Saving…
+          {t('home.save.saving')}
         </Text>
       </Group>
     );
@@ -50,7 +52,7 @@ export function SaveStatus({ save, hideSaved = false }: { save: SaveState; hideS
     <Group gap={6} wrap="nowrap" c="dimmed" role="status">
       <IconCloudCheck size={16} aria-hidden="true" />
       <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
-        Saved
+        {t('home.save.saved')}
       </Text>
     </Group>
   );

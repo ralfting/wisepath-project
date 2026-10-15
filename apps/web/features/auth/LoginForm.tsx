@@ -6,12 +6,16 @@ import Link from 'next/link';
 import { useForm } from '@tanstack/react-form';
 import { Alert, Anchor, Button, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
 import { loginFormSchema, useLogin } from '@/useCases/auth';
+import { useDomainMessage } from '@/useCases/validation';
+import { useT } from '@/i18n/I18nProvider';
 import { fieldError } from '../shared/fieldError';
 
 /** Log in with email and password, then go to the projects page */
 export function LoginForm() {
   const router = useRouter();
   const login = useLogin();
+  const t = useT();
+  const domain = useDomainMessage();
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm({
@@ -29,10 +33,10 @@ export function LoginForm() {
     <Paper withBorder p="xl" w="100%" maw={380}>
       <Stack gap={4} mb="lg">
         <Title order={1} size="h2">
-          Log in
+          {t('auth.login.title')}
         </Title>
         <Text c="dimmed" size="sm">
-          Enter your email and password to continue to your projects.
+          {t('auth.login.intro')}
         </Text>
       </Stack>
       <form
@@ -51,13 +55,13 @@ export function LoginForm() {
           <form.Field name="email">
             {(field) => (
               <TextInput
-                label="Email"
+                label={t('auth.fields.email')}
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t('auth.fields.emailPlaceholder')}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.currentTarget.value)}
                 onBlur={field.handleBlur}
-                error={fieldError(field.state.meta.errors)}
+                error={domain(fieldError(field.state.meta.errors))}
                 required
               />
             )}
@@ -65,12 +69,12 @@ export function LoginForm() {
           <form.Field name="password">
             {(field) => (
               <PasswordInput
-                label="Password"
-                placeholder="Your password"
+                label={t('auth.fields.password')}
+                placeholder={t('auth.login.passwordPlaceholder')}
                 value={field.state.value}
                 onChange={(e) => field.handleChange(e.currentTarget.value)}
                 onBlur={field.handleBlur}
-                error={fieldError(field.state.meta.errors)}
+                error={domain(fieldError(field.state.meta.errors))}
                 required
               />
             )}
@@ -78,16 +82,16 @@ export function LoginForm() {
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
               <Button type="submit" fullWidth loading={isSubmitting}>
-                Log in
+                {t('auth.login.submit')}
               </Button>
             )}
           </form.Subscribe>
         </Stack>
       </form>
       <Text size="sm" ta="center" mt="lg">
-        Don&apos;t have an account?{' '}
+        {t('auth.login.noAccount')}{' '}
         <Anchor component={Link} href="/signup" fw={700}>
-          Sign up
+          {t('auth.login.signUp')}
         </Anchor>
       </Text>
     </Paper>
