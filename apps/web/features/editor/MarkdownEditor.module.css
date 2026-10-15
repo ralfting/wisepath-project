@@ -427,12 +427,13 @@
 .content :global(.ProseMirror .wp-card-line)::before {
   content: '';
   position: absolute;
-  left: -30px;
-  width: 14px;
+  /* Inside the drawer's narrow margin too (about 21px), just left of the writing bar */
+  left: -21px;
+  width: 12px;
   height: 1.65em;
   background: var(--mantine-color-dimmed);
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.604 7.197l7.138 -3.109a.96 .96 0 0 1 1.27 .527l4.924 11.902a1 1 0 0 1 -.514 1.304l-7.137 3.109a.96 .96 0 0 1 -1.271 -.527l-4.924 -11.903a1 1 0 0 1 .514 -1.304z'/%3E%3Cpath d='M15 4h1a1 1 0 0 1 1 1v3.5'/%3E%3Cpath d='M20 6c.264 .112 .52 .217 .768 .315a1 1 0 0 1 .53 1.311l-2.298 5.374'/%3E%3C/svg%3E")
-    center / 14px no-repeat;
+    center / 12px no-repeat;
   pointer-events: none;
 }
 
