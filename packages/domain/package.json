@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./auth": "./src/auth/index.ts",
-    "./projects": "./src/projects/index.ts"
+    "./projects": "./src/projects/index.ts",
+    "./review": "./src/review/index.ts"
   },
   "scripts": {
     "test": "vitest run",
