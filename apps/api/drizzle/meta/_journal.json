@@ -36,6 +36,13 @@
       "when": 1792093104399,
       "tag": "0004_search",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792093683605,
+      "tag": "0005_inbox",
+      "breakpoints": true
     }
   ]
 }
