@@ -4,7 +4,6 @@ export const common = {
   untitledPage: 'Untitled page',
   language: {
     menu: 'Language',
-    sameAsBrowser: 'Same as the browser',
     current: '{name}, in use',
   },
   actions: {

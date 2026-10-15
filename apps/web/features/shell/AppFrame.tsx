@@ -44,6 +44,7 @@ import {
 import { useLogout, useSaveLocale, useSession } from '@/useCases/auth';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { LOCALES, LOCALE_NAMES } from '@/i18n/locales';
+import { Flag } from '@/i18n/Flag';
 import type { Locale } from '@/i18n/locales';
 import { useProjects } from '@/useCases/projects';
 import { useReviewCounts } from '@/useCases/review';
@@ -504,7 +505,7 @@ function AccountMenu() {
   const session = useSession();
   const logout = useLogout();
   const t = useT();
-  const { choice, setChoice } = useLocale();
+  const { locale, setChoice } = useLocale();
   const saveLocale = useSaveLocale();
   // Changes at once here, and on the account for every other device
   const pick = (next: Locale | null) => {
@@ -540,27 +541,33 @@ function AccountMenu() {
         </UnstyledButton>
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Label>
-          <Group gap={6} wrap="nowrap">
-            <IconLanguage size={14} />
-            {t('common.language.menu')}
-          </Group>
-        </Menu.Label>
-        {[null, ...LOCALES].map((option) => {
-          const name = option === null ? t('common.language.sameAsBrowser') : LOCALE_NAMES[option];
-          // Menu items can't be checked: the one in use says so in its name, and wears a tick
-          return (
-            <Menu.Item
-              key={option ?? 'browser'}
-              onClick={() => pick(option)}
-              rightSection={option === choice ? <IconCheck size={14} aria-hidden /> : null}
-              aria-label={option === choice ? t('common.language.current', { name }) : name}
-              data-locale-option={option ?? 'browser'}
-            >
-              {name}
-            </Menu.Item>
-          );
-        })}
+        {/* The language in a submenu: the one in use shows on the item, the two to pick from open beside it */}
+        <Menu.Sub position="right-start" offset={4}>
+          <Menu.Sub.Target>
+            <Menu.Sub.Item leftSection={<IconLanguage size={16} />} rightSection={<Flag locale={locale} size={16} />}>
+              {t('common.language.menu')}
+            </Menu.Sub.Item>
+          </Menu.Sub.Target>
+          <Menu.Sub.Dropdown>
+            {LOCALES.map((option) => {
+              const inUse = option === locale;
+              const name = LOCALE_NAMES[option];
+              return (
+                <Menu.Item
+                  key={option}
+                  onClick={() => pick(option)}
+                  leftSection={<Flag locale={option} />}
+                  rightSection={inUse ? <IconCheck size={14} aria-hidden /> : null}
+                  // Menu items can't be checked: the one in use says so in its name, and wears a tick
+                  aria-label={inUse ? t('common.language.current', { name }) : name}
+                  data-locale-option={option}
+                >
+                  {name}
+                </Menu.Item>
+              );
+            })}
+          </Menu.Sub.Dropdown>
+        </Menu.Sub>
         <Menu.Divider />
         <Menu.Item component={Link} href="/settings/capture" leftSection={<IconBookmark size={16} />}>
           {t('capture.settings.menu')}

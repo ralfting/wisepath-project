@@ -6,7 +6,6 @@ export const common = {
   untitledPage: 'Página sem título',
   language: {
     menu: 'Idioma',
-    sameAsBrowser: 'Igual ao navegador',
     current: '{name}, em uso',
   },
   actions: {
