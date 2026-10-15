@@ -37,7 +37,7 @@ import {
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, MouseEvent } from 'react';
+import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
 import { findPageByTitle } from '@wisepath/domain/projects';
 import { ActiveBlockRail, BlockKeys, BulletToChecklist, LinkKeys, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
 import type { PageLinkItem, PageLinkPickerState, SlashCommand, SlashMenuState } from './extensions';
@@ -693,6 +693,7 @@ const unfold: MantineTransition = {
  * dash per heading, longer for higher levels, the one being read in blue. It
  * stays in view while the text scrolls. Hovering (or a tap) opens the
  * headings by name; a click scrolls to one and puts the cursor at its end.
+ * From the keyboard, Enter or ↓ on the dashes goes into the list.
  */
 function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray<Heading> }) {
   const [open, setOpen] = useState(false);
@@ -729,6 +730,42 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
     };
   }, [editor, headings]);
 
+  // From the keyboard: Enter or ↓ on the dashes goes into the list, at the heading being read; ↑ ↓ Home End move
+  // through it, Esc closes it and leaves the focus on the dashes
+  const dashesRef = useRef<HTMLButtonElement>(null);
+  const items = () => [...(railRef.current?.querySelectorAll<HTMLElement>('[data-outline-item]') ?? [])];
+  const enterList = () => {
+    setOpen(true);
+    // The list is there once the panel has started to unfold
+    let tries = 0;
+    const focus = () => {
+      const list = items();
+      const target = list[active] ?? list[0];
+      if (target) target.focus();
+      else if (tries++ < 10) setTimeout(focus, 30);
+    };
+    setTimeout(focus, 0);
+  };
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    const list = items();
+    const at = list.indexOf(document.activeElement as HTMLElement);
+    if (event.key === 'Escape' && open) {
+      event.stopPropagation();
+      if (at >= 0) dashesRef.current?.focus();
+      setOpen(false);
+    } else if (at < 0) {
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      enterList();
+    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      list[(at + (event.key === 'ArrowDown' ? 1 : -1) + list.length) % list.length].focus();
+    } else if (event.key === 'Home' || event.key === 'End') {
+      list[event.key === 'Home' ? 0 : list.length - 1].focus();
+    } else {
+      return;
+    }
+    event.preventDefault();
+  };
+
   const go = (heading: Heading) => {
     const node = editor.state.doc.nodeAt(heading.pos);
     if (!node) return;
@@ -746,15 +783,19 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
         data-open={open || undefined}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
+        // Opened by the focus coming in, not by it moving back to the dashes from the list
+        onFocus={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setOpen(true)}
+        onKeyDown={onKeyDown}
         onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node) && setOpen(false)}
       >
         <button
+          ref={dashesRef}
           type="button"
           className={classes.outlineDashes}
           // A tap also fires mouseenter and focus, which open the panel first: toggle from how it was before the touch
           onPointerDown={() => (openBefore.current = open)}
-          onClick={(e) => setOpen(e.detail === 0 ? (o) => !o : !openBefore.current)}
+          // Enter or Space: into the list (the focus has opened it already)
+          onClick={(e) => (e.detail === 0 ? enterList() : setOpen(!openBefore.current))}
           aria-label="Contents"
           aria-expanded={open}
         >
@@ -773,6 +814,7 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
                   {headings.map((h, i) => (
                     <li key={h.pos}>
                       <UnstyledButton
+                        data-outline-item
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => go(h)}
                         className={classes.outlineItem}
