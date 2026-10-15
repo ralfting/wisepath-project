@@ -44,7 +44,7 @@ export const capture = {
     },
     bookmarklet: 'Enviar ao WisePath',
     dragHint: 'Arraste para a barra de favoritos. Funciona em outros sites, não aqui.',
-    video: 'No YouTube, guarda o momento em que o vídeo está. Arquivado numa página que tem o vídeo, vira uma nota embaixo dele, como {example}.',
+    video: 'No YouTube, guarda o momento em que o vídeo está. Arquivado numa página que tem o vídeo, vira uma nota embaixo dele:',
     copy: {
       intro: 'Não consegue arrastar? Copie o endereço, crie um favorito à mão e cole como endereço dele.',
       button: 'Copiar o endereço',

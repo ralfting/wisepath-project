@@ -41,7 +41,7 @@ export const capture = {
     },
     bookmarklet: 'Send to WisePath',
     dragHint: 'Drag it to the bookmarks bar. It works from other sites, not here.',
-    video: 'On YouTube it keeps the moment the video is at. Filed into a page that has the video, it becomes a note under it, like {example}.',
+    video: 'On YouTube it keeps the moment the video is at. Filed into a page that has the video, it becomes a note under it:',
     copy: {
       intro: "Can't drag it? Copy its address, add a bookmark by hand and paste it as the bookmark's address.",
       button: 'Copy the address',

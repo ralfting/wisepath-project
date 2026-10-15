@@ -33,6 +33,7 @@ import {
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconCards,
+  IconBookmark,
   IconCheck,
   IconLanguage,
   IconLogout,
@@ -561,6 +562,9 @@ function AccountMenu() {
           );
         })}
         <Menu.Divider />
+        <Menu.Item component={Link} href="/settings/capture" leftSection={<IconBookmark size={16} />}>
+          {t('capture.settings.menu')}
+        </Menu.Item>
         <Menu.Item leftSection={<IconLogout size={16} />} onClick={onLogout}>
           {t('shell.account.logout')}
         </Menu.Item>
