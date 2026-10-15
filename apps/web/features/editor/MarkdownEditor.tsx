@@ -54,6 +54,7 @@ import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { editor as editorMessages } from '@/i18n/messages/en/editor';
 import { VideoBlock } from './video/VideoBlock';
 import { Timestamp, timestampLabels } from './video/timestamps';
+import { PageTemplates, goToEmptySection, templateIcon, templateSections, templateSlashCommands } from './templates/PageTemplates';
 
 /**
  * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,
@@ -250,16 +251,20 @@ export function MarkdownEditor({
         onState: setPicker,
       }),
       SlashCommands.configure({
-        commands: () =>
-          SLASH_COMMANDS.map(({ id, message, hint, run }) => ({
+        commands: () => [
+          ...SLASH_COMMANDS.map(({ id, message, hint, run }) => ({
             id,
             label: latest.current.t(`editor.slash.${message}.label`),
             hint: 'syntax' in hint ? hint.syntax : latest.current.t(hint.message),
             keywords: latest.current.t(`editor.slash.${message}.keywords`),
             run: run ?? askPageName,
           })),
+          ...templateSlashCommands(latest.current.t),
+        ],
         onState: setSlash,
       }),
+      // Templates: the empty page's row, the sections' hints and ⌘↓ to the next empty one
+      PageTemplates.configure({ t: () => latest.current.t }),
     ],
     content,
     editorProps: {
@@ -299,6 +304,8 @@ export function MarkdownEditor({
   useEffect(() => {
     const at = focusOnOpenRef.current;
     if (!editor || at === null) return;
+    // A page laid out from a template opens in its first empty section, unless a place in it was remembered
+    if (typeof at !== 'number' && goToEmptySection(editor, 'first')) return;
     editor.commands.focus(typeof at === 'number' ? Math.min(at, editor.state.doc.content.size) : at);
   }, [editor]);
 
@@ -607,7 +614,8 @@ export function MarkdownEditor({
             style={placeNear(slash.rect, 320, slash.items.length * 36 + 10)}
           >
             {slash.items.map((command, i) => {
-              const CommandIcon = SLASH_COMMANDS.find((c) => c.id === command.id)?.icon ?? IconFilePlus;
+              const template = templateSlashCommands(t).find((c) => c.id === command.id)?.template;
+              const CommandIcon = template ? templateIcon(template) : (SLASH_COMMANDS.find((c) => c.id === command.id)?.icon ?? IconFilePlus);
               return (
                 <UnstyledButton
                   key={command.id}
@@ -741,14 +749,17 @@ interface Heading {
   text: string;
   /** Where it starts in the document */
   pos: number;
+  /** For a template's section: whether anything is written in it */
+  section?: 'empty' | 'written';
 }
 
 function headingsOf(editor: Editor): Heading[] {
   const found: Heading[] = [];
+  const sections = new Map(templateSections(editor.state.doc).map((s) => [s.pos, s.empty ? 'empty' : 'written'] as const));
   editor.state.doc.descendants((node, pos) => {
     if (node.type.name === 'heading') {
       const text = node.textContent.trim();
-      if (text) found.push({ level: node.attrs.level as number, text, pos });
+      if (text) found.push({ level: node.attrs.level as number, text, pos, section: sections.get(pos) });
       return false;
     }
     return node.type.name !== 'codeBlock';
@@ -758,7 +769,7 @@ function headingsOf(editor: Editor): Heading[] {
 
 /** Keeps the same list while only positions move, so typing elsewhere does not redraw the outline */
 function sameHeadings(current: ReadonlyArray<Heading>, next: Heading[]): ReadonlyArray<Heading> {
-  const same = current.length === next.length && current.every((h, i) => h.level === next[i].level && h.text === next[i].text && h.pos === next[i].pos);
+  const same = current.length === next.length && current.every((h, i) => h.level === next[i].level && h.text === next[i].text && h.pos === next[i].pos && h.section === next[i].section);
   return same ? current : next;
 }
 
@@ -805,8 +816,9 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
       const edge = (scroller instanceof Window ? 0 : scroller.getBoundingClientRect().top) + 80;
       let current = 0;
       headings.forEach((h, i) => {
-        const dom = editor.view.nodeDOM(h.pos) as HTMLElement | null;
-        if (dom && dom.getBoundingClientRect().top <= edge) current = i;
+        // Read between a change to the text and the headings that follow it, a position can land on something else
+        const dom = editor.view.nodeDOM(h.pos);
+        if (dom instanceof HTMLElement && dom.getBoundingClientRect().top <= edge) current = i;
       });
       setActive(current);
     };
@@ -891,7 +903,13 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
           aria-expanded={open}
         >
           {headings.map((h, i) => (
-            <span key={h.pos} className={classes.outlineDash} data-level={Math.min(h.level - top, 2)} data-active={i === active || undefined} />
+            <span
+              key={h.pos}
+              className={classes.outlineDash}
+              data-level={Math.min(h.level - top, 2)}
+              data-active={i === active || undefined}
+              data-section={h.section}
+            />
           ))}
         </button>
         <Transition mounted={open} transition={unfold} duration={reduceMotion ? 0 : 140} exitDuration={reduceMotion ? 0 : 90} timingFunction="ease-out">
@@ -912,6 +930,8 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
                         data-level={Math.min(h.level - top, 2)}
                         data-active={i === active || undefined}
                         aria-current={i === active ? 'location' : undefined}
+                        data-section={h.section}
+                        aria-label={h.section === 'empty' ? t('templates.outline.empty', { heading: h.text }) : undefined}
                         title={h.text}
                       >
                         <span className={classes.outlineText}>{h.text}</span>

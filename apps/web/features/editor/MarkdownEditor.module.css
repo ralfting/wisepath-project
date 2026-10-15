@@ -231,6 +231,12 @@
   }
 }
 
+/* A template's section with nothing written in it yet: a fainter, shorter dash */
+.outlineDash[data-section='empty']:not([data-active]) {
+  width: 10px;
+  background: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
 /* Opens just left of the rail, top-aligned with it, so it reads as the rail unfolding (Notion).
    Its transparent right padding bridges the gap, so the pointer can cross it without the panel closing. */
 .outlinePop {
@@ -329,6 +335,26 @@
     &::before {
       background: var(--mantine-color-blue-6);
     }
+  }
+}
+
+/* A template's sections say whether they are written: a ring for an empty one, a dot for a written one */
+.outlineItem[data-section] {
+  padding-right: 22px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: 9px;
+    top: 10px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    border: 1.5px solid light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  }
+
+  &[data-section='written']::after {
+    background: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
   }
 }
 
