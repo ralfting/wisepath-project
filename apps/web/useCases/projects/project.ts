@@ -4,6 +4,7 @@ import { useCallback, useContext, useEffect, useMemo, useSyncExternalStore } fro
 import { Cause, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
+import type { AtomRegistry } from "effect/reactivity"
 import { PageId, ProjectId, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/projects"
 import type { LinkPreview, Page, PageColor, PageIcon, Project, ProjectKind, ProjectSummary } from "@wisepath/domain/projects"
 import { useT } from "@/i18n/I18nProvider"
@@ -305,4 +306,61 @@ export function useSetProjectKind(): (projectId: string, kind: ProjectKind) => P
       t("common.errors.generic")
     )
   }
+}
+
+/** Resolves with an atom's first settled value: its success, or null when it fails */
+function settledValue<A>(registry: AtomRegistry.AtomRegistry, atom: Atom.Atom<AsyncResult.AsyncResult<A, unknown>>): Promise<A | null> {
+  return new Promise((resolve) => {
+    let settled = false
+    let stop = () => {}
+    stop = registry.subscribe(atom, (result) => {
+      if (settled || AsyncResult.isInitial(result) || result.waiting) return
+      settled = true
+      resolve(AsyncResult.isSuccess(result) ? result.value : null)
+      queueMicrotask(stop)
+    }, { immediate: true })
+    if (settled) stop()
+  })
+}
+
+/** A map changed from outside its own screen (filing from the Inbox), through the same session as the map */
+export interface OpenProject {
+  /** The map as it is now, with the changes on their way */
+  readonly project: () => Project
+  /** Applies a change right away and sends it; false when it can't apply */
+  readonly dispatch: (command: Command) => boolean
+  /** Resolves once every change so far reached the API: true, or false when the API refused one */
+  readonly saved: () => Promise<boolean>
+}
+
+/** Opens any of the learner's maps for changes, loading it when it isn't open; null when it can't be loaded */
+export function useOpenProject(): (projectId: string) => Promise<OpenProject | null> {
+  const registry = useContext(RegistryContext)
+  return useCallback(
+    async (projectId) => {
+      const id = ProjectId.make(projectId)
+      const session = await settledValue(registry, sessionAtom(id))
+      if (!session) return null
+      const opened = registry.get(openedAtom)
+      if (!opened.has(id)) registry.set(openedAtom, new Set([...opened, id]))
+      const state = stateAtomOf(session)
+      return {
+        project: () => registry.get(state).project,
+        dispatch: session.dispatch,
+        saved: () =>
+          new Promise<boolean>((resolve) => {
+            let done = false
+            let stop = () => {}
+            stop = registry.subscribe(state, (sync) => {
+              if (done || sync.status !== "saved") return
+              done = true
+              resolve(sync.notice === null)
+              queueMicrotask(stop)
+            }, { immediate: true })
+            if (done) stop()
+          })
+      }
+    },
+    [registry]
+  )
 }

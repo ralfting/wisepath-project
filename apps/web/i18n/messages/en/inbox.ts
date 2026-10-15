@@ -1,0 +1,77 @@
+/** Messages for the Inbox and quick capture, in English: the source the other languages follow */
+export const inbox = {
+  meta: {
+    title: 'Inbox | WisePath',
+  },
+  title: 'Inbox',
+  intro: 'What you captured, waiting to be filed into a page.',
+  sidebar: {
+    link: 'Inbox',
+    waiting: { zero: 'Inbox, nothing waiting', one: 'Inbox, {count} item waiting', other: 'Inbox, {count} items waiting' },
+  },
+  capture: {
+    label: 'Capture',
+    field: 'What do you want to keep?',
+    placeholder: 'An idea, a link, a question… write it now, file it later',
+    hint: 'Enter saves · Shift+Enter new line · Esc closes',
+    hintOnPage: 'Enter saves · ⌘Enter adds to this page · Esc closes',
+    destination: 'Where it goes',
+    toInbox: 'Inbox',
+    toPage: 'Add to “{title}”',
+    link: {
+      loading: 'Reading the link…',
+      at: 'at {time}',
+      remove: 'Keep it without the link',
+    },
+    saved: 'Saved to the Inbox',
+    added: 'Added to “{title}”',
+  },
+  list: {
+    label: 'Waiting in the Inbox',
+    keys: '↑ ↓ move · F file · D delete · Enter open the source',
+    loading: 'Loading the Inbox…',
+  },
+  empty: {
+    title: 'Nothing waiting',
+    body: 'Press {keys} anywhere in WisePath to write something down. It waits here until you file it.',
+  },
+  item: {
+    label: '{text}, {time}',
+    written: 'Written in WisePath',
+    videoAt: 'at {time}',
+    file: 'File to…',
+    makePage: 'Make it a page',
+    delete: 'Delete',
+    openSource: 'Open {site}',
+  },
+  picker: {
+    fileTitle: 'File to…',
+    makeTitle: 'Make it a page linked from…',
+    paths: 'Paths',
+    pages: 'Pages in {path}',
+    findPath: 'Find a path',
+    findPage: 'Find a page',
+    back: 'Back to the paths',
+    current: 'Current',
+    loading: 'Opening the path…',
+    noPaths: 'No path matches.',
+    noPages: 'No page matches.',
+    keys: '↑ ↓ choose · Enter pick · Backspace back · Esc closes',
+  },
+  done: {
+    filed: 'Filed in “{title}”',
+    made: 'Made the page “{title}”',
+    deleted: 'Deleted from the Inbox',
+    undo: 'Undo',
+    open: 'Open',
+  },
+  makePage: {
+    untitled: 'From the Inbox',
+  },
+  errors: {
+    pathGone: 'That path is gone. Pick another.',
+    pageGone: 'That page is gone. Pick another.',
+    notFiled: "It couldn't be filed, so it stays in the Inbox.",
+    unavailable: "Can't reach the Inbox right now. Try again in a moment.",
+  },
+} as const;
