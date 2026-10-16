@@ -7,6 +7,13 @@ export function middleware(request: NextRequest) {
   const hasAccessToken = request.cookies.has('access_token');
   const redirect = (to: string) => NextResponse.redirect(new URL(to, request.url));
 
+  // Paths lived under /projects before projects came to group them; old links keep working
+  if (pathname === '/projects' || pathname.startsWith('/projects/')) {
+    const moved = request.nextUrl.clone();
+    moved.pathname = pathname.replace(/^\/projects/, '/paths');
+    return NextResponse.redirect(moved, 308);
+  }
+
   // The landing page is for visitors; logged-in users go straight to their paths
   if (pathname === '/' && hasAccessToken) return redirect(HOME);
 
@@ -27,5 +34,5 @@ export function middleware(request: NextRequest) {
 
 // Configure which routes to apply middleware to
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/paths/:path*', '/inbox', '/capture', '/settings/:path*', '/login', '/signup'],
+  matcher: ['/', '/projects', '/projects/:path*', '/dashboard/:path*', '/paths/:path*', '/inbox', '/capture', '/settings/:path*', '/login', '/signup'],
 };
