@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { Effect } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { useAtom, useAtomRefresh, useAtomValue } from "@effect/atom-react"
@@ -51,13 +52,18 @@ export function usePageSearch(): {
   const retry = useAtomRefresh(foundAtom)
   const typed = query.trim()
 
-  const state: PageSearchState = !typed
-    ? { status: "idle" }
-    : AsyncResult.isFailure(found)
-      ? { status: "unavailable" }
-      : AsyncResult.isSuccess(found) && found.value.query
-        ? { status: "ready", ...found.value, stale: found.waiting || found.value.query !== typed }
-        : { status: "loading" }
+  // The same object until what it says changes: the palette resets its marked row whenever the state is new
+  const state = useMemo(
+    (): PageSearchState =>
+      !typed
+        ? { status: "idle" }
+        : AsyncResult.isFailure(found)
+          ? { status: "unavailable" }
+          : AsyncResult.isSuccess(found) && found.value.query
+            ? { status: "ready", ...found.value, stale: found.waiting || found.value.query !== typed }
+            : { status: "loading" },
+    [typed, found]
+  )
 
   return { query, setQuery, state, retry }
 }
