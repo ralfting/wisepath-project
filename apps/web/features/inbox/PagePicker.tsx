@@ -38,7 +38,7 @@ export function PagePicker({
   onPick,
 }: {
   opened: boolean;
-  /** What picking does: "File to…", "Make it a page linked from…" */
+  /** What picking does: "Add to…", "Make it a page linked from…" */
   title: string;
   onClose: () => void;
   onPick: (page: PickedPage) => void;

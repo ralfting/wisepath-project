@@ -31,24 +31,24 @@ export const inbox = {
   },
   list: {
     label: 'Esperando na Caixa de entrada',
-    keys: '↑ ↓ mover · F arquivar · D excluir · Enter abrir a origem',
+    keys: '↑ ↓ mover · A adicionar a uma página · D excluir · Enter abrir a origem',
     loading: 'Carregando a Caixa de entrada…',
   },
   empty: {
     title: 'Nada esperando',
-    body: 'Pressione {keys} em qualquer lugar do WisePath para anotar algo. Fica aqui até você arquivar.',
+    body: 'Pressione {keys} em qualquer lugar do WisePath para anotar algo. Fica aqui até você adicionar a uma página.',
   },
   item: {
     label: '{text}, {time}',
     written: 'Escrito no WisePath',
     videoAt: 'em {time}',
-    file: 'Arquivar em…',
+    file: 'Adicionar a…',
     makePage: 'Virar uma página',
     delete: 'Excluir',
     openSource: 'Abrir {site}',
   },
   picker: {
-    fileTitle: 'Arquivar em…',
+    fileTitle: 'Adicionar a…',
     makeTitle: 'Virar uma página ligada a…',
     paths: 'Trilhas',
     pages: 'Páginas em {path}',
@@ -62,7 +62,7 @@ export const inbox = {
     keys: '↑ ↓ escolher · → abrir trilha · Enter selecionar · ← voltar · Esc fecha',
   },
   done: {
-    filed: 'Arquivado em “{title}”',
+    filed: 'Adicionado a “{title}”',
     made: 'Página “{title}” criada',
     deleted: 'Excluído da Caixa de entrada',
     undo: 'Desfazer',
@@ -74,7 +74,7 @@ export const inbox = {
   errors: {
     pathGone: 'Essa trilha não existe mais. Escolha outra.',
     pageGone: 'Essa página não existe mais. Escolha outra.',
-    notFiled: 'Não deu para arquivar, então continua na Caixa de entrada.',
+    notFiled: 'Não deu para adicionar à página, então continua na Caixa de entrada.',
     unavailable: 'Não foi possível acessar a Caixa de entrada agora. Tente de novo em instantes.',
   },
 } as const satisfies Shape<typeof en>;

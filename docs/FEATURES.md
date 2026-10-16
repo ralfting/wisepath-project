@@ -90,17 +90,17 @@ Questions are written in the notes themselves, where they belong; a few minutes 
 
 ## Inbox and quick capture
 
-Write it down now, file it later: capturing never asks where something goes.
+Write it down now, sort it later: capturing never asks where something goes.
 
 - **Quick capture (⌘⇧Space / Ctrl+Shift+Space),** anywhere in the app, even while typing in a page, opens a small box in the middle of the screen with one field. Enter saves to the Inbox and closes; Shift+Enter starts a new line; Esc closes without saving. The Capture button on the Inbox opens it too.
 - **A pasted address** is kept with its title (from the link preview), shown under the field; a YouTube address with a time (`?t=85`, `t=1m25s`) keeps that moment. The address is dropped if it is taken out of the text, or with the ✕ beside it.
 - **Over a page** (in the drawer or full), the box also offers **Add to "this page"**: chosen there, or with ⌘Enter / Ctrl+Enter, the text goes straight to the end of that page instead of the Inbox.
 - **The Inbox** is one per learner, not per path: a page in the sidebar above the paths, with how many items are waiting (a dot on the rail). Each item shows its text, where it came from (the site's icon and name, linked, and the video's moment; or "Written in WisePath") and when it came in, newest first.
-- **File to…** picks a path, then one of its pages, each a searchable list (the path last opened first); the item is added to the end of that page and leaves the Inbox once the page is saved. A video moment goes into the notes right below that video, in time order, as `- [01:25] text`; when the page doesn't have the video, the video is added at the end with the note below it.
+- **Add to…** picks a path, then one of its pages, each a searchable list (the path last opened first); the item is added to the end of that page and leaves the Inbox once the page is saved. A video moment goes into the notes right below that video, in time order, as `- [01:25] text`; when the page doesn't have the video, the video is added at the end with the note below it.
 - **Make it a page** picks a path and the page to link it from: a new page titled from the item (its link's title or first line) holds it, and a `[[link]]` to it is added at the end of the chosen page.
 - **Delete** takes it out at once, with Undo for a few seconds.
-- **From the keyboard:** ↑ ↓ move between items, F files, D deletes, Enter opens where it came from. In the pickers ↑ ↓ choose, → (or Enter) opens the marked path's pages, Enter picks a page, ← at the start of the search (or Backspace in an empty one) goes back to the paths, with the path just left still marked.
-- Stored as plain markdown once filed: text as written, an address as a `[title](address)` link on its line (a YouTube address alone, which shows as the video), a moment as a `[mm:ss]` note.
+- **From the keyboard:** ↑ ↓ move between items, A adds to a page, D deletes, Enter opens where it came from. In the pickers ↑ ↓ choose, → (or Enter) opens the marked path's pages, Enter picks a page, ← at the start of the search (or Backspace in an empty one) goes back to the paths, with the path just left still marked.
+- Stored as plain markdown once added to a page: text as written, an address as a `[title](address)` link on its line (a YouTube address alone, which shows as the video), a moment as a `[mm:ss]` note.
 
 ## Capture from the web
 
@@ -109,7 +109,7 @@ Keep what you read and watch on other sites without leaving them: one click send
 - **Send to WisePath** is a bookmark, set up once from **Capture from the web** in the account menu: drag its button to the bookmarks bar (or copy its address into a bookmark made by hand, for whoever can't drag).
 - **On any site,** a click opens a small WisePath window (420 × 360) already filled in: the page's title and site, the selected text as a quote, and on YouTube the moment the video is at (`at 12:34`). One field takes a note of your own.
 - **Enter** sends it to the Inbox and closes the window; Shift+Enter starts a new line; **Esc** closes it without sending. Where popups are blocked, the window opens in the tab instead, and says when it is saved.
-- **In the Inbox** it is an item like any other: the note, then the selection as a `>` quote, with the page's address and title. A YouTube moment filed into a page that has that video becomes a `- [12:34]` note under it.
+- **In the Inbox** it is an item like any other: the note, then the selection as a `>` quote, with the page's address and title. A YouTube moment added to a page that has that video becomes a `- [12:34]` note under it.
 - **Logged out,** the window asks for the login first, then comes back filled in.
 - Long selections are cut (to 3000 characters, marked with …); an address too long to keep whole is left out.
 
@@ -137,7 +137,7 @@ Keep what you read and watch on other sites without leaving them: one click send
 | Review | 1 · 2 · 3 · 4 | Again · Hard · Good · Easy |
 | Anywhere | ⌘⇧Space / Ctrl+Shift+Space | Quick capture to the Inbox |
 | Capture box | Enter · Shift+Enter · ⌘Enter / Ctrl+Enter · Esc | Save · new line · add to the open page · close |
-| Inbox | ↑ ↓ · F · D · Enter | Move · file to a page · delete · open the source |
+| Inbox | ↑ ↓ · A · D · Enter | Move · add to a page · delete · open the source |
 | Capture window | Enter · Shift+Enter · Esc | Send to the Inbox · new line · close |
 
 ## Accessibility and themes

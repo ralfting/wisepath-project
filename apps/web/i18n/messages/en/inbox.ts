@@ -4,7 +4,7 @@ export const inbox = {
     title: 'Inbox | WisePath',
   },
   title: 'Inbox',
-  intro: 'What you captured, waiting to be filed into a page.',
+  intro: 'What you captured, waiting to be added to a page.',
   sidebar: {
     link: 'Inbox',
     waiting: { zero: 'Inbox, nothing waiting', one: 'Inbox, {count} item waiting', other: 'Inbox, {count} items waiting' },
@@ -12,7 +12,7 @@ export const inbox = {
   capture: {
     label: 'Capture',
     field: 'What do you want to keep?',
-    placeholder: 'An idea, a link, a question… write it now, file it later',
+    placeholder: 'An idea, a link, a question… write it now, sort it later',
     hint: 'Enter saves · Shift+Enter new line · Esc closes',
     hintOnPage: 'Enter saves · {keys} adds to this page · Esc closes',
     destination: 'Where it goes',
@@ -28,24 +28,24 @@ export const inbox = {
   },
   list: {
     label: 'Waiting in the Inbox',
-    keys: '↑ ↓ move · F file · D delete · Enter open the source',
+    keys: '↑ ↓ move · A add to a page · D delete · Enter open the source',
     loading: 'Loading the Inbox…',
   },
   empty: {
     title: 'Nothing waiting',
-    body: 'Press {keys} anywhere in WisePath to write something down. It waits here until you file it.',
+    body: 'Press {keys} anywhere in WisePath to write something down. It waits here until you add it to a page.',
   },
   item: {
     label: '{text}, {time}',
     written: 'Written in WisePath',
     videoAt: 'at {time}',
-    file: 'File to…',
+    file: 'Add to…',
     makePage: 'Make it a page',
     delete: 'Delete',
     openSource: 'Open {site}',
   },
   picker: {
-    fileTitle: 'File to…',
+    fileTitle: 'Add to…',
     makeTitle: 'Make it a page linked from…',
     paths: 'Paths',
     pages: 'Pages in {path}',
@@ -59,7 +59,7 @@ export const inbox = {
     keys: '↑ ↓ choose · → open path · Enter pick · ← back · Esc closes',
   },
   done: {
-    filed: 'Filed in “{title}”',
+    filed: 'Added to “{title}”',
     made: 'Made the page “{title}”',
     deleted: 'Deleted from the Inbox',
     undo: 'Undo',
@@ -71,7 +71,7 @@ export const inbox = {
   errors: {
     pathGone: 'That path is gone. Pick another.',
     pageGone: 'That page is gone. Pick another.',
-    notFiled: "It couldn't be filed, so it stays in the Inbox.",
+    notFiled: "It couldn't be added to the page, so it stays in the Inbox.",
     unavailable: "Can't reach the Inbox right now. Try again in a moment.",
   },
 } as const;

@@ -21,9 +21,9 @@ import classes from './InboxPage.module.css';
 
 /**
  * InboxPage
- * Everything captured and not yet filed, newest first. Each item can be filed
- * into a page, made a page of its own, or deleted, from the keyboard too:
- * ↑ ↓ move between items, F files, D deletes, Enter opens where it came from.
+ * Everything captured and not yet added to a page, newest first. Each item can be added
+ * to a page, made a page of its own, or deleted, from the keyboard too:
+ * ↑ ↓ move between items, A adds to a page, D deletes, Enter opens where it came from.
  */
 
 type Picking = { readonly item: InboxItem; readonly mode: 'file' | 'makePage' } | null;
@@ -91,7 +91,7 @@ export function InboxPage() {
     else if (event.key === 'ArrowUp') move(index - 1);
     else if (event.key === 'Home') move(0);
     else if (event.key === 'End') move(items.length - 1);
-    else if (event.key.toLowerCase() === 'f') {
+    else if (event.key.toLowerCase() === 'a') {
       event.preventDefault();
       setPicking({ item, mode: 'file' });
     } else if (event.key.toLowerCase() === 'd' || (onItem && event.key === 'Delete')) {
