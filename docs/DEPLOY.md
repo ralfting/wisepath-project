@@ -29,6 +29,7 @@ where `middleware.ts` can read it. CORS never comes into play.
 - Import the repo in Vercel, **Root Directory** `apps/api`.
   `apps/api/vercel.json` sets the rest: no framework, `nest build`, and every
   path rewritten to `api/index.js`, which serves the Nest app (`src/vercel.ts`).
+  Vercel needs a non-empty output directory, hence `public/robots.txt`.
 - Environment variables:
   - `DATABASE_URL`: the Neon pooled URL
   - `JWT_SECRET`: a new long random string (`openssl rand -base64 48`), not the one in `.env`
@@ -42,6 +43,18 @@ where `middleware.ts` can read it. CORS never comes into play.
   - `API_ORIGIN`: `https://<api-project>.vercel.app` (no trailing slash, no `/api`)
   - `NEXT_PUBLIC_API_URL`: `/api`
 - `NEXT_PUBLIC_API_URL` is inlined at build time: redeploy after changing it.
+
+## Deploying from the CLI
+
+Without the Vercel GitHub app, deploy from the repo root (so the workspace
+packages go along; `.vercelignore` leaves build output out), naming the
+project by id:
+
+```sh
+VERCEL_ORG_ID=<team id> VERCEL_PROJECT_ID=<project id> npx vercel@latest deploy --prod
+```
+
+Deploy the API before the web app when both change.
 
 ## Limits worth knowing
 
