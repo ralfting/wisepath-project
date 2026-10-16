@@ -59,7 +59,6 @@ import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { editor as editorMessages } from '@/i18n/messages/en/editor';
 import { VideoBlock } from './video/VideoBlock';
 import { Timestamp, timestampLabels } from './video/timestamps';
-import { PageTemplates, goToEmptySection, templateIcon, templateSections, templateSlashCommands } from './templates/PageTemplates';
 
 /**
  * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,
@@ -286,7 +285,6 @@ export function MarkdownEditor({
             keywords: latest.current.t(`editor.slash.${message}.keywords`),
             run: run ?? askPageName,
           })),
-          ...templateSlashCommands(latest.current.t),
           ...(latest.current.inbox
             ? [
                 {
@@ -301,8 +299,6 @@ export function MarkdownEditor({
         ],
         onState: setSlash,
       }),
-      // Templates: the empty page's row, the sections' hints and ⌘↓ to the next empty one
-      PageTemplates.configure({ t: () => latest.current.t }),
     ],
     content,
     editorProps: {
@@ -342,8 +338,6 @@ export function MarkdownEditor({
   useEffect(() => {
     const at = focusOnOpenRef.current;
     if (!editor || at === null) return;
-    // A page laid out from a template opens in its first empty section, unless a place in it was remembered
-    if (typeof at !== 'number' && goToEmptySection(editor, 'first')) return;
     editor.commands.focus(typeof at === 'number' ? Math.min(at, editor.state.doc.content.size) : at);
   }, [editor]);
 
@@ -656,12 +650,7 @@ export function MarkdownEditor({
             style={placeNear(slash.rect, 320, slash.items.length * 36 + 10)}
           >
             {slash.items.map((command, i) => {
-              const template = templateSlashCommands(t).find((c) => c.id === command.id)?.template;
-              const CommandIcon = template
-                ? templateIcon(template)
-                : command.id === 'inbox'
-                  ? IconInbox
-                  : (SLASH_COMMANDS.find((c) => c.id === command.id)?.icon ?? IconFilePlus);
+              const CommandIcon = command.id === 'inbox' ? IconInbox : (SLASH_COMMANDS.find((c) => c.id === command.id)?.icon ?? IconFilePlus);
               return (
                 <UnstyledButton
                   key={command.id}
@@ -814,17 +803,14 @@ interface Heading {
   text: string;
   /** Where it starts in the document */
   pos: number;
-  /** For a template's section: whether anything is written in it */
-  section?: 'empty' | 'written';
 }
 
 function headingsOf(editor: Editor): Heading[] {
   const found: Heading[] = [];
-  const sections = new Map(templateSections(editor.state.doc).map((s) => [s.pos, s.empty ? 'empty' : 'written'] as const));
   editor.state.doc.descendants((node, pos) => {
     if (node.type.name === 'heading') {
       const text = node.textContent.trim();
-      if (text) found.push({ level: node.attrs.level as number, text, pos, section: sections.get(pos) });
+      if (text) found.push({ level: node.attrs.level as number, text, pos });
       return false;
     }
     return node.type.name !== 'codeBlock';
@@ -834,7 +820,7 @@ function headingsOf(editor: Editor): Heading[] {
 
 /** Keeps the same list while only positions move, so typing elsewhere does not redraw the outline */
 function sameHeadings(current: ReadonlyArray<Heading>, next: Heading[]): ReadonlyArray<Heading> {
-  const same = current.length === next.length && current.every((h, i) => h.level === next[i].level && h.text === next[i].text && h.pos === next[i].pos && h.section === next[i].section);
+  const same = current.length === next.length && current.every((h, i) => h.level === next[i].level && h.text === next[i].text && h.pos === next[i].pos);
   return same ? current : next;
 }
 
@@ -973,7 +959,6 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
               className={classes.outlineDash}
               data-level={Math.min(h.level - top, 2)}
               data-active={i === active || undefined}
-              data-section={h.section}
             />
           ))}
         </button>
@@ -995,8 +980,6 @@ function Outline({ editor, headings }: { editor: Editor; headings: ReadonlyArray
                         data-level={Math.min(h.level - top, 2)}
                         data-active={i === active || undefined}
                         aria-current={i === active ? 'location' : undefined}
-                        data-section={h.section}
-                        aria-label={h.section === 'empty' ? t('templates.outline.empty', { heading: h.text }) : undefined}
                         title={h.text}
                       >
                         <span className={classes.outlineText}>{h.text}</span>
