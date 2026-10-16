@@ -13,6 +13,7 @@ import {
   summarize
 } from "@wisepath/domain/paths"
 import type { Path } from "@wisepath/domain/paths"
+import { ProjectId } from "@wisepath/domain/projects"
 import { openPathSession } from "./sync"
 import type { SyncState } from "./sync"
 
@@ -49,7 +50,7 @@ const memoryApi = Effect.gen(function*() {
   const same = (id: string) => (id === samplePath.id ? Effect.void : Effect.fail(new PathNotFound({ pathId: id })))
 
   const layer = Layer.succeed(PathRepository)(PathRepository.of({
-    list: Ref.get(path).pipe(Effect.map((p) => [summarize(p)])),
+    list: Ref.get(path).pipe(Effect.map((p) => [summarize(p, ProjectId.make("general"))])),
     get: (id) => same(id).pipe(Effect.andThen(Ref.get(path))),
     create: () => Effect.die("not used"),
     update: (_id, edit) => call("update", (p) => Effect.succeed([undefined, editPath(p, edit)] as const)),

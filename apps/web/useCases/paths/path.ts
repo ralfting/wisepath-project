@@ -7,6 +7,7 @@ import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import type { AtomRegistry } from "effect/reactivity"
 import { PageId, PathId, addBranch, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/paths"
 import type { LinkPreview, Page, PageColor, PageIcon, Path, PathKind, PathSummary } from "@wisepath/domain/paths"
+import { ProjectId } from "@wisepath/domain/projects"
 import { useT } from "@/i18n/I18nProvider"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import { messageFor } from "../messages"
@@ -49,13 +50,14 @@ const pathsViewAtom = Atom.make((get): ReadonlyArray<PathSummary> | null => {
   return result.value.map((summary) => {
     if (!opened.has(summary.id)) return summary
     const session = get(sessionAtom(summary.id))
-    return AsyncResult.isSuccess(session) ? summarize(get(stateAtomOf(session.value)).path) : summary
+    return AsyncResult.isSuccess(session) ? summarize(get(stateAtomOf(session.value)).path, summary.projectId) : summary
   })
 })
 
 const createPathAtom = appRuntime.fn(programs.createPath, { reactivityKeys: [ReactivityKeys.paths] })
 const removePathAtom = appRuntime.fn(programs.removePath, { reactivityKeys: [ReactivityKeys.paths] })
 const setPathKindAtom = appRuntime.fn(programs.setPathKind, { reactivityKeys: [ReactivityKeys.paths] })
+const movePathAtom = appRuntime.fn(programs.movePath, { reactivityKeys: [ReactivityKeys.paths] })
 const linkPreviewAtom = Atom.family((url: string) => appRuntime.atom(programs.previewLink(url)))
 
 /**
@@ -237,17 +239,34 @@ export function usePaths(): ReadonlyArray<PathSummary> | null {
 /** Result of a map action: the message to show when it failed */
 export type PathActionResult<A> = { readonly ok: true; readonly value: A } | { readonly ok: false; readonly message: string }
 
-/** Makes a new map, a study unless said otherwise; resolves to it, or to the message to show */
-export function useCreatePath(): (title: string, kind?: PathKind) => Promise<PathActionResult<Path>> {
+/** Makes a new map in a project, a study unless said otherwise; resolves to it, or to the message to show */
+export function useCreatePath(): (title: string, kind: PathKind, projectId: string) => Promise<PathActionResult<Path>> {
   const run = useAtomSet(createPathAtom, { mode: "promiseExit" })
   const t = useT()
   const domain = useDomainMessage()
-  return async (title, kind = "study") => {
-    const exit = await run({ title, kind })
+  return async (title, kind, projectId) => {
+    const exit = await run({ title, kind, projectId: ProjectId.make(projectId) })
     if (exit._tag === "Success") return { ok: true, value: exit.value }
     const unavailable = t("common.errors.unavailable")
-    return { ok: false, message: domain(messageFor(exit, { PathsUnavailable: unavailable }, t("common.errors.generic"))) ?? unavailable }
+    const messages = { PathsUnavailable: unavailable, ProjectNotFound: t("home.errors.projectGone") }
+    return { ok: false, message: domain(messageFor(exit, messages, t("common.errors.generic"))) ?? unavailable }
   }
+}
+
+/** Files a map in another project; resolves to null, or to the message to show */
+export function useMovePath(): (pathId: string, projectId: string) => Promise<string | null> {
+  const run = useAtomSet(movePathAtom, { mode: "promiseExit" })
+  const t = useT()
+  return async (pathId, projectId) =>
+    messageFor(
+      await run({ id: PathId.make(pathId), projectId: ProjectId.make(projectId) }),
+      {
+        PathsUnavailable: t("common.errors.unavailable"),
+        PathNotFound: t("home.errors.pathGone"),
+        ProjectNotFound: t("home.errors.projectGone")
+      },
+      t("common.errors.generic")
+    )
 }
 
 /** Deletes a map with all its pages; resolves to null, or to the message to show */

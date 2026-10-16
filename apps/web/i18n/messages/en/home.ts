@@ -8,6 +8,7 @@ export const home = {
   intro: 'Each path is a subject you are learning, page by page, connected by the links you write.',
   search: 'Search paths',
   newPath: 'New path',
+  newProject: 'New project',
   empty: 'No paths yet. Start one with New path.',
   noMatch: 'No paths match “{query}”.',
   card: {
@@ -22,6 +23,37 @@ export const home = {
     start: 'Start studying',
     continue: 'Continue studying',
     delete: 'Delete path',
+    moveTo: 'Move to',
+  },
+  /** A project: a group of paths on this page */
+  project: {
+    default: 'Default',
+    defaultHint: 'New paths go here unless you choose another project, and paths of a deleted project move here.',
+    paths: { one: '{count} path', other: '{count} paths' },
+    more: 'More for {name}',
+    newPath: 'New path in {name}',
+    empty: 'No paths here yet.',
+    rename: 'Rename',
+    delete: 'Delete project',
+  },
+  projectForm: {
+    createTitle: 'New project',
+    renameTitle: 'Rename project',
+    name: 'Name',
+    namePlaceholder: 'Work, Languages, Hobbies…',
+    nameRequired: 'Give the project a name',
+    create: 'Create project',
+    save: 'Save',
+  },
+  projectDelete: {
+    title: 'Delete project?',
+    body: {
+      one: 'Its path moves to {fallback}; nothing is lost.',
+      other: 'Its {count} paths move to {fallback}; nothing is lost.',
+    },
+    empty: 'It has no paths.',
+    keep: 'Keep it',
+    confirm: 'Delete project',
   },
   create: {
     title: 'New path',
@@ -29,6 +61,7 @@ export const home = {
     nameHint: "The path's main page takes this name. Add pages to it by typing / and choosing Page.",
     namePlaceholder: 'Rust, Linear algebra, Japanese…',
     nameRequired: 'Give the path a name',
+    project: 'Project',
     kind: 'What kind of path?',
     kindHint: "You can switch it later from the path's menu.",
     submit: 'Create path',
@@ -79,5 +112,7 @@ export const home = {
   },
   errors: {
     pathGone: 'This path no longer exists.',
+    projectGone: 'This project no longer exists.',
+    defaultProtected: "The default project can't be deleted.",
   },
 } as const;

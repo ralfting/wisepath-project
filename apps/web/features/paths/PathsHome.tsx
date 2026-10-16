@@ -2,13 +2,16 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { ActionIcon, Button, Card, Group, Menu, Modal, Progress, Radio, SimpleGrid, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
-import { IconDotsVertical, IconPlayerPlayFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
+import { ActionIcon, Badge, Button, Card, Group, Menu, Modal, Progress, Radio, Select, SimpleGrid, Stack, Text, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { IconDots, IconDotsVertical, IconFolderPlus, IconFolderShare, IconPencil, IconPlayerPlayFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
 import type { PathKind, PathSummary } from '@wisepath/domain/paths';
-import { useCreatePath, usePaths, useRemovePath, useSetPathKind } from '@/useCases/paths';
+import type { Project } from '@wisepath/domain/projects';
+import { useCreatePath, useMovePath, usePaths, useRemovePath, useSetPathKind } from '@/useCases/paths';
+import { useProjects } from '@/useCases/projects';
 import { KIND_OPTIONS, KindSwitchItem } from './PathKind';
+import { DeleteProjectModal, ProjectNameModal } from './ProjectModals';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { mapHref, mapWithPageHref } from '@/features/shared/routes';
@@ -17,20 +20,31 @@ import classes from './PathsHome.module.css';
 
 /**
  * PathsHome
- * Where a logged-in learner lands: one card per map (a learning path with its
- * progress and the way back to where they stopped; a study with its size), a
- * search over them, a way to start a new map, switch its kind, and delete one.
+ * Where a logged-in learner lands: their paths, one group per project (the
+ * default project first, then by name). One card per map (a learning path with
+ * its progress and the way back to where they stopped; a study with its size),
+ * a search over them, ways to start a map or a project, and each one's menu.
  */
 export function PathsHome() {
   const paths = usePaths();
+  const projects = useProjects();
   const t = useT();
-  const [creating, setCreating] = useState(false);
+  // The project a new path starts in; null while the dialog is closed
+  const [creatingIn, setCreatingIn] = useState<string | null>(null);
+  const [newProject, setNewProject] = useState(false);
   const [query, setQuery] = useState('');
 
   const needle = query.trim().toLowerCase();
   const shown = (paths ?? []).filter(
     (p) => !needle || p.title.toLowerCase().includes(needle) || p.description?.toLowerCase().includes(needle),
   );
+  const fallback = projects?.find((p) => p.isDefault) ?? projects?.[0];
+  // A path whose project isn't listed (just deleted elsewhere) shows with the default
+  const inProject = (project: Project) =>
+    shown.filter((p) => p.projectId === project.id || (project === fallback && !projects?.some((q) => q.id === p.projectId)));
+  const groups = (projects ?? []).map((project) => ({ project, paths: inProject(project) }));
+  // While searching, a project with nothing matching is left out
+  const visible = needle ? groups.filter((g) => g.paths.length > 0) : groups;
 
   return (
     <AppFrame crumbs={[{ label: t('home.title') }]}>
@@ -55,34 +69,132 @@ export function PathsHome() {
                 w={{ base: '100%', xs: 240 }}
               />
             )}
-            <Button leftSection={<IconPlus size={16} />} onClick={() => setCreating(true)} style={{ flexShrink: 0 }}>
+            <Button variant="default" leftSection={<IconFolderPlus size={16} />} onClick={() => setNewProject(true)} style={{ flexShrink: 0 }}>
+              {t('home.newProject')}
+            </Button>
+            <Button
+              leftSection={<IconPlus size={16} />}
+              onClick={() => fallback && setCreatingIn(fallback.id)}
+              disabled={!fallback}
+              style={{ flexShrink: 0 }}
+            >
               {t('home.newPath')}
             </Button>
           </Group>
         </Group>
 
-        {paths === null ? null : paths.length === 0 ? (
-          <Text c="dimmed">{t('home.empty')}</Text>
-        ) : shown.length === 0 ? (
+        {paths === null || projects === null ? null : needle && visible.length === 0 ? (
           <Text c="dimmed">{t('home.noMatch', { query: query.trim() })}</Text>
         ) : (
-          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
-            {shown.map((path) => (
-              <PathCard key={path.id} path={path} />
-            ))}
-          </SimpleGrid>
+          visible.map(({ project, paths: inThis }) => (
+            <ProjectGroup
+              key={project.id}
+              project={project}
+              paths={inThis}
+              projects={projects}
+              fallback={fallback?.name ?? ''}
+              onNewPath={() => setCreatingIn(project.id)}
+            />
+          ))
         )}
       </Stack>
-      <NewMapModal opened={creating} onClose={() => setCreating(false)} />
+      {projects && (
+        <NewMapModal opened={creatingIn !== null} projectId={creatingIn} projects={projects} onClose={() => setCreatingIn(null)} />
+      )}
+      <ProjectNameModal opened={newProject} onClose={() => setNewProject(false)} />
     </AppFrame>
   );
 }
 
-function PathCard({ path }: { path: PathSummary }) {
+/** One project's paths, under its name, with its own New path and its menu */
+function ProjectGroup({
+  project,
+  paths,
+  projects,
+  fallback,
+  onNewPath,
+}: {
+  project: Project;
+  paths: ReadonlyArray<PathSummary>;
+  projects: ReadonlyArray<Project>;
+  fallback: string;
+  onNewPath: () => void;
+}) {
+  const t = useT();
+  const [renaming, setRenaming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  return (
+    <Stack gap="md" component="section" aria-label={project.name}>
+      <Group gap="sm" wrap="nowrap">
+        <Title order={2} fz={20} lineClamp={1}>
+          {project.name}
+        </Title>
+        {project.isDefault && (
+          <Tooltip label={t('home.project.defaultHint')} multiline w={260} withArrow>
+            <Badge variant="light" color="gray" size="sm" style={{ flexShrink: 0 }}>
+              {t('home.project.default')}
+            </Badge>
+          </Tooltip>
+        )}
+        {/* An empty project says so below */}
+        {paths.length > 0 && (
+          <Text size="sm" c="dimmed" style={{ flexShrink: 0 }}>
+            {t('home.project.paths', { count: paths.length })}
+          </Text>
+        )}
+        <Group gap={4} ml="auto" wrap="nowrap">
+          <Tooltip label={t('home.project.newPath', { name: project.name })} withArrow>
+            <ActionIcon variant="subtle" color="gray" aria-label={t('home.project.newPath', { name: project.name })} onClick={onNewPath}>
+              <IconPlus size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Menu position="bottom-end">
+            <Menu.Target>
+              <ActionIcon variant="subtle" color="gray" aria-label={t('home.project.more', { name: project.name })}>
+                <IconDots size={18} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item leftSection={<IconPencil size={15} />} onClick={() => setRenaming(true)}>
+                {t('home.project.rename')}
+              </Menu.Item>
+              {/* The default project takes the paths of deleted ones, so it stays */}
+              {!project.isDefault && (
+                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setDeleting(true)}>
+                  {t('home.project.delete')}
+                </Menu.Item>
+              )}
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Group>
+      {paths.length === 0 ? (
+        <Text c="dimmed" size="sm">
+          {t('home.project.empty')}
+        </Text>
+      ) : (
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+          {paths.map((path) => (
+            <PathCard key={path.id} path={path} projects={projects} />
+          ))}
+        </SimpleGrid>
+      )}
+      <ProjectNameModal opened={renaming} project={project} onClose={() => setRenaming(false)} />
+      {!project.isDefault && (
+        <DeleteProjectModal opened={deleting} project={project} paths={paths.length} fallback={fallback} onClose={() => setDeleting(false)} />
+      )}
+    </Stack>
+  );
+}
+
+function PathCard({ path, projects }: { path: PathSummary; projects: ReadonlyArray<Project> }) {
   const { studied, total, modules, orphans, next } = path;
   const [deleting, setDeleting] = useState(false);
   const [kindError, setKindError] = useState<string | null>(null);
   const setKind = useSetPathKind();
+  const move = useMovePath();
+  const elsewhere = projects.filter((p) => p.id !== path.projectId);
   const t = useT();
   const href = mapHref(path.id);
   // A study shows its size only: no progress, nothing to continue; the whole card opens it
@@ -113,6 +225,20 @@ function PathCard({ path }: { path: PathSummary }) {
             </Menu.Target>
             <Menu.Dropdown>
               <KindSwitchItem kind={path.kind} onSwitch={async (kind) => setKindError(await setKind(path.id, kind))} />
+              {elsewhere.length > 0 && (
+                <Menu.Sub position="left-start">
+                  <Menu.Sub.Target>
+                    <Menu.Sub.Item leftSection={<IconFolderShare size={15} />}>{t('home.card.moveTo')}</Menu.Sub.Item>
+                  </Menu.Sub.Target>
+                  <Menu.Sub.Dropdown>
+                    {elsewhere.map((project) => (
+                      <Menu.Item key={project.id} onClick={async () => setKindError(await move(path.id, project.id))}>
+                        {project.name}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Sub.Dropdown>
+                </Menu.Sub>
+              )}
               <Menu.Divider />
               <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setDeleting(true)}>
                 {t('home.card.delete')}
@@ -161,13 +287,32 @@ function PathCard({ path }: { path: PathSummary }) {
   );
 }
 
-/** Names a new map, which starts as its root page, and says what it is for: a study unless chosen otherwise */
-function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
+/**
+ * Names a new map, which starts as its root page, files it in a project (the
+ * one it was opened from) and says what it is for: a study unless chosen otherwise
+ */
+function NewMapModal({
+  opened,
+  projectId,
+  projects,
+  onClose,
+}: {
+  opened: boolean;
+  projectId: string | null;
+  projects: ReadonlyArray<Project>;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const create = useCreatePath();
   const t = useT();
   const [title, setTitle] = useState('');
   const [kind, setKind] = useState<PathKind>('study');
+  const [project, setProject] = useState<string | null>(projectId);
+
+  // Opens on the project it was opened from
+  useEffect(() => {
+    if (opened) setProject(projectId);
+  }, [opened, projectId]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -181,8 +326,9 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!title.trim()) return setError(t('home.create.nameRequired'));
+    if (!project) return;
     setBusy(true);
-    const result = await create(title, kind);
+    const result = await create(title, kind, project);
     setBusy(false);
     if (!result.ok) return setError(result.message);
     close();
@@ -205,6 +351,15 @@ function NewMapModal({ opened, onClose }: { opened: boolean; onClose: () => void
           error={error}
           maxLength={200}
           data-autofocus
+        />
+        <Select
+          label={t('home.create.project')}
+          data={projects.map((p) => ({ value: p.id, label: p.name }))}
+          value={project}
+          onChange={setProject}
+          allowDeselect={false}
+          comboboxProps={{ withinPortal: false }}
+          mt="lg"
         />
         <Radio.Group value={kind} onChange={(v) => setKind(v as PathKind)} label={t('home.create.kind')} description={t('home.create.kindHint')} mt="lg">
           <Stack gap="xs" mt="xs">

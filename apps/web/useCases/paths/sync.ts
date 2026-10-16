@@ -8,9 +8,13 @@ import type {
   Path,
   PathEdit,
   PathId,
+  PageNotFound,
   PathNotFound,
-  PathsUnavailable
+  PathsUnavailable,
+  RootPageProtected,
+  TitleTaken
 } from "@wisepath/domain/paths"
+import type { ProjectNotFound } from "@wisepath/domain/projects"
 
 /**
  * Sync
@@ -76,7 +80,10 @@ const applied = (path: Path, command: Command): Path | undefined => {
   return Exit.isSuccess(exit) ? exit.value : undefined
 }
 
-const send = (repo: PathRepository["Service"], pathId: PathId, command: Command) => {
+/** Every way the API can refuse a change to an open map (ProjectNotFound only when one moves it, which these don't) */
+type SendError = PathNotFound | PageNotFound | TitleTaken | RootPageProtected | ProjectNotFound | PathsUnavailable
+
+const send = (repo: PathRepository["Service"], pathId: PathId, command: Command): Effect.Effect<unknown, SendError> => {
   switch (command._tag) {
     case "UpdatePath":
       return repo.update(pathId, command.edit)

@@ -11,6 +11,7 @@ export const home = {
   intro: 'Cada trilha é um assunto que você está aprendendo, página por página, ligado pelos links que você escreve.',
   search: 'Buscar trilhas',
   newPath: 'Nova trilha',
+  newProject: 'Novo projeto',
   empty: 'Nenhuma trilha ainda. Comece uma em Nova trilha.',
   noMatch: 'Nenhuma trilha corresponde a “{query}”.',
   card: {
@@ -25,6 +26,37 @@ export const home = {
     start: 'Começar a estudar',
     continue: 'Continuar estudando',
     delete: 'Excluir trilha',
+    moveTo: 'Mover para',
+  },
+  /** Um projeto: um grupo de trilhas nesta página */
+  project: {
+    default: 'Padrão',
+    defaultHint: 'Trilhas novas vêm para cá, a menos que você escolha outro projeto, e as trilhas de um projeto excluído vêm para cá.',
+    paths: { one: '{count} trilha', other: '{count} trilhas' },
+    more: 'Mais opções para {name}',
+    newPath: 'Nova trilha em {name}',
+    empty: 'Nenhuma trilha aqui ainda.',
+    rename: 'Renomear',
+    delete: 'Excluir projeto',
+  },
+  projectForm: {
+    createTitle: 'Novo projeto',
+    renameTitle: 'Renomear projeto',
+    name: 'Nome',
+    namePlaceholder: 'Trabalho, Idiomas, Hobbies…',
+    nameRequired: 'Dê um nome ao projeto',
+    create: 'Criar projeto',
+    save: 'Salvar',
+  },
+  projectDelete: {
+    title: 'Excluir projeto?',
+    body: {
+      one: 'A trilha dele vai para {fallback}; nada se perde.',
+      other: 'As {count} trilhas dele vão para {fallback}; nada se perde.',
+    },
+    empty: 'Ele não tem trilhas.',
+    keep: 'Manter',
+    confirm: 'Excluir projeto',
   },
   create: {
     title: 'Nova trilha',
@@ -32,6 +64,7 @@ export const home = {
     nameHint: 'A página principal da trilha recebe esse nome. Adicione páginas digitando / e escolhendo Página.',
     namePlaceholder: 'Rust, Álgebra linear, Japonês…',
     nameRequired: 'Dê um nome à trilha',
+    project: 'Projeto',
     kind: 'Que tipo de trilha?',
     kindHint: 'Dá para mudar depois, no menu da trilha.',
     submit: 'Criar trilha',
@@ -82,5 +115,7 @@ export const home = {
   },
   errors: {
     pathGone: 'Esta trilha não existe mais.',
+    projectGone: 'Este projeto não existe mais.',
+    defaultProtected: 'O projeto padrão não pode ser excluído.',
   },
 } as const satisfies Shape<typeof en>;
