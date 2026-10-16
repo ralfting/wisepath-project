@@ -59,7 +59,7 @@ export const inbox = {
     loading: 'Abrindo a trilha…',
     noPaths: 'Nenhuma trilha encontrada.',
     noPages: 'Nenhuma página encontrada.',
-    keys: '↑ ↓ escolher · Enter selecionar · Backspace voltar · Esc fecha',
+    keys: '↑ ↓ escolher · → abrir trilha · Enter selecionar · ← voltar · Esc fecha',
   },
   done: {
     filed: 'Arquivado em “{title}”',

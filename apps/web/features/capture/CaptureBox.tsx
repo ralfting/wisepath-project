@@ -53,9 +53,14 @@ export function CaptureBox({
  * choices (wrapping around), Enter picks the one highlighted. The highlight
  * goes back to the first choice whenever the choices change.
  */
-export function usePaletteKeys<T>(items: ReadonlyArray<T>, onPick: (item: T) => void) {
-  const [active, setActive] = useState(0);
-  useEffect(() => setActive(0), [items]);
+export function usePaletteKeys<T>(items: ReadonlyArray<T>, onPick: (item: T) => void, initial = 0) {
+  const [active, setActive] = useState(initial);
+  // Back to the first whenever the list changes after it shows (a search typed), not as it first shows
+  const [shown, setShown] = useState(items);
+  if (shown !== items) {
+    setShown(items);
+    setActive(0);
+  }
   const onKeyDown = useCallback(
     (event: KeyboardEvent<HTMLElement>) => {
       if (event.nativeEvent.isComposing) return;

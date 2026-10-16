@@ -56,7 +56,7 @@ export const inbox = {
     loading: 'Opening the path…',
     noPaths: 'No path matches.',
     noPages: 'No page matches.',
-    keys: '↑ ↓ choose · Enter pick · Backspace back · Esc closes',
+    keys: '↑ ↓ choose · → open path · Enter pick · ← back · Esc closes',
   },
   done: {
     filed: 'Filed in “{title}”',

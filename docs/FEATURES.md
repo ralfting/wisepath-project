@@ -99,7 +99,7 @@ Write it down now, file it later: capturing never asks where something goes.
 - **File to…** picks a path, then one of its pages, each a searchable list (the path last opened first); the item is added to the end of that page and leaves the Inbox once the page is saved. A video moment goes into the notes right below that video, in time order, as `- [01:25] text`; when the page doesn't have the video, the video is added at the end with the note below it.
 - **Make it a page** picks a path and the page to link it from: a new page titled from the item (its link's title or first line) holds it, and a `[[link]]` to it is added at the end of the chosen page.
 - **Delete** takes it out at once, with Undo for a few seconds.
-- **From the keyboard:** ↑ ↓ move between items, F files, D deletes, Enter opens where it came from. In the pickers ↑ ↓ choose, Enter picks, Backspace in an empty search goes back to the paths.
+- **From the keyboard:** ↑ ↓ move between items, F files, D deletes, Enter opens where it came from. In the pickers ↑ ↓ choose, → (or Enter) opens the marked path's pages, Enter picks a page, ← at the start of the search (or Backspace in an empty one) goes back to the paths, with the path just left still marked.
 - Stored as plain markdown once filed: text as written, an address as a `[title](address)` link on its line (a YouTube address alone, which shows as the video), a moment as a `[mm:ss]` note.
 
 ## Capture from the web

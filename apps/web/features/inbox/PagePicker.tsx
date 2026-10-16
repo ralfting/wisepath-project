@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Badge, Group, Loader, Text, TextInput, ThemeIcon } from '@mantine/core';
-import { IconArrowLeft, IconFileText, IconSearch } from '@tabler/icons-react';
+import { IconArrowLeft, IconChevronRight, IconFileText, IconSearch } from '@tabler/icons-react';
 import type { ProjectSummary } from '@wisepath/domain/projects';
 import { useT } from '@/i18n/I18nProvider';
 import { useProject, useProjects } from '@/useCases/projects';
@@ -17,7 +17,8 @@ import classes from './PagePicker.module.css';
  * PagePicker
  * Where an Inbox item goes: a path, then one of its pages, each a searchable
  * list in the palette, from the keyboard alone. The path last opened comes
- * first. Backspace in an empty search goes back to the paths.
+ * first. → (or Enter) opens a path's pages; ← at the start of the search, or
+ * Backspace in an empty one, goes back to the paths.
  */
 
 export interface PickedPage extends PageTarget {
@@ -25,6 +26,10 @@ export interface PickedPage extends PageTarget {
 }
 
 const matches = (title: string, query: string) => title.toLowerCase().includes(query.trim().toLowerCase());
+
+// → and ← move between the steps only where they can't move the cursor in the search any further
+const caretAt = (field: HTMLInputElement, end: 'start' | 'end') =>
+  field.selectionStart === field.selectionEnd && field.selectionStart === (end === 'start' ? 0 : field.value.length);
 
 export function PagePicker({
   opened,
@@ -40,8 +45,11 @@ export function PagePicker({
 }) {
   const t = useT();
   const [path, setPath] = useState<ProjectSummary | null>(null);
+  // The path last entered stays marked on the way back
+  const [cameFrom, setCameFrom] = useState<string | null>(null);
   const close = () => {
     setPath(null);
+    setCameFrom(null);
     onClose();
   };
   return (
@@ -52,20 +60,24 @@ export function PagePicker({
       {path ? (
         <PagesStep
           path={path}
-          onBack={() => setPath(null)}
+          onBack={() => {
+            setCameFrom(path.id);
+            setPath(null);
+          }}
           onPick={(page) => {
             setPath(null);
+            setCameFrom(null);
             onPick(page);
           }}
         />
       ) : (
-        <PathsStep onPick={setPath} />
+        <PathsStep onPick={setPath} marked={cameFrom} />
       )}
     </CaptureBox>
   );
 }
 
-function PathsStep({ onPick }: { onPick: (path: ProjectSummary) => void }) {
+function PathsStep({ onPick, marked }: { onPick: (path: ProjectSummary) => void; marked: string | null }) {
   const t = useT();
   const projects = useProjects();
   const [query, setQuery] = useState('');
@@ -75,7 +87,17 @@ function PathsStep({ onPick }: { onPick: (path: ProjectSummary) => void }) {
     const all = [...(projects ?? [])].sort((a, b) => Number(b.id === last) - Number(a.id === last));
     return all.filter((p) => matches(p.title, query));
   }, [projects, last, query]);
-  const keys = usePaletteKeys(items, onPick);
+  const keys = usePaletteKeys(items, onPick, Math.max(0, items.findIndex((p) => p.id === marked)));
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const path = items[keys.active];
+    if (event.key === 'ArrowRight' && path && caretAt(event.currentTarget, 'end')) {
+      event.preventDefault();
+      onPick(path);
+      return;
+    }
+    keys.onKeyDown(event);
+  };
 
   return (
     <>
@@ -86,10 +108,11 @@ function PathsStep({ onPick }: { onPick: (path: ProjectSummary) => void }) {
         leftSection={<IconSearch size={16} />}
         value={query}
         onChange={(event) => setQuery(event.currentTarget.value)}
-        onKeyDown={keys.onKeyDown}
+        onKeyDown={onKeyDown}
         variant="unstyled"
         size="md"
         data-autofocus
+        autoFocus
         classNames={{ input: classes.field }}
       />
       {projects === null ? (
@@ -120,6 +143,7 @@ function PathsStep({ onPick }: { onPick: (path: ProjectSummary) => void }) {
                   {t('inbox.picker.current')}
                 </Badge>
               )}
+              <IconChevronRight size={16} aria-hidden color="var(--mantine-color-dimmed)" />
             </>
           )}
         </PaletteOptions>
@@ -144,7 +168,7 @@ function PagesStep({ path, onBack, onPick }: { path: ProjectSummary; onBack: () 
   const keys = usePaletteKeys(items, pick);
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Backspace' && query === '') {
+    if ((event.key === 'Backspace' && query === '') || (event.key === 'ArrowLeft' && caretAt(event.currentTarget, 'start'))) {
       event.preventDefault();
       onBack();
       return;
