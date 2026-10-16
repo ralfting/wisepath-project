@@ -10,7 +10,7 @@ import { useDomainMessage } from '@/useCases/validation';
 import { useT } from '@/i18n/I18nProvider';
 import { fieldError } from '../shared/fieldError';
 
-/** Create an account, then go to the projects page */
+/** Create an account, then go to the paths page */
 export function SignupForm() {
   const router = useRouter();
   const signup = useSignup();
@@ -25,7 +25,7 @@ export function SignupForm() {
       setError(null);
       const failure = await signup(value);
       if (failure) setError(failure);
-      else router.push('/projects');
+      else router.push('/paths');
     },
   });
 

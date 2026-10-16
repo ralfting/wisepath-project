@@ -1,6 +1,6 @@
 import type { Effect } from "effect"
 import { Context, Schema } from "effect"
-import { PageId, ProjectId } from "../projects/Project"
+import { PageId, PathId } from "../paths/Path"
 
 /**
  * Search everywhere: finding any of the learner's pages, in any of their
@@ -20,11 +20,11 @@ export const Excerpt = Schema.Struct({
 export type Excerpt = typeof Excerpt.Type
 
 export const SearchHit = Schema.Struct({
-  projectId: ProjectId,
+  pathId: PathId,
   pageId: PageId,
   title: Schema.String,
   /** The map's title (its root page's) */
-  projectTitle: Schema.String,
+  pathTitle: Schema.String,
   /** Titles of the pages between the map's centre and this page, so "NestJS › Providers" says where it sits */
   where: Schema.Array(Schema.String),
   /** ISO date of the page's last edit */

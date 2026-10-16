@@ -35,8 +35,8 @@ export function CaptureLauncher() {
   }, []);
 
   useEffect(() => {
-    const projectId = pathOf(pathname);
-    if (projectId) rememberPath(projectId);
+    const pathId = pathOf(pathname);
+    if (pathId) rememberPath(pathId);
   }, [pathname]);
 
   const dismiss = useCallback(() => setToast(null), []);

@@ -1,8 +1,8 @@
 'use client';
 
 import { Highlight, ScrollArea, Text, UnstyledButton } from '@mantine/core';
-import type { Page, Project } from '@wisepath/domain/projects';
-import { mapTree, pathTo } from '@wisepath/domain/projects';
+import type { Page, Path } from '@wisepath/domain/paths';
+import { mapTree, trailTo } from '@wisepath/domain/paths';
 import { displayTitle } from '@/features/shared/title';
 import { useT } from '@/i18n/I18nProvider';
 import { PageIcon, StatusIcon } from './MindMap';
@@ -18,7 +18,7 @@ import classes from './MapSearchResults.module.css';
 export const SEARCH_RESULTS_ID = 'map-search-results';
 
 export function MapSearchResults({
-  project,
+  path,
   query,
   results,
   active,
@@ -30,7 +30,7 @@ export function MapSearchResults({
   className,
 }: {
   className?: string;
-  project: Project;
+  path: Path;
   query: string;
   results: ReadonlyArray<Page>;
   active: number;
@@ -42,12 +42,12 @@ export function MapSearchResults({
   onSelect: (pageId: string) => void;
 }) {
   const t = useT();
-  const tree = mapTree(project);
+  const tree = mapTree(path);
   const where = (page: Page) => {
-    if (page.id === project.rootPageId) return t('map.results.centre');
+    if (page.id === path.rootPageId) return t('map.results.centre');
     if (!tree.nodes.has(page.id)) return t('map.results.offMap');
-    const path = pathTo(project, page.id, tree);
-    return t('map.results.inPage', { title: displayTitle(path[path.length - 2] ?? tree.root.page) });
+    const trail = trailTo(path, page.id, tree);
+    return t('map.results.inPage', { title: displayTitle(trail[trail.length - 2] ?? tree.root.page) });
   };
 
   return (

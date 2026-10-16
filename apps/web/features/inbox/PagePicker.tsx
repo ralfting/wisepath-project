@@ -4,9 +4,9 @@ import { useMemo, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Badge, Group, Loader, Text, TextInput, ThemeIcon } from '@mantine/core';
 import { IconArrowLeft, IconChevronRight, IconFileText, IconSearch } from '@tabler/icons-react';
-import type { ProjectSummary } from '@wisepath/domain/projects';
+import type { PathSummary } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
-import { useProject, useProjects } from '@/useCases/projects';
+import { usePath, usePaths } from '@/useCases/paths';
 import type { PageTarget } from '@/useCases/inbox';
 import { PageGlyph } from '@/features/shared/look';
 import { displayTitle } from '@/features/shared/title';
@@ -44,7 +44,7 @@ export function PagePicker({
   onPick: (page: PickedPage) => void;
 }) {
   const t = useT();
-  const [path, setPath] = useState<ProjectSummary | null>(null);
+  const [path, setPath] = useState<PathSummary | null>(null);
   // The path last entered stays marked on the way back
   const [cameFrom, setCameFrom] = useState<string | null>(null);
   const close = () => {
@@ -77,16 +77,16 @@ export function PagePicker({
   );
 }
 
-function PathsStep({ onPick, marked }: { onPick: (path: ProjectSummary) => void; marked: string | null }) {
+function PathsStep({ onPick, marked }: { onPick: (path: PathSummary) => void; marked: string | null }) {
   const t = useT();
-  const projects = useProjects();
+  const paths = usePaths();
   const [query, setQuery] = useState('');
   const listId = usePaletteId();
   const last = useMemo(() => lastPathId(), []);
   const items = useMemo(() => {
-    const all = [...(projects ?? [])].sort((a, b) => Number(b.id === last) - Number(a.id === last));
+    const all = [...(paths ?? [])].sort((a, b) => Number(b.id === last) - Number(a.id === last));
     return all.filter((p) => matches(p.title, query));
-  }, [projects, last, query]);
+  }, [paths, last, query]);
   const keys = usePaletteKeys(items, onPick, Math.max(0, items.findIndex((p) => p.id === marked)));
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
@@ -115,7 +115,7 @@ function PathsStep({ onPick, marked }: { onPick: (path: ProjectSummary) => void;
         autoFocus
         classNames={{ input: classes.field }}
       />
-      {projects === null ? (
+      {paths === null ? (
         <Group justify="center" p="md">
           <Loader size="sm" />
         </Group>
@@ -130,15 +130,15 @@ function PathsStep({ onPick, marked }: { onPick: (path: ProjectSummary) => void;
           getKey={(p) => p.id}
           empty={t('inbox.picker.noPaths')}
         >
-          {(project) => (
+          {(path) => (
             <>
-              <ThemeIcon size={26} radius="xl" variant="light" color={project.color}>
-                <PageGlyph icon={project.icon} size={15} />
+              <ThemeIcon size={26} radius="xl" variant="light" color={path.color}>
+                <PageGlyph icon={path.icon} size={15} />
               </ThemeIcon>
               <Text size="sm" fw={600} truncate style={{ flex: 1 }}>
-                {project.title}
+                {path.title}
               </Text>
-              {project.id === last && (
+              {path.id === last && (
                 <Badge size="xs" variant="light" color="gray">
                   {t('inbox.picker.current')}
                 </Badge>
@@ -152,19 +152,19 @@ function PathsStep({ onPick, marked }: { onPick: (path: ProjectSummary) => void;
   );
 }
 
-function PagesStep({ path, onBack, onPick }: { path: ProjectSummary; onBack: () => void; onPick: (page: PickedPage) => void }) {
+function PagesStep({ path, onBack, onPick }: { path: PathSummary; onBack: () => void; onPick: (page: PickedPage) => void }) {
   const t = useT();
-  const { state } = useProject(path.id);
+  const { state } = usePath(path.id);
   const [query, setQuery] = useState('');
   const listId = usePaletteId();
   const items = useMemo(() => {
     if (state.status !== 'ready') return [];
-    const { pages, rootPageId } = state.project;
+    const { pages, rootPageId } = state.path;
     // The path's main page first, then the rest as they were added
     const ordered = [...pages].sort((a, b) => Number(b.id === rootPageId) - Number(a.id === rootPageId));
     return ordered.filter((p) => matches(displayTitle(p), query));
   }, [state, query]);
-  const pick = (page: (typeof items)[number]) => onPick({ projectId: path.id, pageId: page.id, pageTitle: displayTitle(page) });
+  const pick = (page: (typeof items)[number]) => onPick({ pathId: path.id, pageId: page.id, pageTitle: displayTitle(page) });
   const keys = usePaletteKeys(items, pick);
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {

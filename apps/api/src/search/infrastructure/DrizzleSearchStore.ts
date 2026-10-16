@@ -2,9 +2,9 @@ import { Effect, Layer } from 'effect';
 import { and, desc, eq, or, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { UserId } from '@wisepath/domain/auth';
-import { PageId, ProjectId } from '@wisepath/domain/projects';
+import { PageId, PathId } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pages, projects } from '../../shared/infrastructure/database/schema';
+import { pages, paths } from '../../shared/infrastructure/database/schema';
 import { SearchStore } from '../application/SearchStore';
 
 /**
@@ -34,23 +34,23 @@ export const DrizzleSearchStore = Layer.effect(
       const rows = yield* run(
         db
           .select({
-            projectId: pages.projectId,
+            pathId: pages.pathId,
             pageId: pages.id,
             title: pages.title,
             content: pages.content,
-            projectTitle: projects.title,
+            pathTitle: paths.title,
             updatedAt: pages.updatedAt,
           })
           .from(pages)
-          .innerJoin(projects, eq(projects.id, pages.projectId))
-          .where(and(eq(projects.ownerId, ownerId), ...eachWord))
+          .innerJoin(paths, eq(paths.id, pages.pathId))
+          .where(and(eq(paths.ownerId, ownerId), ...eachWord))
           .orderBy(desc(titleHasAll), desc(pages.updatedAt))
           .limit(limit),
       );
 
       return rows.map((row) => ({
         ...row,
-        projectId: ProjectId.make(row.projectId),
+        pathId: PathId.make(row.pathId),
         pageId: PageId.make(row.pageId),
         updatedAt: row.updatedAt.toISOString(),
       }));

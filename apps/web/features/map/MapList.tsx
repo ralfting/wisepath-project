@@ -3,8 +3,8 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
 import { IconPlus } from '@tabler/icons-react';
-import type { MapNode, Project } from '@wisepath/domain/projects';
-import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
+import type { MapNode, Path } from '@wisepath/domain/paths';
+import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths';
 import { displayTitle } from '@/features/shared/title';
 import { PageGlyph } from '@/features/shared/look';
 import { useT } from '@/i18n/I18nProvider';
@@ -23,7 +23,7 @@ import classes from './MapList.module.css';
 interface MapListProps {
   /** Shown above the list (the search, which filters it too) */
   header?: ReactNode;
-  project: Project;
+  path: Path;
   selectedId: string | null;
   currentId: string | null;
   /** A learning path shows what was studied; a study doesn't */
@@ -36,14 +36,14 @@ interface MapListProps {
   branch?: { from: string; prompt: ReactNode } | null;
 }
 
-export function MapList({ header, project, selectedId, currentId, progress, matchIds, onSelect, onAddBranch, branch = null }: MapListProps) {
+export function MapList({ header, path, selectedId, currentId, progress, matchIds, onSelect, onAddBranch, branch = null }: MapListProps) {
   const t = useT();
-  const tree = mapTree(project);
+  const tree = mapTree(path);
   const visible = (node: MapNode): boolean =>
     matchIds === null || matchIds.has(node.page.id) || node.children.some(visible);
 
   const row = (node: MapNode) => {
-    const look = lookOf(project, node.page.id, tree);
+    const look = lookOf(path, node.page.id, tree);
     const below = node.children.length ? progressOf(descendants(node)) : null;
     const status = node.page.studied ? 'done' : node.page.id === currentId ? 'current' : 'todo';
     return (

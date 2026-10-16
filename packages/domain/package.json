@@ -7,7 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./auth": "./src/auth/index.ts",
-    "./projects": "./src/projects/index.ts",
+    "./paths": "./src/paths/index.ts",
     "./review": "./src/review/index.ts",
     "./search": "./src/search/index.ts",
     "./inbox": "./src/inbox/index.ts"

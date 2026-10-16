@@ -10,7 +10,7 @@ import type { InboxItem } from '@wisepath/domain/inbox';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { dateTime, relativeTime } from '@/i18n/dates';
 import { useDiscard, useFileItem, useInbox, useMakePage } from '@/useCases/inbox';
-import { useLinkPreview } from '@/useCases/projects';
+import { useLinkPreview } from '@/useCases/paths';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { Toast, openCapture, useCaptureKeys } from '@/features/capture';
 import type { ToastMessage } from '@/features/capture';
@@ -69,13 +69,13 @@ export function InboxPage() {
       if (!result.ok) return say(result.message);
       say(t('inbox.done.filed', { title: page.pageTitle }), {
         label: t('inbox.done.open'),
-        onClick: () => router.push(mapWithPageHref(page.projectId, page.pageId)),
+        onClick: () => router.push(mapWithPageHref(page.pathId, page.pageId)),
       });
     } else {
       const result = await makePage(item, page);
       if (!result.ok) return say(result.message);
       const made = result.pageId;
-      say(t('inbox.done.made', { title: result.title }), made ? { label: t('inbox.done.open'), onClick: () => router.push(mapWithPageHref(page.projectId, made)) } : undefined);
+      say(t('inbox.done.made', { title: result.title }), made ? { label: t('inbox.done.open'), onClick: () => router.push(mapWithPageHref(page.pathId, made)) } : undefined);
     }
   };
 

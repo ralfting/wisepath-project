@@ -285,7 +285,7 @@ interface PageLinkOptions {
   onState: (state: PageLinkPickerState | null) => void;
 }
 
-/** Typing [[ opens a picker of the project's pages; choosing one inserts a [[Page]] link */
+/** Typing [[ opens a picker of the path's pages; choosing one inserts a [[Page]] link */
 export const PageLinkSuggestion = Extension.create<PageLinkOptions>({
   name: 'pageLinkSuggestion',
 

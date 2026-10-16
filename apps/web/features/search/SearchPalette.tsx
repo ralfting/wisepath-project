@@ -11,7 +11,7 @@ import type { Mark } from '@wisepath/domain/search';
 import { mapWithPageHref, pageHref } from '@/features/shared/routes';
 import { displayTitle } from '@/features/shared/title';
 import { useT } from '@/i18n/I18nProvider';
-import { useProjects } from '@/useCases/projects';
+import { usePaths } from '@/useCases/paths';
 import { usePageSearch, useRecentPages } from '@/useCases/search';
 import classes from './SearchPalette.module.css';
 
@@ -91,7 +91,7 @@ export function SearchPalette({ opened, onClose }: { opened: boolean; onClose: (
 /** One row of the list, from a search result or a recent page */
 interface Row {
   key: string;
-  projectId: string;
+  pathId: string;
   pageId: string;
   title: string;
   titleMarks: ReadonlyArray<Mark>;
@@ -106,7 +106,7 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
   const mod = useModKey();
   const { query, setQuery, state, retry } = usePageSearch();
   const recent = useRecentPages();
-  const projects = useProjects();
+  const paths = usePaths();
 
   // Each opening starts afresh, on the recent pages; before the field can take a key
   useLayoutEffect(() => setQuery(''), [setQuery]);
@@ -116,31 +116,31 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
       return state.hits.map((hit) => {
         const title = displayTitle(hit);
         return {
-          key: `${hit.projectId}/${hit.pageId}`,
-          projectId: hit.projectId,
+          key: `${hit.pathId}/${hit.pageId}`,
+          pathId: hit.pathId,
           pageId: hit.pageId,
           title,
           titleMarks: marksIn(title, state.query),
-          where: [hit.projectTitle, ...hit.where.map((w) => displayTitle({ title: w }))].join(' › '),
+          where: [hit.pathTitle, ...hit.where.map((w) => displayTitle({ title: w }))].join(' › '),
           excerpt: hit.excerpt,
         };
       });
     }
     if (state.status !== 'idle') return [];
     // A path deleted since is dropped, and one renamed shows its title now
-    const paths = projects ? new Map(projects.map((p) => [p.id as string, p.title])) : null;
+    const titles = paths ? new Map(paths.map((p) => [p.id as string, p.title])) : null;
     return recent
-      .filter((page) => !paths || paths.has(page.projectId))
+      .filter((page) => !titles || titles.has(page.pathId))
       .map((page) => ({
-        key: `${page.projectId}/${page.pageId}`,
-        projectId: page.projectId,
+        key: `${page.pathId}/${page.pageId}`,
+        pathId: page.pathId,
         pageId: page.pageId,
         title: displayTitle(page),
         titleMarks: [],
-        where: paths?.get(page.projectId) ?? page.projectTitle,
+        where: titles?.get(page.pathId) ?? page.pathTitle,
         excerpt: null,
       }));
-  }, [state, recent, projects]);
+  }, [state, recent, paths]);
 
   // The row the arrows mark, opened by Enter; back to the first whenever the list changes
   const [active, setActive] = useState(0);
@@ -149,9 +149,9 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
   const open = (row: Row, full: boolean) => {
     onDone();
     // A page URL loaded directly is the full page; navigating to it inside the app would open the drawer instead
-    if (full) window.location.assign(pageHref(row.projectId, row.pageId));
+    if (full) window.location.assign(pageHref(row.pathId, row.pageId));
     // On its map, the page opens in the drawer
-    else router.push(mapWithPageHref(row.projectId, row.pageId));
+    else router.push(mapWithPageHref(row.pathId, row.pageId));
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {

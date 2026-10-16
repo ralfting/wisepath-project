@@ -1,6 +1,6 @@
 import { Controller, Get, Header, Query, UseGuards } from '@nestjs/common';
 import { Schema } from 'effect';
-import { LinkPreview } from '@wisepath/domain/projects';
+import { LinkPreview } from '@wisepath/domain/paths';
 import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';

@@ -1,5 +1,5 @@
 import { Effect, Layer, Option } from "effect"
-import { LinkPreviews } from "@wisepath/domain/projects"
+import { LinkPreviews } from "@wisepath/domain/paths"
 import { ApiClient } from "../http/ApiClient"
 
 /** Previews from the WisePath API (/api/link-preview); any failure means no preview */

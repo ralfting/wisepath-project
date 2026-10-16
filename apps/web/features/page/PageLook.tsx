@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useWindowEvent } from '@mantine/hooks';
 import { ActionIcon, ColorSwatch, Group, Popover, SimpleGrid, Stack, Switch, Text, Textarea, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import { IconCheck, IconPencil } from '@tabler/icons-react';
-import type { Page, Project } from '@wisepath/domain/projects';
-import { PageColor, PageIcon, lookOf } from '@wisepath/domain/projects';
-import type { ProjectActions } from '@/useCases/projects';
+import type { Page, Path } from '@wisepath/domain/paths';
+import { PageColor, PageIcon, lookOf } from '@wisepath/domain/paths';
+import type { PathActions } from '@/useCases/paths';
 import { PageGlyph, shade } from '@/features/shared/look';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PageLook.module.css';
@@ -18,15 +18,15 @@ import classes from './PageLook.module.css';
  * main page, its description). Like a page icon in Notion, the setting sits
  * on the thing it changes.
  */
-export function PageLook({ project, page, store, size }: { project: Project; page: Page; store: ProjectActions; size: number }) {
+export function PageLook({ path, page, store, size }: { path: Path; page: Page; store: PathActions; size: number }) {
   const t = useT();
   const [opened, setOpened] = useState(false);
   // Esc closes the panel wherever focus is (a click on a swatch may leave it on the page)
   useWindowEvent('keydown', (event) => {
     if (opened && event.key === 'Escape') setOpened(false);
   });
-  const isRoot = page.id === project.rootPageId;
-  const look = lookOf(project, page.id);
+  const isRoot = page.id === path.rootPageId;
+  const look = lookOf(path, page.id);
   const label = t(isRoot ? 'page.look.changeWithDescription' : 'page.look.change');
 
   return (
@@ -50,7 +50,7 @@ export function PageLook({ project, page, store, size }: { project: Project; pag
         </Tooltip>
       </Popover.Target>
       <Popover.Dropdown>
-        <LookFields project={project} page={page} store={store} />
+        <LookFields path={path} page={page} store={store} />
       </Popover.Dropdown>
     </Popover>
   );
@@ -60,9 +60,9 @@ export function PageLook({ project, page, store, size }: { project: Project; pag
  * Module or plain page, colour and icon; the main page has a description instead of the module switch.
  * Every control is marked so Esc closes this panel only, not the drawer around it (Mantine skips Esc from them).
  */
-function LookFields({ project, page, store }: { project: Project; page: Page; store: ProjectActions }) {
-  const isRoot = page.id === project.rootPageId;
-  const look = lookOf(project, page.id);
+function LookFields({ path, page, store }: { path: Path; page: Page; store: PathActions }) {
+  const isRoot = page.id === path.rootPageId;
+  const look = lookOf(path, page.id);
   const styled = isRoot || !!page.module;
   const t = useT();
 
@@ -74,7 +74,7 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
           description={t('page.look.description.hint')}
           autosize
           minRows={2}
-          value={project.description ?? ''}
+          value={path.description ?? ''}
           onChange={(e) => store.setDescription(e.currentTarget.value)}
           data-autofocus
           data-mantine-stop-propagation
@@ -84,7 +84,7 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
           label={t('page.look.module.label')}
           description={t('page.look.module.hint')}
           checked={!!page.module}
-          onChange={(e) => store.setLook(page.id, moduleLook(project, page, e.currentTarget.checked))}
+          onChange={(e) => store.setLook(page.id, moduleLook(path, page, e.currentTarget.checked))}
           data-autofocus
           data-mantine-stop-propagation
         />
@@ -143,7 +143,7 @@ function LookFields({ project, page, store }: { project: Project; page: Page; st
 }
 
 /** The look for turning a page into a module (keeping the colour and icon it shows now) or back */
-export function moduleLook(project: Project, page: Page, module: boolean) {
-  const look = lookOf(project, page.id);
+export function moduleLook(path: Path, page: Page, module: boolean) {
+  const look = lookOf(path, page.id);
   return module ? { module: true, color: look.color, icon: page.icon ?? look.icon } : { module: false };
 }

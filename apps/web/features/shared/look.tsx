@@ -1,4 +1,4 @@
-import type { PageColor, PageIcon } from '@wisepath/domain/projects';
+import type { PageColor, PageIcon } from '@wisepath/domain/paths';
 import {
   IconBolt,
   IconBook,

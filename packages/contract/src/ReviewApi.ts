@@ -1,7 +1,7 @@
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api"
 import { NotAuthenticated } from "@wisepath/domain/auth"
-import { ProjectId } from "@wisepath/domain/projects"
+import { PathId } from "@wisepath/domain/paths"
 import { CardId, CardNotFound, DueCard, GradeCard, ReviewCounts, ReviewState } from "@wisepath/domain/review"
 import { InvalidRequest } from "./InvalidRequest"
 
@@ -17,7 +17,7 @@ const day = { dayEnds: Schema.String }
 export class ReviewApiGroup extends HttpApiGroup.make("review")
   .add(
     HttpApiEndpoint.get("due", "/due", {
-      query: { ...day, projectId: Schema.optional(ProjectId) },
+      query: { ...day, pathId: Schema.optional(PathId) },
       success: Schema.Array(DueCard),
       error: [NotAuthenticated, InvalidRequest]
     }),

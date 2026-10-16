@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { parseRecent, rememberOpened } from "./recent"
 
-const page = (pageId: string, title = pageId) => ({ projectId: "p1", pageId, title, projectTitle: "NestJS" })
+const page = (pageId: string, title = pageId) => ({ pathId: "p1", pageId, title, pathTitle: "NestJS" })
 
 describe("recent pages", () => {
   it("puts the page opened at the top, once, keeping the newest few", () => {
@@ -18,7 +18,7 @@ describe("recent pages", () => {
   })
 
   it("tells the same page id in another path apart", () => {
-    const list = rememberOpened(rememberOpened([], page("a"), 1), { ...page("a"), projectId: "p2" }, 2)
+    const list = rememberOpened(rememberOpened([], page("a"), 1), { ...page("a"), pathId: "p2" }, 2)
     expect(list).toHaveLength(2)
   })
 

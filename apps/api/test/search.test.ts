@@ -9,7 +9,7 @@ import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
 import { HttpApiClient } from 'effect/http-api';
 import { WisePathApi } from '@wisepath/contract';
 import { Email } from '@wisepath/domain/auth';
-import { PageId, ProjectId } from '@wisepath/domain/projects';
+import { PageId, PathId } from '@wisepath/domain/paths';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/setup';
 
@@ -60,18 +60,18 @@ const signupCookie = Effect.promise(async () => {
 /** A map titled `title` with these pages, off the map unless `rootContent` links to them */
 const makeMap = (client: Client, title: string, pages: ReadonlyArray<{ title: string; content: string }>, rootContent = '') =>
   Effect.gen(function* () {
-    const projectId = ProjectId.make(randomUUID());
+    const pathId = PathId.make(randomUUID());
     const rootPageId = PageId.make(randomUUID());
-    yield* client.projects.create({ payload: { id: projectId, rootPageId, title } });
+    yield* client.paths.create({ payload: { id: pathId, rootPageId, title } });
     const ids: Array<PageId> = [];
     for (const page of pages) {
       const id = PageId.make(randomUUID());
-      yield* client.projects.createPage({ params: { projectId }, payload: { id, title: page.title } });
-      yield* client.projects.updatePage({ params: { projectId, pageId: id }, payload: { content: page.content } });
+      yield* client.paths.createPage({ params: { pathId }, payload: { id, title: page.title } });
+      yield* client.paths.updatePage({ params: { pathId, pageId: id }, payload: { content: page.content } });
       ids.push(id);
     }
-    if (rootContent) yield* client.projects.updatePage({ params: { projectId, pageId: rootPageId }, payload: { content: rootContent } });
-    return { projectId, rootPageId, ids };
+    if (rootContent) yield* client.paths.updatePage({ params: { pathId, pageId: rootPageId }, payload: { content: rootContent } });
+    return { pathId, rootPageId, ids };
   });
 
 describe('search API', () => {
@@ -94,15 +94,15 @@ describe('search API', () => {
 
       const hits = yield* client.search.search({ query: { q: 'providers' } });
       assert.deepStrictEqual(
-        hits.map((h) => [h.title, h.projectTitle, h.where]),
+        hits.map((h) => [h.title, h.pathTitle, h.where]),
         [
           ['Providers', 'NestJS', []],
           ['Custom providers', 'Angular', []],
           ['Modules', 'NestJS', []],
         ],
       );
-      assert.strictEqual(hits[0].projectId, nest.projectId);
-      assert.strictEqual(hits[1].projectId, other.projectId);
+      assert.strictEqual(hits[0].pathId, nest.pathId);
+      assert.strictEqual(hits[1].pathId, other.pathId);
       // A title match needs no excerpt; a text match shows its line, with the word marked
       assert.isNull(hits[0].excerpt);
       const excerpt = hits[2].excerpt!;
@@ -119,7 +119,7 @@ describe('search API', () => {
       const client = yield* signedIn;
       const map = yield* makeMap(client, 'NestJS', [{ title: 'Fundamentals', content: '- [[Injection scopes]]' }], '- [[Fundamentals]]');
       const deep = PageId.make(randomUUID());
-      yield* client.projects.createPage({ params: { projectId: map.projectId }, payload: { id: deep, title: 'Injection scopes' } });
+      yield* client.paths.createPage({ params: { pathId: map.pathId }, payload: { id: deep, title: 'Injection scopes' } });
 
       const [hit] = yield* client.search.search({ query: { q: 'injection scopes' } });
       assert.deepStrictEqual([hit.pageId, hit.where], [deep, ['Fundamentals']]);

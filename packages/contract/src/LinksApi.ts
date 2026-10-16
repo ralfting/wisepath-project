@@ -1,7 +1,7 @@
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup } from "effect/http-api"
 import { NotAuthenticated } from "@wisepath/domain/auth"
-import { LinkNotPreviewable, LinkPreview } from "@wisepath/domain/projects"
+import { LinkNotPreviewable, LinkPreview } from "@wisepath/domain/paths"
 import { InvalidRequest } from "./InvalidRequest"
 
 /**

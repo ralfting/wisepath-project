@@ -1,6 +1,6 @@
 import { Effect } from "effect"
-import { addPage, editPage, findPageByTitle, PageNotFound, withLinkTo } from "../projects/index"
-import type { Page, PageId, Project } from "../projects/index"
+import { addPage, editPage, findPageByTitle, PageNotFound, withLinkTo } from "../paths/index"
+import type { Page, PageId, Path } from "../paths/index"
 import type { InboxItem } from "./InboxItem"
 
 /**
@@ -123,10 +123,10 @@ const joinBlocks = (markdown: string, block: string) => {
  * Files an item into one page of a map: the page's text with the item
  * appended, as a page edit the web and the API both apply.
  */
-export const fileItem = Effect.fnUntraced(function*(project: Project, pageId: PageId, item: Item, now = new Date()) {
-  const page = project.pages.find((p) => p.id === pageId)
+export const fileItem = Effect.fnUntraced(function*(path: Path, pageId: PageId, item: Item, now = new Date()) {
+  const page = path.pages.find((p) => p.id === pageId)
   if (!page) return yield* new PageNotFound({ pageId })
-  return yield* editPage(project, pageId, { content: appendItem(page.content, item) }, now)
+  return yield* editPage(path, pageId, { content: appendItem(page.content, item) }, now)
 })
 
 /** A title for a page made from an item: its link's title, else its first line, short and free of [[ ]] */
@@ -153,17 +153,17 @@ export function freeTitle(pages: ReadonlyArray<Pick<Page, "title">>, title: stri
  * chosen page. Returns the map and the new page's title.
  */
 export const makePage = Effect.fnUntraced(function*(
-  project: Project,
+  path: Path,
   fromPageId: PageId,
   item: Item,
   id: PageId,
   options: { readonly untitled?: string; readonly now?: Date } = {}
 ) {
-  const from = project.pages.find((p) => p.id === fromPageId)
+  const from = path.pages.find((p) => p.id === fromPageId)
   if (!from) return yield* new PageNotFound({ pageId: fromPageId })
-  const title = freeTitle(project.pages, titleFor(item, options.untitled))
-  const added = yield* addPage(project, { id, title }, options.now)
-  const filled = yield* editPage(added.project, id, { content: itemMarkdown(item) }, options.now)
+  const title = freeTitle(path.pages, titleFor(item, options.untitled))
+  const added = yield* addPage(path, { id, title }, options.now)
+  const filled = yield* editPage(added.path, id, { content: itemMarkdown(item) }, options.now)
   const linked = yield* editPage(filled, fromPageId, { content: withLinkTo(from.content, title) }, options.now)
-  return { project: linked, title }
+  return { path: linked, title }
 })

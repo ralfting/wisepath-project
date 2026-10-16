@@ -1,5 +1,5 @@
 import { Schema } from "effect"
-import { ProjectId } from "../projects/Project"
+import { PathId } from "../paths/Path"
 import { Card } from "./cards"
 import type { CardId } from "./cards"
 import { Grade, ReviewState } from "./fsrs"
@@ -65,7 +65,7 @@ export function dueToday(cards: ReadonlyArray<Card>, states: ReadonlyArray<KeptS
 
 /** How many cards a path has and how many are due today */
 export const PathCards = Schema.Struct({
-  projectId: ProjectId,
+  pathId: PathId,
   cards: Schema.Number,
   due: Schema.Number
 })
@@ -82,16 +82,16 @@ export type ReviewCounts = typeof ReviewCounts.Type
 /** Cards and today's due ones, overall and per path */
 export function reviewCounts(cards: ReadonlyArray<Card>, states: ReadonlyArray<KeptState>, options: QueueOptions): ReviewCounts {
   const due = dueToday(cards, states, options)
-  const paths = new Map<ProjectId, { projectId: ProjectId; cards: number; due: number }>()
+  const paths = new Map<PathId, { pathId: PathId; cards: number; due: number }>()
   for (const card of cards) {
-    const path = paths.get(card.projectId) ?? { projectId: card.projectId, cards: 0, due: 0 }
+    const path = paths.get(card.pathId) ?? { pathId: card.pathId, cards: 0, due: 0 }
     path.cards += 1
-    paths.set(card.projectId, path)
+    paths.set(card.pathId, path)
   }
   // Each path's own due cards, as its review would list them: its new cards may use the whole day's number
   for (const path of paths.values()) {
     path.due = dueToday(
-      cards.filter((c) => c.projectId === path.projectId),
+      cards.filter((c) => c.pathId === path.pathId),
       states,
       options
     ).length

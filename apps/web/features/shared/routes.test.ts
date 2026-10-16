@@ -8,9 +8,9 @@ describe('after logging in', () => {
   });
 
   it("goes home when there is nowhere to go back to, or it isn't the app", () => {
-    expect(afterLogin(null)).toBe('/projects');
-    expect(afterLogin('https://evil.example')).toBe('/projects');
-    expect(afterLogin('//evil.example')).toBe('/projects');
-    expect(afterLogin('/\\evil.example')).toBe('/projects');
+    expect(afterLogin(null)).toBe('/paths');
+    expect(afterLogin('https://evil.example')).toBe('/paths');
+    expect(afterLogin('//evil.example')).toBe('/paths');
+    expect(afterLogin('/\\evil.example')).toBe('/paths');
   });
 });

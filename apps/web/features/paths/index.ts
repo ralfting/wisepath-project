@@ -1,0 +1,1 @@
+export { PathsHome } from './PathsHome';

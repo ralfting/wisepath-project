@@ -1,9 +1,9 @@
 import { Effect, Option } from 'effect';
-import type { ProjectId } from '@wisepath/domain/projects';
+import type { PathId } from '@wisepath/domain/paths';
 import { CardNotFound, cardsOf, dueToday, reviewCounts, schedule } from '@wisepath/domain/review';
 import type { CardId, GradeCard } from '@wisepath/domain/review';
-import { CurrentUser } from '../../projects/application/CurrentUser';
-import { ProjectStore } from '../../projects/application/ProjectStore';
+import { CurrentUser } from '../../paths/application/CurrentUser';
+import { PathStore } from '../../paths/application/PathStore';
 import { ReviewStore } from './ReviewStore';
 
 /**
@@ -13,19 +13,19 @@ import { ReviewStore } from './ReviewStore';
  */
 
 /** Every card in the learner's paths, or in one of them */
-const cardsOwned = Effect.fn('review.cards')(function* (projectId?: ProjectId) {
+const cardsOwned = Effect.fn('review.cards')(function* (pathId?: PathId) {
   const user = yield* CurrentUser;
-  const projects = yield* ProjectStore;
+  const paths = yield* PathStore;
 
-  const owned = yield* projects.listOwned(user.id);
-  return owned.filter((p) => projectId === undefined || p.id === projectId).flatMap(cardsOf);
+  const owned = yield* paths.listOwned(user.id);
+  return owned.filter((p) => pathId === undefined || p.id === pathId).flatMap(cardsOf);
 });
 
-export const dueCards = Effect.fn('review.due')(function* (options: { readonly projectId?: ProjectId; readonly dayEnds: Date }) {
+export const dueCards = Effect.fn('review.due')(function* (options: { readonly pathId?: PathId; readonly dayEnds: Date }) {
   const user = yield* CurrentUser;
   const reviews = yield* ReviewStore;
 
-  const cards = yield* cardsOwned(options.projectId);
+  const cards = yield* cardsOwned(options.pathId);
   const states = yield* reviews.listOwned(user.id);
   return dueToday(cards, states, { dayEnds: options.dayEnds });
 });

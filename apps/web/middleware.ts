@@ -7,14 +7,14 @@ export function middleware(request: NextRequest) {
   const hasAccessToken = request.cookies.has('access_token');
   const redirect = (to: string) => NextResponse.redirect(new URL(to, request.url));
 
-  // The landing page is for visitors; logged-in users go straight to their projects
+  // The landing page is for visitors; logged-in users go straight to their paths
   if (pathname === '/' && hasAccessToken) return redirect(HOME);
 
-  // The old dashboard is replaced by the projects list
+  // The old dashboard is replaced by the paths list
   if (pathname.startsWith('/dashboard')) return redirect(hasAccessToken ? HOME : '/login');
 
-  // Projects and the Inbox need an account
-  if ((pathname.startsWith('/projects') || pathname === '/inbox') && !hasAccessToken) return redirect('/login');
+  // Paths and the Inbox need an account
+  if ((pathname.startsWith('/paths') || pathname === '/inbox') && !hasAccessToken) return redirect('/login');
 
   // Capturing from the web (a popup) and settings come back, filled in, once logged in
   if ((pathname === '/capture' || pathname.startsWith('/settings')) && !hasAccessToken) return redirect(loginHref(pathname + search));
@@ -27,5 +27,5 @@ export function middleware(request: NextRequest) {
 
 // Configure which routes to apply middleware to
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/projects/:path*', '/inbox', '/capture', '/settings/:path*', '/login', '/signup'],
+  matcher: ['/', '/dashboard/:path*', '/paths/:path*', '/inbox', '/capture', '/settings/:path*', '/login', '/signup'],
 };

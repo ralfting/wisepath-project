@@ -1,6 +1,6 @@
 import { Schema } from "effect"
-import { PageId, ProjectId } from "../projects/Project"
-import type { Page, Project } from "../projects/Project"
+import { PageId, PathId } from "../paths/Path"
+import type { Page, Path } from "../paths/Path"
 
 /**
  * Cards
@@ -19,7 +19,7 @@ export type CardKind = typeof CardKind.Type
 
 export const Card = Schema.Struct({
   id: CardId,
-  projectId: ProjectId,
+  pathId: PathId,
   pageId: PageId,
   kind: CardKind,
   /** As written, markdown included; for a cloze, the line with its blank as ____ */
@@ -71,8 +71,8 @@ const normalize = (text: string) => text.trim().replace(/\s+/g, " ")
  * A card's identity: its path, its page and its question. Editing the answer
  * keeps the card (and its history); editing the question makes a new one.
  */
-export function cardId(projectId: ProjectId, pageId: PageId, question: string): CardId {
-  return CardId.make(hash(`${projectId}\n${pageId}\n${normalize(question)}`))
+export function cardId(pathId: PathId, pageId: PageId, question: string): CardId {
+  return CardId.make(hash(`${pathId}\n${pageId}\n${normalize(question)}`))
 }
 
 /** True when a line of text reads as a `Question :: Answer` card */
@@ -93,24 +93,24 @@ export function clozeRanges(line: string): Array<{ from: number; to: number }> {
  */
 export function cardsIn(
   page: Pick<Page, "id" | "title" | "content">,
-  project: Pick<Project, "id" | "title">
+  path: Pick<Path, "id" | "title">
 ): Card[] {
-  const projectId = project.id
+  const pathId = path.id
   const cards: Card[] = []
   const seen = new Set<string>()
   const add = (kind: CardKind, question: string, answer: string) => {
-    const id = cardId(projectId, page.id, question)
+    const id = cardId(pathId, page.id, question)
     // The same question twice on a page is one card
     if (seen.has(id)) return
     seen.add(id)
     cards.push({
       id,
-      projectId,
+      pathId,
       pageId: page.id,
       kind,
       question: normalize(question),
       answer: normalize(answer),
-      pathTitle: project.title,
+      pathTitle: path.title,
       pageTitle: page.title
     })
   }
@@ -151,15 +151,15 @@ export function cardsIn(
  * read yet, and marking it studied is what brings its questions into the review
  */
 export function cardsOf(
-  project: Pick<Project, "id" | "title"> & {
-    readonly kind?: Project["kind"]
+  path: Pick<Path, "id" | "title"> & {
+    readonly kind?: Path["kind"]
     readonly pages: ReadonlyArray<Pick<Page, "id" | "title" | "content"> & { readonly studied?: boolean }>
   }
 ): Card[] {
-  const pages = project.kind === "learningPath" ? project.pages.filter((page) => page.studied) : project.pages
-  return pages.flatMap((page) => cardsIn(page, project))
+  const pages = path.kind === "learningPath" ? path.pages.filter((page) => page.studied) : path.pages
+  return pages.flatMap((page) => cardsIn(page, path))
 }
 
 /** Whether a page's cards are reviewed: always in a study, once the page is studied in a learning path */
-export const pageHasReview = (project: Pick<Project, "kind">, page: Pick<Page, "studied">): boolean =>
-  project.kind !== "learningPath" || page.studied
+export const pageHasReview = (path: Pick<Path, "kind">, page: Pick<Page, "studied">): boolean =>
+  path.kind !== "learningPath" || page.studied

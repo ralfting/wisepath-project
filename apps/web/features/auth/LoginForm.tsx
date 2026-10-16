@@ -11,7 +11,7 @@ import { useT } from '@/i18n/I18nProvider';
 import { fieldError } from '../shared/fieldError';
 import { afterLogin } from '../shared/routes';
 
-/** Log in with email and password, then go to the projects page, or back to where ?next= says */
+/** Log in with email and password, then go to the paths page, or back to where ?next= says */
 export function LoginForm() {
   const router = useRouter();
   const next = useSearchParams().get('next');

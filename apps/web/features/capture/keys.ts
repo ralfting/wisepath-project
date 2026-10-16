@@ -49,22 +49,22 @@ export function lastPathId(): string | null {
   }
 }
 
-export function rememberPath(projectId: string) {
+export function rememberPath(pathId: string) {
   try {
-    localStorage.setItem(LAST_PATH_KEY, projectId);
+    localStorage.setItem(LAST_PATH_KEY, pathId);
   } catch {
     // Pickers start from the first path instead
   }
 }
 
 /** The map and page a URL shows, when it shows a page (in the drawer or full) */
-export function pageOf(pathname: string): { projectId: string; pageId: string } | null {
-  const match = pathname.match(/^\/projects\/([^/]+)\/pages\/([^/]+)/);
-  return match ? { projectId: decodeURIComponent(match[1]), pageId: decodeURIComponent(match[2]) } : null;
+export function pageOf(pathname: string): { pathId: string; pageId: string } | null {
+  const match = pathname.match(/^\/paths\/([^/]+)\/pages\/([^/]+)/);
+  return match ? { pathId: decodeURIComponent(match[1]), pageId: decodeURIComponent(match[2]) } : null;
 }
 
 /** The map a URL is in, if any */
 export function pathOf(pathname: string): string | null {
-  const match = pathname.match(/^\/projects\/([^/]+)/);
+  const match = pathname.match(/^\/paths\/([^/]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }

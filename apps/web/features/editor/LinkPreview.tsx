@@ -2,7 +2,7 @@
 
 import { Box, Group, Stack, Text } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
-import { useLinkPreview } from '@/useCases/projects';
+import { useLinkPreview } from '@/useCases/paths';
 
 /**
  * LinkPreview

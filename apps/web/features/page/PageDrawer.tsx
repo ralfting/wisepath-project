@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
 import { Anchor, Drawer, Stack, Text, Title } from '@mantine/core';
-import { ProjectGate } from '@/features/projects/ProjectGate';
+import { PathGate } from '@/features/paths/PathGate';
 import { openPageId, pageHref, swapOpenPage } from '@/features/shared/routes';
 import { PagePanel } from './PagePanel';
 import { PageSheet, pageCrumbs } from './PageEditor';
@@ -16,7 +16,7 @@ import classes from './PagePanel.module.css';
 /**
  * PageDrawer
  * A page opened from the map, in a drawer over it. The URL is the page's own
- * (/projects/:id/pages/:pageId), so back closes it and a reload shows the full
+ * (/paths/:id/pages/:pageId), so back closes it and a reload shows the full
  * page; the expand button grows the drawer to the whole window in place. The map behind stays usable: clicking another
  * page switches the drawer to it.
  */
@@ -201,11 +201,11 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function PageDrawer({ projectId, pageId: routePageId }: { projectId: string; pageId: string }) {
+export function PageDrawer({ pathId, pageId: routePageId }: { pathId: string; pageId: string }) {
   const router = useRouter();
   const t = useT();
   // The page in the URL: swapped in place (swapOpenPage) it is ahead of the route's own
-  const pageId = openPageId(usePathname(), projectId) ?? routePageId;
+  const pageId = openPageId(usePathname(), pathId) ?? routePageId;
   const { close, expanded, toggleExpanded, trail, setTrail, cursors, shown } = useContext(DrawerContext);
   const before = trail.at === pageId ? trail.before : [];
   // Ready to write on arrival. Reached from another page in the drawer: where the cursor was last, else the start.
@@ -228,20 +228,20 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
   const go = (id: string) => {
     if (id === pageId) return;
     setTrail({ before: [...before, pageId], at: id });
-    swapOpenPage(pageHref(projectId, id));
+    swapOpenPage(pageHref(pathId, id));
   };
   const goBack = (to: string, rest: ReadonlyArray<string>) => {
     setTrail({ before: rest, at: to });
-    swapOpenPage(pageHref(projectId, to));
+    swapOpenPage(pageHref(pathId, to));
   };
 
   return (
-    <ProjectGate projectId={projectId}>
-      {(project, store, save) => {
-        const page = project.pages.find((p) => p.id === pageId);
+    <PathGate pathId={pathId}>
+      {(path, store, save) => {
+        const page = path.pages.find((p) => p.id === pageId);
         // The page to go back to, skipping any deleted on the way
-        const backIndex = before.map((id) => project.pages.some((p) => p.id === id)).lastIndexOf(true);
-        const back = backIndex < 0 ? undefined : project.pages.find((p) => p.id === before[backIndex]);
+        const backIndex = before.map((id) => path.pages.some((p) => p.id === id)).lastIndexOf(true);
+        const back = backIndex < 0 ? undefined : path.pages.find((p) => p.id === before[backIndex]);
         if (!page) {
           return (
             <Stack gap="sm" p="xl">
@@ -260,10 +260,10 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
           return (
             <div className={classes.expanded}>
               <TopBar>
-                <CrumbTrail crumbs={pageCrumbs(project, page, t)} />
+                <CrumbTrail crumbs={pageCrumbs(path, page, t)} />
               </TopBar>
               <PageSheet
-                project={project}
+                path={path}
                 page={page}
                 store={store}
                 save={save}
@@ -274,7 +274,7 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
                 showOnMap={{ onClick: toggleExpanded }}
                 onDeleted={(back) => {
                   toggleExpanded();
-                  router.replace(pageHref(project.id, back), { scroll: false });
+                  router.replace(pageHref(path.id, back), { scroll: false });
                 }}
               />
             </div>
@@ -284,7 +284,7 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
           // Keyed by the page: another page slides in, so the change is seen
           <div key={page.id} className={classes.swap} data-swapped={swapped || undefined}>
           <PagePanel
-            project={project}
+            path={path}
             page={page}
             store={store}
             onSelect={go}
@@ -299,6 +299,6 @@ export function PageDrawer({ projectId, pageId: routePageId }: { projectId: stri
           </div>
         );
       }}
-    </ProjectGate>
+    </PathGate>
   );
 }

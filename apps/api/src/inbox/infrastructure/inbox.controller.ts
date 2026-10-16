@@ -3,7 +3,7 @@ import type { Request } from 'express';
 import { Effect, Schema } from 'effect';
 import { Capture, InboxItem, InboxItemId } from '@wisepath/domain/inbox';
 import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
-import { CurrentUser } from '../../projects/application/CurrentUser';
+import { CurrentUser } from '../../paths/application/CurrentUser';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import * as inbox from '../application/inbox';

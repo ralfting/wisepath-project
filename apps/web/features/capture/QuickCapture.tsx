@@ -6,7 +6,7 @@ import { ActionIcon, Group, Image, Loader, SegmentedControl, Text, Textarea, Too
 import { IconLink, IconX } from '@tabler/icons-react';
 import { formatTime } from '@wisepath/domain/inbox';
 import { useT } from '@/i18n/I18nProvider';
-import { useLinkPreviewLoader, useProject } from '@/useCases/projects';
+import { useLinkPreviewLoader, usePath } from '@/useCases/paths';
 import { useCapture, useFileItem } from '@/useCases/inbox';
 import type { CaptureInput, PageTarget } from '@/useCases/inbox';
 import { displayTitle } from '@/features/shared/title';
@@ -166,8 +166,8 @@ function Destination({
   onTitle: (title: string) => void;
 }) {
   const t = useT();
-  const { state } = useProject(page.projectId);
-  const found = state.status === 'ready' ? state.project.pages.find((p) => p.id === page.pageId) : undefined;
+  const { state } = usePath(page.pathId);
+  const found = state.status === 'ready' ? state.path.pages.find((p) => p.id === page.pageId) : undefined;
   const title = found ? displayTitle(found) : '';
   useEffect(() => {
     onTitle(title);

@@ -1,10 +1,10 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect, Schema } from "effect"
 import { Capture, InboxItemId, appendItem, captured, fileItem, freeTitle, itemHere, itemMarkdown, makePage, titleFor, youTubeId } from "../src/inbox/index"
-import { PageId, mapTree, sampleProject } from "../src/projects/index"
+import { PageId, mapTree, samplePath } from "../src/paths/index"
 
 const id = PageId.make
-const contentOf = (project: typeof sampleProject, pageId: string) => project.pages.find((p) => p.id === pageId)!.content
+const contentOf = (path: typeof samplePath, pageId: string) => path.pages.find((p) => p.id === pageId)!.content
 const video = "https://www.youtube.com/watch?v=abc123"
 
 describe("capturing", () => {
@@ -56,9 +56,9 @@ describe("filing an item into a page", () => {
 
   it.effect("files into a page of the map, and says when the page is gone", () =>
     Effect.gen(function*() {
-      const project = yield* fileItem(sampleProject, id("guards"), { text: "Remember guards run before pipes" })
-      assert.isTrue(contentOf(project, "guards").endsWith("\n\nRemember guards run before pipes"))
-      const error = yield* Effect.flip(fileItem(sampleProject, id("nope"), { text: "x" }))
+      const path = yield* fileItem(samplePath, id("guards"), { text: "Remember guards run before pipes" })
+      assert.isTrue(contentOf(path, "guards").endsWith("\n\nRemember guards run before pipes"))
+      const error = yield* Effect.flip(fileItem(samplePath, id("nope"), { text: "x" }))
       assert.strictEqual(error._tag, "PageNotFound")
     }))
 })
@@ -83,7 +83,7 @@ describe("making an item a page", () => {
     assert.strictEqual(titleFor({ text: "# [[Pipes]] vs guards\nmore" }), "Pipes vs guards")
     assert.strictEqual(titleFor({ text: "https://x.org", url: "https://x.org", title: "X docs" }), "X docs")
     assert.strictEqual(titleFor({ text: "a".repeat(100) }).length, 80)
-    assert.strictEqual(freeTitle(sampleProject.pages, "JWT"), "JWT (2)")
+    assert.strictEqual(freeTitle(samplePath.pages, "JWT"), "JWT (2)")
     assert.deepStrictEqual(
       ["https://youtu.be/a-1?t=3", "https://m.youtube.com/watch?x=1&v=b_2", "https://www.youtube.com/shorts/c3", "https://notyoutube.com/watch?v=d"].map(youTubeId),
       ["a-1", "b_2", "c3", null]
@@ -92,12 +92,12 @@ describe("making an item a page", () => {
 
   it.effect("makes the page and links it from the chosen one", () =>
     Effect.gen(function*() {
-      const { project, title } = yield* makePage(sampleProject, id("guards"), { text: "JWT\nTokens that sign themselves" }, id("new"))
+      const { path, title } = yield* makePage(samplePath, id("guards"), { text: "JWT\nTokens that sign themselves" }, id("new"))
       assert.strictEqual(title, "JWT (2)")
-      assert.strictEqual(contentOf(project, "new"), "JWT\nTokens that sign themselves")
-      assert.isTrue(contentOf(project, "guards").endsWith("\n\n[[JWT (2)]]"))
+      assert.strictEqual(contentOf(path, "new"), "JWT\nTokens that sign themselves")
+      assert.isTrue(contentOf(path, "guards").endsWith("\n\n[[JWT (2)]]"))
       // The new page hangs from the chosen one on the map
-      const tree = mapTree(project)
+      const tree = mapTree(path)
       assert.strictEqual(tree.nodes.get(id("new"))?.parentId, "guards")
     }))
 })

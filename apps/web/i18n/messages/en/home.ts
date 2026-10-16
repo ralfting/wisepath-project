@@ -1,7 +1,7 @@
 /** Messages for the home area (the list of paths, a path's kind, saving), in English: the source the other languages follow */
 export const home = {
   meta: {
-    projects: 'My paths | WisePath',
+    paths: 'My paths | WisePath',
     path: 'Path | WisePath',
   },
   title: 'My paths',
@@ -60,7 +60,7 @@ export const home = {
     offline: 'Offline · retrying',
     offlineHint: 'Your changes are kept here and will be saved as soon as WisePath can be reached.',
     undone: 'Change undone',
-    /** Why the API refused a change (useCases/projects/sync.ts) */
+    /** Why the API refused a change (useCases/paths/sync.ts) */
     notice: {
       titleTaken: 'Another page already has that title, so the change was undone.',
       pageDeleted: 'That page was deleted elsewhere, so the change was undone.',

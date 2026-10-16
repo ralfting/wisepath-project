@@ -3,7 +3,7 @@ import { assert, layer } from '@effect/vitest';
 import { Effect, Exit, Fiber, Layer } from 'effect';
 import { and, eq } from 'drizzle-orm';
 import { Database, DatabaseLive } from '../src/shared/infrastructure/database/Database';
-import { pages, projects, users } from '../src/shared/infrastructure/database/schema';
+import { pages, paths, users } from '../src/shared/infrastructure/database/schema';
 import { SqlLive } from '../src/shared/infrastructure/Sql';
 
 /**
@@ -28,19 +28,19 @@ layer(TestDatabase)('Database', (it) => {
     Effect.gen(function* () {
       const { db, run } = yield* Database;
       const ownerId = yield* newUser;
-      const projectId = randomUUID();
+      const pathId = randomUUID();
 
-      yield* run(db.insert(projects).values({ id: projectId, ownerId, title: 'Rust', rootPageId: 'root' }));
+      yield* run(db.insert(paths).values({ id: pathId, ownerId, title: 'Rust', rootPageId: 'root' }));
       yield* run(
         db.insert(pages).values([
-          { projectId, id: 'b', position: 1, title: 'Borrowing', updatedAt: new Date('2026-01-02T00:00:00.000Z') },
-          { projectId, id: 'root', position: 0, title: 'Rust', updatedAt: new Date('2026-01-01T00:00:00.000Z') },
+          { pathId, id: 'b', position: 1, title: 'Borrowing', updatedAt: new Date('2026-01-02T00:00:00.000Z') },
+          { pathId, id: 'root', position: 0, title: 'Rust', updatedAt: new Date('2026-01-01T00:00:00.000Z') },
         ]),
       );
 
       const found = yield* run(
-        db.query.projects.findFirst({
-          where: and(eq(projects.id, projectId), eq(projects.ownerId, ownerId)),
+        db.query.paths.findFirst({
+          where: and(eq(paths.id, pathId), eq(paths.ownerId, ownerId)),
           with: { pages: { orderBy: (p, { asc }) => [asc(p.position)] } },
         }),
       );

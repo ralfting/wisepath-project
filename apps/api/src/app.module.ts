@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { InboxModule } from './inbox/inbox.module';
 import { LinksModule } from './links/links.module';
-import { ProjectsModule } from './projects/projects.module';
+import { PathsModule } from './paths/paths.module';
 import { ReviewModule } from './review/review.module';
 import { SearchModule } from './search/search.module';
 import { SharedModule } from './shared/shared.module';
@@ -20,7 +20,7 @@ import { SharedModule } from './shared/shared.module';
     AuthModule,
     InboxModule,
     LinksModule,
-    ProjectsModule,
+    PathsModule,
     ReviewModule,
     SearchModule,
   ],

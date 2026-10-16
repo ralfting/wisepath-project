@@ -2,8 +2,8 @@
 
 import { Popover, ScrollArea, Text, UnstyledButton } from '@mantine/core';
 import { IconUnlink } from '@tabler/icons-react';
-import type { Project } from '@wisepath/domain/projects';
-import { mapTree } from '@wisepath/domain/projects';
+import type { Path } from '@wisepath/domain/paths';
+import { mapTree } from '@wisepath/domain/paths';
 import { displayTitle } from '@/features/shared/title';
 import { useT } from '@/i18n/I18nProvider';
 import { StatusIcon } from './MindMap';
@@ -15,16 +15,16 @@ import classes from './MapOrphans.module.css';
  * Opens the list of those pages. Renders nothing when every page is linked.
  */
 export function MapOrphans({
-  project,
+  path,
   selectedId,
   onSelect,
 }: {
-  project: Project;
+  path: Path;
   selectedId: string | null;
   onSelect: (pageId: string) => void;
 }) {
   const t = useT();
-  const tree = mapTree(project);
+  const tree = mapTree(path);
   const count = tree.orphans.length;
   if (count === 0) return null;
   const label = t('map.orphans.count', { count });

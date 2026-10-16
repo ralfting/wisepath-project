@@ -4,7 +4,7 @@ import { Effect, Schema } from 'effect';
 import { SearchLimit } from '@wisepath/contract';
 import { SearchHit } from '@wisepath/domain/search';
 import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
-import { CurrentUser } from '../../projects/application/CurrentUser';
+import { CurrentUser } from '../../paths/application/CurrentUser';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import { searchPages } from '../application/search';

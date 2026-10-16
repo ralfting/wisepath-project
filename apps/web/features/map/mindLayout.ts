@@ -1,4 +1,4 @@
-import type { MapNode, MapTree, Page, PageId } from '@wisepath/domain/projects';
+import type { MapNode, MapTree, Page, PageId } from '@wisepath/domain/paths';
 
 /**
  * Mind map layout

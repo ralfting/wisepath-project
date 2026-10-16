@@ -43,7 +43,7 @@ export const DrizzleReviewStore = Layer.effect(
 
     const save = Effect.fn('ReviewStore.save')(function* (ownerId: UserId, card: Card, state: ReviewState) {
       const columns = {
-        projectId: card.projectId,
+        pathId: card.pathId,
         pageId: card.pageId,
         due: new Date(state.due),
         stability: state.stability,

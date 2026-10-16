@@ -13,8 +13,8 @@ import {
   IconMinus,
   IconPlus,
 } from '@tabler/icons-react';
-import type { Page, PageColor, Project } from '@wisepath/domain/projects';
-import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
+import type { Page, PageColor, Path } from '@wisepath/domain/paths';
+import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths';
 import { displayTitle } from '@/features/shared/title';
 import { PageGlyph, shade } from '@/features/shared/look';
 import { RELATED_HOVER_EVENT, relatedFromEvent } from '@/features/shared/relatedHover';
@@ -27,7 +27,7 @@ import classes from './MindMap.module.css';
 
 /**
  * MindMap
- * The project read from its [[links]]: root in the middle, branches level by
+ * The path read from its [[links]]: root in the middle, branches level by
  * level outward, modules drawn larger, other links as blue arrows. Pages no
  * link reaches are not drawn (the header lists them, see MapOrphans). Drag or
  * scroll to pan, pinch or Ctrl/⌘ + scroll to zoom. Every page is a button.
@@ -44,7 +44,7 @@ export interface FocusRequest {
 }
 
 interface MindMapProps {
-  project: Project;
+  path: Path;
   selectedId: string | null;
   /** The page "Continue studying" leads to */
   currentId: string | null;
@@ -85,7 +85,7 @@ const FOCUS_ZOOM = 1.2;
 const PLUS = 24;
 
 export function MindMap({
-  project,
+  path,
   selectedId,
   currentId,
   progress,
@@ -100,7 +100,7 @@ export function MindMap({
   branch = null,
 }: MindMapProps) {
   const t = useT();
-  const tree = useMemo(() => mapTree(project), [project]);
+  const tree = useMemo(() => mapTree(path), [path]);
   const root = useMemo(() => rootShape(displayTitle(tree.root.page)), [tree]);
   const layout = useMemo(() => layoutMind(tree, root), [tree, root]);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -386,7 +386,7 @@ export function MindMap({
     const left = n.side === 1 ? n.inner.x : n.inner.x - n.w;
     return { left: view.x + left * view.k, top: view.y + (n.inner.y + n.h / 2) * view.k + 8 };
   })();
-  const rootLook = lookOf(project, rootId, tree);
+  const rootLook = lookOf(path, rootId, tree);
   const overall = progressOf(descendants(tree.root));
   const statusOf = (page: Page): TopicStatus => (page.studied ? 'done' : page.id === currentId ? 'current' : 'todo');
   /** What a branch holds: studied of all in a learning path, how many pages in a study */
@@ -437,7 +437,7 @@ export function MindMap({
                   key={line.key}
                   d={line.d}
                   fill="none"
-                  stroke={shade(lookOf(project, line.to, tree).color, isPointedLink(line.from, line.to) ? 6 : line.from === rootId ? 4 : 3)}
+                  stroke={shade(lookOf(path, line.to, tree).color, isPointedLink(line.from, line.to) ? 6 : line.from === rootId ? 4 : 3)}
                   strokeWidth={isPointedLink(line.from, line.to) ? 3.4 : line.from === rootId ? 2.4 : 1.6}
                   opacity={dimmed(line.to) ? 0.25 : 0.9}
                 />
@@ -474,7 +474,7 @@ export function MindMap({
             {plusFor(rootId, displayTitle(tree.root.page), (rootSide * root.w) / 2, 0)}
 
             {layout.nodes.map((n) => {
-              const look = lookOf(project, n.page.id, tree);
+              const look = lookOf(path, n.page.id, tree);
               const status = statusOf(n.page);
               const counter = n.branches > 0 ? counterOf(n.page.id) : null;
               const label = [

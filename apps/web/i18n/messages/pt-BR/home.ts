@@ -4,7 +4,7 @@ import type { home as en } from '../en/home';
 /** Mensagens da área home (a lista de trilhas, o tipo de uma trilha, o salvamento), em português do Brasil */
 export const home = {
   meta: {
-    projects: 'Minhas trilhas | WisePath',
+    paths: 'Minhas trilhas | WisePath',
     path: 'Trilha | WisePath',
   },
   title: 'Minhas trilhas',
@@ -63,7 +63,7 @@ export const home = {
     offline: 'Sem conexão · tentando de novo',
     offlineHint: 'Suas alterações ficam guardadas aqui e serão salvas assim que o WisePath responder.',
     undone: 'Alteração desfeita',
-    /** Por que a API recusou uma alteração (useCases/projects/sync.ts) */
+    /** Por que a API recusou uma alteração (useCases/paths/sync.ts) */
     notice: {
       titleTaken: 'Outra página já tem esse título, então a alteração foi desfeita.',
       pageDeleted: 'Essa página foi excluída em outro lugar, então a alteração foi desfeita.',

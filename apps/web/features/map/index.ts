@@ -1,1 +1,1 @@
-export { ProjectMap } from './ProjectMap';
+export { PathMap } from './PathMap';

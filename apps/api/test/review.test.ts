@@ -9,7 +9,7 @@ import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
 import { HttpApiClient } from 'effect/http-api';
 import { WisePathApi } from '@wisepath/contract';
 import { Email } from '@wisepath/domain/auth';
-import { PageId, ProjectId } from '@wisepath/domain/projects';
+import { PageId, PathId } from '@wisepath/domain/paths';
 import { CardId } from '@wisepath/domain/review';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/setup';
@@ -54,11 +54,11 @@ const signedIn = Effect.gen(function* () {
 /** A new path whose root page has this text */
 const pathWith = (client: Client, title: string, content: string) =>
   Effect.gen(function* () {
-    const projectId = ProjectId.make(randomUUID());
+    const pathId = PathId.make(randomUUID());
     const rootPageId = PageId.make(randomUUID());
-    yield* client.projects.create({ payload: { id: projectId, rootPageId, title } });
-    yield* client.projects.updatePage({ params: { projectId, pageId: rootPageId }, payload: { content } });
-    return { projectId, rootPageId };
+    yield* client.paths.create({ payload: { id: pathId, rootPageId, title } });
+    yield* client.paths.updatePage({ params: { pathId, pageId: rootPageId }, payload: { content } });
+    return { pathId, rootPageId };
   });
 
 /** The end of the day, a day from now: anything due by then is due today */
@@ -91,16 +91,16 @@ describe('review API', () => {
       );
       assert.isTrue(all.every((c) => c.state === null && c.pageTitle === c.pathTitle));
 
-      const onlyGo = yield* client.review.due({ query: { dayEnds: tomorrow(), projectId: go.projectId } });
+      const onlyGo = yield* client.review.due({ query: { dayEnds: tomorrow(), pathId: go.pathId } });
       assert.deepStrictEqual(onlyGo.map((c) => c.question), ['What runs a goroutine?']);
 
       const counts = yield* client.review.counts({ query: { dayEnds: tomorrow() } });
       assert.strictEqual(counts.due, 3);
       assert.deepStrictEqual(
-        counts.paths.map((p) => [p.projectId, p.cards, p.due]),
+        counts.paths.map((p) => [p.pathId, p.cards, p.due]),
         [
-          [rust.projectId, 2, 2],
-          [go.projectId, 1, 1],
+          [rust.pathId, 2, 2],
+          [go.pathId, 1, 1],
         ],
       );
     }),
@@ -134,11 +134,11 @@ describe('review API', () => {
   it.effect('keeps a card when its answer is edited, and its state when its line is gone and back', () =>
     Effect.gen(function* () {
       const client = yield* signedIn;
-      const { projectId, rootPageId } = yield* pathWith(client, 'Rust', 'Who owns a value? :: One variable');
+      const { pathId, rootPageId } = yield* pathWith(client, 'Rust', 'Who owns a value? :: One variable');
       const [card] = yield* client.review.due({ query: { dayEnds: tomorrow() } });
       yield* client.review.grade({ params: { cardId: card.id }, payload: { grade: 3, reps: 0 } });
 
-      const edit = (content: string) => client.projects.updatePage({ params: { projectId, pageId: rootPageId }, payload: { content } });
+      const edit = (content: string) => client.paths.updatePage({ params: { pathId, pageId: rootPageId }, payload: { content } });
       const later = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
       yield* edit('Who owns a value? :: Exactly one variable');
       const [edited] = yield* client.review.due({ query: { dayEnds: later } });
@@ -176,7 +176,7 @@ describe('review API', () => {
         [15, 10],
         [15, 15],
       ]);
-      const onlyFirst = yield* client.review.due({ query: { dayEnds, projectId: first.projectId } });
+      const onlyFirst = yield* client.review.due({ query: { dayEnds, pathId: first.pathId } });
       assert.strictEqual(onlyFirst.length, 10);
     }),
   );

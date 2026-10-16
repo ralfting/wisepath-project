@@ -28,10 +28,10 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
-import type { Page, Project, Relation } from '@wisepath/domain/projects';
-import { branchProgress, lookOf, mapTree, pathTo, projectProgress, relatedPages } from '@wisepath/domain/projects';
+import type { Page, Path, Relation } from '@wisepath/domain/paths';
+import { branchProgress, lookOf, mapTree, trailTo, pathProgress, relatedPages } from '@wisepath/domain/paths';
 import { displayTitle } from '@/features/shared/title';
-import type { ProjectActions } from '@/useCases/projects';
+import type { PathActions } from '@/useCases/paths';
 import { PageGlyph } from '@/features/shared/look';
 import { pointAtRelated } from '@/features/shared/relatedHover';
 import { PageContent, PageTitleInput } from './PageContent';
@@ -51,9 +51,9 @@ import classes from './PagePanel.module.css';
  */
 
 interface PagePanelProps {
-  project: Project;
+  path: Path;
   page: Page;
-  store: ProjectActions;
+  store: PathActions;
   onSelect: (pageId: string) => void;
   /** Grows the drawer into the full page, in place */
   onExpand?: () => void;
@@ -84,23 +84,23 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
   { relation: 'linkedFrom', icon: IconArrowLeft },
 ];
 
-export function PagePanel({ project, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
+export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
   const t = useT();
   const [tab, setTab] = useState<PanelTab>('content');
   // Offered again by the search palette (⌘P), across paths
-  useRememberOpened({ projectId: project.id, pageId: page.id, title: page.title, projectTitle: project.title });
+  useRememberOpened({ pathId: path.id, pageId: page.id, title: page.title, pathTitle: path.title });
   // A related page still pointed at when the panel goes (another page opened, the drawer closed) lets go
   useEffect(() => () => pointAtRelated(null), [page.id]);
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const isRoot = page.id === project.rootPageId;
-  const tree = mapTree(project);
+  const isRoot = page.id === path.rootPageId;
+  const tree = mapTree(path);
   const isOrphan = !tree.nodes.has(page.id);
-  const path = pathTo(project, page.id, tree);
-  const related = relatedPages(project, page.id);
-  const below = branchProgress(project, page.id);
-  const branchFrom = path.length > 1 ? path[path.length - 2] : null;
+  const trail = trailTo(path, page.id, tree);
+  const related = relatedPages(path, page.id);
+  const below = branchProgress(path, page.id);
+  const branchFrom = trail.length > 1 ? trail[trail.length - 2] : null;
 
   const pageActions: PageActions = {
     updatePage: store.updatePage,
@@ -113,7 +113,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
 
   const kind = t(isRoot ? 'page.kind.path' : isOrphan ? 'page.kind.orphan' : page.module ? 'page.kind.module' : 'page.kind.page');
   // A learning path counts what below was studied; a study, how many pages are below
-  const progress = project.kind === 'learningPath';
+  const progress = path.kind === 'learningPath';
   const belowText =
     !below || below.total === 0
       ? null
@@ -149,7 +149,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
               {t('page.panel.orphans')}
             </Text>
           ) : (
-            trailOf(path.slice(0, -1)).map((p) =>
+            trailOf(trail.slice(0, -1)).map((p) =>
               p === null ? (
                 <Text key="gap" size="sm" c="dimmed" aria-label={t('page.panel.morePages')}>
                   …
@@ -179,7 +179,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(project, page, !page.module))}>
+                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(path, page, !page.module))}>
                   {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
                 </Menu.Item>
                 <Menu.Divider />
@@ -207,16 +207,16 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         onDelete={() => {
           setConfirmDelete(false);
           store.deletePage(page.id);
-          onSelect(branchFrom?.id ?? project.rootPageId);
+          onSelect(branchFrom?.id ?? path.rootPageId);
         }}
       />
 
       <Group gap="md" wrap="nowrap" align="flex-start" px="lg" pt="md">
-        <PageLook project={project} page={page} store={store} size={60} />
+        <PageLook path={path} page={page} store={store} size={60} />
         <Stack gap={2} miw={0} style={{ flex: 1 }}>
           <PageTitleInput
             key={page.id}
-            project={project}
+            path={path}
             page={page}
             actions={store}
             size={26}
@@ -237,7 +237,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
           <StudiedToggle
             studied={page.studied}
             onChange={(studied) => store.updatePage(page.id, { studied })}
-            progress={{ map: project.title, ...projectProgress(project) }}
+            progress={{ map: path.title, ...pathProgress(path) }}
           />
         </Group>
       )}
@@ -251,7 +251,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
         <Tabs.Panel value="content" className={classes.body}>
           <PageContent
             key={page.id}
-            project={project}
+            path={path}
             page={page}
             actions={pageActions}
             showTitle={false}
@@ -296,7 +296,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
                     </Text>
                     <Stack gap={0}>
                       {pages.map(({ page: p }) => {
-                        const l = lookOf(project, p.id, tree);
+                        const l = lookOf(path, p.id, tree);
                         return (
                           <UnstyledButton
                             key={p.id}
@@ -309,7 +309,7 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
                             onBlur={() => pointAtRelated(null)}
                           >
                             <ThemeIcon size={28} radius="xl" variant="light" color={l.color}>
-                              <PageGlyph icon={p.module || p.id === project.rootPageId ? l.icon : 'book'} size={15} />
+                              <PageGlyph icon={p.module || p.id === path.rootPageId ? l.icon : 'book'} size={15} />
                             </ThemeIcon>
                             <Text size="sm" fw={600} truncate style={{ flex: 1, minWidth: 0 }}>
                               {displayTitle(p)}

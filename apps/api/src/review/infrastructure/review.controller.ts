@@ -2,10 +2,10 @@ import { BadRequestException, Body, Controller, Get, HttpCode, Param, Post, Quer
 import type { Request } from 'express';
 import { Effect, Schema } from 'effect';
 import { InvalidRequest } from '@wisepath/contract';
-import { ProjectId } from '@wisepath/domain/projects';
+import { PathId } from '@wisepath/domain/paths';
 import { CardId, DueCard, GradeCard, ReviewCounts, ReviewState } from '@wisepath/domain/review';
 import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
-import { CurrentUser } from '../../projects/application/CurrentUser';
+import { CurrentUser } from '../../paths/application/CurrentUser';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import * as review from '../application/review';
@@ -18,7 +18,7 @@ import * as review from '../application/review';
 
 const asUser = (req: Request) => Effect.provideService(CurrentUser, { id: req.user!.id });
 
-const DueQuery = Schema.Struct({ dayEnds: Schema.String, projectId: Schema.optional(ProjectId) });
+const DueQuery = Schema.Struct({ dayEnds: Schema.String, pathId: Schema.optional(PathId) });
 const CountsQuery = Schema.Struct({ dayEnds: Schema.String });
 
 /** The end of the learner's day, as a date; anything else is a bad request */
@@ -37,7 +37,7 @@ export class ReviewController {
 
   @Get('due')
   due(@Req() req: Request, @Query(new SchemaPipe(DueQuery)) query: typeof DueQuery.Type) {
-    const options = { dayEnds: dayEnds(query.dayEnds), ...(query.projectId ? { projectId: query.projectId } : {}) };
+    const options = { dayEnds: dayEnds(query.dayEnds), ...(query.pathId ? { pathId: query.pathId } : {}) };
     return this.effect.respond(review.dueCards(options).pipe(asUser(req)), Schema.Array(DueCard));
   }
 

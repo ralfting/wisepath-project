@@ -45,7 +45,7 @@ import { useLocale, useT } from '@/i18n/I18nProvider';
 import { LOCALES, LOCALE_NAMES } from '@/i18n/locales';
 import { Flag } from '@/i18n/Flag';
 import type { Locale } from '@/i18n/locales';
-import { useProjects } from '@/useCases/projects';
+import { usePaths } from '@/useCases/paths';
 import { useInboxCount } from '@/useCases/inbox';
 import { CaptureLauncher } from '@/features/capture';
 import { PageGlyph } from '@/features/shared/look';
@@ -247,7 +247,7 @@ export function TopBar({ children }: { children: ReactNode }) {
 /** The collapsed sidebar: the same places as icons; hovering it floats the full sidebar */
 function Rail() {
   const pathname = usePathname();
-  const projects = useProjects();
+  const paths = usePaths();
   const inboxCount = useInboxCount();
   const session = useSession();
   const user = session.status === 'signedIn' ? session.user : null;
@@ -255,18 +255,18 @@ function Rail() {
 
   return (
     <Stack h="100%" align="center" gap="xs" py="lg" className={classes.rail}>
-      <Anchor component={Link} href="/projects" aria-label={t('shell.sidebar.home')} mb="sm">
+      <Anchor component={Link} href="/paths" aria-label={t('shell.sidebar.home')} mb="sm">
         <ThemeIcon size={34} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }}>
           <IconRoute size={20} stroke={2} />
         </ThemeIcon>
       </Anchor>
       <ActionIcon
         component={Link}
-        href="/projects"
+        href="/paths"
         size={40}
         radius="md"
-        variant={pathname === '/projects' ? 'light' : 'subtle'}
-        color={pathname === '/projects' ? 'blue' : 'gray'}
+        variant={pathname === '/paths' ? 'light' : 'subtle'}
+        color={pathname === '/paths' ? 'blue' : 'gray'}
         aria-label={t('shell.sidebar.myPaths')}
       >
         <IconHome size={20} stroke={1.7} />
@@ -288,14 +288,14 @@ function Rail() {
         <IconSearch size={20} stroke={1.7} />
       </ActionIcon>
       <div className={classes.railRule} />
-      {(projects ?? []).map((project) => {
-        const href = `/projects/${project.id}`;
-        const percent = project.total ? Math.round((project.studied / project.total) * 100) : 0;
-        const progress = project.kind === 'learningPath';
+      {(paths ?? []).map((path) => {
+        const href = `/paths/${path.id}`;
+        const percent = path.total ? Math.round((path.studied / path.total) * 100) : 0;
+        const progress = path.kind === 'learningPath';
         return (
           // A thin ring around the icon fills with a learning path's progress; a study's stays plain
           <Box
-            key={project.id}
+            key={path.id}
             className={classes.railMap}
             data-active={pathname.startsWith(href) || undefined}
             data-plain={!progress || undefined}
@@ -307,10 +307,10 @@ function Rail() {
               size={40}
               radius="xl"
               variant="light"
-              color={project.color}
-              aria-label={progress ? t('shell.rail.pathProgress', { title: project.title, percent }) : project.title}
+              color={path.color}
+              aria-label={progress ? t('shell.rail.pathProgress', { title: path.title, percent }) : path.title}
             >
-              <PageGlyph icon={project.icon} size={19} />
+              <PageGlyph icon={path.icon} size={19} />
             </ActionIcon>
           </Box>
         );
@@ -323,7 +323,7 @@ function Rail() {
 /** Logo, navigation, the learner's maps, and their account at the bottom */
 function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
   const pathname = usePathname();
-  const projects = useProjects();
+  const paths = usePaths();
   const inboxCount = useInboxCount();
   const t = useT();
 
@@ -331,7 +331,7 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
     <>
       <AppShell.Section px="lg" pt="lg" pb="md">
         <Group justify="space-between" wrap="nowrap">
-          <Anchor component={Link} href="/projects" underline="never" c="inherit">
+          <Anchor component={Link} href="/paths" underline="never" c="inherit">
             <Group gap="xs" wrap="nowrap">
               <ThemeIcon size={34} radius="md" variant="gradient" gradient={{ from: 'blue.6', to: 'cyan.5', deg: 135 }}>
                 <IconRoute size={20} stroke={2} />
@@ -348,14 +348,14 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
       <AppShell.Section px="sm">
         <NavLink
           component={Link}
-          href="/projects"
+          href="/paths"
           label={t('shell.sidebar.myPaths')}
-          active={pathname === '/projects'}
+          active={pathname === '/paths'}
           leftSection={<IconHome size={20} stroke={1.7} />}
           rightSection={
-            projects && projects.length > 0 ? (
+            paths && paths.length > 0 ? (
               <Badge size="sm" variant="light" circle>
-                {projects.length}
+                {paths.length}
               </Badge>
             ) : null
           }
@@ -391,21 +391,21 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
         <Text size="xs" fw={600} c="dimmed" tt="uppercase" lts={0.6} px="sm" pb={6}>
           {t('shell.sidebar.paths')}
         </Text>
-        {(projects ?? []).map((project) => {
-          const { studied, total } = project;
-          const href = `/projects/${project.id}`;
+        {(paths ?? []).map((path) => {
+          const { studied, total } = path;
+          const href = `/paths/${path.id}`;
           // Only a learning path has a share studied to show
-          const progress = project.kind === 'learningPath';
+          const progress = path.kind === 'learningPath';
           return (
             <NavLink
-              key={project.id}
+              key={path.id}
               component={Link}
               href={href}
-              label={project.title}
+              label={path.title}
               active={pathname.startsWith(href)}
               leftSection={
-                <ThemeIcon size={30} radius="xl" variant="light" color={project.color}>
-                  <PageGlyph icon={project.icon} size={17} />
+                <ThemeIcon size={30} radius="xl" variant="light" color={path.color}>
+                  <PageGlyph icon={path.icon} size={17} />
                 </ThemeIcon>
               }
               rightSection={

@@ -1,4 +1,4 @@
-import type { LinkPreview } from '@wisepath/domain/projects';
+import type { LinkPreview } from '@wisepath/domain/paths';
 
 function decodeEntities(text: string): string {
   return text

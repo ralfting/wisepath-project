@@ -1,6 +1,6 @@
 import { Context } from 'effect';
 import type { Effect } from 'effect';
-import type { LinkNotPreviewable } from '@wisepath/domain/projects';
+import type { LinkNotPreviewable } from '@wisepath/domain/paths';
 
 /** A web page's HTML, as far as its <head>, and the address it ended at after redirects */
 export interface FetchedPage {

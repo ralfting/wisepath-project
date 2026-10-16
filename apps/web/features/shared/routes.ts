@@ -3,19 +3,19 @@
  * Where a map and its pages live. A page URL opens the page in a drawer over
  * the map when reached from inside the app, and as a full page when loaded
  * directly. ?open= on the map URL is how a link from outside the map (the
- * projects page, the full page) lands on the map with a page's drawer open.
+ * paths page, the full page) lands on the map with a page's drawer open.
  */
 
-export const mapHref = (projectId: string) => `/projects/${projectId}`;
+export const mapHref = (pathId: string) => `/paths/${pathId}`;
 
-export const pageHref = (projectId: string, pageId: string) => `/projects/${projectId}/pages/${pageId}`;
+export const pageHref = (pathId: string, pageId: string) => `/paths/${pathId}/pages/${pageId}`;
 
 /**
  * A page of any path, opened on its map. Use it to reach another path's page from inside the app: a client
  * navigation straight to pageHref of another path is intercepted as a drawer over the map still showing,
  * whose path differs, and lands on "Path not found". (A full load of pageHref is fine: it is the full page.)
  */
-export const mapWithPageHref = (projectId: string, pageId: string) => `/projects/${projectId}?open=${encodeURIComponent(pageId)}`;
+export const mapWithPageHref = (pathId: string, pageId: string) => `/paths/${pathId}?open=${encodeURIComponent(pageId)}`;
 
 /** The page open in the drawer, read from the URL; null on the map alone */
 /**
@@ -27,13 +27,13 @@ export function swapOpenPage(href: string): void {
   window.history.replaceState(null, '', href);
 }
 
-export function openPageId(pathname: string, projectId: string): string | null {
-  const prefix = `${pageHref(projectId, '')}`;
+export function openPageId(pathname: string, pathId: string): string | null {
+  const prefix = `${pageHref(pathId, '')}`;
   return pathname.startsWith(prefix) ? decodeURIComponent(pathname.slice(prefix.length).split('/')[0]) || null : null;
 }
 
 /** Where the app sends a learner once logged in, unless they were on their way somewhere */
-export const HOME = '/projects';
+export const HOME = '/paths';
 
 /** The login page, coming back to an address of the app's own once logged in */
 export const loginHref = (next: string) => `/login?next=${encodeURIComponent(next)}`;

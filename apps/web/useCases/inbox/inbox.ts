@@ -6,11 +6,11 @@ import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { Effect, Exit } from "effect"
 import { captured, fileItem, makePage } from "@wisepath/domain/inbox"
 import type { InboxItem, InboxItemId } from "@wisepath/domain/inbox"
-import { PageId } from "@wisepath/domain/projects"
-import type { Project } from "@wisepath/domain/projects"
+import { PageId } from "@wisepath/domain/paths"
+import type { Path } from "@wisepath/domain/paths"
 import { useT } from "@/i18n/I18nProvider"
-import { newPageId, useOpenProject } from "../projects"
-import type { Command } from "../projects"
+import { newPageId, useOpenPath } from "../paths"
+import type { Command } from "../paths"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import * as programs from "./programs"
 
@@ -169,14 +169,14 @@ function useLeaveAfter() {
 
 /** Where an item goes: a page of one of the learner's maps */
 export interface PageTarget {
-  readonly projectId: string
+  readonly pathId: string
   readonly pageId: string
 }
 
 export type FileResult = { readonly ok: true; readonly title: string } | { readonly ok: false; readonly message: string }
 
 /** The commands that take a map from one state to another, for what the Inbox changes in it */
-function pageCommands(before: Project, after: Project): Command[] {
+function pageCommands(before: Path, after: Path): Command[] {
   const old = new Map(before.pages.map((p) => [p.id, p]))
   return after.pages.flatMap((page): Command[] => {
     const was = old.get(page.id)
@@ -190,13 +190,13 @@ function pageCommands(before: Project, after: Project): Command[] {
  * resolves once the API has it; the message to show when it didn't happen
  */
 function useChangeMap() {
-  const open = useOpenProject()
+  const open = useOpenPath()
   const t = useT()
   return useCallback(
-    async <E>(target: PageTarget, change: (project: Project) => Effect.Effect<Project, E>): Promise<string | null> => {
-      const handle = await open(target.projectId)
+    async <E>(target: PageTarget, change: (path: Path) => Effect.Effect<Path, E>): Promise<string | null> => {
+      const handle = await open(target.pathId)
       if (!handle) return t("inbox.errors.pathGone")
-      const before = handle.project()
+      const before = handle.path()
       const exit = Effect.runSyncExit(change(before))
       if (Exit.isFailure(exit)) return t("inbox.errors.pageGone")
       for (const command of pageCommands(before, exit.value)) handle.dispatch(command)
@@ -214,9 +214,9 @@ export function useFileItem(): (item: CaptureInput & { readonly id?: InboxItemId
     async (item, target) => {
       let title = ""
       const message = await leaveAfter(item.id !== undefined ? (item as InboxItem) : null, () =>
-        change(target, (project) => {
-          title = project.pages.find((p) => p.id === target.pageId)?.title ?? ""
-          return fileItem(project, PageId.make(target.pageId), item)
+        change(target, (path) => {
+          title = path.pages.find((p) => p.id === target.pageId)?.title ?? ""
+          return fileItem(path, PageId.make(target.pageId), item)
         })
       )
       return message === null ? { ok: true, title } : { ok: false, message }
@@ -235,11 +235,11 @@ export function useMakePage(): (item: InboxItem, from: PageTarget) => Promise<Fi
       const id = newPageId()
       let title = ""
       const message = await leaveAfter(item, () =>
-        change(from, (project) =>
-          makePage(project, PageId.make(from.pageId), item, id, { untitled: t("inbox.makePage.untitled") }).pipe(
+        change(from, (path) =>
+          makePage(path, PageId.make(from.pageId), item, id, { untitled: t("inbox.makePage.untitled") }).pipe(
             Effect.map((made) => {
               title = made.title
-              return made.project
+              return made.path
             })
           )
         )
@@ -254,14 +254,14 @@ export function useMakePage(): (item: InboxItem, from: PageTarget) => Promise<Fi
  * An item the learner put into a page's text themselves (the editor's / command): it leaves the Inbox on screen
  * at once, and on the API once that page's map is saved; when the save fails it shows in the Inbox again
  */
-export function useTakeFromInbox(): (item: InboxItem, projectId: string) => Promise<boolean> {
-  const open = useOpenProject()
+export function useTakeFromInbox(): (item: InboxItem, pathId: string) => Promise<boolean> {
+  const open = useOpenPath()
   const leaveAfter = useLeaveAfter()
   const t = useT()
   return useCallback(
-    async (item, projectId) => {
+    async (item, pathId) => {
       const message = await leaveAfter(item, async () => {
-        const handle = await open(projectId)
+        const handle = await open(pathId)
         if (!handle) return t("inbox.errors.pathGone")
         return (await handle.saved()) ? null : t("inbox.errors.notFiled")
       })

@@ -1,7 +1,7 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { Effect, Layer } from 'effect';
-import { LinkNotPreviewable } from '@wisepath/domain/projects';
+import { LinkNotPreviewable } from '@wisepath/domain/paths';
 import { PageFetcher } from '../application/PageFetcher';
 
 /**

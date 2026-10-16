@@ -38,7 +38,7 @@ export const users = pgTable(
 );
 
 /** A learner's map. Its title is its root page's title. Ids come from the client. */
-export const projects = pgTable(
+export const paths = pgTable(
   'projects',
   {
     id: text().primaryKey(),
@@ -67,7 +67,7 @@ export const pages = pgTable(
   'pages',
   {
     id: text().notNull(),
-    projectId: text('project_id').notNull(),
+    pathId: text('project_id').notNull(),
     /** Order the pages were added in */
     position: integer().notNull(),
     title: text().notNull(),
@@ -82,12 +82,12 @@ export const pages = pgTable(
     updatedAt: timestamp('updated_at', { precision: 3, withTimezone: true }).notNull(),
   },
   (t) => [
-    primaryKey({ name: 'pages_pkey', columns: [t.projectId, t.id] }),
-    uniqueIndex('pages_project_id_title_key_key').on(t.projectId, t.titleKey),
+    primaryKey({ name: 'pages_pkey', columns: [t.pathId, t.id] }),
+    uniqueIndex('pages_project_id_title_key_key').on(t.pathId, t.titleKey),
     // Search everywhere: LIKE '%word%' on the folded title and text (wp_fold, made with the migration)
     index('pages_title_search_idx').using('gin', sql`wp_fold(${t.title}) gin_trgm_ops`),
     index('pages_content_search_idx').using('gin', sql`wp_fold(${t.content}) gin_trgm_ops`),
-    foreignKey({ name: 'pages_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
+    foreignKey({ name: 'pages_project_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -104,7 +104,7 @@ export const reviewStates = pgTable(
   {
     ownerId: text('owner_id').notNull(),
     cardId: text('card_id').notNull(),
-    projectId: text('project_id').notNull(),
+    pathId: text('project_id').notNull(),
     pageId: text('page_id').notNull(),
     due: timestamp({ precision: 3, withTimezone: true }).notNull(),
     stability: doublePrecision().notNull(),
@@ -121,7 +121,7 @@ export const reviewStates = pgTable(
     foreignKey({ name: 'review_states_owner_id_fkey', columns: [t.ownerId], foreignColumns: [users.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
-    foreignKey({ name: 'review_states_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
+    foreignKey({ name: 'review_states_project_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -152,14 +152,14 @@ export const inboxItems = pgTable(
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
-  projects: many(projects),
+  paths: many(paths),
 }));
 
-export const projectsRelations = relations(projects, ({ one, many }) => ({
-  owner: one(users, { fields: [projects.ownerId], references: [users.id] }),
+export const pathsRelations = relations(paths, ({ one, many }) => ({
+  owner: one(users, { fields: [paths.ownerId], references: [users.id] }),
   pages: many(pages),
 }));
 
 export const pagesRelations = relations(pages, ({ one }) => ({
-  project: one(projects, { fields: [pages.projectId], references: [projects.id] }),
+  path: one(paths, { fields: [pages.pathId], references: [paths.id] }),
 }));

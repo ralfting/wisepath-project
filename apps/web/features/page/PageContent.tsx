@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
-import type { Page, Project } from '@wisepath/domain/projects';
-import { titleTaken } from '@wisepath/domain/projects';
+import type { Page, Path } from '@wisepath/domain/paths';
+import { titleTaken } from '@wisepath/domain/paths';
 import { MarkdownEditor } from '@/features/editor/MarkdownEditor';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { Stack, TextInput } from '@mantine/core';
@@ -21,7 +21,7 @@ export interface PageActions {
   updatePage: (pageId: string, patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>) => void;
   /** A title starts being edited: links to the page follow it as it is typed */
   beginRename: (pageId: string) => void;
-  /** Rewrites [[Old]] links across the project after a rename, ending it */
+  /** Rewrites [[Old]] links across the path after a rename, ending it */
   renameLinks: (oldTitle: string, newTitle: string) => void;
   openPage: (pageId: string) => void;
   /** Creates the page a [[link]] already points to, and opens it */
@@ -31,7 +31,7 @@ export interface PageActions {
 }
 
 interface PageContentProps {
-  project: Project;
+  path: Path;
   page: Page;
   actions: PageActions;
   /** Focus the title on mount, for a page just created */
@@ -50,7 +50,7 @@ interface PageContentProps {
 }
 
 export function PageContent({
-  project,
+  path,
   page,
   actions,
   isFresh = false,
@@ -70,7 +70,7 @@ export function PageContent({
     <Stack gap="md">
       {showTitle && (
         <PageTitleInput
-          project={project}
+          path={path}
           page={page}
           actions={actions}
           autoFocus={isFresh}
@@ -82,7 +82,7 @@ export function PageContent({
         key={page.id}
         content={page.content}
         onChange={(content) => actions.updatePage(page.id, { content })}
-        pages={project.pages}
+        pages={path.pages}
         currentPageId={page.id}
         onOpenPage={actions.openPage}
         onLinkPage={() => {}}
@@ -92,7 +92,7 @@ export function PageContent({
         toolbarOffset={toolbarOffset}
         focusOnOpen={focusEditor}
         onCursor={onCursor}
-        inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, project.id) }}
+        inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, path.id) }}
       />
     </Stack>
   );
@@ -105,14 +105,14 @@ export function PageContent({
  * the page had before editing.
  */
 export function PageTitleInput({
-  project,
+  path,
   page,
   actions,
   autoFocus = false,
   size = 32,
   onEnter,
 }: {
-  project: Project;
+  path: Path;
   page: Page;
   actions: Pick<PageActions, 'updatePage' | 'beginRename' | 'renameLinks'>;
   autoFocus?: boolean;
@@ -122,7 +122,7 @@ export function PageTitleInput({
   const t = useT();
   const titleAtFocus = useRef(page.title);
   const [draft, setDraft] = useState(page.title);
-  const clash = titleTaken(project, page.id, draft);
+  const clash = titleTaken(path, page.id, draft);
   // Gone while still being edited (the drawer moved to another page): the rename ends as a blur would end it
   const editing = useRef(false);
   const latest = useRef({ title: page.title, actions });
@@ -160,7 +160,7 @@ export function PageTitleInput({
       onChange={(e) => {
         const title = e.currentTarget.value;
         setDraft(title);
-        if (!titleTaken(project, page.id, title)) actions.updatePage(page.id, { title });
+        if (!titleTaken(path, page.id, title)) actions.updatePage(page.id, { title });
       }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {

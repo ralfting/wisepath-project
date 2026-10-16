@@ -1,4 +1,4 @@
-import type { Page } from '@wisepath/domain/projects';
+import type { Page } from '@wisepath/domain/paths';
 
 /**
  * A page's title as shown, with the app's word for a page that has none yet

@@ -1,12 +1,12 @@
 import { Effect, Option } from 'effect';
 import { captured } from '@wisepath/domain/inbox';
 import type { Capture, InboxItemId } from '@wisepath/domain/inbox';
-import { CurrentUser } from '../../projects/application/CurrentUser';
+import { CurrentUser } from '../../paths/application/CurrentUser';
 import { InboxStore } from './InboxStore';
 
 /**
  * Inbox use cases: the learner's captured items, newest first. Filing one into
- * a page is a page edit (through /api/projects) followed by a discard here.
+ * a page is a page edit (through /api/paths) followed by a discard here.
  */
 
 export const listInbox = Effect.fn('inbox.list')(function* () {

@@ -1,6 +1,6 @@
 import type { Effect } from "effect"
 import { Context } from "effect"
-import type { ProjectId } from "../projects/Project"
+import type { PathId } from "../paths/Path"
 import type { CardId } from "./cards"
 import type { CardNotFound, ReviewUnavailable } from "./errors"
 import type { ReviewState } from "./fsrs"
@@ -13,7 +13,7 @@ import type { DueCard, GradeCard, ReviewCounts } from "./queue"
  */
 export class Reviews extends Context.Service<Reviews, {
   /** Today's cards, in one path or all of them; `dayEnds` is the end of the learner's day */
-  readonly due: (options: { readonly projectId?: ProjectId; readonly dayEnds: Date }) => Effect.Effect<ReadonlyArray<DueCard>, ReviewUnavailable>
+  readonly due: (options: { readonly pathId?: PathId; readonly dayEnds: Date }) => Effect.Effect<ReadonlyArray<DueCard>, ReviewUnavailable>
   readonly counts: (options: { readonly dayEnds: Date }) => Effect.Effect<ReviewCounts, ReviewUnavailable>
   readonly grade: (cardId: CardId, command: GradeCard) => Effect.Effect<ReviewState, CardNotFound | ReviewUnavailable>
 }>()("@wisepath/domain/review/Reviews") {}

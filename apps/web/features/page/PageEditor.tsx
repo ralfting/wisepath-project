@@ -5,16 +5,16 @@ import { ActionIcon, Anchor, Box, Card, Center, Group, Menu, Stack, Text, Title,
 import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import type { Page, Project } from '@wisepath/domain/projects';
-import { branchProgress, pathTo, projectProgress } from '@wisepath/domain/projects';
+import type { Page, Path } from '@wisepath/domain/paths';
+import { branchProgress, trailTo, pathProgress } from '@wisepath/domain/paths';
 import { displayTitle } from '@/features/shared/title';
-import type { ProjectActions, SaveState } from '@/useCases/projects';
+import type { PathActions, SaveState } from '@/useCases/paths';
 import { useRememberOpened } from '@/useCases/search';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import type { Translate } from '@/i18n/I18nProvider';
 import { dateTime, relativeTime } from '@/i18n/dates';
-import { SaveStatus } from '@/features/projects/SaveStatus';
-import { ProjectGate } from '@/features/projects/ProjectGate';
+import { SaveStatus } from '@/features/paths/SaveStatus';
+import { PathGate } from '@/features/paths/PathGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import type { Crumb } from '@/features/shell/AppFrame';
 import { mapHref, mapWithPageHref, pageHref as pageHrefOf } from '@/features/shared/routes';
@@ -30,31 +30,31 @@ import classes from './PageEditor.module.css';
  * PageEditor
  * Full-screen page, edited in place like the map's panel, for longer writing.
  */
-export function PageEditor({ projectId, pageId }: { projectId: string; pageId: string }) {
+export function PageEditor({ pathId, pageId }: { pathId: string; pageId: string }) {
   return (
-    <ProjectGate projectId={projectId}>
-      {(project, store, save) => <EditorView project={project} store={store} save={save} pageId={pageId} />}
-    </ProjectGate>
+    <PathGate pathId={pathId}>
+      {(path, store, save) => <EditorView path={path} store={store} save={save} pageId={pageId} />}
+    </PathGate>
   );
 }
 
-function EditorView({ project, store, save, pageId }: { project: Project; store: ProjectActions; save: SaveState; pageId: string }) {
+function EditorView({ path, store, save, pageId }: { path: Path; store: PathActions; save: SaveState; pageId: string }) {
   const router = useRouter();
   const t = useT();
-  const page = project.pages.find((p) => p.id === pageId);
+  const page = path.pages.find((p) => p.id === pageId);
   const isFresh = useSearchParams().get('new') === '1';
-  const pageHref = (id: string) => pageHrefOf(project.id, id);
+  const pageHref = (id: string) => pageHrefOf(path.id, id);
 
   if (!page) {
     return (
-      <AppFrame crumbs={[{ label: t('page.crumbs.myPaths'), href: '/projects' }, { label: project.title, href: mapHref(project.id) }]}>
+      <AppFrame crumbs={[{ label: t('page.crumbs.myPaths'), href: '/paths' }, { label: path.title, href: mapHref(path.id) }]}>
         <Center component="main" flex={1} p="md">
           <Stack gap="sm" align="center" maw={420} ta="center">
             <Title order={1} fz={30}>
               {t('page.notFound.title')}
             </Title>
             <Text c="dimmed">{t('page.notFound.body')}</Text>
-            <Anchor component={Link} href={mapHref(project.id)} fw={700}>
+            <Anchor component={Link} href={mapHref(path.id)} fw={700}>
               {t('page.notFound.backToMap')}
             </Anchor>
           </Stack>
@@ -64,43 +64,43 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
   }
 
   return (
-    <AppFrame crumbs={pageCrumbs(project, page, t)}>
-      <RememberOpened project={project} page={page} />
+    <AppFrame crumbs={pageCrumbs(path, page, t)}>
+      <RememberOpened path={path} page={page} />
       <PageSheet
-        project={project}
+        path={path}
         page={page}
         store={store}
         save={save}
         isFresh={isFresh}
         onOpenPage={(id) => router.push(pageHref(id))}
-        showOnMap={{ href: mapWithPageHref(project.id, page.id) }}
-        onDeleted={(back) => router.push(mapWithPageHref(project.id, back))}
+        showOnMap={{ href: mapWithPageHref(path.id, page.id) }}
+        onDeleted={(back) => router.push(mapWithPageHref(path.id, back))}
       />
     </AppFrame>
   );
 }
 
 /** Offered again by the search palette (⌘P), like a page opened in the map's drawer */
-function RememberOpened({ project, page }: { project: Project; page: Page }) {
-  useRememberOpened({ projectId: project.id, pageId: page.id, title: page.title, projectTitle: project.title });
+function RememberOpened({ path, page }: { path: Path; page: Page }) {
+  useRememberOpened({ pathId: path.id, pageId: page.id, title: page.title, pathTitle: path.title });
   return null;
 }
 
 /** My paths › map › the pages the branch passes through › this page */
-export function pageCrumbs(project: Project, page: Page, t: Translate): Crumb[] {
-  const between = pathTo(project, page.id).slice(1, -1);
+export function pageCrumbs(path: Path, page: Page, t: Translate): Crumb[] {
+  const between = trailTo(path, page.id).slice(1, -1);
   return [
-    { label: t('page.crumbs.myPaths'), href: '/projects' },
-    { label: project.title, href: mapHref(project.id) },
-    ...between.map((p) => ({ label: displayTitle(p), href: mapWithPageHref(project.id, p.id) })),
-    ...(page.id === project.rootPageId ? [] : [{ label: displayTitle(page) }]),
+    { label: t('page.crumbs.myPaths'), href: '/paths' },
+    { label: path.title, href: mapHref(path.id) },
+    ...between.map((p) => ({ label: displayTitle(p), href: mapWithPageHref(path.id, p.id) })),
+    ...(page.id === path.rootPageId ? [] : [{ label: displayTitle(page) }]),
   ];
 }
 
 interface PageSheetProps {
-  project: Project;
+  path: Path;
   page: Page;
-  store: ProjectActions;
+  store: PathActions;
   /** Whether the latest edits reached WisePath */
   save: SaveState;
   isFresh?: boolean;
@@ -123,7 +123,7 @@ interface PageSheetProps {
  * the page route and by the map's drawer once expanded, so both are the same.
  */
 export function PageSheet({
-  project,
+  path,
   page,
   store,
   save,
@@ -139,8 +139,8 @@ export function PageSheet({
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
-  const isRoot = page.id === project.rootPageId;
-  const between = pathTo(project, page.id).slice(1, -1);
+  const isRoot = page.id === path.rootPageId;
+  const between = trailTo(path, page.id).slice(1, -1);
 
   const actions: PageActions = {
     updatePage: store.updatePage,
@@ -162,11 +162,11 @@ export function PageSheet({
               </ActionIcon>
             </Tooltip>
           )}
-          <PageLook project={project} page={page} store={store} size={48} />
+          <PageLook path={path} page={page} store={store} size={48} />
           <Box miw={0} style={{ flex: 1 }}>
             <PageTitleInput
               key={page.id}
-              project={project}
+              path={path}
               page={page}
               actions={store}
               size={34}
@@ -178,11 +178,11 @@ export function PageSheet({
         <Group gap="sm" wrap="nowrap">
           {save.status === 'saved' && !save.notice ? <SavedAt updatedAt={page.updatedAt} /> : <SaveStatus save={save} />}
           {/* A study has nothing to mark as studied */}
-          {!isRoot && project.kind === 'learningPath' && (
+          {!isRoot && path.kind === 'learningPath' && (
             <StudiedToggle
               studied={page.studied}
               onChange={(studied) => store.updatePage(page.id, { studied })}
-              progress={{ map: project.title, ...projectProgress(project) }}
+              progress={{ map: path.title, ...pathProgress(path) }}
             />
           )}
           <Tooltip label={t('page.seeOnMap')}>
@@ -204,7 +204,7 @@ export function PageSheet({
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(project, page, !page.module))}>
+                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(path, page, !page.module))}>
                   {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
                 </Menu.Item>
                 <Menu.Divider />
@@ -219,17 +219,17 @@ export function PageSheet({
       <DeletePageModal
         opened={confirmDelete}
         title={displayTitle(page)}
-        orphansPages={(branchProgress(project, page.id)?.total ?? 0) > 0}
+        orphansPages={(branchProgress(path, page.id)?.total ?? 0) > 0}
         onClose={() => setConfirmDelete(false)}
         onDelete={() => {
           // Leave first, so this page never renders as "not found" on the way out
-          onDeleted(between.at(-1)?.id ?? project.rootPageId);
+          onDeleted(between.at(-1)?.id ?? path.rootPageId);
           store.deletePage(page.id);
         }}
       />
       <PageContent
         key={page.id}
-        project={project}
+        path={path}
         page={page}
         actions={actions}
         showTitle={false}

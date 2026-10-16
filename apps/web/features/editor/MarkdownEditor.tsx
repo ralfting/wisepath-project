@@ -40,7 +40,7 @@ import {
 import type { Icon } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
-import { findPageByTitle } from '@wisepath/domain/projects';
+import { findPageByTitle } from '@wisepath/domain/paths';
 import { itemHere } from '@wisepath/domain/inbox';
 import type { InboxItem } from '@wisepath/domain/inbox';
 import { ActiveBlockRail, BlockKeys, BulletToChecklist, LinkKeys, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
@@ -52,7 +52,7 @@ import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { CodeBlockView } from './CodeBlockView';
 import { LinkTitles } from './linkTitles';
-import { useLinkPreviewLoader } from '@/useCases/projects';
+import { useLinkPreviewLoader } from '@/useCases/paths';
 import { useT } from '@/i18n/I18nProvider';
 import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { editor as editorMessages } from '@/i18n/messages/en/editor';

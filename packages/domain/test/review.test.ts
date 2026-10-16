@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
-import { PageId, ProjectId } from "../src/projects/index"
+import { PageId, PathId } from "../src/paths/index"
 import {
   AGAIN_AFTER,
   BLANK,
@@ -14,7 +14,7 @@ import {
 } from "../src/review/index"
 import type { Card, Grade, KeptState, ReviewState } from "../src/review/index"
 
-const path = { id: ProjectId.make("p"), title: "Effect" }
+const path = { id: PathId.make("p"), title: "Effect" }
 const page = (content: string, id = "page") => ({ id: PageId.make(id), title: "Tracing", content })
 const questions = (content: string) => cardsIn(page(content), path).map((c) => [c.kind, c.question, c.answer])
 
@@ -31,7 +31,7 @@ describe("cards in a page", () => {
   it("finds two cards on a page, in list items and headings too, and says where they come from", () => {
     const cards = cardsIn(page("- One? :: 1\n## Two? :: 2\n1. [ ] Three? :: 3\n> Four? :: 4"), path)
     assert.deepStrictEqual(cards.map((c) => c.question), ["One?", "Two?", "Three?", "Four?"])
-    assert.deepStrictEqual([cards[0].pathTitle, cards[0].pageTitle, cards[0].projectId, cards[0].pageId], ["Effect", "Tracing", "p", "page"])
+    assert.deepStrictEqual([cards[0].pathTitle, cards[0].pageTitle, cards[0].pathId, cards[0].pageId], ["Effect", "Tracing", "p", "page"])
   })
 
   it("needs a question and an answer, spaced around ::", () => {
@@ -67,7 +67,7 @@ describe("cards in a page", () => {
     const [answerEdited] = cardsIn(page("- Q?   ::  new answer"), path)
     const [questionEdited] = cardsIn(page("Q, reworded? :: old answer"), path)
     const [otherPage] = cardsIn(page("Q? :: old answer", "other"), path)
-    const [otherPath] = cardsIn(page("Q? :: old answer"), { id: ProjectId.make("q"), title: "Effect" })
+    const [otherPath] = cardsIn(page("Q? :: old answer"), { id: PathId.make("q"), title: "Effect" })
     assert.strictEqual(answerEdited.id, before.id)
     assert.notStrictEqual(questionEdited.id, before.id)
     assert.notStrictEqual(otherPage.id, before.id)
@@ -85,8 +85,8 @@ describe("cards in a page", () => {
   })
 
   it("reads every page of a path", () => {
-    const project = { ...path, pages: [page("A? :: a", "1"), page("Nothing here", "2"), page("B? :: b", "3")] }
-    assert.deepStrictEqual(cardsOf(project).map((c) => c.pageId), ["1", "3"])
+    const full = { ...path, pages: [page("A? :: a", "1"), page("Nothing here", "2"), page("B? :: b", "3")] }
+    assert.deepStrictEqual(cardsOf(full).map((c) => c.pageId), ["1", "3"])
   })
 })
 
@@ -146,8 +146,8 @@ describe("scheduling (FSRS)", () => {
 describe("the review queue", () => {
   const dayEnds = new Date("2026-03-10T03:00:00Z")
   const now = new Date("2026-03-09T12:00:00Z")
-  const card = (n: number, projectId = "p"): Card => ({
-    ...cardsIn(page(`Q${n}? :: A`, `page-${n}`), { id: ProjectId.make(projectId), title: projectId })[0]
+  const card = (n: number, pathId = "p"): Card => ({
+    ...cardsIn(page(`Q${n}? :: A`, `page-${n}`), { id: PathId.make(pathId), title: pathId })[0]
   })
   const kept = (c: Card, due: string, firstReview = "2026-01-01T00:00:00Z"): KeptState => ({
     cardId: c.id,
@@ -182,8 +182,8 @@ describe("the review queue", () => {
     const counts = reviewCounts([a, b, c], [kept(a, "2026-03-30T00:00:00Z")], { dayEnds })
     assert.strictEqual(counts.due, 2)
     assert.deepStrictEqual(counts.paths, [
-      { projectId: ProjectId.make("p"), cards: 2, due: 1 },
-      { projectId: ProjectId.make("q"), cards: 1, due: 1 }
+      { pathId: PathId.make("p"), cards: 2, due: 1 },
+      { pathId: PathId.make("q"), cards: 1, due: 1 }
     ])
   })
 })

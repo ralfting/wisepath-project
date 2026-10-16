@@ -10,10 +10,10 @@ import { useCallback, useEffect, useSyncExternalStore } from "react"
  */
 
 export interface RecentPage {
-  readonly projectId: string
+  readonly pathId: string
   readonly pageId: string
   readonly title: string
-  readonly projectTitle: string
+  readonly pathTitle: string
   /** When it was last opened, in ms since the epoch */
   readonly openedAt: number
 }
@@ -30,7 +30,7 @@ export function rememberOpened(
   now: number,
   max = RECENT_MAX
 ): ReadonlyArray<RecentPage> {
-  const others = list.filter((p) => !(p.projectId === page.projectId && p.pageId === page.pageId))
+  const others = list.filter((p) => !(p.pathId === page.pathId && p.pageId === page.pageId))
   return [{ ...page, openedAt: now }, ...others].slice(0, max)
 }
 
@@ -44,10 +44,10 @@ export function parseRecent(raw: string | null): ReadonlyArray<RecentPage> {
       .filter(
         (p): p is RecentPage =>
           !!p &&
-          typeof p.projectId === "string" &&
+          typeof p.pathId === "string" &&
           typeof p.pageId === "string" &&
           typeof p.title === "string" &&
-          typeof p.projectTitle === "string" &&
+          typeof p.pathTitle === "string" &&
           typeof p.openedAt === "number"
       )
       .slice(0, RECENT_MAX)
@@ -103,10 +103,10 @@ export function useRecentPages(): ReadonlyArray<RecentPage> {
 
 /** Remembers the page as opened, and again whenever its titles change while it is open */
 export function useRememberOpened(page: Omit<RecentPage, "openedAt">): void {
-  const { projectId, pageId, title, projectTitle } = page
+  const { pathId, pageId, title, pathTitle } = page
   const remember = useCallback(
-    () => write(rememberOpened(read(), { projectId, pageId, title, projectTitle }, Date.now())),
-    [projectId, pageId, title, projectTitle]
+    () => write(rememberOpened(read(), { pathId, pageId, title, pathTitle }, Date.now())),
+    [pathId, pageId, title, pathTitle]
   )
   useEffect(remember, [remember])
 }
