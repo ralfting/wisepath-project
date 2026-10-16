@@ -47,7 +47,11 @@ function HelpPanel({ opened, onClose }: { opened: boolean; onClose: () => void }
       onClose={onClose}
       position="right"
       size="md"
-      title={<Title order={2} fz={20}>{t('help.title')}</Title>}
+      // Above the page drawer (Mantine's 200, expanded too), the floating sidebar (220) and the line's key tag (250)
+      zIndex={260}
+      // The drawer's title is already a heading (h2)
+      title={t('help.title')}
+      styles={{ title: { fontSize: 'var(--mantine-font-size-xl)', fontWeight: 700 } }}
       closeButtonProps={{ 'aria-label': t('common.actions.close') }}
     >
       {screen === 'page' ? <PageHelp /> : screen === 'map' ? <Tips area="map" /> : <Tips area="home" />}
