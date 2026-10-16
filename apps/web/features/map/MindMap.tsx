@@ -31,6 +31,8 @@ import classes from './MindMap.module.css';
  * level outward, modules drawn larger, other links as blue arrows. Pages no
  * link reaches are not drawn (the header lists them, see MapOrphans). Drag or
  * scroll to pan, pinch or Ctrl/⌘ + scroll to zoom. Every page is a button.
+ * Pointing at a page (or focusing it) shows a + on its outer edge that adds a
+ * page branching from it; N does the same from the keyboard.
  */
 
 /** Opening a page zooms out at most to this, to show the pages branching from it */
@@ -60,6 +62,10 @@ interface MindMapProps {
   onIntent?: (pageId: string) => void;
   /** Shown in the map's top-left corner (the search) */
   topLeft?: ReactNode;
+  /** The + on a page, and N: start adding a page branching from it */
+  onAddBranch?: (pageId: string) => void;
+  /** The page a branch is being added to, and the name field shown under it */
+  branch?: { from: string; prompt: ReactNode } | null;
 }
 
 interface View {
@@ -73,6 +79,10 @@ const MAX_ZOOM = 2.2;
 /** The least zoom at which a page's 13px title still reads at 11px on screen: the map opens no smaller */
 const READABLE_ZOOM = 0.85;
 const clampZoom = (k: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, k));
+/** How close adding a branch brings the page it grows from, at least */
+const FOCUS_ZOOM = 1.2;
+/** The + button's size, in map units */
+const PLUS = 24;
 
 export function MindMap({
   project,
@@ -86,6 +96,8 @@ export function MindMap({
   onSelect,
   onIntent,
   topLeft,
+  onAddBranch,
+  branch = null,
 }: MindMapProps) {
   const t = useT();
   const tree = useMemo(() => mapTree(project), [project]);
@@ -94,7 +106,8 @@ export function MindMap({
   const viewportRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [view, setView] = useState<View | null>(null);
-  const [animate, setAnimate] = useState(false);
+  // A move the view makes on its own glides there: quickly, or slowly when it zooms in to focus a page
+  const [animate, setAnimate] = useState<false | 'quick' | 'slow'>(false);
   const drag = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
 
   /** The whole map in view; `floor` keeps text readable on the first view, at the cost of some panning */
@@ -128,8 +141,8 @@ export function MindMap({
     return () => observer.disconnect();
   }, [fit]);
 
-  const smoothly = (next: (v: View) => View) => {
-    setAnimate(true);
+  const smoothly = (next: (v: View) => View, speed: 'quick' | 'slow' = 'quick') => {
+    setAnimate(speed);
     setView((v) => (v ? next(v) : v));
   };
 
@@ -177,6 +190,23 @@ export function MindMap({
       return { k, x: visibleW / 2 - cx * k, y: size.h / 2 - cy * k };
     });
   };
+  // Adding a branch zooms in on the page it grows from, a little above the middle so its name field shows below
+  const focusOn = (pageId: string) => {
+    if (!size) return;
+    const c = pageId === tree.root.page.id ? { x: 0, y: 0 } : layout.centres.get(pageId as Page['id']);
+    if (!c) return;
+    const frameRight = viewportRef.current?.getBoundingClientRect().right ?? 0;
+    const covered = Math.max(0, Math.min(coveredRight - (window.innerWidth - frameRight), size.w - 200));
+    smoothly((v) => {
+      const k = clampZoom(Math.max(v.k, FOCUS_ZOOM));
+      return { k, x: (size.w - covered) / 2 - c.x * k, y: size.h * 0.38 - c.y * k };
+    }, 'slow');
+  };
+  useEffect(() => {
+    if (branch?.from) focusOn(branch.from);
+    // Only when the field opens on another page, not on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branch?.from]);
   useEffect(() => {
     if (focusRequest) frameOn(focusRequest.pageId);
     // Runs again once the size is known, so a page opened from the URL is brought into view
@@ -290,6 +320,11 @@ export function MindMap({
   };
   const onTreeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     const from = (event.target as HTMLElement).closest<HTMLElement>('[data-page-id]')?.dataset.pageId;
+    if (from && onAddBranch && event.key.toLowerCase() === 'n' && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      event.preventDefault();
+      onAddBranch(from);
+      return;
+    }
     if (!from || !['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Home'].includes(event.key)) return;
     event.preventDefault();
     const to = neighbour(from, event.key);
@@ -323,7 +358,34 @@ export function MindMap({
     'aria-expanded': expanded || undefined,
     tabIndex: id === tabStop ? 0 : -1,
     onFocusCapture: () => setRovingId(id),
+    'aria-keyshortcuts': onAddBranch ? 'N' : undefined,
   });
+  // The + sits on a page's outer edge, the way its branches grow; the root's on the side with fewer branches
+  const rootSide = layout.nodes.filter((n) => n.depth === 1 && n.side === 1).length <= layout.nodes.filter((n) => n.depth === 1 && n.side === -1).length ? 1 : -1;
+  const plusFor = (id: string, title: string, x: number, y: number) =>
+    onAddBranch && (
+      // Shown while the page is pointed at, focused or open (CSS); the keyboard has N, so it is out of the tab order
+      <UnstyledButton
+        key={`plus-${id}`}
+        className={classes.plus}
+        style={{ left: x - PLUS / 2, top: y - PLUS / 2 }}
+        tabIndex={-1}
+        aria-hidden="true"
+        title={t('map.branch.add', { title })}
+        onClick={() => onAddBranch(id)}
+      >
+        <IconPlus size={14} stroke={2.4} />
+      </UnstyledButton>
+    );
+  // Where the name field goes: under the page it adds to, in the viewport's own pixels
+  const promptAt = (() => {
+    if (!branch || !view) return null;
+    if (branch.from === rootId) return { left: view.x + (-root.w / 2) * view.k, top: view.y + (root.h / 2) * view.k + 8 };
+    const n = placed.get(branch.from);
+    if (!n) return null;
+    const left = n.side === 1 ? n.inner.x : n.inner.x - n.w;
+    return { left: view.x + left * view.k, top: view.y + (n.inner.y + n.h / 2) * view.k + 8 };
+  })();
   const rootLook = lookOf(project, rootId, tree);
   const overall = progressOf(descendants(tree.root));
   const statusOf = (page: Page): TopicStatus => (page.studied ? 'done' : page.id === currentId ? 'current' : 'todo');
@@ -409,6 +471,7 @@ export function MindMap({
               onSelect={onSelect}
               onIntent={onIntent}
             />
+            {plusFor(rootId, displayTitle(tree.root.page), (rootSide * root.w) / 2, 0)}
 
             {layout.nodes.map((n) => {
               const look = lookOf(project, n.page.id, tree);
@@ -426,7 +489,8 @@ export function MindMap({
               ]
                 .filter(Boolean)
                 .join(', ');
-              return n.module ? (
+              const plus = plusFor(n.page.id, displayTitle(n.page), n.side === 1 ? n.inner.x + n.w : n.inner.x - n.w, n.inner.y);
+              const nodeButton = n.module ? (
                 <UnstyledButton
                   key={n.page.id}
                   className={classes.module}
@@ -476,11 +540,17 @@ export function MindMap({
                   {counter && <span className={classes.chip}>{progress ? `${counter.studied}/${counter.total}` : counter.total}</span>}
                 </UnstyledButton>
               );
+              // The + right after its page, so the CSS can show it while the page is pointed at or focused
+              return plus ? [nodeButton, plus] : nodeButton;
             })}
           </div>
         )}
+        {branch && promptAt && (
+          <div className={classes.branchPrompt} style={promptAt} data-animate={animate || undefined}>
+            {branch.prompt}
+          </div>
+        )}
       </div>
-
 
       {/* Tools for viewing the graph, together at the bottom left: the drawer covers the right */}
       <Group gap={0} className={classes.tools} wrap="nowrap" role="toolbar" aria-label={t('map.tools.label')}>

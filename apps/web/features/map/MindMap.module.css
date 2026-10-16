@@ -32,6 +32,11 @@
     transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
+  /* Zooming in to focus a page: slower, easing out softly */
+  &[data-animate='slow'] {
+    transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     &[data-animate] {
       transition: none;
@@ -320,5 +325,76 @@
     box-shadow:
       0 0 0 14px alpha(var(--mantine-color-blue-5), 0),
       var(--mantine-shadow-lg);
+  }
+}
+
+/* The + that adds a page branching from one: on its outer edge, shown while the page is pointed at, focused or open */
+.plus {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--mantine-color-blue-filled);
+  color: var(--mantine-color-white);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+}
+
+.root:hover + .plus,
+.topic:hover + .plus,
+.module:hover + .plus,
+.root:focus-visible + .plus,
+.topic:focus-visible + .plus,
+.module:focus-visible + .plus,
+.root[data-selected] + .plus,
+.topic[data-selected] + .plus,
+.module[data-selected] + .plus,
+.plus:hover {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.plus:hover {
+  background: var(--mantine-color-blue-filled-hover);
+}
+
+/* The name field under the page it adds to, in screen pixels (outside the zoomed stage) */
+.branchPrompt {
+  position: absolute;
+  z-index: 5;
+
+  /* Glides with the map when it moves on its own, so the field stays under its page */
+  &[data-animate] {
+    transition:
+      left 320ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      top 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  &[data-animate='slow'] {
+    transition:
+      left 620ms cubic-bezier(0.22, 1, 0.36, 1),
+      top 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &[data-animate] {
+      transition: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plus {
+    transition: none;
   }
 }
