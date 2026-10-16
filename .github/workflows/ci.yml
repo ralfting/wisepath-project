@@ -8,6 +8,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Run by hand from the Actions tab to redeploy everything
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -61,7 +63,7 @@ jobs:
 
   deploy:
     needs: check
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     concurrency:
@@ -81,8 +83,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # What the push changed decides what deploys; with no usable "before" (a new or
-      # rewritten branch) everything does
+      # What the push changed decides what deploys; with no usable "before" (a run by
+      # hand, a new or rewritten branch) everything does
       - name: What changed
         id: changes
         run: |
