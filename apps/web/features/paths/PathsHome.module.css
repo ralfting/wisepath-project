@@ -46,3 +46,33 @@
     background: var(--mantine-primary-color-light);
   }
 }
+
+/* A card on its way to another project */
+.card[data-dragging] {
+  opacity: 0.45;
+}
+
+/* A project a dragged card can go to, and the one it is over */
+.group {
+  /* Room for the highlight around the group, without moving it */
+  margin: -12px;
+  padding: 12px;
+  border-radius: var(--mantine-radius-lg);
+  outline: 2px dashed transparent;
+  transition:
+    outline-color 120ms ease,
+    background-color 120ms ease;
+
+  &[data-accepts] {
+    outline-color: var(--mantine-color-default-border);
+  }
+
+  &[data-over] {
+    outline-color: var(--mantine-primary-color-filled);
+    background: var(--mantine-primary-color-light);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

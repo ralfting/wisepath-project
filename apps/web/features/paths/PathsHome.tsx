@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { DragEvent } from 'react';
 import type { FormEvent } from 'react';
 import { ActionIcon, Badge, Button, Card, Group, Menu, Modal, Progress, Radio, Select, SimpleGrid, Stack, Text, TextInput, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { IconDots, IconDotsVertical, IconFolderPlus, IconFolderShare, IconPencil, IconPlayerPlayFilled, IconPlus, IconSearch, IconTrash } from '@tabler/icons-react';
@@ -12,6 +13,8 @@ import { useCreatePath, useMovePath, usePaths, useRemovePath, useSetPathKind } f
 import { useProjects } from '@/useCases/projects';
 import { KIND_OPTIONS, KindSwitchItem } from './PathKind';
 import { DeleteProjectModal, ProjectNameModal } from './ProjectModals';
+import { Toast } from '@/features/capture';
+import type { ToastMessage } from '@/features/capture';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
 import { mapHref, mapWithPageHref } from '@/features/shared/routes';
@@ -33,6 +36,23 @@ export function PathsHome() {
   const [creatingIn, setCreatingIn] = useState<string | null>(null);
   const [newProject, setNewProject] = useState(false);
   const [query, setQuery] = useState('');
+  // The card being dragged to another project, if any
+  const [dragging, setDragging] = useState<PathSummary | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const dismiss = useCallback(() => setToast(null), []);
+  const movePath = useMovePath();
+
+  /** Files a path in another project: shown there at once, back where it was if that fails; Undo moves it back */
+  const move = async (path: PathSummary, to: Project) => {
+    if (path.projectId === to.id) return;
+    const from = projects?.find((p) => p.id === path.projectId);
+    const failed = await movePath(path.id, to.id);
+    setToast({
+      key: Date.now(),
+      text: failed ? `${t('home.card.moveFailed', { title: path.title })} ${failed}` : t('home.card.moved', { title: path.title, project: to.name }),
+      ...(!failed && from ? { action: { label: t('home.card.undo'), onClick: () => void move({ ...path, projectId: to.id }, from) } } : {}),
+    });
+  };
 
   const needle = query.trim().toLowerCase();
   const shown = (paths ?? []).filter(
@@ -94,6 +114,9 @@ export function PathsHome() {
               projects={projects}
               fallback={fallback?.name ?? ''}
               onNewPath={() => setCreatingIn(project.id)}
+              dragging={dragging}
+              onDrag={setDragging}
+              onMove={move}
             />
           ))
         )}
@@ -102,6 +125,7 @@ export function PathsHome() {
         <NewMapModal opened={creatingIn !== null} projectId={creatingIn} projects={projects} onClose={() => setCreatingIn(null)} />
       )}
       <ProjectNameModal opened={newProject} onClose={() => setNewProject(false)} />
+      <Toast message={toast} onDismiss={dismiss} />
     </AppFrame>
   );
 }
@@ -113,19 +137,56 @@ function ProjectGroup({
   projects,
   fallback,
   onNewPath,
+  dragging,
+  onDrag,
+  onMove,
 }: {
   project: Project;
   paths: ReadonlyArray<PathSummary>;
   projects: ReadonlyArray<Project>;
   fallback: string;
   onNewPath: () => void;
+  /** The card being dragged, from any project */
+  dragging: PathSummary | null;
+  onDrag: (path: PathSummary | null) => void;
+  onMove: (path: PathSummary, to: Project) => void;
 }) {
   const t = useT();
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [over, setOver] = useState(false);
+  // A card from another project can be dropped here
+  const accepts = dragging !== null && dragging.projectId !== project.id;
+
+  const onDragOver = (event: DragEvent) => {
+    if (!accepts) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    setOver(true);
+  };
+  const onDragLeave = (event: DragEvent) => {
+    // Leaving for a child of the group is still over it
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOver(false);
+  };
+  const onDrop = (event: DragEvent) => {
+    event.preventDefault();
+    setOver(false);
+    if (accepts) onMove(dragging, project);
+    onDrag(null);
+  };
 
   return (
-    <Stack gap="md" component="section" aria-label={project.name}>
+    <Stack
+      gap="md"
+      component="section"
+      aria-label={project.name}
+      className={classes.group}
+      data-accepts={accepts || undefined}
+      data-over={(accepts && over) || undefined}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <Group gap="sm" wrap="nowrap">
         <Title order={2} fz={20} lineClamp={1}>
           {project.name}
@@ -176,7 +237,7 @@ function ProjectGroup({
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
           {paths.map((path) => (
-            <PathCard key={path.id} path={path} projects={projects} />
+            <PathCard key={path.id} path={path} projects={projects} dragging={dragging?.id === path.id} onDrag={onDrag} onMove={onMove} />
           ))}
         </SimpleGrid>
       )}
@@ -188,12 +249,24 @@ function ProjectGroup({
   );
 }
 
-function PathCard({ path, projects }: { path: PathSummary; projects: ReadonlyArray<Project> }) {
+function PathCard({
+  path,
+  projects,
+  dragging,
+  onDrag,
+  onMove,
+}: {
+  path: PathSummary;
+  projects: ReadonlyArray<Project>;
+  /** This card is the one being dragged */
+  dragging: boolean;
+  onDrag: (path: PathSummary | null) => void;
+  onMove: (path: PathSummary, to: Project) => void;
+}) {
   const { studied, total, modules, orphans, next } = path;
   const [deleting, setDeleting] = useState(false);
   const [kindError, setKindError] = useState<string | null>(null);
   const setKind = useSetPathKind();
-  const move = useMovePath();
   const elsewhere = projects.filter((p) => p.id !== path.projectId);
   const t = useT();
   const href = mapHref(path.id);
@@ -201,7 +274,19 @@ function PathCard({ path, projects }: { path: PathSummary; projects: ReadonlyArr
   const progress = path.kind === 'learningPath';
 
   return (
-    <Card padding="lg" className={classes.card}>
+    <Card
+      padding="lg"
+      className={classes.card}
+      // Dragged onto another project's group to move it there (Move to in the menu does the same)
+      draggable
+      data-dragging={dragging || undefined}
+      onDragStart={(event: DragEvent) => {
+        event.dataTransfer.effectAllowed = 'move';
+        event.dataTransfer.setData('text/plain', path.title);
+        onDrag(path);
+      }}
+      onDragEnd={() => onDrag(null)}
+    >
       <Stack gap="md" h="100%">
         <Group gap="md" wrap="nowrap">
           <ThemeIcon size={52} radius="xl" variant="light" color={path.color}>
@@ -232,7 +317,7 @@ function PathCard({ path, projects }: { path: PathSummary; projects: ReadonlyArr
                   </Menu.Sub.Target>
                   <Menu.Sub.Dropdown>
                     {elsewhere.map((project) => (
-                      <Menu.Item key={project.id} onClick={async () => setKindError(await move(path.id, project.id))}>
+                      <Menu.Item key={project.id} onClick={() => onMove(path, project)}>
                         {project.name}
                       </Menu.Item>
                     ))}

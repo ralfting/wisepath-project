@@ -24,6 +24,9 @@ export const home = {
     continue: 'Continue studying',
     delete: 'Delete path',
     moveTo: 'Move to',
+    moved: '“{title}” moved to {project}',
+    moveFailed: "Couldn't move “{title}”.",
+    undo: 'Undo',
   },
   /** A project: a group of paths on this page */
   project: {

@@ -43,11 +43,21 @@ const pathsAtom = appRuntime
   .atom(programs.listPaths)
   .pipe(Atom.withReactivity([ReactivityKeys.paths, ReactivityKeys.session]))
 
+/**
+ * Moves to another project shown before the API confirms them (dragging a card,
+ * or Move to): the path's project as the learner just set it. One the API
+ * refuses is taken out again, so the card goes back where it was
+ */
+const movesAtom = Atom.keepAlive(Atom.make(new Map<PathId, ProjectId>() as ReadonlyMap<PathId, ProjectId>))
+
 const pathsViewAtom = Atom.make((get): ReadonlyArray<PathSummary> | null => {
   const result = get(pathsAtom)
   if (!AsyncResult.isSuccess(result)) return null
   const opened = get(openedAtom)
-  return result.value.map((summary) => {
+  const moves = get(movesAtom)
+  return result.value.map((listed) => {
+    const moved = moves.get(listed.id)
+    const summary = moved ? { ...listed, projectId: moved } : listed
     if (!opened.has(summary.id)) return summary
     const session = get(sessionAtom(summary.id))
     return AsyncResult.isSuccess(session) ? summarize(get(stateAtomOf(session.value)).path, summary.projectId) : summary
@@ -253,13 +263,20 @@ export function useCreatePath(): (title: string, kind: PathKind, projectId: stri
   }
 }
 
-/** Files a map in another project; resolves to null, or to the message to show */
+/**
+ * Files a map in another project. The list shows it there at once; if the API
+ * refuses, it goes back to where it was. Resolves to null, or to the message to show
+ */
 export function useMovePath(): (pathId: string, projectId: string) => Promise<string | null> {
+  const registry = useContext(RegistryContext)
   const run = useAtomSet(movePathAtom, { mode: "promiseExit" })
   const t = useT()
-  return async (pathId, projectId) =>
-    messageFor(
-      await run({ id: PathId.make(pathId), projectId: ProjectId.make(projectId) }),
+  return async (pathId, projectId) => {
+    const id = PathId.make(pathId)
+    const before = registry.get(movesAtom)
+    registry.set(movesAtom, new Map(before).set(id, ProjectId.make(projectId)))
+    const message = messageFor(
+      await run({ id, projectId: ProjectId.make(projectId) }),
       {
         PathsUnavailable: t("common.errors.unavailable"),
         PathNotFound: t("home.errors.pathGone"),
@@ -267,6 +284,16 @@ export function useMovePath(): (pathId: string, projectId: string) => Promise<st
       },
       t("common.errors.generic")
     )
+    if (message) {
+      // Back to where it was: an earlier move still waiting, or what the API listed
+      const now = new Map(registry.get(movesAtom))
+      const earlier = before.get(id)
+      if (earlier) now.set(id, earlier)
+      else now.delete(id)
+      registry.set(movesAtom, now)
+    }
+    return message
+  }
 }
 
 /** Deletes a map with all its pages; resolves to null, or to the message to show */

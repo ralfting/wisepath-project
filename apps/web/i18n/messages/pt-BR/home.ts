@@ -27,6 +27,9 @@ export const home = {
     continue: 'Continuar estudando',
     delete: 'Excluir trilha',
     moveTo: 'Mover para',
+    moved: '“{title}” movida para {project}',
+    moveFailed: 'Não foi possível mover “{title}”.',
+    undo: 'Desfazer',
   },
   /** Um projeto: um grupo de trilhas nesta página */
   project: {
