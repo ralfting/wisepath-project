@@ -24,7 +24,7 @@ const infrastructure = {
 const ban = (...patterns) => ({ 'no-restricted-imports': ['error', { patterns }] });
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', 'drizzle/**', 'webpack.config.js'] },
+  { ignores: ['dist/**', 'node_modules/**', 'drizzle/**', 'webpack.config.js', 'api/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   { languageOptions: { globals: globals.node } },

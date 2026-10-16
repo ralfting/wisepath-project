@@ -4,8 +4,8 @@
  * ES modules only. Both are compiled into the CommonJS bundle; every other
  * dependency stays in node_modules.
  *
- * Three bundles: the API (main.js), the migrations (migrate.js) and the seed
- * (seed.js).
+ * Four bundles: the API (main.js), the API as a Vercel Function (vercel.js),
+ * the migrations (migrate.js) and the seed (seed.js).
  */
 const nodeExternals = require('webpack-node-externals');
 
@@ -13,8 +13,9 @@ const bundled = [/^@wisepath\//, /^effect(\/|$)/, /^@effect\//];
 
 module.exports = (options) => ({
   ...options,
-  entry: { main: options.entry, migrate: './src/migrate.ts', seed: './src/seed.ts' },
-  output: { ...options.output, filename: '[name].js' },
+  entry: { main: options.entry, vercel: './src/vercel.ts', migrate: './src/migrate.ts', seed: './src/seed.ts' },
+  // commonjs2 so vercel.js exports its handler
+  output: { ...options.output, filename: '[name].js', library: { type: 'commonjs2' } },
   externals: [nodeExternals({ allowlist: bundled })],
   resolve: {
     ...options.resolve,
