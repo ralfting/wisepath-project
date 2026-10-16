@@ -26,6 +26,9 @@ import { MapList } from './MapList';
 import { MapOrphans } from './MapOrphans';
 import { ContinueButton } from './ContinueButton';
 import { MapSearchResults, SEARCH_RESULTS_ID } from './MapSearchResults';
+import { BranchPrompt } from './BranchPrompt';
+import { Toast } from '@/features/capture';
+import type { ToastMessage } from '@/features/capture';
 import classes from './ProjectMap.module.css';
 
 /**
@@ -109,6 +112,42 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
   // The result the arrow keys mark, opened by Enter; back to the first as the search changes
   const [active, setActive] = useState(0);
   useEffect(() => setActive(0), [query]);
+
+  // Adding a page branching from another (the + on a page, or N): the name field stays open for the next one
+  const [branchFrom, setBranchFrom] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const dismissToast = useCallback(() => setToast(null), []);
+  const closeBranch = (refocus: boolean) => {
+    const from = branchFrom;
+    setBranchFrom(null);
+    // Back to the page it was adding to, so the keyboard goes on from there
+    if (refocus && from) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-page-id="${from}"]`)?.focus({ preventScroll: true }));
+  };
+  const addBranch = (parentId: string, title: string, open: boolean) => {
+    const parent = project.pages.find((p) => p.id === parentId);
+    const added = actions.addBranch(parentId, title);
+    if (!parent || !added) return;
+    const names = { title: displayTitle(added.page), parent: displayTitle(parent) };
+    setToast({
+      text: added.created ? t('map.branch.added', names) : t('map.branch.linked', names),
+      action: { label: t('map.branch.undo'), onClick: added.undo },
+      key: Date.now(),
+    });
+    if (open) {
+      setBranchFrom(null);
+      select(added.page.id);
+    } else setFocusRequest((r) => ({ pageId: parentId, nonce: (r?.nonce ?? 0) + 1 }));
+  };
+  const branchParent = branchFrom ? project.pages.find((p) => p.id === branchFrom) : undefined;
+  const branchPrompt = branchParent ? (
+    <BranchPrompt
+      key={branchParent.id}
+      parent={branchParent}
+      pages={project.pages}
+      onSubmit={(title, open) => addBranch(branchParent.id, title, open)}
+      onClose={() => closeBranch(true)}
+    />
+  ) : null;
 
   // The search stays folded until it is wanted: a click or ⌘K (Ctrl K) opens it
   const [searchOpen, setSearchOpen] = useState(false);
@@ -327,6 +366,8 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
               onSelect={(pageId) => select(pageId)}
               onIntent={(pageId) => router.prefetch(pageHref(project.id, pageId))}
               topLeft={canvasTools}
+              onAddBranch={setBranchFrom}
+              branch={branchFrom && branchPrompt ? { from: branchFrom, prompt: branchPrompt } : null}
             />
           ) : (
             <MapList
@@ -337,10 +378,13 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
               progress={progress}
               matchIds={matchIds}
               onSelect={(pageId) => select(pageId)}
+              onAddBranch={setBranchFrom}
+              branch={branchFrom && branchPrompt ? { from: branchFrom, prompt: branchPrompt } : null}
             />
           )}
         </div>
       </div>
+      <Toast message={toast} onDismiss={dismissToast} />
     </AppFrame>
   );
 }
