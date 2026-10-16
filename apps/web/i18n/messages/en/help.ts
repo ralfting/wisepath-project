@@ -1,6 +1,6 @@
 /** Messages for Help (what can I do here), in English: the source the other languages follow */
 export const help = {
-  open: 'Help',
+  open: 'What can I do here?',
   title: 'What can I do here',
   /** Under a clip that waits for the learner, when the system asks for less motion */
   play: 'Play the example',

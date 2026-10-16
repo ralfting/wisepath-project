@@ -3,7 +3,7 @@ import type { help as en } from '../en/help';
 
 /** Mensagens da Ajuda (o que posso fazer aqui), em português do Brasil */
 export const help = {
-  open: 'Ajuda',
+  open: 'O que posso fazer aqui?',
   title: 'O que posso fazer aqui',
   play: 'Ver o exemplo',
   enlarge: 'Ampliar',
