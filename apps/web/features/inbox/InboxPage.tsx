@@ -226,7 +226,7 @@ function InboxRow({
         </Tooltip>
       </Group>
       <Group gap="xs" className={classes.actions}>
-        <Button size="compact-sm" variant="light" leftSection={<IconFolderSymlink size={15} />} onClick={onFile} aria-keyshortcuts="F">
+        <Button size="compact-sm" variant="light" leftSection={<IconFolderSymlink size={15} />} onClick={onFile} aria-keyshortcuts="A">
           {t('inbox.item.file')}
         </Button>
         <Button size="compact-sm" variant="subtle" color="gray" leftSection={<IconFilePlus size={15} />} onClick={onMakePage}>
