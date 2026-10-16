@@ -8,7 +8,7 @@ Monorepo (pnpm + Turborepo):
 |---|---|
 | `apps/web` | Next.js 15 front end (React 19, Mantine 8, Effect 4) on port 4002 |
 | `apps/api` | NestJS API on port 4001 (`/api`): use cases in Effect 4, Postgres through Drizzle on `@effect/sql-pg` |
-| `packages/domain` | `@wisepath/domain`: the model in plain TypeScript and Effect Schema (auth, projects), no React |
+| `packages/domain` | `@wisepath/domain`: the model in plain TypeScript and Effect Schema (auth, projects, paths), no React |
 | `packages/contract` | `@wisepath/contract`: the API described with Effect `HttpApi`; the web's client is generated from it and the API serves it as OpenAPI |
 
 ## What you need
@@ -39,7 +39,7 @@ Then open <http://localhost:4002> and log in with:
 |---|---|
 | `demo@wisepath.dev` | `wisepath-demo` |
 
-Maps are kept in Postgres by the API. Every account gets its own copy of the sample map once, the first time it lists its maps: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Deleting it doesn't bring it back. Start more paths from **New path** on <http://localhost:4002/projects>.
+Maps are kept in Postgres by the API. Every account gets its own copy of the sample map once, the first time it lists its maps: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Deleting it doesn't bring it back. Every account also gets a default project (General, or Geral in Portuguese) that its paths go into; more projects group the rest. Start more paths from **New path** on <http://localhost:4002/paths>.
 
 > Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 4001, which clashes with the one in Docker.
 
@@ -87,13 +87,13 @@ The front end is built on [Effect 4](https://effect.website) and split in layers
 | Layer | Where | What lives there |
 |---|---|---|
 | Domain | `packages/domain` | Schemas, branded ids, tagged errors, pure rules, and service interfaces (`Context.Service`). Plain TypeScript, no React. |
-| Contract | `packages/contract` | The HTTP API as `HttpApi` groups (auth, projects, links): paths, payloads, and each domain error with its status. |
-| Infrastructure | `apps/web/infrastructure` | `Layer`s that implement the domain services over the API client generated from the contract: auth, projects, link previews. In-memory versions for tests sit beside them. |
-| Use cases | `apps/web/useCases` | Effect programs plus the hooks the UI calls (`useSession`, `useLogin`, `useProject`, `useProjects`, `useLinkPreview`, …), backed by atoms. Every hook that touches a service lives here, including ones that combine domains. |
-| Features | `apps/web/features` | React components by feature (`shell`, `auth`, `map`, `page`, `editor`, `projects`). They use hooks from `useCases` and pure rules from the domain, never Effect or infrastructure directly. |
+| Contract | `packages/contract` | The HTTP API as `HttpApi` groups (auth, projects, paths, links): paths, payloads, and each domain error with its status. |
+| Infrastructure | `apps/web/infrastructure` | `Layer`s that implement the domain services over the API client generated from the contract: auth, projects, paths, link previews. In-memory versions for tests sit beside them. |
+| Use cases | `apps/web/useCases` | Effect programs plus the hooks the UI calls (`useSession`, `useLogin`, `useProjects`, `usePath`, `usePaths`, `useLinkPreview`, …), backed by atoms. Every hook that touches a service lives here, including ones that combine domains. |
+| Features | `apps/web/features` | React components by feature (`shell`, `auth`, `map`, `page`, `editor`, `paths`). They use hooks from `useCases` and pure rules from the domain, never Effect or infrastructure directly. |
 | Routes | `apps/web/app` | Next.js pages and layouts: read params, render a feature. |
 
-An open map is a sync session (`useCases/projects/sync.ts`): each change is a command from the domain (`NewPage`, `PageEdit`, …), applied on screen at once with the same function the API runs, then sent in order in the background. Typing in a page becomes one command after a 400 ms pause. Without a connection the commands wait and are retried ("Offline · retrying"); a command the API refuses is dropped, the map is read again and what was still waiting is applied on top.
+An open map is a sync session (`useCases/paths/sync.ts`): each change is a command from the domain (`NewPage`, `PageEdit`, …), applied on screen at once with the same function the API runs, then sent in order in the background. Typing in a page becomes one command after a 400 ms pause. Without a connection the commands wait and are retried ("Offline · retrying"); a command the API refuses is dropped, the map is read again and what was still waiting is applied on top.
 
 Forms use TanStack Form with the domain schemas (Effect Schema through Standard Schema), so the form and the use case validate with the same rules.
 
@@ -105,7 +105,7 @@ NestJS handles HTTP: routes, the session guard, cookies. What the API does is wr
 
 | Layer | Where | What lives there |
 |---|---|---|
-| Application | `src/<module>/application` | Use cases (`Effect.fn` programs) and the ports they need as `Context.Service`: `ProjectStore`, `UserStore`, `PasswordHasher`, `PageFetcher`. No Nest, Express or SQL. |
+| Application | `src/<module>/application` | Use cases (`Effect.fn` programs) and the ports they need as `Context.Service`: `ProjectStore`, `PathStore`, `UserStore`, `PasswordHasher`, `PageFetcher`. No Nest, Express or SQL. |
 | Infrastructure | `src/<module>/infrastructure` | Nest controllers and guards, and the `Layer`s behind the ports: Drizzle stores, bcrypt, the page fetcher for link previews. |
 | Shared | `src/shared` | `EffectRuntime` (one `ManagedRuntime` for the app, over one connection pool), `SchemaPipe`, and the database: the Drizzle schema, the bridge that runs Drizzle on `@effect/sql`, and the migration runner. |
 
@@ -155,14 +155,18 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `POST` | `/api/auth/login` | `{ email, password }`, sets the cookie; 401 `InvalidCredentials` |
 | `POST` | `/api/auth/logout` | clears the cookie |
 | `GET` | `/api/auth/me` | the session's user |
-| `GET` | `/api/projects` | your maps, summarised (progress, next page) |
-| `POST` | `/api/projects` | `{ id, rootPageId, title }`: a new map; ids are UUIDs chosen by the client |
-| `GET` | `/api/projects/:projectId` | one map with its pages |
-| `PATCH` | `/api/projects/:projectId` | `{ description }`; the title follows the root page's |
-| `DELETE` | `/api/projects/:projectId` | deletes the map and its pages |
-| `POST` | `/api/projects/:projectId/pages` | `{ id, title }`: a new page; 409 `TitleTaken` |
-| `PATCH` | `/api/projects/:projectId/pages/:pageId` | title, content, studied, module, colour, icon; a rename passes `previousTitle` to move the `[[links]]` |
-| `DELETE` | `/api/projects/:projectId/pages/:pageId` | pages only it reached become orphans; the root can't be deleted (422) |
+| `GET` | `/api/projects` | your projects, the default first (made the first time), then by name |
+| `POST` | `/api/projects` | `{ id, name }`: a new project; ids are UUIDs chosen by the client |
+| `PATCH` | `/api/projects/:projectId` | `{ name }` |
+| `DELETE` | `/api/projects/:projectId` | its paths move to the default project, which can't be deleted (422 `DefaultProjectProtected`) |
+| `GET` | `/api/paths` | your maps, summarised (project, progress, next page) |
+| `POST` | `/api/paths` | `{ id, projectId, rootPageId, title }`: a new map in one of your projects (404 `ProjectNotFound` otherwise) |
+| `GET` | `/api/paths/:pathId` | one map with its pages |
+| `PATCH` | `/api/paths/:pathId` | `{ description, kind, projectId }`; `projectId` moves it; the title follows the root page's |
+| `DELETE` | `/api/paths/:pathId` | deletes the map and its pages |
+| `POST` | `/api/paths/:pathId/pages` | `{ id, title }`: a new page; 409 `TitleTaken` |
+| `PATCH` | `/api/paths/:pathId/pages/:pageId` | title, content, studied, module, colour, icon; a rename passes `previousTitle` to move the `[[links]]` |
+| `DELETE` | `/api/paths/:pathId/pages/:pageId` | pages only it reached become orphans; the root can't be deleted (422) |
 | `GET` | `/api/link-preview?url=` | title, description, site and icon of a public http(s) page; 422 `LinkNotPreviewable` |
 
 Sending the same create or delete twice changes nothing more, so clients can retry safely. Someone else's map answers 404, as if it didn't exist.

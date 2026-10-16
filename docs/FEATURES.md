@@ -10,7 +10,9 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 
 - **Two kinds.** A **Study** is open notes organised as a map: no progress, nothing to finish. A **Learning path** is followed page by page, with "I've studied this" on each page, a progress ring, and "Start / Continue studying" opening the next page in map order. New paths are Studies unless chosen otherwise in the New path dialog.
 - **Switching kind** from the path's ⋯ menu (on its home card, or beside its title on the map) keeps the studied marks: a Study hides them, a Learning path shows them again.
-- **Home (My paths):** one card per path. A Learning path shows its progress bar, the next page and the Continue button; a Study shows its size ("57 pages · 10 modules"). Searchable by title or description. Delete from the card's menu.
+- **Projects** group paths. Every path is in one. Each account has a default project (General, or Geral in Portuguese) with a Default badge: it can be renamed but not deleted. **New project** beside New path; a project's ⋯ menu renames or deletes it, and a deleted project's paths move to the default one.
+- **Home (My paths):** one group per project, the default first and the rest by name; an empty project still shows. One card per path. A Learning path shows its progress bar, the next page and the Continue button; a Study shows its size ("57 pages · 10 modules"). Searchable by title or description, hiding the projects with nothing matching. From the card's menu: **Move to** another project, or delete.
+- **New path** opens with the default project chosen; a project's **+** opens it with that project. Either can be changed in the dialog.
 - **Sidebar:** every path, with its progress for Learning paths. Collapses to an icon rail that floats open on hover; on the rail a Learning path's icon has a thin progress ring.
 
 ## Search everywhere

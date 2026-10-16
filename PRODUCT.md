@@ -39,7 +39,7 @@ Used in a desktop browser alongside the material being studied (video, docs, IDE
 ## Capabilities and Constraints
 
 - Accounts: email/password sign up, log in, persistent session, log out (Phase 1, in progress).
-- A map (project) has exactly one root page (its title is the map's name; it can't be deleted or marked studied) and any number of pages at any depth. Page content is markdown with preview and inline YouTube embeds.
+- A map (path) has exactly one root page (its title is the map's name; it can't be deleted or marked studied) and any number of pages at any depth. Page content is markdown with preview and inline YouTube embeds.
 - Pages connect only through `[[Title]]` links, and are created only from one: a link to a title no page has is shown as missing, and clicking it offers to create the page. Titles are unique within a map.
 - The map is read from the links, level by level from the root, in the order the links are written: the first link that reaches a page makes it a branch of the linking page; other links show as arrows, except links back to the root or to the page's own ancestors, which only appear as related pages. Pages no link reaches are orphans, listed apart and left out of progress.
 - Any page can be shown as a module: drawn larger, with a colour and icon the learner picks; pages below it take its colour. Nothing else changes.
@@ -50,7 +50,7 @@ Used in a desktop browser alongside the material being studied (video, docs, IDE
 - Sharing creates a full independent copy; each user owns their own copy and progress.
 - Out of scope for v1: real-time collaboration, built-in templates, social features (likes, comments on others' projects), mobile apps.
 - Stack: Turborepo monorepo — Next.js 15 + Mantine 8 (design system, customised only through `apps/web/theme.ts`) + Effect 4 (`apps/web`), NestJS + Effect + Drizzle (`apps/api`), the domain model (`packages/domain`) and API contract (`packages/contract`).
-- Terminology: "map" (code: project) = the subject; "root" = the map's centre page; "page" = any other page; "branch" = a page reached first through a link from another; "arrow" = any other link between pages on the map; "module" = a page shown larger, only a display choice; "orphan" = a page no link reaches.
+- Terminology: "map" (code: path) = the subject; "project" = a user's group of paths, one of them the default; "root" = the map's centre page; "page" = any other page; "branch" = a page reached first through a link from another; "arrow" = any other link between pages on the map; "module" = a page shown larger, only a display choice; "orphan" = a page no link reaches.
 - Undecided: AI features. The repo name says "WisePath AI", but no AI capability is defined; do not imply one.
 
 ## Brand Commitments
