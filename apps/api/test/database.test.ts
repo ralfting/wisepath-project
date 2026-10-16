@@ -3,7 +3,7 @@ import { assert, layer } from '@effect/vitest';
 import { Effect, Exit, Fiber, Layer } from 'effect';
 import { and, eq } from 'drizzle-orm';
 import { Database, DatabaseLive } from '../src/shared/infrastructure/database/Database';
-import { pages, paths, users } from '../src/shared/infrastructure/database/schema';
+import { pages, paths, projects, users } from '../src/shared/infrastructure/database/schema';
 import { SqlLive } from '../src/shared/infrastructure/Sql';
 
 /**
@@ -30,7 +30,9 @@ layer(TestDatabase)('Database', (it) => {
       const ownerId = yield* newUser;
       const pathId = randomUUID();
 
-      yield* run(db.insert(paths).values({ id: pathId, ownerId, title: 'Rust', rootPageId: 'root' }));
+      const projectId = randomUUID();
+      yield* run(db.insert(projects).values({ id: projectId, ownerId, name: 'General', isDefault: true }));
+      yield* run(db.insert(paths).values({ id: pathId, projectId, title: 'Rust', rootPageId: 'root' }));
       yield* run(
         db.insert(pages).values([
           { pathId, id: 'b', position: 1, title: 'Borrowing', updatedAt: new Date('2026-01-02T00:00:00.000Z') },
@@ -40,7 +42,7 @@ layer(TestDatabase)('Database', (it) => {
 
       const found = yield* run(
         db.query.paths.findFirst({
-          where: and(eq(paths.id, pathId), eq(paths.ownerId, ownerId)),
+          where: and(eq(paths.id, pathId), eq(paths.projectId, projectId)),
           with: { pages: { orderBy: (p, { asc }) => [asc(p.position)] } },
         }),
       );

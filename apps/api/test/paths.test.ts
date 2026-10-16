@@ -51,6 +51,10 @@ const signedIn = Effect.gen(function* () {
   return client;
 });
 
+type Client = Effect.Success<typeof makeClient>;
+/** The account's default project, where its paths go unless told otherwise */
+const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
+
 const pid = () => PathId.make(randomUUID());
 const pgid = () => PageId.make(randomUUID());
 
@@ -83,9 +87,10 @@ describe('paths API', () => {
       const client = yield* signedIn;
       const id = pid();
       const rootPageId = pgid();
-      const made = yield* client.paths.create({ payload: { id, rootPageId, title: 'Rust' } });
+      const projectId = yield* generalOf(client);
+      const made = yield* client.paths.create({ payload: { id, projectId, rootPageId, title: 'Rust' } });
       // Sending it again (a retry) returns the same map
-      const retried = yield* client.paths.create({ payload: { id, rootPageId, title: 'Rust' } });
+      const retried = yield* client.paths.create({ payload: { id, projectId, rootPageId, title: 'Rust' } });
       assert.deepStrictEqual(retried, made);
       yield* client.paths.update({ params: { pathId: id }, payload: { description: 'Ownership first' } });
       const got = yield* client.paths.get({ params: { pathId: id } });
@@ -94,7 +99,7 @@ describe('paths API', () => {
       yield* client.paths.update({ params: { pathId: id }, payload: { kind: 'learningPath' } });
       assert.strictEqual((yield* client.paths.get({ params: { pathId: id } })).kind, 'learningPath');
       const courseId = pid();
-      const course = yield* client.paths.create({ payload: { id: courseId, rootPageId: pgid(), title: 'Go', kind: 'learningPath' } });
+      const course = yield* client.paths.create({ payload: { id: courseId, projectId, rootPageId: pgid(), title: 'Go', kind: 'learningPath' } });
       assert.strictEqual(course.kind, 'learningPath');
       yield* client.paths.remove({ params: { pathId: courseId } });
       yield* client.paths.remove({ params: { pathId: id } });
@@ -109,7 +114,7 @@ describe('paths API', () => {
       const pathId = pid();
       const rootPageId = pgid();
       const params = { pathId };
-      yield* client.paths.create({ payload: { id: pathId, rootPageId, title: 'Rust' } });
+      yield* client.paths.create({ payload: { id: pathId, projectId: yield* generalOf(client), rootPageId, title: 'Rust' } });
 
       // A page from a [[link]]; a retry of the same command changes nothing
       const borrowId = pgid();
@@ -165,7 +170,7 @@ describe('paths API', () => {
       const other = yield* signedIn;
       const pathId = pid();
       const rootPageId = pgid();
-      yield* owner.paths.create({ payload: { id: pathId, rootPageId, title: 'Private' } });
+      yield* owner.paths.create({ payload: { id: pathId, projectId: yield* generalOf(owner), rootPageId, title: 'Private' } });
       const read = yield* Effect.flip(other.paths.get({ params: { pathId } }));
       assert.strictEqual(read._tag, 'PathNotFound');
       const write = yield* Effect.flip(

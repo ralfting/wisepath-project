@@ -4,7 +4,7 @@ import type { SQL } from 'drizzle-orm';
 import type { UserId } from '@wisepath/domain/auth';
 import { PageId, PathId } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pages, paths } from '../../shared/infrastructure/database/schema';
+import { pages, paths, projects } from '../../shared/infrastructure/database/schema';
 import { SearchStore } from '../application/SearchStore';
 
 /**
@@ -43,7 +43,8 @@ export const DrizzleSearchStore = Layer.effect(
           })
           .from(pages)
           .innerJoin(paths, eq(paths.id, pages.pathId))
-          .where(and(eq(paths.ownerId, ownerId), ...eachWord))
+          .innerJoin(projects, eq(projects.id, paths.projectId))
+          .where(and(eq(projects.ownerId, ownerId), ...eachWord))
           .orderBy(desc(titleHasAll), desc(pages.updatedAt))
           .limit(limit),
       );

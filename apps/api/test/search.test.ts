@@ -47,6 +47,9 @@ const signedIn = Effect.gen(function* () {
 
 type Client = Effect.Success<typeof signedIn>;
 
+/** The account's default project, where its paths go unless told otherwise */
+const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
+
 /** The session cookie of a new account, for requests made without the generated client */
 const signupCookie = Effect.promise(async () => {
   const response = await fetch(`${baseUrl}/auth/signup`, {
@@ -62,7 +65,7 @@ const makeMap = (client: Client, title: string, pages: ReadonlyArray<{ title: st
   Effect.gen(function* () {
     const pathId = PathId.make(randomUUID());
     const rootPageId = PageId.make(randomUUID());
-    yield* client.paths.create({ payload: { id: pathId, rootPageId, title } });
+    yield* client.paths.create({ payload: { id: pathId, projectId: yield* generalOf(client), rootPageId, title } });
     const ids: Array<PageId> = [];
     for (const page of pages) {
       const id = PageId.make(randomUUID());

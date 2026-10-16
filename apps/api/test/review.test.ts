@@ -43,6 +43,9 @@ const makeClient = Effect.gen(function* () {
 
 type Client = Effect.Success<typeof makeClient>;
 
+/** The account's default project, where its paths go unless told otherwise */
+const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
+
 const signedIn = Effect.gen(function* () {
   const client = yield* makeClient;
   yield* client.auth.signup({
@@ -56,7 +59,7 @@ const pathWith = (client: Client, title: string, content: string) =>
   Effect.gen(function* () {
     const pathId = PathId.make(randomUUID());
     const rootPageId = PageId.make(randomUUID());
-    yield* client.paths.create({ payload: { id: pathId, rootPageId, title } });
+    yield* client.paths.create({ payload: { id: pathId, projectId: yield* generalOf(client), rootPageId, title } });
     yield* client.paths.updatePage({ params: { pathId, pageId: rootPageId }, payload: { content } });
     return { pathId, rootPageId };
   });

@@ -11,6 +11,8 @@ import type { PageFetcher } from '../../links/application/PageFetcher';
 import { SafePageFetcher } from '../../links/infrastructure/SafePageFetcher';
 import type { PathStore } from '../../paths/application/PathStore';
 import { DrizzlePathStore } from '../../paths/infrastructure/DrizzlePathStore';
+import type { ProjectStore } from '../../projects/application/ProjectStore';
+import { DrizzleProjectStore } from '../../projects/infrastructure/DrizzleProjectStore';
 import type { ReviewStore } from '../../review/application/ReviewStore';
 import { DrizzleReviewStore } from '../../review/infrastructure/DrizzleReviewStore';
 import type { SearchStore } from '../../search/application/SearchStore';
@@ -20,6 +22,7 @@ import { SqlLive } from './Sql';
 
 /** Everything the use cases need, built once for the app over one connection pool */
 const AppLive = Layer.mergeAll(
+  DrizzleProjectStore,
   DrizzlePathStore,
   DrizzleReviewStore,
   DrizzleSearchStore,
@@ -33,7 +36,7 @@ const AppLive = Layer.mergeAll(
 );
 
 /** The services a use case may ask for; anything per request (like the current user) is provided by its caller */
-export type AppServices = PathStore | ReviewStore | SearchStore | UserStore | InboxStore | PasswordHasher | PageFetcher;
+export type AppServices = ProjectStore | PathStore | ReviewStore | SearchStore | UserStore | InboxStore | PasswordHasher | PageFetcher;
 
 /**
  * EffectRuntime

@@ -2,6 +2,7 @@ import { Context } from 'effect';
 import type { Effect, Option } from 'effect';
 import type { UserId } from '@wisepath/domain/auth';
 import type { Path, PathId } from '@wisepath/domain/paths';
+import type { ProjectId } from '@wisepath/domain/projects';
 
 /**
  * Where paths are stored. Storage failures are defects here: the request
@@ -10,8 +11,8 @@ import type { Path, PathId } from '@wisepath/domain/paths';
 export class PathStore extends Context.Service<
   PathStore,
   {
-    /** The owner's maps, oldest first */
-    readonly listOwned: (ownerId: UserId) => Effect.Effect<ReadonlyArray<Path>>;
+    /** The owner's maps (those in their projects), oldest first, with the project each is in */
+    readonly listOwned: (ownerId: UserId) => Effect.Effect<ReadonlyArray<{ readonly path: Path; readonly projectId: ProjectId }>>;
 
     /** One of the owner's maps; `lock` holds it until the transaction ends, so commands on it run one at a time */
     readonly find: (
@@ -20,8 +21,11 @@ export class PathStore extends Context.Service<
       options?: { readonly lock?: boolean },
     ) => Effect.Effect<Option.Option<Path>>;
 
-    /** Stores a new map; false when its id is already used */
-    readonly insert: (ownerId: UserId, path: Path) => Effect.Effect<boolean>;
+    /** Stores a new map in a project; false when its id is already used */
+    readonly insert: (projectId: ProjectId, path: Path) => Effect.Effect<boolean>;
+
+    /** Files the map in another project */
+    readonly move: (id: PathId, projectId: ProjectId) => Effect.Effect<void>;
 
     /** Writes what changed between two versions of a map */
     readonly save: (before: Path, after: Path) => Effect.Effect<void>;

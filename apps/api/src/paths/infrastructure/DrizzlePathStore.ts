@@ -3,8 +3,9 @@ import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { Path } from '@wisepath/domain/paths';
 import type { Page, PathId } from '@wisepath/domain/paths';
 import type { UserId } from '@wisepath/domain/auth';
+import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pages, paths, users } from '../../shared/infrastructure/database/schema';
+import { pages, paths, projects, users } from '../../shared/infrastructure/database/schema';
 import { PathStore } from '../application/PathStore';
 
 /**
@@ -74,16 +75,22 @@ export const DrizzlePathStore = Layer.effect(
       return run(db.insert(pages).values(rows));
     };
 
+    /** A path is the owner's when its project is */
+    const ownedBy = (ownerId: UserId) =>
+      inArray(paths.projectId, db.select({ id: projects.id }).from(projects).where(eq(projects.ownerId, ownerId)));
+
     const listOwned = Effect.fn('PathStore.listOwned')(function* (ownerId: UserId) {
       const rows = yield* run(
         db.query.paths.findMany({
-          where: eq(paths.ownerId, ownerId),
+          where: ownedBy(ownerId),
           orderBy: [asc(paths.createdAt), asc(paths.id)],
           with: { pages: pagesInOrder },
         }),
       );
 
-      return yield* Effect.forEach(rows, toDomain);
+      return yield* Effect.forEach(rows, (row) =>
+        toDomain(row).pipe(Effect.map((path) => ({ path, projectId: ProjectId.make(row.projectId) }))),
+      );
     });
 
     const find = Effect.fn('PathStore.find')(function* (
@@ -91,7 +98,7 @@ export const DrizzlePathStore = Layer.effect(
       id: PathId,
       options?: { readonly lock?: boolean },
     ) {
-      const owned = and(eq(paths.id, id), eq(paths.ownerId, ownerId));
+      const owned = and(eq(paths.id, id), ownedBy(ownerId));
 
       if (options?.lock) {
         yield* run(db.select({ id: paths.id }).from(paths).where(owned).for('update'));
@@ -103,7 +110,7 @@ export const DrizzlePathStore = Layer.effect(
       return Option.some(yield* toDomain(row));
     });
 
-    const insert = Effect.fn('PathStore.insert')(function* (ownerId: UserId, path: Path) {
+    const insert = Effect.fn('PathStore.insert')(function* (projectId: ProjectId, path: Path) {
       return yield* transaction(
         Effect.gen(function* () {
           const created = yield* run(
@@ -111,7 +118,7 @@ export const DrizzlePathStore = Layer.effect(
               .insert(paths)
               .values({
                 id: path.id,
-                ownerId,
+                projectId,
                 title: path.title,
                 description: path.description ?? null,
                 kind: path.kind,
@@ -175,7 +182,11 @@ export const DrizzlePathStore = Layer.effect(
     });
 
     const remove = Effect.fn('PathStore.remove')(function* (ownerId: UserId, id: PathId) {
-      yield* run(db.delete(paths).where(and(eq(paths.id, id), eq(paths.ownerId, ownerId))));
+      yield* run(db.delete(paths).where(and(eq(paths.id, id), ownedBy(ownerId))));
+    });
+
+    const move = Effect.fn('PathStore.move')(function* (id: PathId, projectId: ProjectId) {
+      yield* run(db.update(paths).set({ projectId }).where(eq(paths.id, id)));
     });
 
     const claimSample = Effect.fn('PathStore.claimSample')(function* (ownerId: UserId) {
@@ -189,6 +200,6 @@ export const DrizzlePathStore = Layer.effect(
       return claimed.length > 0;
     });
 
-    return PathStore.of({ listOwned, find, insert, save, remove, claimSample, transaction });
+    return PathStore.of({ listOwned, find, insert, move, save, remove, claimSample, transaction });
   }),
 );

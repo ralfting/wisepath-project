@@ -37,12 +37,35 @@ export const users = pgTable(
   ],
 );
 
-/** A learner's map. Its title is its root page's title. Ids come from the client. */
-export const paths = pgTable(
+/** A user's group of paths. Each user has one default project, which every path falls back to. Ids come from the client. */
+export const projects = pgTable(
   'projects',
   {
     id: text().primaryKey(),
     ownerId: text('owner_id').notNull(),
+    name: text().notNull(),
+    /** The project made with the account: it cannot be deleted, and takes the paths of a project that is */
+    isDefault: boolean('is_default').notNull().default(false),
+    createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index('projects_owner_id_idx').on(t.ownerId),
+    // One default project per user
+    uniqueIndex('projects_owner_id_default_key').on(t.ownerId).where(sql`${t.isDefault}`),
+    foreignKey({ name: 'projects_owner_id_fkey', columns: [t.ownerId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/** A learner's map, in one of their projects. Its title is its root page's title. Ids come from the client. */
+export const paths = pgTable(
+  'paths',
+  {
+    id: text().primaryKey(),
+    projectId: text('project_id').notNull(),
     title: text().notNull(),
     description: text(),
     /** 'study' (open notes, no progress) or 'learningPath' (followed to the end, with progress) */
@@ -55,8 +78,8 @@ export const paths = pgTable(
       .default(sql`CURRENT_TIMESTAMP`),
   },
   (t) => [
-    index('projects_owner_id_idx').on(t.ownerId),
-    foreignKey({ name: 'projects_owner_id_fkey', columns: [t.ownerId], foreignColumns: [users.id] })
+    index('paths_project_id_idx').on(t.projectId),
+    foreignKey({ name: 'paths_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -67,7 +90,7 @@ export const pages = pgTable(
   'pages',
   {
     id: text().notNull(),
-    pathId: text('project_id').notNull(),
+    pathId: text('path_id').notNull(),
     /** Order the pages were added in */
     position: integer().notNull(),
     title: text().notNull(),
@@ -83,11 +106,11 @@ export const pages = pgTable(
   },
   (t) => [
     primaryKey({ name: 'pages_pkey', columns: [t.pathId, t.id] }),
-    uniqueIndex('pages_project_id_title_key_key').on(t.pathId, t.titleKey),
+    uniqueIndex('pages_path_id_title_key_key').on(t.pathId, t.titleKey),
     // Search everywhere: LIKE '%word%' on the folded title and text (wp_fold, made with the migration)
     index('pages_title_search_idx').using('gin', sql`wp_fold(${t.title}) gin_trgm_ops`),
     index('pages_content_search_idx').using('gin', sql`wp_fold(${t.content}) gin_trgm_ops`),
-    foreignKey({ name: 'pages_project_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
+    foreignKey({ name: 'pages_path_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -104,7 +127,7 @@ export const reviewStates = pgTable(
   {
     ownerId: text('owner_id').notNull(),
     cardId: text('card_id').notNull(),
-    pathId: text('project_id').notNull(),
+    pathId: text('path_id').notNull(),
     pageId: text('page_id').notNull(),
     due: timestamp({ precision: 3, withTimezone: true }).notNull(),
     stability: doublePrecision().notNull(),
@@ -121,7 +144,7 @@ export const reviewStates = pgTable(
     foreignKey({ name: 'review_states_owner_id_fkey', columns: [t.ownerId], foreignColumns: [users.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
-    foreignKey({ name: 'review_states_project_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
+    foreignKey({ name: 'review_states_path_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -152,11 +175,16 @@ export const inboxItems = pgTable(
 );
 
 export const usersRelations = relations(users, ({ many }) => ({
+  projects: many(projects),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  owner: one(users, { fields: [projects.ownerId], references: [users.id] }),
   paths: many(paths),
 }));
 
 export const pathsRelations = relations(paths, ({ one, many }) => ({
-  owner: one(users, { fields: [paths.ownerId], references: [users.id] }),
+  project: one(projects, { fields: [paths.projectId], references: [projects.id] }),
   pages: many(pages),
 }));
 

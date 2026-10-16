@@ -17,7 +17,7 @@ const cardsOwned = Effect.fn('review.cards')(function* (pathId?: PathId) {
   const user = yield* CurrentUser;
   const paths = yield* PathStore;
 
-  const owned = yield* paths.listOwned(user.id);
+  const owned = (yield* paths.listOwned(user.id)).map((o) => o.path);
   return owned.filter((p) => pathId === undefined || p.id === pathId).flatMap(cardsOf);
 });
 

@@ -14,6 +14,8 @@ import {
   summarize,
 } from '@wisepath/domain/paths';
 import type { NewPage, NewPath, PageEdit, Path, PathEdit } from '@wisepath/domain/paths';
+import { ProjectStore } from '../../projects/application/ProjectStore';
+import { ownProject } from '../../projects/application/projects';
 import { CurrentUser } from './CurrentUser';
 import { PathStore } from './PathStore';
 
@@ -23,10 +25,11 @@ import { PathStore } from './PathStore';
  * one transaction that holds the map so commands on it never interleave.
  */
 
-/** Every account gets a copy of the sample map, once */
+/** Every account gets a copy of the sample map, once, in its default project */
 const seedSample = Effect.fn('paths.seedSample')(function* () {
   const user = yield* CurrentUser;
   const store = yield* PathStore;
+  const general = yield* (yield* ProjectStore).ensureDefault(user.id);
 
   yield* store.transaction(
     Effect.gen(function* () {
@@ -34,7 +37,7 @@ const seedSample = Effect.fn('paths.seedSample')(function* () {
       if (!firstTime) return;
 
       const copy = copyPath(samplePath, PathId.make(randomUUID()), () => PageId.make(randomUUID()));
-      yield* store.insert(user.id, copy);
+      yield* store.insert(general.id, copy);
     }),
   );
 });
@@ -46,7 +49,7 @@ export const listPaths = Effect.fn('paths.list')(function* () {
   yield* seedSample();
 
   const paths = yield* store.listOwned(user.id);
-  return paths.map(summarize);
+  return paths.map(({ path, projectId }) => summarize(path, projectId));
 });
 
 export const getPath = Effect.fn('paths.get')(function* (id: PathId) {
@@ -64,8 +67,10 @@ export const createPath = Effect.fn('paths.create')(function* (command: NewPath)
   const user = yield* CurrentUser;
   const store = yield* PathStore;
 
+  yield* ownProject(command.projectId);
+
   const path = startPath(command);
-  if (yield* store.insert(user.id, path)) return path;
+  if (yield* store.insert(command.projectId, path)) return path;
 
   const existing = yield* store.find(user.id, command.id);
   if (Option.isSome(existing)) return existing.value;
@@ -100,7 +105,12 @@ const change = <E>(id: PathId, apply: (path: Path) => Effect.Effect<Path, E>) =>
   });
 
 export const updatePath = Effect.fn('paths.update')(function* (id: PathId, edit: PathEdit) {
+  if (edit.projectId !== undefined) yield* ownProject(edit.projectId);
+
   yield* change(id, (path) => Effect.succeed(editPath(path, edit)));
+
+  // Moving files the map elsewhere and leaves the map itself as it is; change() checked it is the user's
+  if (edit.projectId !== undefined) yield* (yield* PathStore).move(id, edit.projectId);
 });
 
 export const createPage = Effect.fn('paths.createPage')(function* (id: PathId, command: NewPage) {
