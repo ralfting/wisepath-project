@@ -27,6 +27,7 @@ import {
   IconFilePlus,
   IconH2,
   IconH3,
+  IconInbox,
   IconList,
   IconListCheck,
   IconListNumbers,
@@ -40,9 +41,12 @@ import type { Icon } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent, MouseEvent } from 'react';
 import { findPageByTitle } from '@wisepath/domain/projects';
+import { itemHere } from '@wisepath/domain/inbox';
+import type { InboxItem } from '@wisepath/domain/inbox';
 import { ActiveBlockRail, BlockKeys, BulletToChecklist, LinkKeys, PageLinkSuggestion, SlashCommands, WikiLink, YouTubeVideo, insertPageLink, youTubeId } from './extensions';
 import type { PageLinkItem, PageLinkPickerState, SlashCommand, SlashMenuState } from './extensions';
 import { LinkPreview } from './LinkPreview';
+import { InboxItemPrompt } from './InboxItemPrompt';
 import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from './LinkPreview';
 import classes from './MarkdownEditor.module.css';
@@ -73,6 +77,7 @@ const lowlight = createLowlight(common);
  * link to a page that does not exist yet offers to create it when clicked.
  * / opens a list of commands; its Page command asks for a name, then Enter
  * links that page and goes straight to it, creating it when it does not exist.
+ * Its Inbox item command puts something waiting in the Inbox where / was typed.
  */
 
 interface MarkdownEditorProps {
@@ -97,6 +102,8 @@ interface MarkdownEditorProps {
   cardsPending?: boolean;
   /** Follows the cursor, so it can be put back later */
   onCursor?: (pos: number) => void;
+  /** What waits in the Inbox (null while it loads), for the / command that brings an item in; without it, no command */
+  inbox?: { items: ReadonlyArray<InboxItem> | null; onTaken: (item: InboxItem) => void };
 }
 
 export type EditorFocus = number | 'start' | 'end';
@@ -105,6 +112,9 @@ type LinkCard = { target: PreviewTarget; top: number; left: number; confirmCreat
 
 /** The Page command waiting for a name: where its link goes, and where to show the field */
 type PagePrompt = { at: number; anchor: Anchor };
+
+/** The Inbox item command waiting for its item: where it goes, and where to show the search */
+type InboxPrompt = PagePrompt;
 
 /** The text a popup belongs to, in window coordinates */
 type Anchor = { top: number; bottom: number; left: number };
@@ -182,11 +192,13 @@ export function MarkdownEditor({
   focusOnOpen = null,
   cardsPending = false,
   onCursor,
+  inbox,
 }: MarkdownEditorProps) {
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
   const [headings, setHeadings] = useState<ReadonlyArray<Heading>>([]);
   const [slash, setSlash] = useState<SlashMenuState | null>(null);
   const [prompt, setPrompt] = useState<PagePrompt | null>(null);
+  const [inboxPrompt, setInboxPrompt] = useState<InboxPrompt | null>(null);
   const [card, setCard] = useState<LinkCard | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const hoverTimer = useRef<number>(0);
@@ -196,8 +208,8 @@ export function MarkdownEditor({
   // Read by the card marks each time they draw; a change (the page studied, the path's kind) redraws them (below)
   const cardsPendingRef = useRef(cardsPending);
   cardsPendingRef.current = cardsPending;
-  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, t });
-  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, t };
+  const latest = useRef({ onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, inbox, t });
+  latest.current = { onChange, pages, currentPageId, onOpenPage, onLinkPage, onCreatePage, onCreatePageHere, onCursor, inbox, t };
   // Pasted addresses read as their page's title; the previews come from the same cache as the hover card
   const loadPreview = useLinkPreviewLoader();
   const loadPreviewRef = useRef(loadPreview);
@@ -207,6 +219,12 @@ export function MarkdownEditor({
     const at = e.state.selection.from;
     const { top, bottom, left } = e.view.coordsAtPos(at);
     setPrompt({ at, anchor: { top, bottom, left } });
+  };
+
+  const askInboxItem = (e: Editor) => {
+    const at = e.state.selection.from;
+    const { top, bottom, left } = e.view.coordsAtPos(at);
+    setInboxPrompt({ at, anchor: { top, bottom, left } });
   };
 
   const editor = useEditor({
@@ -269,6 +287,17 @@ export function MarkdownEditor({
             run: run ?? askPageName,
           })),
           ...templateSlashCommands(latest.current.t),
+          ...(latest.current.inbox
+            ? [
+                {
+                  id: 'inbox',
+                  label: latest.current.t('editor.inbox.label'),
+                  hint: latest.current.inbox.items ? latest.current.t('editor.inbox.waiting', { count: latest.current.inbox.items.length }) : '',
+                  keywords: latest.current.t('editor.inbox.keywords'),
+                  run: askInboxItem,
+                },
+              ]
+            : []),
         ],
         onState: setSlash,
       }),
@@ -628,7 +657,11 @@ export function MarkdownEditor({
           >
             {slash.items.map((command, i) => {
               const template = templateSlashCommands(t).find((c) => c.id === command.id)?.template;
-              const CommandIcon = template ? templateIcon(template) : (SLASH_COMMANDS.find((c) => c.id === command.id)?.icon ?? IconFilePlus);
+              const CommandIcon = template
+                ? templateIcon(template)
+                : command.id === 'inbox'
+                  ? IconInbox
+                  : (SLASH_COMMANDS.find((c) => c.id === command.id)?.icon ?? IconFilePlus);
               return (
                 <UnstyledButton
                   key={command.id}
@@ -650,6 +683,25 @@ export function MarkdownEditor({
               );
             })}
           </Paper>
+        </Portal>
+      )}
+
+      {inboxPrompt && editor && inbox && (
+        <Portal>
+          <InboxItemPrompt
+            items={inbox.items}
+            style={placeNear(inboxPrompt.anchor, 352, 300)}
+            onCancel={() => {
+              setInboxPrompt(null);
+              editor.commands.focus(inboxPrompt.at);
+            }}
+            onPick={(item) => {
+              setInboxPrompt(null);
+              // Markdown, read as the page's own text: a link, a video, a [01:25] note
+              editor.chain().focus(inboxPrompt.at).insertContent(itemHere(editor.storage.markdown.getMarkdown(), item)).run();
+              inbox.onTaken(item);
+            }}
+          />
         </Portal>
       )}
 

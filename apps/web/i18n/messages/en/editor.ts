@@ -54,6 +54,19 @@ export const editor = {
     quote: { label: 'Quote', keywords: 'blockquote' },
     table: { label: 'Table', hint: 'Header and a row', keywords: 'grid' },
   },
+  inbox: {
+    label: 'Inbox item',
+    keywords: 'inbox capture captured note',
+    waiting: { zero: 'Nothing waiting', one: '{count} waiting', other: '{count} waiting' },
+    dialog: 'Bring in an Inbox item',
+    find: 'Find an Inbox item',
+    list: 'Inbox items',
+    loading: 'Opening the Inbox…',
+    empty: 'The Inbox is empty.',
+    noMatch: 'No item matches.',
+    written: 'Written in WisePath',
+    keys: '↑ ↓ choose · Enter adds it here · Esc closes',
+  },
   picker: {
     list: 'Pages to link',
     empty: 'Type a page name.',
@@ -106,7 +119,7 @@ export const editor = {
       quote: 'A quote, for something you read or were told',
       codeBlock: 'A code block: type it, then the code; ``` again closes it',
       pageLink: "Links another page of this path; picking a new name from the list creates that page. Cmd/Ctrl+Enter opens the cursor's line's link",
-      slash: 'Lists commands. Page asks for a name, then Enter links that page and goes to it, creating it if needed; Cmd/Ctrl+Enter stays here',
+      slash: 'Lists commands. Page asks for a name, then Enter links that page and goes to it, creating it if needed; Cmd/Ctrl+Enter stays here. Inbox item puts something waiting in the Inbox here',
       webLink:
         'A website address links itself; to link words, select them and use the link button (or paste [text](https://…)). Cmd/Ctrl+click or Cmd/Ctrl+Enter opens it',
       youtube: 'A YouTube address alone on its line becomes an embedded video',

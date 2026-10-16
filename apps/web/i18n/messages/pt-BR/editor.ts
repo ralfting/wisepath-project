@@ -57,6 +57,19 @@ export const editor = {
     quote: { label: 'Citação', keywords: 'blockquote quote' },
     table: { label: 'Tabela', hint: 'Cabeçalho e uma linha', keywords: 'grade table' },
   },
+  inbox: {
+    label: 'Item da Caixa de entrada',
+    keywords: 'caixa entrada inbox captura nota',
+    waiting: { zero: 'Nada esperando', one: '{count} esperando', other: '{count} esperando' },
+    dialog: 'Trazer um item da Caixa de entrada',
+    find: 'Buscar na Caixa de entrada',
+    list: 'Itens da Caixa de entrada',
+    loading: 'Abrindo a Caixa de entrada…',
+    empty: 'A Caixa de entrada está vazia.',
+    noMatch: 'Nenhum item encontrado.',
+    written: 'Escrito no WisePath',
+    keys: '↑ ↓ escolher · Enter adiciona aqui · Esc fecha',
+  },
   picker: {
     list: 'Páginas para linkar',
     empty: 'Digite o nome de uma página.',
@@ -109,7 +122,7 @@ export const editor = {
       quote: 'Uma citação, para algo que você leu ou ouviu',
       codeBlock: 'Um bloco de código: digite isso e depois o código; ``` de novo fecha o bloco',
       pageLink: 'Cria um link para outra página desta trilha; escolher um nome novo na lista cria essa página. Cmd/Ctrl+Enter abre o link da linha do cursor',
-      slash: 'Lista os comandos. Página pede um nome; Enter cria o link para essa página e vai até ela, criando a página se preciso; Cmd/Ctrl+Enter fica aqui',
+      slash: 'Lista os comandos. Página pede um nome; Enter cria o link para essa página e vai até ela, criando a página se preciso; Cmd/Ctrl+Enter fica aqui. Item da Caixa de entrada traz para cá algo que está esperando nela',
       webLink:
         'O endereço de um site vira link sozinho; para linkar palavras, selecione e use o botão de link (ou cole [texto](https://…)). Cmd/Ctrl+clique ou Cmd/Ctrl+Enter abre o link',
       youtube: 'Um endereço do YouTube sozinho na linha vira um vídeo incorporado',

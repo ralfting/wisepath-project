@@ -9,6 +9,7 @@ import { MarkdownEditor } from '@/features/editor/MarkdownEditor';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { Stack, TextInput } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
+import { useInbox, useTakeFromInbox } from '@/useCases/inbox';
 import classes from './PageContent.module.css';
 
 /**
@@ -62,6 +63,9 @@ export function PageContent({
   focusSignal: outsideFocusSignal = 0,
 }: PageContentProps) {
   const [focusSignal, setFocusSignal] = useState(0);
+  // The / command's Inbox items: one put in the text leaves the Inbox once this map is saved
+  const waiting = useInbox();
+  const take = useTakeFromInbox();
 
   return (
     <Stack gap="md">
@@ -90,6 +94,7 @@ export function PageContent({
         toolbarOffset={toolbarOffset}
         focusOnOpen={focusEditor}
         onCursor={onCursor}
+        inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, project.id) }}
       />
     </Stack>
   );
