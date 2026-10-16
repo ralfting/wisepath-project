@@ -121,7 +121,7 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
           pnpm --filter @wisepath/api build
-          node apps/api/dist/migrate.js
+          pnpm --filter @wisepath/api db:migrate
 
       - name: Deploy API
         if: steps.changes.outputs.api == 'true'
