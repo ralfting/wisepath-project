@@ -124,6 +124,8 @@ pnpm --filter @wisepath/api db:generate   # writes the SQL migration to apps/api
 docker compose up --build -d api          # the container applies it on start (dist/migrate.js)
 ```
 
+Migrations only add: new tables, new columns with a default, new indexes. In production each push migrates Neon a minute before the new API replaces the old one, which must keep working against the new schema. To remove or rename something, first push code that no longer uses it, then a migration that drops it.
+
 ## Environment variables
 
 **API** (`apps/api/.env` outside Docker; `docker-compose.yml` sets them in Docker)

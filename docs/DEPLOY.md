@@ -21,8 +21,7 @@ where `middleware.ts` can read it. CORS never comes into play.
    DATABASE_URL="<neon pooled url>" pnpm --filter @wisepath/api db:migrate
    ```
 
-   Run this again whenever a new migration lands in `apps/api/drizzle/`,
-   before deploying the API that needs it.
+   After the first time, CI runs the migrations on every push that touches the API.
 
 ## 2. API project
 
@@ -44,9 +43,17 @@ where `middleware.ts` can read it. CORS never comes into play.
   - `NEXT_PUBLIC_API_URL`: `/api`
 - `NEXT_PUBLIC_API_URL` is inlined at build time: redeploy after changing it.
 
-## Deploying from the CLI
+## Deploying
 
-Without the Vercel GitHub app, deploy from the repo root (so the workspace
+Every push to `main` that passes CI deploys on its own: the `deploy` job in
+`.github/workflows/ci.yml` migrates Neon, deploys the API, then the web app,
+each only when the push touched it, and checks each one answers. It needs two
+repository secrets: `VERCEL_TOKEN` (a token from vercel.com/account/tokens)
+and `NEON_DATABASE_URL` (the pooled URL).
+
+### By hand, from the CLI
+
+Deploy from the repo root (so the workspace
 packages go along; `.vercelignore` leaves build output out), naming the
 project by id:
 
