@@ -1,0 +1,5 @@
+/* Above the map's pages and tools, below the drawer and Mantine's popovers */
+.prompt {
+  width: 18rem;
+  z-index: 5;
+}
