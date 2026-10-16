@@ -27,7 +27,7 @@ export const users = pgTable(
       .$onUpdate(() => new Date()),
     /** The language the user chose ('en', 'pt-BR'); null follows their browser */
     locale: text({ enum: ['en', 'pt-BR'] }),
-    /** When this account got its copy of the sample map (once, even if it is deleted later) */
+    /** When this account got its copy of the sample map; no longer set, since accounts start with no paths (2026-10-16) */
     sampleSeededAt: timestamp('sample_seeded_at', { precision: 3 }),
   },
   (t) => [

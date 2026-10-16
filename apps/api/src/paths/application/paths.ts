@@ -1,20 +1,14 @@
-import { randomUUID } from 'node:crypto';
 import { Effect, Option } from 'effect';
 import {
-  PageId,
-  PathId,
   PathNotFound,
   addPage,
-  copyPath,
   editPage,
   editPath,
   removePage,
-  samplePath,
   startPath,
   summarize,
 } from '@wisepath/domain/paths';
-import type { NewPage, NewPath, PageEdit, Path, PathEdit } from '@wisepath/domain/paths';
-import { ProjectStore } from '../../projects/application/ProjectStore';
+import type { NewPage, NewPath, PageEdit, PageId, Path, PathEdit, PathId } from '@wisepath/domain/paths';
 import { ownProject } from '../../projects/application/projects';
 import { CurrentUser } from './CurrentUser';
 import { PathStore } from './PathStore';
@@ -25,28 +19,10 @@ import { PathStore } from './PathStore';
  * one transaction that holds the map so commands on it never interleave.
  */
 
-/** Every account gets a copy of the sample map, once, in its default project */
-const seedSample = Effect.fn('paths.seedSample')(function* () {
-  const user = yield* CurrentUser;
-  const store = yield* PathStore;
-  const general = yield* (yield* ProjectStore).ensureDefault(user.id);
-
-  yield* store.transaction(
-    Effect.gen(function* () {
-      const firstTime = yield* store.claimSample(user.id);
-      if (!firstTime) return;
-
-      const copy = copyPath(samplePath, PathId.make(randomUUID()), () => PageId.make(randomUUID()));
-      yield* store.insert(general.id, copy);
-    }),
-  );
-});
-
 export const listPaths = Effect.fn('paths.list')(function* () {
   const user = yield* CurrentUser;
   const store = yield* PathStore;
 
-  yield* seedSample();
 
   const paths = yield* store.listOwned(user.id);
   return paths.map(({ path, projectId }) => summarize(path, projectId));

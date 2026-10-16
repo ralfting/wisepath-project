@@ -83,7 +83,6 @@ describe('review API', () => {
       const go = yield* pathWith(client, 'Go', 'What runs a goroutine? :: The scheduler');
 
       const all = yield* client.review.due({ query: { dayEnds: tomorrow() } });
-      // The sample path has no cards
       assert.deepStrictEqual(
         all.map((c) => [c.pathTitle, c.kind, c.answer]),
         [

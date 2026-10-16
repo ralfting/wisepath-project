@@ -39,7 +39,7 @@ Then open <http://localhost:4002> and log in with:
 |---|---|
 | `demo@wisepath.dev` | `wisepath-demo` |
 
-Maps are kept in Postgres by the API. Every account gets its own copy of the sample map once, the first time it lists its maps: a NestJS root and 41 pages up to three levels deep, 8 of them shown as modules, connected only by `[[links]]`. Deleting it doesn't bring it back. Every account also gets a default project (General, or Geral in Portuguese) that its paths go into; more projects group the rest. Start more paths from **New path** on <http://localhost:4002/paths>.
+Maps are kept in Postgres by the API. A new account starts with no paths. Every account gets a default project (General, or Geral in Portuguese) that its paths go into; more projects group the rest. Start more paths from **New path** on <http://localhost:4002/paths>.
 
 > Run the web app with the `--filter` above rather than `pnpm dev`: `pnpm dev` also starts the API on port 4001, which clashes with the one in Docker.
 

@@ -67,18 +67,10 @@ describe('paths API', () => {
     }),
   );
 
-  it.effect('gives every account one copy of the sample map', () =>
+  it.effect('starts every account with no paths', () =>
     Effect.gen(function* () {
       const client = yield* signedIn;
-      const first = yield* client.paths.list();
-      const again = yield* client.paths.list();
-      assert.strictEqual(first.length, 1);
-      assert.deepStrictEqual(again, first);
-      // A study: no next page to continue to
-      assert.deepStrictEqual([first[0].title, first[0].kind, first[0].total, first[0].next], ['NestJS', 'study', 41, null]);
-      // Deleting it does not bring it back
-      yield* client.paths.remove({ params: { pathId: first[0].id } });
-      assert.strictEqual((yield* client.paths.list()).length, 0);
+      assert.deepStrictEqual(yield* client.paths.list(), []);
     }),
   );
 

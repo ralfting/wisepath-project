@@ -61,13 +61,12 @@ const pgid = () => PageId.make(randomUUID());
 const prid = () => ProjectId.make(randomUUID());
 
 describe('projects API', () => {
-  it.effect('gives every account a default project, holding the sample map', () =>
+  it.effect('gives every account a default project, and nothing in it yet', () =>
     Effect.gen(function* () {
       const client = yield* signedIn;
       const projects = yield* client.projects.list();
       assert.deepStrictEqual(projects.map((p) => [p.name, p.isDefault]), [['General', true]]);
-      const paths = yield* client.paths.list();
-      assert.deepStrictEqual([...new Set(paths.map((p) => p.projectId))], [projects[0].id]);
+      assert.deepStrictEqual(yield* client.paths.list(), []);
     }),
   );
 

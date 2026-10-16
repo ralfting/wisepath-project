@@ -1,11 +1,11 @@
 import { Effect, Layer, Option, Schema } from 'effect';
-import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import { Path } from '@wisepath/domain/paths';
 import type { Page, PathId } from '@wisepath/domain/paths';
 import type { UserId } from '@wisepath/domain/auth';
 import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pages, paths, projects, users } from '../../shared/infrastructure/database/schema';
+import { pages, paths, projects } from '../../shared/infrastructure/database/schema';
 import { PathStore } from '../application/PathStore';
 
 /**
@@ -189,17 +189,6 @@ export const DrizzlePathStore = Layer.effect(
       yield* run(db.update(paths).set({ projectId }).where(eq(paths.id, id)));
     });
 
-    const claimSample = Effect.fn('PathStore.claimSample')(function* (ownerId: UserId) {
-      const claimed = yield* run(
-        db
-          .update(users)
-          .set({ sampleSeededAt: new Date() })
-          .where(and(eq(users.id, ownerId), isNull(users.sampleSeededAt)))
-          .returning({ id: users.id }),
-      );
-      return claimed.length > 0;
-    });
-
-    return PathStore.of({ listOwned, find, insert, move, save, remove, claimSample, transaction });
+    return PathStore.of({ listOwned, find, insert, move, save, remove, transaction });
   }),
 );

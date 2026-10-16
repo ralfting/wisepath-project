@@ -32,9 +32,6 @@ export class PathStore extends Context.Service<
 
     readonly remove: (ownerId: UserId, id: PathId) => Effect.Effect<void>;
 
-    /** Marks the account as having its sample; true only the first time */
-    readonly claimSample: (ownerId: UserId) => Effect.Effect<boolean>;
-
     /** Runs the effect in one database transaction */
     readonly transaction: <A, E, R>(effect: Effect.Effect<A, E, R>) => Effect.Effect<A, E, R>;
   }
