@@ -16,6 +16,7 @@ import {
   RootPageProtected,
   TitleTaken
 } from "@wisepath/domain/paths"
+import { ProjectNotFound } from "@wisepath/domain/projects"
 import { InvalidRequest } from "./InvalidRequest"
 
 /**
@@ -44,7 +45,7 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
     HttpApiEndpoint.post("create", "/", {
       payload: NewPath,
       success: Path.pipe(HttpApiSchema.status(201)),
-      error: [SessionRequired, InvalidRequest]
+      error: [SessionRequired, InvalidRequest, ProjectNotFound]
     }),
     HttpApiEndpoint.get("get", "/:pathId", {
       params: path,
@@ -54,7 +55,7 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
     HttpApiEndpoint.patch("update", "/:pathId", {
       params: path,
       payload: PathEdit,
-      error: [SessionRequired, InvalidRequest, PathNotFound]
+      error: [SessionRequired, InvalidRequest, PathNotFound, ProjectNotFound]
     }),
     HttpApiEndpoint.delete("remove", "/:pathId", {
       params: path,

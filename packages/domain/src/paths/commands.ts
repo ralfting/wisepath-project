@@ -5,6 +5,7 @@ import type { Page, Path } from "./Path"
 import { createPage, deletePage, findPageByTitle, newPath, renameLinks, setDescription, setKind, setLook, titleTaken, updatePage } from "./rules"
 import { lookOf, mapTree, nextPage, pathProgress } from "./tree"
 import { linksOf, withLinkTo } from "./links"
+import { ProjectId } from "../projects/Project"
 
 /**
  * Commands
@@ -18,9 +19,10 @@ import { linksOf, withLinkTo } from "./links"
 const idChecks = [Schema.isMinLength(1), Schema.isMaxLength(64)] as const
 const Title = Schema.String.check(Schema.isMaxLength(200))
 
-/** A new map: its root page carries the title */
+/** A new map, in one of the learner's projects: its root page carries the title */
 export const NewPath = Schema.Struct({
   id: PathId.check(...idChecks),
+  projectId: ProjectId,
   rootPageId: PageId.check(...idChecks),
   title: Title.check(Schema.isMinLength(1, { message: "Give the map a name" })),
   /** A study unless said otherwise */
@@ -31,7 +33,9 @@ export type NewPath = typeof NewPath.Type
 /** What can change on the map itself; its title is its root page's */
 export const PathEdit = Schema.Struct({
   description: Schema.optional(Schema.String.check(Schema.isMaxLength(500))),
-  kind: Schema.optional(PathKind)
+  kind: Schema.optional(PathKind),
+  /** Moves the map to another of the learner's projects; the map itself doesn't change */
+  projectId: Schema.optional(ProjectId)
 })
 export type PathEdit = typeof PathEdit.Type
 
@@ -58,6 +62,8 @@ export type PageEdit = typeof PageEdit.Type
 /** A map as the list of maps shows it */
 export const PathSummary = Schema.Struct({
   id: PathId,
+  /** The project it is filed in */
+  projectId: ProjectId,
   title: Schema.String,
   description: Schema.optional(Schema.String),
   color: PageColor,
@@ -146,13 +152,14 @@ export const removePage = Effect.fnUntraced(function*(path: Path, pageId: PageId
 })
 
 /** The map as its card and the sidebar show it */
-export function summarize(path: Path): PathSummary {
+export function summarize(path: Path, projectId: ProjectId): PathSummary {
   const tree = mapTree(path)
   const look = lookOf(path, path.rootPageId, tree)
   // A study has nothing to continue
   const next = path.kind === "learningPath" ? nextPage(path) : undefined
   return {
     id: path.id,
+    projectId,
     title: path.title,
     ...(path.description !== undefined ? { description: path.description } : {}),
     color: look.color,

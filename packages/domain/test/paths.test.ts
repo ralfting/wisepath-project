@@ -1,4 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
+import { ProjectId } from "../src/projects"
 import { Effect, Schema } from "effect"
 import {
   PageId,
@@ -113,12 +114,12 @@ describe("path rules", () => {
   })
 
   it("starts a study unless told otherwise; a study has nothing to continue", () => {
-    const study = startPath({ id: PathId.make("s"), rootPageId: id("s"), title: "Notes" })
+    const study = startPath({ projectId: ProjectId.make("general"), id: PathId.make("s"), rootPageId: id("s"), title: "Notes" })
     assert.strictEqual(study.kind, "study")
-    const course = startPath({ id: PathId.make("c"), rootPageId: id("c"), title: "Course", kind: "learningPath" })
+    const course = startPath({ projectId: ProjectId.make("general"), id: PathId.make("c"), rootPageId: id("c"), title: "Course", kind: "learningPath" })
     assert.strictEqual(course.kind, "learningPath")
-    assert.isNull(summarize(samplePath).next)
-    assert.strictEqual(summarize(editPath(samplePath, { kind: "learningPath" })).next?.title, "Modules")
+    assert.isNull(summarize(samplePath, ProjectId.make("general")).next)
+    assert.strictEqual(summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general")).next?.title, "Modules")
   })
 
   it("keeps the studied marks when a map switches kind, so they come back with the progress", () => {

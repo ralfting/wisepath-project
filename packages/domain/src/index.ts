@@ -1,5 +1,6 @@
 export * as AuthDomain from "./auth/index"
 export * as InboxDomain from "./inbox/index"
 export * as PathsDomain from "./paths/index"
+export * as ProjectsDomain from "./projects/index"
 export * as ReviewDomain from "./review/index"
 export * as SearchDomain from "./search/index"

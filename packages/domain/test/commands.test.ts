@@ -1,4 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
+import { ProjectId } from "../src/projects"
 import { Effect, Schema } from "effect"
 import {
   NewPath,
@@ -101,12 +102,12 @@ describe("page commands", () => {
 
 describe("paths", () => {
   it("starts a map with its root page", () => {
-    const p = startPath({ id: PathId.make("p"), rootPageId: id("r"), title: " Rust " })
+    const p = startPath({ projectId: ProjectId.make("general"), id: PathId.make("p"), rootPageId: id("r"), title: " Rust " })
     assert.deepStrictEqual([p.title, p.pages.length, p.rootPageId], ["Rust", 1, "r"])
   })
 
   it("summarizes a map for its card", () => {
-    const s = summarize(editPath(samplePath, { kind: "learningPath" }))
+    const s = summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general"))
     assert.deepStrictEqual([s.kind, s.studied, s.total, s.modules, s.orphans, s.next?.title, s.color], ["learningPath", 8, 41, 8, 0, "Modules", "red"])
   })
 
