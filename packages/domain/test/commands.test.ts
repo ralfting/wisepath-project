@@ -5,6 +5,7 @@ import {
   PageEdit,
   PageId,
   ProjectId,
+  addBranch,
   addPage,
   copyProject,
   editPage,
@@ -21,6 +22,35 @@ const rootId = sampleProject.rootPageId
 const titleOf = (project: typeof sampleProject, pageId: string) => project.pages.find((p) => p.id === pageId)?.title
 
 describe("page commands", () => {
+  it.effect("adds a branch: a new page and a [[link]] at the end of its parent", () =>
+    Effect.gen(function*() {
+      const before = sampleProject.pages.find((p) => p.id === "guards")!.content
+      const { project, page, created } = yield* addBranch(sampleProject, id("guards"), "  Guard order ", id("new"))
+      assert.isTrue(created)
+      assert.strictEqual(page?.title, "Guard order")
+      const parent = project.pages.find((p) => p.id === "guards")!.content
+      assert.strictEqual(parent, `${before.trimEnd()}\n\n[[Guard order]]`)
+      assert.strictEqual(mapTree(project).nodes.get(id("new"))?.parentId, "guards")
+    }))
+
+  it.effect("links the page a taken name belongs to instead of making a second one", () =>
+    Effect.gen(function*() {
+      const { project, page, created } = yield* addBranch(sampleProject, id("guards"), "jwt", id("new"))
+      assert.isFalse(created)
+      assert.strictEqual(page?.id, "jwt")
+      assert.strictEqual(project.pages.length, sampleProject.pages.length)
+      assert.include(project.pages.find((p) => p.id === "guards")!.content, "[[JWT]]")
+    }))
+
+  it.effect("changes nothing for a blank name, the parent's own name, or a page it links already", () =>
+    Effect.gen(function*() {
+      assert.strictEqual((yield* addBranch(sampleProject, id("guards"), "   ", id("new"))).project, sampleProject)
+      const self = sampleProject.pages.find((p) => p.id === "guards")!.title
+      assert.strictEqual((yield* addBranch(sampleProject, id("guards"), self, id("new"))).project, sampleProject)
+      const linked = (yield* addBranch(sampleProject, id("guards"), "JWT", id("new"))).project
+      assert.strictEqual((yield* addBranch(linked, id("guards"), "JWT", id("new2"))).project, linked)
+    }))
+
   it.effect("adds a page once, even when the command is sent twice", () =>
     Effect.gen(function*() {
       const { project } = yield* addPage(sampleProject, { id: id("new"), title: "Interceptors 2" })

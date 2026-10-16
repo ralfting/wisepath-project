@@ -1,5 +1,5 @@
 import { Effect } from "effect"
-import { addPage, editPage, findPageByTitle, PageNotFound } from "../projects/index"
+import { addPage, editPage, findPageByTitle, PageNotFound, withLinkTo } from "../projects/index"
 import type { Page, PageId, Project } from "../projects/index"
 import type { InboxItem } from "./InboxItem"
 
@@ -146,8 +146,6 @@ export function freeTitle(pages: ReadonlyArray<Pick<Page, "title">>, title: stri
   }
 }
 
-/** The text a page links to another with: a [[Title]] line at its end */
-export const withLinkTo = (markdown: string, title: string): string => joinBlocks(markdown, `[[${title}]]`)
 
 /**
  * Makes an item a page of its own, linked from the chosen page: a new page

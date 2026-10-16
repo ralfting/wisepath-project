@@ -2,8 +2,9 @@ import { Effect, Schema } from "effect"
 import { PageNotFound, RootPageProtected, TitleTaken } from "./errors"
 import { PageColor, PageIcon, PageId, ProjectId, ProjectKind } from "./Project"
 import type { Page, Project } from "./Project"
-import { createPage, deletePage, newProject, renameLinks, setDescription, setKind, setLook, titleTaken, updatePage } from "./rules"
+import { createPage, deletePage, findPageByTitle, newProject, renameLinks, setDescription, setKind, setLook, titleTaken, updatePage } from "./rules"
 import { lookOf, mapTree, nextPage, projectProgress } from "./tree"
+import { linksOf, withLinkTo } from "./links"
 
 /**
  * Commands
@@ -92,6 +93,26 @@ export const addPage = Effect.fnUntraced(function*(project: Project, command: Ne
   if (same) return { project, page: same }
   if (titleTaken(project, command.id, command.title)) return yield* new TitleTaken({ title: command.title })
   return createPage(project, command.title, command.id, now)
+})
+
+/**
+ * Adds a page branching from another, as the map's + does: a new page, unless
+ * one already has the name (then that one is linked), and a [[Name]] line at
+ * the end of the parent's text, which is what puts it on the map. A blank name,
+ * the parent's own name, or a page it links already change nothing.
+ */
+export const addBranch = Effect.fnUntraced(function*(project: Project, parentId: PageId, title: string, id: PageId, now = new Date()) {
+  const parent = project.pages.find((p) => p.id === parentId)
+  if (!parent) return yield* new PageNotFound({ pageId: parentId })
+  const name = title.trim()
+  if (!name) return { project, page: null, created: false }
+  const added = yield* addPage(project, { id, title: name }, now).pipe(
+    Effect.catchTag("TitleTaken", () => Effect.succeed({ project, page: findPageByTitle(project.pages, name)! }))
+  )
+  const created = added.page.id === id && !project.pages.some((p) => p.id === id)
+  if (added.page.id === parentId || linksOf(added.project, parentId).includes(added.page.id)) return { project: added.project, page: added.page, created }
+  const linked = yield* editPage(added.project, parentId, { content: withLinkTo(parent.content, added.page.title.trim()) }, now)
+  return { project: linked, page: added.page, created }
 })
 
 /**

@@ -32,6 +32,12 @@ export function linksOf(project: Project, pageId: PageId): PageId[] {
   return out;
 }
 
+/** A page's text with a [[Title]] line added at its end, a blank line after what was there */
+export function withLinkTo(markdown: string, title: string): string {
+  const before = markdown.trimEnd();
+  return before ? `${before}\n\n[[${title}]]` : `[[${title}]]`;
+}
+
 /** Every link between existing pages */
 export function references(project: Project): Reference[] {
   return project.pages.flatMap((page) => linksOf(project, page.id).map((to) => ({ from: page.id, to })));
