@@ -3,7 +3,7 @@ import { Effect, Layer, Option } from 'effect';
 import { and, eq, sql } from 'drizzle-orm';
 import { defaultProjectName, ProjectId } from '@wisepath/domain/projects';
 import type { Project } from '@wisepath/domain/projects';
-import type { UserId } from '@wisepath/domain/auth';
+import type { Locale, UserId } from '@wisepath/domain/auth';
 import { Database } from '../../shared/infrastructure/database/Database';
 import { paths, projects, users } from '../../shared/infrastructure/database/schema';
 import { ProjectStore } from '../application/ProjectStore';
@@ -36,7 +36,7 @@ export const DrizzleProjectStore = Layer.effect(
           .where(and(eq(projects.ownerId, ownerId), eq(projects.isDefault, true))),
       );
 
-    const ensureDefault = Effect.fn('ProjectStore.ensureDefault')(function* (ownerId: UserId) {
+    const ensureDefault = Effect.fn('ProjectStore.ensureDefault')(function* (ownerId: UserId, shown?: Locale) {
       const [found] = yield* findDefault(ownerId);
       if (found) return toDomain(found);
 
@@ -45,7 +45,7 @@ export const DrizzleProjectStore = Layer.effect(
       yield* run(
         db
           .insert(projects)
-          .values({ id: randomUUID(), ownerId, name: defaultProjectName(user?.locale), isDefault: true })
+          .values({ id: randomUUID(), ownerId, name: defaultProjectName(user?.locale ?? shown), isDefault: true })
           .onConflictDoNothing({ target: projects.ownerId, where: sql`${projects.isDefault}` }),
       );
       const [made] = yield* findDefault(ownerId);

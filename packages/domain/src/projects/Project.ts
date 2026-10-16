@@ -32,7 +32,7 @@ export const ProjectEdit = Schema.Struct({
 })
 export type ProjectEdit = typeof ProjectEdit.Type
 
-/** The default project's name when it is made, in the account's language; none follows the browser, so English */
+/** The default project's name when it is made, in the given language; English when there is none */
 export const defaultProjectName = (locale: Locale | null | undefined): string => (locale === "pt-BR" ? "Geral" : "General")
 
 /** How projects are listed: the default first, then by name */

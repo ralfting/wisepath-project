@@ -1,17 +1,18 @@
 import { Effect, Option } from 'effect';
 import { DefaultProjectProtected, ProjectNotFound, sortProjects } from '@wisepath/domain/projects';
+import type { Locale } from '@wisepath/domain/auth';
 import type { NewProject, Project, ProjectEdit, ProjectId } from '@wisepath/domain/projects';
 import { CurrentUser } from '../../paths/application/CurrentUser';
 import { ProjectStore } from './ProjectStore';
 
 /** Project use cases: the learner's groups of paths */
 
-/** The default first, then by name; the default is made the first time */
-export const listProjects = Effect.fn('projects.list')(function* () {
+/** The default first, then by name; the default is made the first time, named in the language the app is shown in */
+export const listProjects = Effect.fn('projects.list')(function* (shown?: Locale) {
   const user = yield* CurrentUser;
   const store = yield* ProjectStore;
 
-  yield* store.ensureDefault(user.id);
+  yield* store.ensureDefault(user.id, shown);
   return sortProjects(yield* store.listOwned(user.id));
 });
 

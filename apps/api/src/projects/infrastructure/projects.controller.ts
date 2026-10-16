@@ -7,6 +7,7 @@ import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import { CurrentUser } from '../../paths/application/CurrentUser';
 import * as projects from '../application/projects';
+import { requestLocale } from './requestLocale';
 
 /**
  * ProjectsController
@@ -26,7 +27,7 @@ export class ProjectsController {
 
   @Get()
   list(@Req() req: Request) {
-    return this.effect.respond(projects.listProjects().pipe(asUser(req)), Schema.Array(Project));
+    return this.effect.respond(projects.listProjects(requestLocale(req)).pipe(asUser(req)), Schema.Array(Project));
   }
 
   @Post()

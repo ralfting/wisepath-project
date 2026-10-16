@@ -1,6 +1,6 @@
 import { Context } from 'effect';
 import type { Effect, Option } from 'effect';
-import type { UserId } from '@wisepath/domain/auth';
+import type { Locale, UserId } from '@wisepath/domain/auth';
 import type { Project, ProjectId } from '@wisepath/domain/projects';
 
 /**
@@ -13,8 +13,11 @@ export class ProjectStore extends Context.Service<
     /** The owner's projects, in no particular order */
     readonly listOwned: (ownerId: UserId) => Effect.Effect<ReadonlyArray<Project>>;
 
-    /** The owner's default project, made now (named in their language) if they have none yet */
-    readonly ensureDefault: (ownerId: UserId) => Effect.Effect<Project>;
+    /**
+     * The owner's default project, made now if they have none yet, named in
+     * their account's language, else in `shown` (the one they see the app in)
+     */
+    readonly ensureDefault: (ownerId: UserId, shown?: Locale) => Effect.Effect<Project>;
 
     readonly find: (ownerId: UserId, id: ProjectId) => Effect.Effect<Option.Option<Project>>;
 

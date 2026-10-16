@@ -5,7 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { afterAll, assert, beforeAll, describe, it } from '@effect/vitest';
 import { Effect, Ref } from 'effect';
-import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
+import { Cookies, FetchHttpClient, HttpClient, HttpClientRequest } from 'effect/http';
 import { HttpApiClient } from 'effect/http-api';
 import { WisePathApi } from '@wisepath/contract';
 import { Email } from '@wisepath/domain/auth';
@@ -68,6 +68,23 @@ describe('projects API', () => {
       assert.deepStrictEqual(projects.map((p) => [p.name, p.isDefault]), [['General', true]]);
       assert.deepStrictEqual(yield* client.paths.list(), []);
     }),
+  );
+
+  it.effect('names the default project in the language the app is shown in, for an account with none chosen', () =>
+    Effect.gen(function* () {
+      const cookies = yield* Ref.make(Cookies.empty);
+      const client = yield* HttpApiClient.make(WisePathApi, {
+        baseUrl,
+        transformClient: (http) =>
+          HttpClient.withCookiesRef(http, cookies).pipe(
+            HttpClient.mapRequest(HttpClientRequest.setHeader('accept-language', 'pt-BR,pt;q=0.9,en;q=0.8')),
+          ),
+      });
+      yield* client.auth.signup({
+        payload: { name: 'Tester', email: Email.make(`t-${randomUUID()}@wisepath.test`), password: 'long-enough' },
+      });
+      assert.deepStrictEqual((yield* client.projects.list()).map((p) => p.name), ['Geral']);
+    }).pipe(Effect.provide(FetchHttpClient.layer)),
   );
 
   it.effect('creates, renames and lists projects, the default first and the rest by name', () =>
