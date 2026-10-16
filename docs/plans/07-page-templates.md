@@ -1,5 +1,7 @@
 # 7. Page templates
 
+**Removed from the app (2026-10-16).** It was built as below, then taken out after the onboarding: the templates read too alike (see the last section). The code is in the history.
+
 Needs [plan 5](05-i18n.md) (titles and hints come in the learner's language).
 
 ## Why

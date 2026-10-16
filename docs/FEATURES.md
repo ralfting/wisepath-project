@@ -46,24 +46,13 @@ The map is a reading of the links, never stored on its own.
 The editor shows formatting as you type and saves markdown. The **?** in its toolbar lists the markdown it understands.
 
 - **`[[Page]]`** links another page of the path (shown with a book icon); a name that doesn't exist yet is shown dashed and offers to create the page. Typing `[[` opens a picker of pages; a new name there creates it.
-- **`/` commands:** headings, lists, checklists, code, quote, table, video, templates, Page, which asks for a name, links it and goes to it (Cmd/Ctrl+Enter stays here), and Inbox item, which searches what waits in the Inbox (↑ ↓, Enter) and puts the chosen item where / was typed; it leaves the Inbox once the page is saved.
+- **`/` commands:** headings, lists, checklists, code, quote, table, video, Page, which asks for a name, links it and goes to it (Cmd/Ctrl+Enter stays here), and Inbox item, which searches what waits in the Inbox (↑ ↓, Enter) and puts the chosen item where / was typed; it leaves the Inbox once the page is saved.
 - **Tables:** a markdown header row (`| A | B |`) then Enter makes a table with a row to fill; pasted markdown tables work too.
 - **Code blocks** have syntax colours, and the language in their top corner: a searchable picker (TypeScript, Python, SQL… or Auto, which guesses). The fence keeps the language (```` ```ts ````).
 - **Web addresses** written on their own read as the site's icon and the page's title, in the line; the cursor on one brings the address back to edit it. A link with its own words (`[text](https://…)`) shows those.
 - **Hover cards.** Pointing at a link shows a card: another page's title and opening lines, or a site's icon, title and description. The whole card opens it (a site in a new tab).
 - **Where the keys go:** a bar in the left margin marks the block the cursor is in.
 - Backspace at the start of the line after a table, code block or video selects that block, so a second Backspace removes it.
-
-## Page templates
-
-A template lays a page out in the order a subject is best understood: **In one line**, **Why it exists**, **How it works**, **Example**, **Practice**, **Pitfalls**, **Questions** (`Question :: Answer` lines) and **Sources**.
-
-- **Four templates.** **Concept** has the eight sections. **Video** starts with a line to paste the video's address in, and its **How it works** is **Notes** (times from the video). **Article** starts with a line for the article's address, and collects **Passages**. **Tool** has **Install and use**, with a code block for the setup.
-- **On an empty page,** a quiet row: "Start with: Concept · Video · Article · Tool · Blank". A click, or ← → and Enter, fills the page; typing anything makes the row go. Nothing is applied on its own.
-- **`/template`** lists the four and inserts one where the cursor is.
-- **Hints, not text:** under each heading whose section is empty, a grey hint ("What problem does it solve? What did people do before?"). Hints are never saved: the markdown has only the headings and what the learner writes.
-- **Following the order:** **⌘↓ / Ctrl+↓** moves the cursor to the next empty section (going round to the first). A page with a template opens with the cursor in its first empty section, unless a place in it was remembered. The outline marks each section written (a dot) or empty (a ring).
-- Headings and hints come in the learner's language; a page keeps the language it was filled in. Sections are recognised by their heading in either language, so hints and the outline still work after switching, and on pages written by hand with the same headings.
 
 ## Video notes
 
@@ -76,18 +65,6 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 - **Keys on the video,** with the focus on its block (after fullscreen, a note, or a time picked from the list): Space or K play and pause, ← → skip 5 s, F fullscreen, N a note. A click inside YouTube's own player leaves the focus there, so its menus (settings, captions, volume) work; the focus comes back once they are done.
 - If YouTube can't load (offline, blocked), the block says so and offers Retry.
 - Stored as plain markdown: the video's watch URL on its line, the notes as a list of `[mm:ss]` lines.
-
-## Spaced review
-
-In a **Study** every card is reviewed. In a **Learning path** a page's cards join the review once the page is marked studied: there is nothing to remember from a page not read yet (until then its `::` lines read as plain text). **Review** in a path's map top bar opens the review of that path alone, with how many of its cards are due today (a tick once none are).
-
-Questions are written in the notes themselves, where they belong; a few minutes a day of being asked them, at growing intervals, keeps what was learned.
-
-- **Cards.** A line `Question :: Answer` in any page is a card (in a list, a heading or a quote too; `::` needs a space each side, so `std::vector` isn't one). A line with `==words==` is a fill-in-the-blank: the marked words are hidden, one card per mark. Code is never a card. In the editor a card line has a small card in the left margin, and `==words==` are highlighted; the markdown stays as written.
-- **Identity.** A card is its path, its page and its question: editing the answer keeps its history, editing the question starts a new card. A card whose line is removed keeps its history, in case it comes back.
-- **Review** (in the sidebar, with the number due today): one card at a time, with the page it comes from (a link to it). **Space** shows the answer, then **1 Again · 2 Hard · 3 Good · 4 Easy**; each button says when the card comes back. The next card shows at once. Again asks the card once more before the end; then "Done for today".
-- **Scheduling** is FSRS (v5, default weights): a card comes back when it is about 90% likely to still be remembered, so intervals grow with every Good and start over after Again. Up to 20 new cards a day are started, across every path; "today" ends at the learner's midnight.
-- **Per path.** A path's home card and its centre page show its cards and how many are due, with a Review link that reviews that path only (`/review?path=`); the Review page can switch between paths.
 
 ## Inbox and quick capture
 
@@ -118,15 +95,11 @@ Write it down now, sort it later: capturing never asks where something goes.
 | Text | `[[` | Pick or create a page to link |
 | Text | `/` | Commands |
 | Text | ⌘K / Ctrl K | With text selected, make it a link; otherwise search |
-| Text | ⌘↓ / Ctrl+↓ | Next empty template section |
-| Empty page | ← → · Enter | Pick a template · fill the page with it |
 | Title | Enter | On to the text |
 | Text | ⌘↵ / Ctrl+Enter | Play the time on the line, or open its link |
 | Text | ⇧⌘↵ / Shift+Ctrl+Enter | Play the time on the line in fullscreen |
 | Video | N | Pause and write a note |
 | Video | Space or K · ← → · F | Play/pause · skip 5 s · fullscreen |
-| Review | Space (or Enter) | Show the answer |
-| Review | 1 · 2 · 3 · 4 | Again · Hard · Good · Easy |
 | Anywhere | ⌘⇧Space / Ctrl+Shift+Space | Quick capture to the Inbox |
 | Capture box | Enter · Shift+Enter · ⌘Enter / Ctrl+Enter · Esc | Save · new line · add to the open page · close |
 | Inbox | ↑ ↓ · A · D · Enter | Move · add to a page · delete · open the source |
@@ -144,4 +117,3 @@ Write it down now, sort it later: capturing never asks where something goes.
 - N doesn't work while typing in the text (it would type an n) or with the focus inside YouTube's player.
 - Fullscreen is the app's own (with the notes); YouTube's fullscreen button is off.
 - The floating video snaps to the corners; it can't be resized.
-- Review cards are one line: no images or multi-line answers, no statistics, no reminders outside the app.

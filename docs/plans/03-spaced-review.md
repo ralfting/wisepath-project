@@ -1,5 +1,7 @@
 # 3. Spaced review
 
+**Removed from the app (2026-10-16).** It was built as below, then taken out after the onboarding: review will be done differently. The API and its table stay; the web code is in the history.
+
 ## Why
 
 Notes are written once and rarely read again; what was learned fades. A few minutes a day of being asked about one's own notes, at growing intervals, keeps it. The questions should come from the notes themselves, written where they belong, not in a separate flashcard app.
