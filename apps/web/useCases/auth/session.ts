@@ -34,7 +34,13 @@ export function useSession(): Session {
     AsyncResult.match(result, {
       onInitial: () => ({ status: "loading" }),
       onFailure: () => ({ status: "unavailable" }),
-      onSuccess: ({ value }) => (value._tag === "Some" ? { status: "signedIn", user: value.value } : { status: "signedOut" })
+      onSuccess: ({ value, waiting }) =>
+        value._tag === "Some"
+          ? { status: "signedIn", user: value.value }
+          : // Just logged in, the session is being read again: "signed out" is the old answer
+            waiting
+            ? { status: "loading" }
+            : { status: "signedOut" }
     })
   )
 }
