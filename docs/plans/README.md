@@ -11,6 +11,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 5 | [Languages (i18n)](05-i18n.md) | English and Portuguese, following the browser, chosen on the account |
 | 7 | [Page templates](07-page-templates.md) | A page laid out from the concept to the practice, with hints and ⌘↓ |
 | 8 | [Browser extension](08-browser-extension.md) | Later, not soon: capture from any site by a shortcut, the right-click menu or the toolbar, in place of plan 2's bookmarklet |
+| 9 | [Branch from the map](09-branch-from-map.md) | A + on a page in the map (or N) adds a page branching from it; moving a page comes later |
 
 AI (10) comes last, once these exist to build on.
 
