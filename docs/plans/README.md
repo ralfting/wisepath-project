@@ -12,6 +12,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 7 | [Page templates](07-page-templates.md) | Built, then removed from the app (2026-10-16) until the format is studied |
 | 8 | [Browser extension](08-browser-extension.md) | Later, not soon: capture from any site by a shortcut, the right-click menu or the toolbar, in place of plan 2's bookmarklet |
 | 9 | [Branch from the map](09-branch-from-map.md) | A + on a page in the map (or N) adds a page branching from it; moving a page comes later |
+| 11 | [Continuous deploy](11-continuous-deploy.md) | Every push to main that passes CI migrates Neon and deploys the API, then the web app |
 
 AI (10) comes last, once these exist to build on.
 
