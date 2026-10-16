@@ -60,7 +60,7 @@ export const map = {
     add: 'Add a page to {title}',
     dialog: 'New page in {title}',
     field: 'Name of the new page',
-    hint: 'Enter adds · {mod}Enter adds and opens · Esc closes',
+    hint: 'Enter adds and opens · {mod}Enter adds and stays · Esc closes',
     exists: '“{title}” exists: Enter links it here',
     isThis: 'That is this page',
     added: 'Added “{title}” to “{parent}”',

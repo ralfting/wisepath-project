@@ -9,7 +9,7 @@ Adding a page meant opening its parent and typing `/Page` in the text. On the ma
 ## The experience
 
 - **On the map,** pointing at a page (or focusing it) shows a **+** on its outer edge, the way its branches grow (right on the right side, left on the left; on the root, the side with fewer branches). On touch it shows on the open page.
-- **The + (or N on the focused page)** opens a small name field beside the page. **Enter** adds the branch and keeps the field open, emptied, for the next one; **⌘Enter / Ctrl+Enter** adds it and opens it in the drawer; **Esc** (or a click elsewhere) closes the field.
+- **The + (or N on the focused page)** opens a small name field beside the page. **Enter** adds the branch and opens it in the drawer, like `/Page` (changed after trying it, 2026-10-16); **⌘Enter / Ctrl+Enter** adds it and keeps the field open, emptied, for the next one; **Esc** (or a click elsewhere) closes the field.
 - **A name another page has** links that page instead of making a second one, like `/Page`.
 - **In the list,** each row has the same + at its end (and N on the focused row); the field opens indented below the row. A row at the end adds a page to the root.
 - **Undo** for a few seconds after each branch: the new page goes and the parent's text is as it was.

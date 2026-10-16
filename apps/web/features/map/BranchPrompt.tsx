@@ -12,9 +12,9 @@ import classes from './BranchPrompt.module.css';
 
 /**
  * BranchPrompt
- * The name field the map's + opens beside a page. Enter adds the branch and empties the field for the next one;
- * Cmd/Ctrl+Enter adds it and opens it; Esc, or a click elsewhere, closes it. A name another page has links that
- * page instead, and says so before Enter.
+ * The name field the map's + opens beside a page. Enter adds the branch and opens it in the drawer, like /Page;
+ * Cmd/Ctrl+Enter adds it and stays, the field emptied for the next one; Esc, or a click elsewhere, closes it.
+ * A name another page has links that page instead, and says so before Enter.
  */
 
 const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
@@ -31,8 +31,8 @@ export function BranchPrompt({
   pages: ReadonlyArray<Page>;
   style?: CSSProperties;
   className?: string;
-  /** `open`: go to the page once it is added */
-  onSubmit: (title: string, open: boolean) => void;
+  /** `stay`: keep adding here instead of opening the page */
+  onSubmit: (title: string, stay: boolean) => void;
   onClose: () => void;
 }) {
   const t = useT();

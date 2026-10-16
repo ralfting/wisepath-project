@@ -69,8 +69,9 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
 
   // Opening the drawer adds a history entry (back closes it); moving between pages replaces it
   const select = useCallback(
-    (pageId: string) => {
-      const href = pageHref(project.id, pageId);
+    (pageId: string, fresh = false) => {
+      // A page just made opens with the cursor in its text, ready to write
+      const href = `${pageHref(project.id, pageId)}${fresh ? '?new=1' : ''}`;
       // With the drawer open, the page changes in place at once; opening it is a navigation
       if (selectedId) swapOpenPage(href);
       else router.push(href, { scroll: false });
@@ -123,7 +124,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
     // Back to the page it was adding to, so the keyboard goes on from there
     if (refocus && from) requestAnimationFrame(() => document.querySelector<HTMLElement>(`[data-page-id="${from}"]`)?.focus({ preventScroll: true }));
   };
-  const addBranch = (parentId: string, title: string, open: boolean) => {
+  const addBranch = (parentId: string, title: string, stay: boolean) => {
     const parent = project.pages.find((p) => p.id === parentId);
     const added = actions.addBranch(parentId, title);
     if (!parent || !added) return;
@@ -133,10 +134,11 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
       action: { label: t('map.branch.undo'), onClick: added.undo },
       key: Date.now(),
     });
-    if (open) {
+    if (stay) setFocusRequest((r) => ({ pageId: parentId, nonce: (r?.nonce ?? 0) + 1 }));
+    else {
       setBranchFrom(null);
-      select(added.page.id);
-    } else setFocusRequest((r) => ({ pageId: parentId, nonce: (r?.nonce ?? 0) + 1 }));
+      select(added.page.id, added.created);
+    }
   };
   const branchParent = branchFrom ? project.pages.find((p) => p.id === branchFrom) : undefined;
   const branchPrompt = branchParent ? (
@@ -144,7 +146,7 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
       key={branchParent.id}
       parent={branchParent}
       pages={project.pages}
-      onSubmit={(title, open) => addBranch(branchParent.id, title, open)}
+      onSubmit={(title, stay) => addBranch(branchParent.id, title, stay)}
       onClose={() => closeBranch(true)}
     />
   ) : null;
