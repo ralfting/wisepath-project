@@ -9,6 +9,7 @@ import type { Page, Project } from '@wisepath/domain/projects';
 import { branchProgress, pathTo, projectProgress } from '@wisepath/domain/projects';
 import { displayTitle } from '@/features/shared/title';
 import type { ProjectActions, SaveState } from '@/useCases/projects';
+import { useRememberOpened } from '@/useCases/search';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import type { Translate } from '@/i18n/I18nProvider';
 import { PathCards } from '@/features/review';
@@ -65,6 +66,7 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
 
   return (
     <AppFrame crumbs={pageCrumbs(project, page, t)}>
+      <RememberOpened project={project} page={page} />
       <PageSheet
         project={project}
         page={page}
@@ -77,6 +79,12 @@ function EditorView({ project, store, save, pageId }: { project: Project; store:
       />
     </AppFrame>
   );
+}
+
+/** Offered again by the search palette (⌘P), like a page opened in the map's drawer */
+function RememberOpened({ project, page }: { project: Project; page: Page }) {
+  useRememberOpened({ projectId: project.id, pageId: page.id, title: page.title, projectTitle: project.title });
+  return null;
 }
 
 /** My paths › map › the pages the branch passes through › this page */
