@@ -176,6 +176,11 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
         // Only one on screen counts: a closed Select (a code block's language) keeps its dropdown in the page, hidden
         const open = [...document.querySelectorAll('.mantine-Popover-dropdown, [role=menu]')].some((el) => el.getClientRects().length > 0);
         if (open) return;
+        // Another drawer or dialog over this one (Help) takes the Esc
+        const over = [...document.querySelectorAll('.mantine-Drawer-content, .mantine-Modal-content')].some(
+          (el) => !el.classList.contains(classes.drawer) && el.getClientRects().length > 0,
+        );
+        if (over) return;
         if (expanded) setExpanded(false);
         else close();
       }}

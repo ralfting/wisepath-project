@@ -13,6 +13,35 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  cursor: zoom-in;
+}
+
+/* Shows the clip large; hidden until the clip is pointed at or focused, except where nothing hovers */
+.enlarge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  box-shadow: var(--mantine-shadow-sm);
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  .clip:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    opacity: 1;
+  }
+}
+
+/* The clip at up to its own size (960x600), as large as the screen allows */
+.large {
+  display: block;
+  width: min(960px, 86vw, calc((90vh - 80px) * 1.6));
+  aspect-ratio: 16 / 10;
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-gray-0);
 }
 
 .play {

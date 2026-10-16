@@ -6,6 +6,8 @@ export const help = {
   open: 'Ajuda',
   title: 'O que posso fazer aqui',
   play: 'Ver o exemplo',
+  enlarge: 'Ampliar',
+  enlargeClip: 'Ampliar o exemplo: {title}',
   page: {
     intro: 'Uma página é texto livre em markdown. Estas são as duas coisas que as pessoas procuram primeiro.',
     addPage: {

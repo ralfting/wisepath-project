@@ -4,6 +4,8 @@ export const help = {
   title: 'What can I do here',
   /** Under a clip that waits for the learner, when the system asks for less motion */
   play: 'Play the example',
+  enlarge: 'Enlarge',
+  enlargeClip: 'Enlarge the example: {title}',
   page: {
     intro: 'A page is free text in markdown. These are the two things people look for first.',
     addPage: {

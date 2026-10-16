@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Button, Drawer, List, Stack, Text, Title } from '@mantine/core';
+import { ActionIcon, Button, Drawer, List, Modal, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { useReducedMotion } from '@mantine/hooks';
-import { IconPlayerPlayFilled } from '@tabler/icons-react';
+import { IconArrowsMaximize, IconPlayerPlayFilled } from '@tabler/icons-react';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import type { TranslationKey } from '@/i18n/I18nProvider';
 import classes from './HelpPanel.module.css';
@@ -18,6 +18,12 @@ import { screenOf } from './screen';
  */
 
 export const OPEN_HELP_EVENT = 'wisepath:open-help';
+
+/**
+ * Says a clip is shown large. Mantine's drawer and modal both close on Esc from
+ * the window, so while a clip is large, Esc closes only it and Help stays
+ */
+const EnlargedContext = createContext<(enlarged: boolean) => void>(() => {});
 
 export function openHelp(): void {
   window.dispatchEvent(new Event(OPEN_HELP_EVENT));
@@ -40,6 +46,7 @@ function HelpPanel({ opened, onClose }: { opened: boolean; onClose: () => void }
   const pathname = usePathname();
   const t = useT();
   const screen = screenOf(pathname);
+  const [enlarged, setEnlarged] = useState(false);
 
   return (
     <Drawer
@@ -53,8 +60,11 @@ function HelpPanel({ opened, onClose }: { opened: boolean; onClose: () => void }
       title={t('help.title')}
       styles={{ title: { fontSize: 'var(--mantine-font-size-xl)', fontWeight: 700 } }}
       closeButtonProps={{ 'aria-label': t('common.actions.close') }}
+      closeOnEscape={!enlarged}
     >
-      {screen === 'page' ? <PageHelp /> : screen === 'map' ? <Tips area="map" /> : <Tips area="home" />}
+      <EnlargedContext.Provider value={setEnlarged}>
+        {screen === 'page' ? <PageHelp /> : screen === 'map' ? <Tips area="map" /> : <Tips area="home" />}
+      </EnlargedContext.Provider>
     </Drawer>
   );
 }
@@ -89,7 +99,8 @@ function Topic({ clip, title, body }: { clip: string; title: TranslationKey; bod
 /**
  * A few seconds of the app doing it, muted and looping like a GIF. With less
  * motion asked for, it waits for a press. A clip that can't load leaves the
- * text on its own.
+ * text on its own. A press on it (or its corner button) shows it large, with
+ * the player's controls, from where it was.
  */
 function Clip({ name, label }: { name: string; label: string }) {
   const { locale } = useLocale();
@@ -98,9 +109,23 @@ function Clip({ name, label }: { name: string; label: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
   const [playing, setPlaying] = useState(!still);
+  // Where the small clip was when it was enlarged; null while it isn't
+  const [enlarged, setEnlarged] = useState<number | null>(null);
+  const holdHelp = useContext(EnlargedContext);
 
   if (failed) return null;
   const base = `/help/${name}.${locale}`;
+
+  const enlarge = () => {
+    ref.current?.pause();
+    setEnlarged(ref.current?.currentTime ?? 0);
+    holdHelp(true);
+  };
+  const shrink = () => {
+    setEnlarged(null);
+    holdHelp(false);
+    if (!still) void ref.current?.play();
+  };
 
   return (
     <div className={classes.clip}>
@@ -117,8 +142,14 @@ function Clip({ name, label }: { name: string; label: string }) {
         onError={() => setFailed(true)}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
+        onClick={enlarge}
         className={classes.video}
       />
+      <Tooltip label={t('help.enlarge')} withArrow>
+        <ActionIcon variant="white" color="dark" size="md" radius="md" aria-label={t('help.enlargeClip', { title: label })} className={classes.enlarge} onClick={enlarge}>
+          <IconArrowsMaximize size={15} />
+        </ActionIcon>
+      </Tooltip>
       {!playing && (
         <Button
           size="xs"
@@ -130,6 +161,32 @@ function Clip({ name, label }: { name: string; label: string }) {
           {t('help.play')}
         </Button>
       )}
+      <Modal
+        opened={enlarged !== null}
+        onClose={shrink}
+        title={label}
+        centered
+        size="auto"
+        radius="lg"
+        // Above Help (260)
+        zIndex={280}
+        closeButtonProps={{ 'aria-label': t('common.actions.close') }}
+      >
+        <video
+          src={`${base}.mp4`}
+          poster={`${base}.jpg`}
+          autoPlay={!still}
+          muted
+          loop
+          playsInline
+          controls
+          aria-label={label}
+          onLoadedMetadata={(event) => {
+            event.currentTarget.currentTime = enlarged ?? 0;
+          }}
+          className={classes.large}
+        />
+      </Modal>
     </div>
   );
 }
