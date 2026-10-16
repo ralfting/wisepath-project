@@ -1,0 +1,7 @@
+# What `vercel deploy` from the repo root leaves out: build output and local-only files
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.env
+videos
