@@ -1,5 +1,7 @@
 # 2. Capture from the web
 
+**Removed from the app (2026-10-16).** It was built as below, then taken out after the onboarding: a bookmarklet is awkward to set up and use. Capturing from other sites comes back as a browser extension, [plan 8](08-browser-extension.md); the code is in the history (commits `332c8a3` to `d1d85d6`) to reuse there.
+
 Depends on [plan 1](01-inbox-quick-capture.md): it saves into 1's Inbox.
 
 ## Why

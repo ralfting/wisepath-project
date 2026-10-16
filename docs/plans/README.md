@@ -5,12 +5,12 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | # | Plan | In one line |
 | --- | --- | --- |
 | 1 | [Inbox and quick capture](01-inbox-quick-capture.md) | ⌘⇧Space anywhere in the app: write it now, file it later |
-| 2 | [Capture from the web](02-web-capture.md) | A bookmarklet sends the page, the selection or the video's moment to the Inbox |
+| 2 | [Capture from the web](02-web-capture.md) | Built as a bookmarklet, then removed from the app (2026-10-16); comes back as plan 8 |
 | 3 | [Spaced review](03-spaced-review.md) | `Question :: Answer` lines become cards; a few minutes of review a day |
 | 4 | [Search everywhere](04-global-search.md) | ⌘P finds any page in any path, by title or text |
 | 5 | [Languages (i18n)](05-i18n.md) | English and Portuguese, following the browser, chosen on the account |
 | 7 | [Page templates](07-page-templates.md) | A page laid out from the concept to the practice, with hints and ⌘↓ |
-| 8 | [Browser extension](08-browser-extension.md) | Later, not soon: capture from any site by a shortcut, the right-click menu or the toolbar, replacing the bookmarklet |
+| 8 | [Browser extension](08-browser-extension.md) | Later, not soon: capture from any site by a shortcut, the right-click menu or the toolbar, in place of plan 2's bookmarklet |
 
 AI (10) comes last, once these exist to build on.
 
