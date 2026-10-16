@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Page, Project } from '@wisepath/domain/projects';
 import { titleTaken } from '@wisepath/domain/projects';
-import { pageHasReview } from '@wisepath/domain/review';
 import { MarkdownEditor } from '@/features/editor/MarkdownEditor';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
 import { Stack, TextInput } from '@mantine/core';
@@ -80,7 +79,6 @@ export function PageContent({
         />
       )}
       <MarkdownEditor
-        cardsPending={!pageHasReview(project, page)}
         key={page.id}
         content={page.content}
         onChange={(content) => actions.updatePage(page.id, { content })}

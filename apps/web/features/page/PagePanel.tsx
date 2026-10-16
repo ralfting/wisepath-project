@@ -41,7 +41,6 @@ import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';
 import { PageLook, moduleLook } from './PageLook';
 import { useT } from '@/i18n/I18nProvider';
-import { PathCards } from '@/features/review';
 import { useRememberOpened } from '@/useCases/search';
 import classes from './PagePanel.module.css';
 
@@ -242,8 +241,6 @@ export function PagePanel({ project, page, store, onSelect, onExpand, onClose, f
           />
         </Group>
       )}
-
-      {isRoot && <PathCards projectId={project.id} title={project.title} className={classes.pathCards} />}
 
       <Tabs value={tab} onChange={(v) => setTab((v as PanelTab) ?? 'content')} mt="md" className={classes.tabs}>
         <Tabs.List px="lg">

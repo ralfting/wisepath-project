@@ -12,7 +12,3 @@
 }
 
 
-/* The path's cards, between the centre page's header and its text */
-.pathCards {
-  margin-bottom: var(--mantine-spacing-md);
-}

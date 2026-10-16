@@ -8,6 +8,5 @@ export const appRuntime = Atom.runtime(AppLayer)
 export const ReactivityKeys = {
   session: "session",
   projects: "projects",
-  review: "review",
   inbox: "inbox"
 } as const

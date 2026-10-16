@@ -13,7 +13,6 @@ import { ProjectGate } from '@/features/projects/ProjectGate';
 import { SaveStatus } from '@/features/projects/SaveStatus';
 import type { ProjectActions, SaveState } from '@/useCases/projects';
 import { KindSwitchItem } from '@/features/projects/ProjectKind';
-import { PathReviewButton } from '@/features/review';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { useT } from '@/i18n/I18nProvider';
 import { PageGlyph } from '@/features/shared/look';
@@ -330,8 +329,6 @@ function MapView({ project, actions, save }: { project: Project; actions: Projec
             <KindSwitchItem kind={project.kind} onSwitch={actions.setKind} />
           </Menu.Dropdown>
         </Menu>
-        {/* This path's cards due today, to review from here */}
-        <PathReviewButton projectId={project.id} title={project.title} />
         {/* Only while something is on its way, or was undone */}
         <Box visibleFrom="sm" style={{ flexShrink: 0 }}>
           <SaveStatus save={save} hideSaved />

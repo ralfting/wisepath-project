@@ -221,7 +221,3 @@
   }
 }
 
-/* The path's cards, under the centre page's title */
-.pathCards {
-  padding: var(--mantine-spacing-md) var(--mantine-spacing-lg) 0;
-}
