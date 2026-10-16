@@ -178,11 +178,11 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
     setKind: (kind) => dispatch({ _tag: "UpdateProject", edit: { kind } })
   }
 
-  let state: ProjectState
-  if (!hydrated) state = { status: "loading" }
-  else if (project) state = { status: "ready", project }
-  else
-    state = AsyncResult.match(session, {
+  // The same object until what it says changes: lists built from it (a picker's pages) keep their marked row
+  const state = useMemo((): ProjectState => {
+    if (!hydrated) return { status: "loading" }
+    if (project) return { status: "ready", project }
+    return AsyncResult.match(session, {
       onInitial: (): ProjectState => ({ status: "loading" }),
       onFailure: ({ cause }): ProjectState =>
         Option.exists(Cause.findErrorOption(cause), (error) => error._tag === "ProjectNotFound")
@@ -190,6 +190,7 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
           : { status: "unavailable" },
       onSuccess: (): ProjectState => ({ status: "loading" })
     })
+  }, [hydrated, project, session])
 
   // Leaving with changes still on their way asks first
   const unsaved = sync.status !== "saved"
