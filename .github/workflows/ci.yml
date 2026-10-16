@@ -1,6 +1,7 @@
 # Typecheck, lint and test the whole monorepo on every push to main and every pull request.
 # The API's integration tests run against the Postgres service below (database wisepath_test,
 # wiped and migrated by apps/api/test/globalSetup.ts).
+# Pushes to main that pass then deploy to Vercel (docs/plans/11-continuous-deploy.md).
 name: CI
 
 on:
@@ -10,7 +11,8 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # A newer push cancels a pull request's run, never a deploy halfway
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -56,3 +58,83 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  deploy:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: team_xCfonN5lldKNclpiyc93x7Ac
+      API_PROJECT_ID: prj_hKIceS7ArXdlw1tc7dyIkCuNTBdH
+      WEB_PROJECT_ID: prj_dKrGxztZb5otqC0gAsEK2gU5wRyN
+      API_URL: https://wisepath-api.vercel.app
+      WEB_URL: https://wisepath-web.vercel.app
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # What the push changed decides what deploys; with no usable "before" (a new or
+      # rewritten branch) everything does
+      - name: What changed
+        id: changes
+        run: |
+          before='${{ github.event.before }}'
+          if git cat-file -e "$before^{commit}" 2>/dev/null; then
+            files=$(git diff --name-only "$before" HEAD)
+          else
+            files=everything
+          fi
+          echo "$files"
+          shared='^(packages/|pnpm-lock\.yaml$|package\.json$)|^everything$'
+          api=false; web=false
+          if echo "$files" | grep -qE "^apps/api/|$shared"; then api=true; fi
+          # The web app follows the API too, since they share the contract
+          if [ "$api" = true ] || echo "$files" | grep -qE "^apps/web/|$shared"; then web=true; fi
+          echo "api=$api" >> "$GITHUB_OUTPUT"
+          echo "web=$web" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+        if: steps.changes.outputs.api == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.changes.outputs.api == 'true'
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # Migrations only add (see README, "The database"), so the API still running
+      # works against the new schema until its deploy below
+      - name: Migrate Neon
+        if: steps.changes.outputs.api == 'true'
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @wisepath/api build
+          node apps/api/dist/migrate.js
+
+      - name: Deploy API
+        if: steps.changes.outputs.api == 'true'
+        env:
+          VERCEL_PROJECT_ID: ${{ env.API_PROJECT_ID }}
+        run: |
+          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/api")" = 200
+
+      - name: Deploy web
+        if: steps.changes.outputs.web == 'true'
+        env:
+          VERCEL_PROJECT_ID: ${{ env.WEB_PROJECT_ID }}
+        run: |
+          npx --yes vercel@latest deploy --prod --yes --token "$VERCEL_TOKEN"
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$WEB_URL/")" = 200
+          # The rewrite reaches the API, which turns away a request with no session
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$WEB_URL/api/projects")" = 401
