@@ -101,6 +101,19 @@ export function appendItem(markdown: string, item: Item): string {
   return joinBlocks(markdown, itemMarkdown(item))
 }
 
+/**
+ * The markdown an item brings to a page where the learner puts it (the / command): as it is, or for a moment
+ * of a video, its "- [mm:ss] text" note, after the video when the page doesn't have it yet
+ */
+export function itemHere(markdown: string, item: Item): string {
+  const videoId = item.url !== undefined ? youTubeId(item.url) : null
+  if (!videoId || item.videoTime === undefined) return itemMarkdown(item)
+  const note = ownText(item).replace(/\s*\n\s*/g, " ") || item.title?.trim() || ""
+  const line = `- [${formatTime(item.videoTime)}]${note ? ` ${note}` : ""}`
+  const hasVideo = markdown.split("\n").some((l) => youTubeId(l) === videoId && /^\S+$/.test(l.trim()))
+  return hasVideo ? line : `${item.url!.trim()}\n\n${line}`
+}
+
 const joinBlocks = (markdown: string, block: string) => {
   const before = markdown.trimEnd()
   return before ? `${before}\n\n${block}` : block

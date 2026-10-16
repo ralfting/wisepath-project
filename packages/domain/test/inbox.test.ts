@@ -1,6 +1,6 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect, Schema } from "effect"
-import { Capture, InboxItemId, appendItem, captured, fileItem, freeTitle, itemMarkdown, makePage, titleFor, youTubeId } from "../src/inbox/index"
+import { Capture, InboxItemId, appendItem, captured, fileItem, freeTitle, itemHere, itemMarkdown, makePage, titleFor, youTubeId } from "../src/inbox/index"
 import { PageId, mapTree, sampleProject } from "../src/projects/index"
 
 const id = PageId.make
@@ -61,6 +61,21 @@ describe("filing an item into a page", () => {
       const error = yield* Effect.flip(fileItem(sampleProject, id("nope"), { text: "x" }))
       assert.strictEqual(error._tag, "PageNotFound")
     }))
+})
+
+describe("bringing an item into a page where the cursor is", () => {
+  it("is the item as it would be filed", () => {
+    assert.strictEqual(itemHere("Anything", { text: "Check the order" }), "Check the order")
+    assert.strictEqual(itemHere("", { text: "https://nestjs.com", url: "https://nestjs.com", title: "NestJS" }), "[NestJS](https://nestjs.com)")
+  })
+
+  it("is a video moment's note, on one line, when the page has the video", () => {
+    assert.strictEqual(itemHere(`Intro\n\n${video}\n\n- [00:10] Start`, { text: "Key idea\nhere", url: `${video}&t=85`, videoTime: 85 }), "- [01:25] Key idea here")
+  })
+
+  it("brings the video first when the page doesn't have it", () => {
+    assert.strictEqual(itemHere("Notes", { text: video, url: video, title: "A talk", videoTime: 5 }), `${video}\n\n- [00:05] A talk`)
+  })
 })
 
 describe("making an item a page", () => {
