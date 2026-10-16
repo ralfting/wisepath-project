@@ -35,3 +35,6 @@ coverage
 **/.impeccable/review/
 **/.impeccable/questions/
 **/.impeccable/decision-payload.json
+
+# Video projects (HyperFrames): recordings and renders stay local
+videos/
