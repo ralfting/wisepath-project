@@ -268,3 +268,24 @@ export function useMakePage(): (item: InboxItem, from: PageTarget) => Promise<Fi
     [change, leaveAfter, t]
   )
 }
+
+/**
+ * An item the learner put into a page's text themselves (the editor's / command): it leaves the Inbox on screen
+ * at once, and on the API once that page's map is saved; when the save fails it shows in the Inbox again
+ */
+export function useTakeFromInbox(): (item: InboxItem, projectId: string) => Promise<boolean> {
+  const open = useOpenProject()
+  const leaveAfter = useLeaveAfter()
+  const t = useT()
+  return useCallback(
+    async (item, projectId) => {
+      const message = await leaveAfter(item, async () => {
+        const handle = await open(projectId)
+        if (!handle) return t("inbox.errors.pathGone")
+        return (await handle.saved()) ? null : t("inbox.errors.notFiled")
+      })
+      return message === null
+    },
+    [open, leaveAfter, t]
+  )
+}
