@@ -10,6 +10,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 4 | [Search everywhere](04-global-search.md) | ⌘P finds any page in any path, by title or text |
 | 5 | [Languages (i18n)](05-i18n.md) | English and Portuguese, following the browser, chosen on the account |
 | 7 | [Page templates](07-page-templates.md) | A page laid out from the concept to the practice, with hints and ⌘↓ |
+| 8 | [Browser extension](08-browser-extension.md) | Later, not soon: capture from any site by a shortcut, the right-click menu or the toolbar, replacing the bookmarklet |
 
 AI (10) comes last, once these exist to build on.
 
