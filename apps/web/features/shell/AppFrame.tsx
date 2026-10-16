@@ -29,6 +29,7 @@ import { useDisclosure } from '@mantine/hooks';
 import {
   IconChevronDown,
   IconChevronRight,
+  IconHelpCircle,
   IconHome,
   IconInbox,
   IconLayoutSidebarLeftCollapse,
@@ -50,6 +51,7 @@ import { useInboxCount } from '@/useCases/inbox';
 import { CaptureLauncher } from '@/features/capture';
 import { PageGlyph } from '@/features/shared/look';
 import { SearchPaletteHost, openSearchPalette } from '@/features/search';
+import { HelpHost, openHelp } from '@/features/help';
 import classes from './AppFrame.module.css';
 
 /**
@@ -212,6 +214,7 @@ export function AppFrame({
         <CaptureLauncher />
       </AppShell.Main>
       <SearchPaletteHost />
+      <HelpHost />
     </AppShell>
   );
 }
@@ -315,7 +318,12 @@ function Rail() {
           </Box>
         );
       })}
-      <Avatar mt="auto" radius="xl" color="blue" variant="filled" name={user?.displayName} aria-hidden="true" />
+      <Tooltip label={t('help.open')} position="right">
+        <ActionIcon mt="auto" size={40} radius="md" variant="subtle" color="gray" onClick={openHelp} aria-label={t('help.open')}>
+          <IconHelpCircle size={20} stroke={1.7} />
+        </ActionIcon>
+      </Tooltip>
+      <Avatar radius="xl" color="blue" variant="filled" name={user?.displayName} aria-hidden="true" />
     </Stack>
   );
 }
@@ -422,6 +430,14 @@ function Sidebar({ sidebarAction }: { sidebarAction: ReactNode }) {
       </AppShell.Section>
 
       <AppShell.Section p="sm" className={classes.account}>
+        <NavLink
+          component="button"
+          onClick={openHelp}
+          label={t('help.open')}
+          leftSection={<IconHelpCircle size={20} stroke={1.7} />}
+          className={classes.navLink}
+          mb={4}
+        />
         <AccountMenu />
       </AppShell.Section>
     </>
