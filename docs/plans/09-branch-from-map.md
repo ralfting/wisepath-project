@@ -25,7 +25,7 @@ Same model as before: links are the structure. Adding a branch is two edits thro
 ## Checks
 
 - Unit: a new branch, a taken name linking the existing page, an empty name refused, the parent's text keeps what it had.
-- Browser: hover → + → name → Enter → node on the map; N from the keyboard; ⌘Enter opens the drawer; Esc; the list; Undo; axe light and dark.
+- Browser: hover → + → name → Enter → node on the map, the map zooming in softly on the page; N from the keyboard; ⌘Enter opens the drawer; Esc; the list; Undo; axe (light theme only).
 
 ## Later: moving a page
 
