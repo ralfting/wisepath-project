@@ -15,6 +15,13 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 - **New path** opens with the default project chosen; a project's **+** opens it with that project. Either can be changed in the dialog.
 - **Sidebar:** every path, with its progress for Learning paths. Collapses to an icon rail that floats open on hover; on the rail a Learning path's icon has a thin progress ring.
 
+## Help
+
+- **Help** in the sidebar (the ? on the collapsed rail) opens **What can I do here**, for the screen you are on.
+- **On a page:** Add a page and Take notes on a video, each with a short looping clip of the app doing it, in the app's language (English or Portuguese); with reduced motion the clip waits for Play.
+- **On a map and on My paths:** a few tips.
+- The clips are made with HyperFrames from recordings of the real app (`videos/help-*`, kept out of git) and served from `apps/web/public/help/`.
+
 ## Search everywhere
 
 - **⌘P (Ctrl P)** anywhere in the app — the home, a map, a page, even while writing — opens a search palette in the middle of the screen. So does **Search pages** in the sidebar (a magnifier on the rail).
