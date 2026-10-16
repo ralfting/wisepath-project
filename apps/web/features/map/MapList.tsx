@@ -2,6 +2,7 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 import { ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
+import { IconPlus } from '@tabler/icons-react';
 import type { MapNode, Project } from '@wisepath/domain/projects';
 import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/projects';
 import { displayTitle } from '@/features/shared/title';
@@ -15,7 +16,8 @@ import classes from './MapList.module.css';
  * The map as an indented list, branch by branch in map order, with each
  * page's studied state and, for pages with branches, how many below are
  * studied; in a study, just the pages and how many are below. Orphans close
- * the list.
+ * the list. Each row's + (or N on it) adds a page branching from it; the row at
+ * the end adds one to the path's main page.
  */
 
 interface MapListProps {
@@ -28,9 +30,13 @@ interface MapListProps {
   progress: boolean;
   matchIds: Set<string> | null;
   onSelect: (pageId: string) => void;
+  /** The + on a row, and N: start adding a page branching from it */
+  onAddBranch?: (pageId: string) => void;
+  /** The page a branch is being added to, and the name field shown under its row */
+  branch?: { from: string; prompt: ReactNode } | null;
 }
 
-export function MapList({ header, project, selectedId, currentId, progress, matchIds, onSelect }: MapListProps) {
+export function MapList({ header, project, selectedId, currentId, progress, matchIds, onSelect, onAddBranch, branch = null }: MapListProps) {
   const t = useT();
   const tree = mapTree(project);
   const visible = (node: MapNode): boolean =>
@@ -41,12 +47,19 @@ export function MapList({ header, project, selectedId, currentId, progress, matc
     const below = node.children.length ? progressOf(descendants(node)) : null;
     const status = node.page.studied ? 'done' : node.page.id === currentId ? 'current' : 'todo';
     return (
-      <li key={node.page.id}>
+      <li key={node.page.id} className={classes.item}>
         <UnstyledButton
           className={classes.row}
           data-module={node.page.module || undefined}
           data-selected={selectedId === node.page.id || undefined}
           onClick={() => onSelect(node.page.id)}
+          onKeyDown={(event) => {
+            if (!onAddBranch || event.key.toLowerCase() !== 'n' || event.metaKey || event.ctrlKey || event.altKey) return;
+            event.preventDefault();
+            onAddBranch(node.page.id);
+          }}
+          aria-keyshortcuts={onAddBranch ? 'N' : undefined}
+          data-page-id={node.page.id}
           style={{ '--depth': node.depth - 1 } as CSSProperties}
         >
           {node.page.module ? (
@@ -67,6 +80,23 @@ export function MapList({ header, project, selectedId, currentId, progress, matc
             </Text>
           )}
         </UnstyledButton>
+        {onAddBranch && (
+          // Shown while the row is pointed at or focused (CSS); the keyboard has N, so it is out of the tab order
+          <UnstyledButton
+            className={classes.plus}
+            tabIndex={-1}
+            aria-hidden="true"
+            title={t('map.branch.add', { title: displayTitle(node.page) })}
+            onClick={() => onAddBranch(node.page.id)}
+          >
+            <IconPlus size={14} stroke={2.4} />
+          </UnstyledButton>
+        )}
+        {branch?.from === node.page.id && (
+          <div className={classes.prompt} style={{ '--depth': node.depth } as CSSProperties}>
+            {branch.prompt}
+          </div>
+        )}
         {node.children.length > 0 && <ul className={classes.list}>{node.children.filter(visible).map(row)}</ul>}
       </li>
     );
@@ -83,6 +113,27 @@ export function MapList({ header, project, selectedId, currentId, progress, matc
           <Text c="dimmed">{t('map.list.empty', { title: displayTitle(tree.root.page) })}</Text>
         ) : (
           <ul className={classes.list}>{tree.root.children.filter(visible).map(row)}</ul>
+        )}
+        {onAddBranch && (
+          <div>
+            <UnstyledButton
+              className={classes.row}
+              data-page-id={tree.root.page.id}
+              onClick={() => onAddBranch(tree.root.page.id)}
+              aria-label={t('map.branch.add', { title: displayTitle(tree.root.page) })}
+              style={{ '--depth': 0 } as CSSProperties}
+            >
+              <IconPlus size={18} stroke={1.8} color="var(--mantine-color-blue-6)" aria-hidden="true" />
+              <Text size="sm" c="blue.8" fw={500}>
+                {t('map.branch.listAdd')}
+              </Text>
+            </UnstyledButton>
+            {branch?.from === tree.root.page.id && (
+              <div className={classes.prompt} style={{ '--depth': 0 } as CSSProperties}>
+                {branch.prompt}
+              </div>
+            )}
+          </div>
         )}
         {orphans.length > 0 && (
           <section aria-label={t('map.list.orphans')}>

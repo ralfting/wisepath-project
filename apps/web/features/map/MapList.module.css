@@ -24,3 +24,36 @@
     background: var(--mantine-color-blue-0);
   }
 }
+
+/* A row and its +: the + shows at the row's end while the row is pointed at or focused */
+.item {
+  position: relative;
+}
+
+.plus {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--mantine-color-blue-filled);
+  color: var(--mantine-color-white);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.row:hover + .plus,
+.row:focus-visible + .plus,
+.plus:hover {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* The name field, indented as the new page will be */
+.prompt {
+  padding: 4px 0 6px calc(10px + var(--depth, 0) * 26px);
+}
