@@ -28,6 +28,7 @@ The map is a reading of the links, never stored on its own.
 - **Modules.** Any page can be shown as a module: drawn larger, with a colour and an icon (set on the page's icon). Pages below a module take its colour.
 - **List view.** The same tree as an indented list (the default on phones).
 - **Search (⌘K / Ctrl K).** Lists the pages that match, each with where it sits ("In Providers"); the map highlights them and follows the one marked with the arrows; Enter opens it. A click outside folds the search and keeps its filter.
+- **Add a page from the map.** Pointing at a page (or focusing it, or opening it) shows a **+** on its outer edge; the + or **N** on the focused page zooms in on it and opens a name field below it. Enter adds the page as a branch of it (a `[[Name]]` line at the end of its text) and keeps the field open for the next; Cmd/Ctrl+Enter adds it and opens it; Esc closes the field. A name another page has links that page instead. Undo stays offered for a few seconds. In the list, each row has the same + (and N), and **New page** at the end adds one to the path's main page.
 - **Keyboard.** The map is one Tab stop, then a tree: → and ← follow the branches as drawn (out and back in), ↑ and ↓ move between siblings, Home goes to the centre, Enter or Space opens a page.
 - **Zoom** opens at a size titles can be read at; − / + / fit to screen / centre on the root are in the corner, with a legend.
 
@@ -112,6 +113,7 @@ Write it down now, sort it later: capturing never asks where something goes.
 | Map | ⌘K / Ctrl K | Search the path's pages |
 | Map | Tab, then ← → ↑ ↓, Home | Move through the map's pages |
 | Map | Enter / Space | Open the page |
+| Map, list | N | Add a page branching from the focused one |
 | Drawer | Esc | Close a popup, shrink the expanded drawer, or close it |
 | Text | `[[` | Pick or create a page to link |
 | Text | `/` | Commands |
