@@ -80,8 +80,9 @@ export function usePaletteKeys<T>(items: ReadonlyArray<T>, onPick: (item: T) => 
 export function paletteFieldProps(listId: string, active: number, count: number) {
   return {
     role: 'combobox',
-    'aria-expanded': true,
-    'aria-controls': listId,
+    // With nothing to choose the list isn't there, so the field points at nothing
+    'aria-expanded': count > 0,
+    'aria-controls': count > 0 ? listId : undefined,
     'aria-autocomplete': 'list' as const,
     'aria-activedescendant': count > 0 ? `${listId}-${active}` : undefined,
   };
