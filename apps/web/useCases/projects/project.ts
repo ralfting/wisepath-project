@@ -1,11 +1,11 @@
 "use client"
 
 import { useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react"
-import { Cause, Option } from "effect"
+import { Cause, Effect, Exit, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import type { AtomRegistry } from "effect/reactivity"
-import { PageId, ProjectId, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/projects"
+import { PageId, ProjectId, addBranch, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/projects"
 import type { LinkPreview, Page, PageColor, PageIcon, Project, ProjectKind, ProjectSummary } from "@wisepath/domain/projects"
 import { useT } from "@/i18n/I18nProvider"
 import { ReactivityKeys, appRuntime } from "../runtime"
@@ -99,6 +99,12 @@ export interface ProjectActions {
   renameLinks: (oldTitle: string, newTitle: string) => void
   /** Creates the page a [[link]] points to; the link connects it */
   createPage: (title: string) => Page
+  /**
+   * Adds a page branching from another (the map's +): a new page, or the one a taken name belongs to, linked at
+   * the end of the parent's text. Null when nothing changed (a blank name, the parent's own, a page it links
+   * already); else the page, whether it is new, and an undo that puts the parent back as it was
+   */
+  addBranch: (parentId: string, title: string) => { page: Page; created: boolean; undo: () => void } | null
   /** Removes one page; pages only it reached become orphans; the root stays */
   deletePage: (pageId: string) => void
   /** Shows a page as a module or not, and sets its colour and icon */
@@ -161,6 +167,22 @@ export function useProject(projectId: string): { state: ProjectState; save: Save
       const pages = current()?.pages ?? []
       // A title that exists already opens that page instead
       return (pages.find((p) => p.id === id) ?? findPageByTitle(pages, title))!
+    },
+    addBranch: (parentId, title) => {
+      const project = current()
+      const parent = project?.pages.find((p) => p.id === parentId)
+      if (!project || !parent) return null
+      const exit = Effect.runSyncExit(addBranch(project, parent.id, title, programs.newPageId()))
+      if (Exit.isFailure(exit) || !exit.value.page || exit.value.project === project) return null
+      const { page, created } = exit.value
+      const content = exit.value.project.pages.find((p) => p.id === parent.id)!.content
+      if (created) dispatch({ _tag: "CreatePage", page: { id: page.id, title: page.title } })
+      if (content !== parent.content) dispatch({ _tag: "UpdatePage", pageId: parent.id, edit: { content } })
+      const undo = () => {
+        dispatch({ _tag: "UpdatePage", pageId: parent.id, edit: { content: parent.content } })
+        if (created) dispatch({ _tag: "RemovePage", pageId: page.id })
+      }
+      return { page, created, undo }
     },
     // Links to the page become plain text first, so no page points at one that is gone
     deletePage: (pageId) => {
