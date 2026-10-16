@@ -44,3 +44,7 @@ Out: searching inside videos' transcripts, filters (by path, by kind), search op
 
 1. ⌘P (recommended; what editors use) or reuse ⌘K everywhere and keep per-map filtering inside the map's own search box?
 2. Search the Inbox's items too (once plan 1 is in), or only pages?
+
+## Next: a more precise search
+
+From the onboarding (2026-10-16): searching by title and text is there; finding something more precisely comes later. To think through then: narrowing by tag, by path, by the text (as now), and other ways to say what is looked for, how they combine, and how they are typed in the palette.
