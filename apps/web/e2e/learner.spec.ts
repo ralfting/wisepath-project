@@ -66,6 +66,35 @@ test('projects are created, renamed and deleted from the paths page', async ({ p
   await expect(page.getByRole('heading', { name: 'Languages' })).toHaveCount(0);
 });
 
+test('a thought captured from the Inbox is filed into a page from the keyboard', async ({ page }) => {
+  await signUp(page);
+  await page.getByRole('button', { name: 'New path' }).first().click();
+  await page.getByLabel(/^what are you learning/i).fill('Learn Effect');
+  await page.getByRole('button', { name: 'Create path' }).click();
+  await expect(page).toHaveURL(/\/pages\//);
+
+  await page.goto('/inbox');
+  await page.getByRole('button', { name: /^Capture/ }).click();
+  await page.getByRole('textbox', { name: 'What do you want to keep?' }).fill('Fibers are cheap threads');
+  await page.keyboard.press('Enter');
+  const list = page.getByRole('list', { name: 'Waiting in the Inbox' });
+  const item = list.getByRole('listitem').filter({ hasText: 'Fibers are cheap threads' });
+  await expect(item).toBeVisible();
+
+  // A adds it to a page: Enter picks the path, Enter its main page
+  await item.focus();
+  await page.keyboard.press('a');
+  await expect(page.getByRole('combobox', { name: 'Find a path' })).toBeFocused();
+  await expect(page.getByRole('option', { name: /Learn Effect/ })).toBeVisible();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('combobox', { name: 'Find a page' })).toBeFocused();
+  // The path's pages load once it is picked
+  await expect(page.getByRole('option', { name: /Learn Effect/ })).toBeVisible();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('Added to “Learn Effect”')).toBeVisible();
+  await expect(item).toHaveCount(0);
+});
+
 test('a map asks for a login without a session', async ({ page }) => {
   await page.goto('/paths/anything');
   await expect(page).toHaveURL(/\/login/);
