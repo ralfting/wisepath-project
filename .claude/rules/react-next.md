@@ -109,10 +109,15 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
 
 ## Client components with logic
 
-- A component with state, effects or derivations has a view model: `use<Component>.ts` in its folder, returning
-  `{ state, operations }`; the component renders what the hook returns and wires events to `operations`. No JSX in
-  the hook, no `useState`/`useEffect` left in the component beyond refs it hands to the DOM. With no callables,
-  return `operations: {}`.
+- A component has a view model, `use<Component>.ts` in its folder returning `{ state, operations }`, when it holds
+  more than one piece of state, any effect beyond a single subscription, or derivations before its JSX. The
+  component renders what the hook returns and wires events to `operations`; no JSX in the hook. A component with
+  one state and one subscription (`SavedAt`, `HelpHost`) keeps them: a hook file would add a file and nothing else.
+- Derivations that need no React (filtering, grouping, ordering) are pure functions in `<Component>.helpers.ts`,
+  unit tested, and the view model calls them: `groupPaths`, `searchRows`, `pathsFor`.
+- A form inside a modal, popover or palette lives in its own component inside it, so the container's unmounting on
+  close resets it. Never reset a form with an effect on `opened`. **Why:** the project, new map, video link and
+  quick capture forms each did, and each got it slightly different (one cleared on close, one on open).
   ```ts
   export function usePagePicker(pages: ReadonlyArray<PageSummary>) {
     const [query, setQuery] = useState('');
