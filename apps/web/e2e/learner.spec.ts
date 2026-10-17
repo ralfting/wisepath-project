@@ -69,7 +69,7 @@ test('projects are created, renamed and deleted from the paths page', async ({ p
   await expect(page.getByRole('heading', { name: 'Languages' })).toHaveCount(0);
 });
 
-test('a [[link]] written in a page makes the page it names, and the map grows with it', async ({ page }) => {
+test('a [[link]] and the / command make pages from the text, and the map grows with them', async ({ page }) => {
   await signUp(page);
   await page.getByRole('button', { name: 'New path' }).first().click();
   await page.getByLabel(/^what are you learning/i).fill('Learn Effect');
@@ -84,6 +84,15 @@ test('a [[link]] written in a page makes the page it names, and the map grows wi
   await page.getByRole('button', { name: 'Create page' }).click();
   const drawer = page.getByRole('dialog', { name: 'Page beside the map' });
   await expect(drawer.getByRole('textbox', { name: 'Page title' })).toHaveValue('Fibers');
+
+  // In Fibers, the / command's Page asks for a name, then makes that page, linked from here, and goes to it
+  await drawer.getByLabel('Page content').click();
+  await page.keyboard.type('/page');
+  await expect(page.getByRole('listbox', { name: 'Commands' }).getByRole('option', { name: /Page/ }).first()).toBeVisible();
+  await page.keyboard.press('Enter');
+  await page.getByRole('textbox', { name: 'Page name' }).fill('Scheduler');
+  await page.keyboard.press('Enter');
+  await expect(drawer.getByRole('textbox', { name: 'Page title' })).toHaveValue('Scheduler');
 
   // The map shows it, branching from the root; the map's search finds it, and the list view shows it too
   await page.keyboard.press('Escape');
@@ -101,7 +110,7 @@ test('a [[link]] written in a page makes the page it names, and the map grows wi
   // earlier, which reload() skips), a full load shows the map with the new page on it
   await expect
     .poll(async () => ((await (await page.request.get(`${API}/paths/${pathId}`)).json()) as { pages: unknown[] }).pages.length)
-    .toBe(2);
+    .toBe(3);
   await page.reload();
   const fibers = page.getByRole('treeitem', { name: /Fibers/ });
   await expect(fibers).toBeVisible();
