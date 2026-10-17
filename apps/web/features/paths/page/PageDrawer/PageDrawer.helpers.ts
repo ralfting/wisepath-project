@@ -28,5 +28,5 @@ export interface Trail {
 /** What Tab stops on */
 export const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex], [contenteditable=true]';
 
-/** Matches the leave animation in PagePanel.module.css */
+/** Matches the leave animation in PageDrawer.module.css */
 export const LEAVE_MS = 180;

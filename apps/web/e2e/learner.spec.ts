@@ -24,6 +24,11 @@ test('a new path opens on its first page, and its map tab is named after it', as
   await expect(page).toHaveURL(/\/paths\/[^/]+\/pages\/[^/]+\?new=1$/);
   const pathId = new URL(page.url()).pathname.split('/')[2];
 
+  // It opened in the drawer over the map; Esc closes it, back to the map alone
+  await expect(page.getByRole('dialog', { name: 'Page beside the map' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(new RegExp(`/paths/${pathId}$`));
+
   // A full load of the map: the title comes from generateMetadata, read on the server with the session cookie
   await page.goto(`/paths/${pathId}`);
   await expect(page).toHaveTitle('Learn Effect | WisePath');
