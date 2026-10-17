@@ -5,7 +5,8 @@
   border-radius: var(--mantine-radius-md);
   overflow: hidden;
   background: var(--mantine-color-gray-0);
-  aspect-ratio: 16 / 10;
+  /* The recording (960x600) and its caption band (60) */
+  aspect-ratio: 960 / 660;
 }
 
 .video {
@@ -38,8 +39,8 @@
 /* The clip at up to its own size (960x600), as large as the screen allows */
 .large {
   display: block;
-  width: min(960px, 86vw, calc((90vh - 80px) * 1.6));
-  aspect-ratio: 16 / 10;
+  width: min(960px, 86vw, calc((90vh - 80px) * 960 / 660));
+  aspect-ratio: 960 / 660;
   border-radius: var(--mantine-radius-md);
   background: var(--mantine-color-gray-0);
 }

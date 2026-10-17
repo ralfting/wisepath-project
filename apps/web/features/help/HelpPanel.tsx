@@ -2,19 +2,21 @@
 
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { ActionIcon, Button, Drawer, List, Modal, Stack, Text, Title, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, Button, Drawer, Modal, Stack, Text, Tooltip } from '@mantine/core';
 import { useReducedMotion } from '@mantine/hooks';
-import { IconArrowsMaximize, IconPlayerPlayFilled } from '@tabler/icons-react';
+import { IconArrowsMaximize, IconBulb, IconPlayerPlay, IconPlayerPlayFilled } from '@tabler/icons-react';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import type { TranslationKey } from '@/i18n/I18nProvider';
 import classes from './HelpPanel.module.css';
 import { screenOf } from './screen';
+import type { Screen } from './screen';
 
 /**
  * HelpPanel
- * What can I do here: tips for the screen the learner is on (a page, a map,
- * My paths), opened from Help in the sidebar. A page's topics show a short
- * clip of the app doing it, in the app's language (public/help/).
+ * What can I do here: topics for the screen the learner is on (a page, a map,
+ * My paths), opened from Help in the sidebar. Most show a short clip of the
+ * app doing it, with captions, in the app's language (public/help/, made with
+ * HyperFrames from recordings of the app: videos/help-*).
  */
 
 export const OPEN_HELP_EVENT = 'wisepath:open-help';
@@ -63,35 +65,74 @@ function HelpPanel({ opened, onClose }: { opened: boolean; onClose: () => void }
       closeOnEscape={!enlarged}
     >
       <EnlargedContext.Provider value={setEnlarged}>
-        {screen === 'page' ? <PageHelp /> : screen === 'map' ? <Tips area="map" /> : <Tips area="home" />}
+        <Topics key={screen} screen={screen} />
       </EnlargedContext.Provider>
     </Drawer>
   );
 }
 
-function PageHelp() {
-  const t = useT();
-  return (
-    <Stack gap="xl">
-      <Text c="dimmed">{t('help.page.intro')}</Text>
-      <Topic clip="add-page" title="help.page.addPage.title" body="help.page.addPage.body" />
-      <Topic clip="video-notes" title="help.page.videoNotes.title" body="help.page.videoNotes.body" />
-      <Text size="sm" c="dimmed">
-        {t('help.page.more')}
-      </Text>
-    </Stack>
-  );
+/** A topic of Help: its words, and the clip that shows it (public/help/<clip>.<locale>.mp4) when there is one */
+interface Topic {
+  readonly id: string;
+  readonly title: TranslationKey;
+  readonly body: TranslationKey;
+  readonly clip?: string;
 }
 
-function Topic({ clip, title, body }: { clip: string; title: TranslationKey; body: TranslationKey }) {
+/** What each screen explains, in the order a learner meets it */
+const TOPICS: Record<Screen, { intro: TranslationKey; topics: ReadonlyArray<Topic> }> = {
+  page: {
+    intro: 'help.page.intro',
+    topics: [
+      { id: 'add-page', title: 'help.page.addPage.title', body: 'help.page.addPage.body', clip: 'add-page' },
+      { id: 'video-notes', title: 'help.page.videoNotes.title', body: 'help.page.videoNotes.body', clip: 'video-notes' },
+    ],
+  },
+  map: {
+    intro: 'help.map.intro',
+    topics: [
+      { id: 'add-branch', title: 'help.map.addBranch.title', body: 'help.map.addBranch.body', clip: 'map-branch' },
+      { id: 'search', title: 'help.map.search.title', body: 'help.map.search.body', clip: 'map-search' },
+      { id: 'open', title: 'help.map.open.title', body: 'help.map.open.body' },
+      { id: 'keys', title: 'help.map.keys.title', body: 'help.map.keys.body' },
+    ],
+  },
+  home: {
+    intro: 'help.home.intro',
+    topics: [
+      { id: 'new-path', title: 'help.home.newPath.title', body: 'help.home.newPath.body', clip: 'new-path' },
+      { id: 'projects', title: 'help.home.projects.title', body: 'help.home.projects.body', clip: 'projects' },
+      { id: 'kind', title: 'help.home.kind.title', body: 'help.home.kind.body' },
+    ],
+  },
+};
+
+/** The screen's topics, one open at a time (the first to start with), so the panel stays short; a clip only plays while open */
+function Topics({ screen }: { screen: Screen }) {
   const t = useT();
+  const { intro, topics } = TOPICS[screen];
+  const [open, setOpen] = useState<string | null>(topics[0].id);
+
   return (
-    <Stack gap="sm" component="section" aria-label={t(title)}>
-      <Title order={3} fz={16}>
-        {t(title)}
-      </Title>
-      <Clip name={clip} label={t(title)} />
-      <Text size="sm">{t(body)}</Text>
+    <Stack gap="md">
+      <Text c="dimmed">{t(intro)}</Text>
+      <Accordion value={open} onChange={setOpen} variant="separated" radius="md" chevronPosition="right">
+        {topics.map((topic) => (
+          <Accordion.Item key={topic.id} value={topic.id}>
+            <Accordion.Control icon={topic.clip ? <IconPlayerPlay size={16} /> : <IconBulb size={16} />}>
+              <Text fw={600} size="sm">
+                {t(topic.title)}
+              </Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Stack gap="sm">
+                {topic.clip && open === topic.id && <Clip name={topic.clip} label={t(topic.title)} />}
+                <Text size="sm">{t(topic.body)}</Text>
+              </Stack>
+            </Accordion.Panel>
+          </Accordion.Item>
+        ))}
+      </Accordion>
     </Stack>
   );
 }
@@ -188,23 +229,5 @@ function Clip({ name, label }: { name: string; label: string }) {
         />
       </Modal>
     </div>
-  );
-}
-
-function Tips({ area }: { area: 'map' | 'home' }) {
-  const t = useT();
-  const keys =
-    area === 'map'
-      ? (['help.map.tips.add', 'help.map.tips.open', 'help.map.tips.keys', 'help.map.tips.search'] as const)
-      : (['help.home.tips.newPath', 'help.home.tips.projects', 'help.home.tips.move', 'help.home.tips.kind'] as const);
-  return (
-    <Stack gap="lg">
-      <Text c="dimmed">{t(area === 'map' ? 'help.map.intro' : 'help.home.intro')}</Text>
-      <List spacing="sm" size="sm">
-        {keys.map((key) => (
-          <List.Item key={key}>{t(key)}</List.Item>
-        ))}
-      </List>
-    </Stack>
   );
 }
