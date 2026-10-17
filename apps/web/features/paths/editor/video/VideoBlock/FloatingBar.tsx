@@ -21,7 +21,8 @@ export function FloatingBar({
 }: {
   seconds: number;
   onDrag: (event: PointerEvent<HTMLElement>) => void;
-  onNote: () => void;
+  /** None on a page someone may only read: no Note button */
+  onNote?: () => void;
   onBack: () => void;
   onStop: () => void;
   notePopover: (target: ReactNode) => ReactNode;
@@ -30,11 +31,12 @@ export function FloatingBar({
   return (
     <div className={classes.handle} onPointerDown={onDrag} title={t('video.floating.drag')}>
       <IconGripHorizontal size={16} className={classes.grip} aria-hidden />
-      {notePopover(
-        <Button size="compact-xs" variant="light" leftSection={<IconPlus size={12} />} onClick={onNote}>
-          {t('video.note.at', { time: formatTime(seconds) })}
-        </Button>,
-      )}
+      {onNote &&
+        notePopover(
+          <Button size="compact-xs" variant="light" leftSection={<IconPlus size={12} />} onClick={onNote}>
+            {t('video.note.at', { time: formatTime(seconds) })}
+          </Button>,
+        )}
       <Group gap={2} wrap="nowrap" ml="auto">
         <Tooltip label={t('video.floating.back')}>
           <ActionIcon size="sm" variant="subtle" color="gray" aria-label={t('video.floating.back')} onClick={onBack}>

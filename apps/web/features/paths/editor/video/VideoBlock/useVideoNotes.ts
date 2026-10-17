@@ -57,7 +57,8 @@ export function useVideoNotes({
 
   const openComposer = useCallback(() => {
     const p = player.current;
-    if (!p) return;
+    // A page someone may only read takes no notes (the N key included)
+    if (!p || !editor.isEditable) return;
     const resume = p.getPlayerState() === PLAYING;
     if (resume) p.pauseVideo();
     markUsed(video);
@@ -65,7 +66,7 @@ export function useVideoNotes({
     if (!resume && !inViewRef.current) slot.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     setDraft('');
     setComposer({ seconds: p.getCurrentTime(), resume });
-  }, [player, video, inViewRef, slot]);
+  }, [player, editor, video, inViewRef, slot]);
 
   const closeComposer = (save: boolean) => {
     if (!composer) return;

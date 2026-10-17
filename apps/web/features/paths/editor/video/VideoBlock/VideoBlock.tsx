@@ -45,7 +45,9 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
       {target}
     </NotePopover>
   );
-  const noteButton = <NoteButton seconds={seconds} writing={composer !== null} ready={ready} onOpen={notes.openComposer} />;
+  // A page someone may only read shows the video without its Note buttons
+  const writable = editor.isEditable;
+  const noteButton = writable ? <NoteButton seconds={seconds} writing={composer !== null} ready={ready} onOpen={notes.openComposer} /> : null;
 
   return (
     <NodeViewWrapper className={classes.block} data-youtube-video>
@@ -66,7 +68,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
             <FloatingBar
               seconds={seconds}
               onDrag={floating.startDrag}
-              onNote={notes.openComposer}
+              onNote={writable ? notes.openComposer : undefined}
               onBack={() => slot.current?.scrollIntoView({ block: 'center', behavior: 'smooth' })}
               onStop={visibility.dismiss}
               notePopover={(target) => notePopover('float', target)}
@@ -107,7 +109,7 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
           failed={failed}
           ready={ready}
           hasKeyboard={hasKeyboard}
-          noteButton={notePopover('bar', noteButton)}
+          noteButton={noteButton && notePopover('bar', noteButton)}
           onRetry={player.operations.retry}
           onFullscreen={fullscreen.toggle}
         />
