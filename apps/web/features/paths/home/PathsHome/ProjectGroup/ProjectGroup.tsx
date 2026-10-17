@@ -1,16 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import type { DragEvent } from 'react';
 import { ActionIcon, Badge, Group, Menu, SimpleGrid, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { IconDots, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import type { PathSummary } from '@wisepath/domain/paths';
 import type { Project } from '@wisepath/domain/projects';
-import { ProjectNameModal } from './ProjectNameModal/ProjectNameModal';
-import { DeleteProjectModal } from './DeleteProjectModal';
+import { ProjectNameModal } from '../ProjectNameModal/ProjectNameModal';
+import { DeleteProjectModal } from '../DeleteProjectModal';
 import { useT } from '@/i18n/I18nProvider';
-import classes from './PathsHome.module.css';
-import { PathCard } from './PathCard';
+import classes from '../PathsHome.module.css';
+import { PathCard } from '../PathCard';
+import { useProjectGroup } from './useProjectGroup';
 
 /** One project's paths, under its name, with its own New path and its menu */
 export function ProjectGroup({
@@ -34,28 +33,7 @@ export function ProjectGroup({
   onMove: (path: PathSummary, to: Project) => void;
 }) {
   const t = useT();
-  const [renaming, setRenaming] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [over, setOver] = useState(false);
-  // A card from another project can be dropped here
-  const accepts = dragging !== null && dragging.projectId !== project.id;
-
-  const onDragOver = (event: DragEvent) => {
-    if (!accepts) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    setOver(true);
-  };
-  const onDragLeave = (event: DragEvent) => {
-    // Leaving for a child of the group is still over it
-    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOver(false);
-  };
-  const onDrop = (event: DragEvent) => {
-    event.preventDefault();
-    setOver(false);
-    if (accepts) onMove(dragging, project);
-    onDrag(null);
-  };
+  const { state, operations } = useProjectGroup({ project, dragging, onDrag, onMove });
 
   return (
     <Stack
@@ -63,11 +41,11 @@ export function ProjectGroup({
       component="section"
       aria-label={project.name}
       className={classes.group}
-      data-accepts={accepts || undefined}
-      data-over={(accepts && over) || undefined}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      data-accepts={state.accepts || undefined}
+      data-over={state.over || undefined}
+      onDragOver={operations.dragOver}
+      onDragLeave={operations.dragLeave}
+      onDrop={operations.drop}
     >
       <Group gap="sm" wrap="nowrap">
         <Title order={2} fz={20} lineClamp={1}>
@@ -99,12 +77,12 @@ export function ProjectGroup({
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
-              <Menu.Item leftSection={<IconPencil size={15} />} onClick={() => setRenaming(true)}>
+              <Menu.Item leftSection={<IconPencil size={15} />} onClick={operations.rename}>
                 {t('home.project.rename')}
               </Menu.Item>
               {/* The default project takes the paths of deleted ones, so it stays */}
               {!project.isDefault && (
-                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setDeleting(true)}>
+                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={operations.remove}>
                   {t('home.project.delete')}
                 </Menu.Item>
               )}
@@ -123,9 +101,9 @@ export function ProjectGroup({
           ))}
         </SimpleGrid>
       )}
-      <ProjectNameModal opened={renaming} project={project} onClose={() => setRenaming(false)} />
+      <ProjectNameModal opened={state.renaming} project={project} onClose={operations.stopRenaming} />
       {!project.isDefault && (
-        <DeleteProjectModal opened={deleting} project={project} paths={paths.length} fallback={fallback} onClose={() => setDeleting(false)} />
+        <DeleteProjectModal opened={state.deleting} project={project} paths={paths.length} fallback={fallback} onClose={operations.stopRemoving} />
       )}
     </Stack>
   );
