@@ -1,74 +1,22 @@
 "use client"
 
-import { useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from "react"
+import { useContext, useEffect, useMemo } from "react"
 import { Cause, Effect, Exit, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
-import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
-import type { AtomRegistry } from "effect/reactivity"
-import { PageId, PathId, addBranch, findPageByTitle, renameLinks, summarize, unlinkPages } from "@wisepath/domain/paths"
-import type { LinkPreview, Page, PageColor, PageIcon, Path, PathKind, PathSummary } from "@wisepath/domain/paths"
-import { ProjectId } from "@wisepath/domain/projects"
+import { RegistryContext, useAtomValue } from "@effect/atom-react"
+import { PageId, PathId, addBranch, findPageByTitle, renameLinks, unlinkPages } from "@wisepath/domain/paths"
+import type { Page, PageColor, PageIcon, Path, PathKind } from "@wisepath/domain/paths"
 import { useT } from "@/i18n/I18nProvider"
-import { ReactivityKeys, appRuntime } from "../runtime"
-import { messageFor } from "../messages"
-import { useDomainMessage } from "../validation"
+import { useHydrated } from "../useHydrated"
 import * as programs from "./programs"
-import { openPathSession } from "./sync"
-import type { Command, PathSession, SyncState } from "./sync"
+import { openedAtom, sessionAtom, stateAtomOf } from "./sessions"
+import type { Command, SyncState } from "./sync"
 
 /**
- * Path use cases for the map, the page panel and the editor.
- * An open map is a sync session (sync.ts): edits show at once and are saved
- * to the WisePath API in the background.
+ * The open map, for the map, the page panel and the editor. An open map is a
+ * sync session (sync.ts): edits show at once and are saved to the WisePath API
+ * in the background. The list of maps is in list.ts, previews in links.ts.
  */
-
-/** One session per open map, kept while the app runs so going back is instant */
-const sessionAtom = Atom.family((id: PathId) => Atom.keepAlive(appRuntime.atom(openPathSession(id))))
-
-/** The session's state as an atom, made once per session */
-const stateAtoms = new WeakMap<PathSession, Atom.Atom<SyncState>>()
-const stateAtomOf = (session: PathSession) => {
-  let atom = stateAtoms.get(session)
-  if (!atom) {
-    atom = Atom.subscriptionRef(session.state)
-    stateAtoms.set(session, atom)
-  }
-  return atom
-}
-
-/** Maps opened in this tab, so the list of maps shows their latest progress without asking the API again */
-const openedAtom = Atom.keepAlive(Atom.make(new Set<PathId>() as ReadonlySet<PathId>))
-
-const pathsAtom = appRuntime
-  .atom(programs.listPaths)
-  .pipe(Atom.withReactivity([ReactivityKeys.paths, ReactivityKeys.session]))
-
-/**
- * Moves to another project shown before the API confirms them (dragging a card,
- * or Move to): the path's project as the learner just set it. One the API
- * refuses is taken out again, so the card goes back where it was
- */
-const movesAtom = Atom.keepAlive(Atom.make(new Map<PathId, ProjectId>() as ReadonlyMap<PathId, ProjectId>))
-
-const pathsViewAtom = Atom.make((get): ReadonlyArray<PathSummary> | null => {
-  const result = get(pathsAtom)
-  if (!AsyncResult.isSuccess(result)) return null
-  const opened = get(openedAtom)
-  const moves = get(movesAtom)
-  return result.value.map((listed) => {
-    const moved = moves.get(listed.id)
-    const summary = moved ? { ...listed, projectId: moved } : listed
-    if (!opened.has(summary.id)) return summary
-    const session = get(sessionAtom(summary.id))
-    return AsyncResult.isSuccess(session) ? summarize(get(stateAtomOf(session.value)).path, summary.projectId, summary.ownerName) : summary
-  })
-})
-
-const createPathAtom = appRuntime.fn(programs.createPath, { reactivityKeys: [ReactivityKeys.paths] })
-const removePathAtom = appRuntime.fn(programs.removePath, { reactivityKeys: [ReactivityKeys.paths] })
-const setPathKindAtom = appRuntime.fn(programs.setPathKind, { reactivityKeys: [ReactivityKeys.paths] })
-const movePathAtom = appRuntime.fn(programs.movePath, { reactivityKeys: [ReactivityKeys.paths] })
-const linkPreviewAtom = Atom.family((url: string) => appRuntime.atom(programs.previewLink(url)))
 
 /**
  * A title being edited: the page's title changes with every key, but its
@@ -93,13 +41,6 @@ const loadingState: Atom.Atom<{ readonly path: Path | null } & Omit<SyncState, "
   status: "saved",
   notice: null
 })
-
-/**
- * False on the server and during hydration, true afterwards. Maps load in the
- * browser (the session cookie belongs to the API), so both renders must agree on "loading".
- */
-const noSubscription = () => () => {}
-const useHydrated = () => useSyncExternalStore(noSubscription, () => true, () => false)
 
 /** Page ids come in as plain strings (from the URL or the map) and are branded here */
 export interface PathActions {
@@ -237,199 +178,4 @@ export function usePath(pathId: string): { state: PathState; save: SaveState; ac
 
   const t = useT()
   return { state, save: { status: sync.status, notice: sync.notice && t(`home.save.notice.${sync.notice}`) }, actions }
-}
-
-/** Every map, for the list of maps and the sidebar; null until loaded */
-export function usePaths(): ReadonlyArray<PathSummary> | null {
-  const hydrated = useHydrated()
-  const paths = useAtomValue(pathsViewAtom)
-  return hydrated ? paths : null
-}
-
-/** Result of a map action: the message to show when it failed */
-export type PathActionResult<A> = { readonly ok: true; readonly value: A } | { readonly ok: false; readonly message: string }
-
-/** Makes a new map in a project, a study unless said otherwise; resolves to it, or to the message to show */
-export function useCreatePath(): (title: string, kind: PathKind, projectId: string) => Promise<PathActionResult<Path>> {
-  const run = useAtomSet(createPathAtom, { mode: "promiseExit" })
-  const t = useT()
-  const domain = useDomainMessage()
-  return async (title, kind, projectId) => {
-    const exit = await run({ title, kind, projectId: ProjectId.make(projectId) })
-    if (exit._tag === "Success") return { ok: true, value: exit.value }
-    const unavailable = t("common.errors.unavailable")
-    const messages = { PathsUnavailable: unavailable, ProjectNotFound: t("home.errors.projectGone") }
-    return { ok: false, message: domain(messageFor(exit, messages, t("common.errors.generic"))) ?? unavailable }
-  }
-}
-
-/**
- * Files a map in another project. The list shows it there at once; if the API
- * refuses, it goes back to where it was. Resolves to null, or to the message to show
- */
-export function useMovePath(): (pathId: string, projectId: string) => Promise<string | null> {
-  const registry = useContext(RegistryContext)
-  const run = useAtomSet(movePathAtom, { mode: "promiseExit" })
-  const t = useT()
-  return async (pathId, projectId) => {
-    const id = PathId.make(pathId)
-    const before = registry.get(movesAtom)
-    registry.set(movesAtom, new Map(before).set(id, ProjectId.make(projectId)))
-    const message = messageFor(
-      await run({ id, projectId: ProjectId.make(projectId) }),
-      {
-        PathsUnavailable: t("common.errors.unavailable"),
-        PathNotFound: t("home.errors.pathGone"),
-        ProjectNotFound: t("home.errors.projectGone")
-      },
-      t("common.errors.generic")
-    )
-    if (message) {
-      // Back to where it was: an earlier move still waiting, or what the API listed
-      const now = new Map(registry.get(movesAtom))
-      const earlier = before.get(id)
-      if (earlier) now.set(id, earlier)
-      else now.delete(id)
-      registry.set(movesAtom, now)
-    }
-    return message
-  }
-}
-
-/** Deletes a map with all its pages; resolves to null, or to the message to show */
-export function useRemovePath(): (pathId: string) => Promise<string | null> {
-  const run = useAtomSet(removePathAtom, { mode: "promiseExit" })
-  const t = useT()
-  return async (pathId) =>
-    messageFor(await run(PathId.make(pathId)), { PathsUnavailable: t("common.errors.unavailable") }, t("common.errors.generic"))
-}
-
-export type LinkPreviewState =
-  | { readonly status: "loading" }
-  | { readonly status: "none" }
-  | { readonly status: "ready"; readonly preview: LinkPreview }
-
-/** Preview of an external link; looked up once per URL */
-export function useLinkPreview(url: string): LinkPreviewState {
-  return useAtomValue(linkPreviewAtom(url), (result): LinkPreviewState =>
-    AsyncResult.isSuccess(result)
-      ? Option.match(result.value, {
-          onNone: () => ({ status: "none" }),
-          onSome: (preview) => ({ status: "ready", preview })
-        })
-      : AsyncResult.isFailure(result)
-        ? { status: "none" }
-        : { status: "loading" }
-  )
-}
-
-/**
- * Looks up previews outside React (the editor's compact links): the same
- * lookups, and the same cache, as useLinkPreview. Resolves to null when a page
- * can't be previewed
- */
-export function useLinkPreviewLoader(): (url: string) => Promise<LinkPreview | null> {
-  const registry = useContext(RegistryContext)
-  return useCallback(
-    (url) =>
-      new Promise((resolve) => {
-        const atom = linkPreviewAtom(url)
-        const settle = (result: AsyncResult.AsyncResult<Option.Option<LinkPreview>, unknown>) => {
-          if (AsyncResult.isSuccess(result)) resolve(Option.getOrNull(result.value))
-          else if (AsyncResult.isFailure(result)) resolve(null)
-          else return false
-          return true
-        }
-        let stop = () => {}
-        let settled = false
-        stop = registry.subscribe(atom, (result) => {
-          if (!settled && settle(result)) {
-            settled = true
-            queueMicrotask(stop)
-          }
-        }, { immediate: true })
-        if (settled) stop()
-      }),
-    [registry]
-  )
-}
-
-/**
- * Turns any map into a study or a learning path, from the list of maps. A map
- * open in this tab changes through its session, so what it shows stays in step;
- * another is changed through the API. Resolves to null, or to the message to show
- */
-export function useSetPathKind(): (pathId: string, kind: PathKind) => Promise<string | null> {
-  const registry = useContext(RegistryContext)
-  const run = useAtomSet(setPathKindAtom, { mode: "promiseExit" })
-  const t = useT()
-  return async (pathId, kind) => {
-    const id = PathId.make(pathId)
-    if (registry.get(openedAtom).has(id)) {
-      const session = registry.get(sessionAtom(id))
-      if (AsyncResult.isSuccess(session) && session.value.dispatch({ _tag: "UpdatePath", edit: { kind } })) return null
-    }
-    return messageFor(
-      await run({ id, kind }),
-      { PathsUnavailable: t("common.errors.unavailable"), PathNotFound: t("home.errors.pathGone") },
-      t("common.errors.generic")
-    )
-  }
-}
-
-/** Resolves with an atom's first settled value: its success, or null when it fails */
-function settledValue<A>(registry: AtomRegistry.AtomRegistry, atom: Atom.Atom<AsyncResult.AsyncResult<A, unknown>>): Promise<A | null> {
-  return new Promise((resolve) => {
-    let settled = false
-    let stop = () => {}
-    stop = registry.subscribe(atom, (result) => {
-      if (settled || AsyncResult.isInitial(result) || result.waiting) return
-      settled = true
-      resolve(AsyncResult.isSuccess(result) ? result.value : null)
-      queueMicrotask(stop)
-    }, { immediate: true })
-    if (settled) stop()
-  })
-}
-
-/** A map changed from outside its own screen (filing from the Inbox), through the same session as the map */
-export interface OpenPath {
-  /** The map as it is now, with the changes on their way */
-  readonly path: () => Path
-  /** Applies a change right away and sends it; false when it can't apply */
-  readonly dispatch: (command: Command) => boolean
-  /** Resolves once every change so far reached the API: true, or false when the API refused one */
-  readonly saved: () => Promise<boolean>
-}
-
-/** Opens any of the learner's maps for changes, loading it when it isn't open; null when it can't be loaded */
-export function useOpenPath(): (pathId: string) => Promise<OpenPath | null> {
-  const registry = useContext(RegistryContext)
-  return useCallback(
-    async (pathId) => {
-      const id = PathId.make(pathId)
-      const session = await settledValue(registry, sessionAtom(id))
-      if (!session) return null
-      const opened = registry.get(openedAtom)
-      if (!opened.has(id)) registry.set(openedAtom, new Set([...opened, id]))
-      const state = stateAtomOf(session)
-      return {
-        path: () => registry.get(state).path,
-        dispatch: session.dispatch,
-        saved: () =>
-          new Promise<boolean>((resolve) => {
-            let done = false
-            let stop = () => {}
-            stop = registry.subscribe(state, (sync) => {
-              if (done || sync.status !== "saved") return
-              done = true
-              resolve(sync.notice === null)
-              queueMicrotask(stop)
-            }, { immediate: true })
-            if (done) stop()
-          })
-      }
-    },
-    [registry]
-  )
 }
