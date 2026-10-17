@@ -2,7 +2,7 @@ import { Effect, Layer, Option, Schema } from 'effect';
 import { and, asc, eq, inArray, or, sql } from 'drizzle-orm';
 import { Path, accessOf } from '@wisepath/domain/paths';
 import type { Page, PathId, PathVisibility } from '@wisepath/domain/paths';
-import type { UserId } from '@wisepath/domain/auth';
+import { UserId } from '@wisepath/domain/auth';
 import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
 import { pageProgress, pages, pathMembers, paths, projects } from '../../shared/infrastructure/database/schema';
@@ -25,9 +25,9 @@ type PathRow = typeof paths.$inferSelect & {
 const accessFor = (row: PathRow, reader: UserId | null) =>
   accessOf(
     {
-      ownerId: row.project.ownerId as UserId,
+      ownerId: UserId.make(row.project.ownerId),
       visibility: row.visibility,
-      members: row.members.map((m) => ({ userId: m.userId as UserId, role: m.role, source: m.source })),
+      members: row.members.map((m) => ({ userId: UserId.make(m.userId), role: m.role, source: m.source })),
     },
     reader,
   );
@@ -106,7 +106,6 @@ export const DrizzlePathStore = Layer.effect(
       return run(db.insert(pages).values(rows));
     };
 
-    /** A path is the owner's when its project is */
     /** Writes the learner's marks that differ between two versions of a map; its pages already stored */
     const saveProgress = (learnerId: UserId, pathId: PathId, before: ReadonlyArray<Page>, after: ReadonlyArray<Page>) =>
       Effect.gen(function* () {
@@ -129,6 +128,7 @@ export const DrizzlePathStore = Layer.effect(
         }
       });
 
+    /** A path is the owner's when its project is */
     const ownedBy = (ownerId: UserId) =>
       inArray(paths.projectId, db.select({ id: projects.id }).from(projects).where(eq(projects.ownerId, ownerId)));
 

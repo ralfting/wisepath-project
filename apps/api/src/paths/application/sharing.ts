@@ -33,13 +33,23 @@ export const sharePath = Effect.fn('paths.share')(function* (id: PathId, edit: S
   return share;
 });
 
-/** The owner removes someone, or someone leaves a path that is not theirs */
+/**
+ * The owner removes someone, or someone leaves a path that is not theirs. The path is held meanwhile, so a mark
+ * being saved can't land after the marks are gone. The owner can't remove themselves (nor their own marks)
+ */
 export const unsharePath = Effect.fn('paths.unshare')(function* (id: PathId, userId: UserId) {
   const user = yield* CurrentUser;
-  const path = yield* findFor(id, reads);
-  if (path.access !== 'owner' && userId !== user.id) return yield* new PathNotFound({ pathId: id });
+  const store = yield* PathStore;
+  const members = yield* MemberStore;
 
-  yield* (yield* MemberStore).remove(id, userId);
+  yield* store.transaction(
+    Effect.gen(function* () {
+      const path = yield* findFor(id, reads, { lock: true });
+      if (path.access !== 'owner' && userId !== user.id) return yield* new PathNotFound({ pathId: id });
+      if (path.access === 'owner' && userId === user.id) return;
+      yield* members.remove(id, userId);
+    }),
+  );
 });
 
 export const leavePath = Effect.fn('paths.leave')(function* (id: PathId) {
@@ -61,13 +71,22 @@ export const setVisibility = Effect.fn('paths.setVisibility')(function* (id: Pat
   );
 });
 
-/** Adds a public path to the reader's paths; their own, or one they are a member of, stays as it is */
+/**
+ * Adds a public path to the reader's paths; their own, or one they are a member of, stays as it is. The path is held
+ * while it is checked and taken, so it can't go private in between and keep a taker the owner never sees
+ */
 export const takePath = Effect.fn('paths.take')(function* (id: PathId) {
   const user = yield* CurrentUser;
-  const path = yield* findFor(id, reads);
-  if (path.access === 'owner') return;
+  const store = yield* PathStore;
+  const members = yield* MemberStore;
 
-  yield* (yield* MemberStore).take(id, user.id);
+  yield* store.transaction(
+    Effect.gen(function* () {
+      const path = yield* findFor(id, reads, { lock: true });
+      if (path.access === 'owner') return;
+      yield* members.take(id, user.id);
+    }),
+  );
 });
 
 /** A public path as someone with no account reads it: no marks, nothing to change */

@@ -133,6 +133,30 @@ describe('a public path', () => {
     }),
   );
 
+  it.effect("loses everyone's marks but the owner's and the invited people's once private", () =>
+    Effect.gen(function* () {
+      const map = yield* ownedMap(signedIn);
+      const { client: passerby } = yield* signedIn('Ivy');
+      const { client: invited, email } = yield* signedIn('Jo');
+      const params = { pathId: map.pathId };
+      yield* map.owner.paths.share({ params, payload: { email, role: 'viewer' } });
+      yield* map.owner.paths.setVisibility({ params, payload: { visibility: 'public' } });
+
+      // Ivy marks a page without taking the path; Jo and Ada mark it too
+      yield* Effect.forEach([passerby, invited, map.owner], (client) => markStudied(client, map));
+      yield* map.owner.paths.setVisibility({ params, payload: { visibility: 'private' } });
+      yield* map.owner.paths.setVisibility({ params, payload: { visibility: 'public' } });
+
+      assert.deepStrictEqual(
+        [yield* studiedIn(passerby, map), yield* studiedIn(invited, map), yield* studiedIn(map.owner, map)],
+        [false, true, true],
+      );
+      // The owner leaving their own path changes nothing
+      yield* map.owner.paths.leave({ params });
+      assert.isTrue(yield* studiedIn(map.owner, map));
+    }),
+  );
+
   it.effect('is read without an account, with no one\'s marks, and not found once private', () =>
     Effect.gen(function* () {
       const map = yield* ownedMap(signedIn);

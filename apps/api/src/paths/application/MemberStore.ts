@@ -19,9 +19,10 @@ export class MemberStore extends Context.Service<
     /** Adds someone who takes a public path, as a viewer; nothing when they are already a member */
     readonly take: (pathId: PathId, userId: UserId) => Effect.Effect<void>;
 
+    /** Removes someone and their marks on the path, member or not */
     readonly remove: (pathId: PathId, userId: UserId) => Effect.Effect<void>;
 
-    /** Removes everyone who took the path (it went private); invited people stay */
+    /** Removes everyone who took the path (it went private) and the marks of all but the owner and the invited */
     readonly removeTaken: (pathId: PathId) => Effect.Effect<void>;
   }
 >()('@wisepath/api/paths/application/MemberStore') {}

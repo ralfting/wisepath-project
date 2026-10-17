@@ -1,5 +1,5 @@
 import { assert, describe, it } from '@effect/vitest';
-import { Effect } from 'effect';
+import { Effect, Exit } from 'effect';
 import { outcomes, ownedMap, pgid, useApp } from './app';
 import type { Client, OwnedMap } from './app';
 
@@ -11,12 +11,13 @@ import type { Client, OwnedMap } from './app';
 
 const { signedIn } = useApp();
 
-/** Every write a non-owner might try, in order: content, a new page, the root's title, the kind, the project */
+/** Every write a non-owner might try, in order: content, a new page, the root's title, the kind, into their project */
 const writes = (client: Client, map: OwnedMap) => [
   client.paths.updatePage({ params: { pathId: map.pathId, pageId: map.pageId }, payload: { content: 'Mine now' } }),
   client.paths.createPage({ params: { pathId: map.pathId }, payload: { id: pgid(), title: 'Lifetimes' } }),
   client.paths.updatePage({ params: { pathId: map.pathId, pageId: map.rootPageId }, payload: { title: 'Taken' } }),
   client.paths.update({ params: { pathId: map.pathId }, payload: { kind: 'learningPath' } }),
+  Effect.flatMap(client.projects.list(), ([own]) => client.paths.update({ params: { pathId: map.pathId }, payload: { projectId: own.id } })),
 ];
 
 describe('paths API access', () => {
@@ -30,8 +31,14 @@ describe('paths API access', () => {
         stranger.paths.updatePage({ params: { pathId: map.pathId, pageId: map.pageId }, payload: { studied: true } }),
         ...writes(stranger, map),
       ]);
-      assert.deepStrictEqual(read, Array(6).fill('PathNotFound'));
+      assert.deepStrictEqual(read, Array(7).fill('PathNotFound'));
       assert.deepStrictEqual(yield* stranger.paths.list(), []);
+
+      // Making a map with the id of someone else's fails, and never hands theirs back
+      const reused = yield* Effect.exit(
+        stranger.paths.create({ payload: { id: map.pathId, projectId: (yield* stranger.projects.list())[0].id, rootPageId: pgid(), title: 'Mine' } }),
+      );
+      assert.isTrue(Exit.isFailure(reused));
 
       // Deleting someone else's path does nothing
       yield* stranger.paths.remove({ params: { pathId: map.pathId } });
@@ -56,7 +63,7 @@ describe('paths API access', () => {
         ['viewer', true, false],
       );
 
-      assert.deepStrictEqual(yield* outcomes(writes(reader, map)), Array(4).fill('PathNotFound'));
+      assert.deepStrictEqual(yield* outcomes(writes(reader, map)), Array(5).fill('PathNotFound'));
       // A mark sent with an edit is refused whole
       const mixed = yield* outcomes([
         reader.paths.updatePage({ params: { pathId: map.pathId, pageId: map.pageId }, payload: { studied: false, content: 'x' } }),
@@ -72,8 +79,8 @@ describe('paths API access', () => {
       const { client: editor, email } = yield* signedIn('Cy');
       yield* map.owner.paths.share({ params: { pathId: map.pathId }, payload: { email, role: 'editor' } });
 
-      const [content, page, rename, kind] = yield* outcomes(writes(editor, map));
-      assert.deepStrictEqual([content, page, rename, kind], ['ok', 'ok', 'PathNotFound', 'PathNotFound']);
+      const tried = yield* outcomes(writes(editor, map));
+      assert.deepStrictEqual(tried, ['ok', 'ok', 'PathNotFound', 'PathNotFound', 'PathNotFound']);
 
       yield* editor.paths.remove({ params: { pathId: map.pathId } });
       const seen = yield* map.owner.paths.get({ params: { pathId: map.pathId } });
@@ -95,7 +102,7 @@ describe('paths API access', () => {
       const read = yield* stranger.paths.get({ params: { pathId: map.pathId } });
       assert.deepStrictEqual([read.access, read.visibility], ['viewer', 'public']);
       assert.deepStrictEqual(yield* stranger.paths.list(), []);
-      assert.deepStrictEqual(yield* outcomes(writes(stranger, map)), Array(4).fill('PathNotFound'));
+      assert.deepStrictEqual(yield* outcomes(writes(stranger, map)), Array(5).fill('PathNotFound'));
 
       yield* visibility('private');
       assert.deepStrictEqual(yield* outcomes([stranger.paths.get({ params: { pathId: map.pathId } })]), ['PathNotFound']);
