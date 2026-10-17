@@ -8,7 +8,7 @@ import classes from './HelpPanel.module.css';
 import { Rich } from '../Rich';
 import type { Screen } from '../screen';
 import { TOPICS, key } from './HelpPanel.helpers';
-import { Clip } from './Clip';
+import { Clip } from './Clip/Clip';
 
 /** The screen's topics, one open at a time, so the panel stays short; a clip only plays while open */
 export function Topics({ screen }: { screen: Screen }) {
