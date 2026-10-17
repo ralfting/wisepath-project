@@ -57,8 +57,9 @@ Stop and ask the user (one question) when:
 
 ## Feature flags
 
-- There is no feature flag system. `TODO(decide): feature flags`. Never build one ad hoc (env checks, `localStorage`
-  toggles, `?beta=`) to hide a feature.
+- No feature flags (decided 2026-10-17). A feature ships when it is done.
+  Never build one ad hoc (env checks, `localStorage` toggles, `?beta=`) to hide a feature. Revisit only when the
+  user asks for one.
 
 ## Auth
 
