@@ -26,7 +26,8 @@ Effect 4.0.3. API names differ from Effect 3: `Context.Service` (not `Effect.Ser
   export type Project = typeof Project.Type
   ```
 - Validation messages live in the schema (`Schema.isMinLength(1, { message: "Give the project a name" })`) and are
-  translated in the UI through `useDomainMessage` (`useCases/validation.ts`). Add each new message there.
+  translated through `DOMAIN_MESSAGES` (`useCases/domainMessages.ts`), by `useDomainMessage` on the client and
+  `toActionResult` in actions. Add each new message there.
 - Branded ids for every id (`ProjectId`, `PathId`, `PageId`, `UserId`) and for values with an invariant when mixing
   two would be a bug. `X.make(value)` only for values already trusted (from the API client); decode anything else.
 

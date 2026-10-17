@@ -30,9 +30,9 @@ Agents: [.claude/agents/code-reviewer.md](.claude/agents/code-reviewer.md) (revi
 Effect end to end (level c). `packages/domain` holds schemas, branded ids, tagged errors and service interfaces;
 `packages/contract` describes the NestJS API as Effect `HttpApi`. In `apps/web`: Server Components read through
 `useCases/<domain>/queries.ts` on a server `ManagedRuntime`; discrete mutations are Server Actions in
-`useCases/<domain>/actions.ts`; only the map editor's sync session (`useCases/paths/sync.ts`) stays client-side on
-atoms talking straight to the API. Much of today's code is still client-only; the target and the migration status
-are in [architecture.md](.claude/rules/architecture.md).
+`useCases/<domain>/actions.ts`; the map editor's sync session (`useCases/paths/sync.ts`) and the session itself
+(login, signup, logout: `useCases/auth/session.ts`) stay client-side on atoms talking straight to the API. Some
+reads are still client-only; what is left to move is in [architecture.md](.claude/rules/architecture.md).
 
 ## Other docs
 

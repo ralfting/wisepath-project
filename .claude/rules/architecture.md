@@ -43,7 +43,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | A client component imports `queries.ts` or `infrastructure/server/*` | `import 'server-only'` fails the build |
 | A `features/shared/` or `features/common/` folder | Review |
 | Zod, Yup, Valibot, io-ts, ArkType, Joi, Superstruct anywhere | ESLint, web and API |
-| `process.env` outside `infrastructure/http/ApiClient.ts`, `infrastructure/server/ServerApiClient.ts` and `next.config.js` (`NODE_ENV` allowed) | ESLint |
+| `process.env` outside `infrastructure/http/ApiClient.ts`, `infrastructure/server/ServerApiClient.ts`, `next.config.js`, `playwright.config.ts` and `e2e/**` (`NODE_ENV` allowed) | ESLint |
 | `run*` (`Effect.run*`, `runtime.run*`) inside `infrastructure/`, except `infrastructure/server/ServerLayer.ts` | ESLint |
 | `dangerouslySetInnerHTML` | ESLint `react/no-danger` |
 

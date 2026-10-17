@@ -11,7 +11,7 @@ paths:
 
 Target: get the most from Server Components. Reads render on the server, discrete mutations are Server Actions, and
 only interactive leaves are client components. Today most screens are client-only; follow the target for new code
-and when a change is already rewriting a screen ([architecture.md](architecture.md), "Target structure").
+and when a change is already rewriting a screen ([architecture.md](architecture.md), "Migration still open").
 
 ## Who does what
 
@@ -135,7 +135,7 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
 
 - Read in a config module only: `infrastructure/http/ApiClient.ts` (browser-safe, `NEXT_PUBLIC_*`) or
   `infrastructure/server/ServerApiClient.ts` (`server-only`). ESLint rejects `process.env` anywhere else
-  (`next.config.js` and `NODE_ENV` aside).
+  (`next.config.js`, `playwright.config.ts`, `e2e/**` and `NODE_ENV` aside).
 - Secrets never use `NEXT_PUBLIC_*`. Server-only vars are read only from `server-only` modules.
 
 ## Pre-flight checklist
