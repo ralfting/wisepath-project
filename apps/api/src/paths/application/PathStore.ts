@@ -1,7 +1,7 @@
 import { Context } from 'effect';
 import type { Effect, Option } from 'effect';
 import type { UserId } from '@wisepath/domain/auth';
-import type { Path, PathId } from '@wisepath/domain/paths';
+import type { Path, PathId, PathVisibility } from '@wisepath/domain/paths';
 import type { ProjectId } from '@wisepath/domain/projects';
 
 /**
@@ -32,6 +32,8 @@ export class PathStore extends Context.Service<
 
     /** Stores a new map in a project, its studied pages as the learner's marks; false when its id is already used */
     readonly insert: (learnerId: UserId, projectId: ProjectId, path: Path) => Effect.Effect<boolean>;
+
+    readonly setVisibility: (id: PathId, visibility: PathVisibility) => Effect.Effect<void>;
 
     /** Files the map in another project */
     readonly move: (id: PathId, projectId: ProjectId) => Effect.Effect<void>;

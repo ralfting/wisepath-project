@@ -1,7 +1,7 @@
 import { Effect, Layer, Option, Schema } from 'effect';
 import { and, asc, eq, inArray, or, sql } from 'drizzle-orm';
 import { Path, accessOf } from '@wisepath/domain/paths';
-import type { Page, PathId } from '@wisepath/domain/paths';
+import type { Page, PathId, PathVisibility } from '@wisepath/domain/paths';
 import type { UserId } from '@wisepath/domain/auth';
 import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
@@ -254,6 +254,10 @@ export const DrizzlePathStore = Layer.effect(
       yield* run(db.update(paths).set({ projectId }).where(eq(paths.id, id)));
     });
 
-    return PathStore.of({ listFor, find, insert, move, save, remove, transaction });
+    const setVisibility = Effect.fn('PathStore.setVisibility')(function* (id: PathId, visibility: PathVisibility) {
+      yield* run(db.update(paths).set({ visibility }).where(eq(paths.id, id)));
+    });
+
+    return PathStore.of({ listFor, find, insert, move, setVisibility, save, remove, transaction });
   }),
 );

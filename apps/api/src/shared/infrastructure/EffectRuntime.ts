@@ -9,7 +9,9 @@ import type { InboxStore } from '../../inbox/application/InboxStore';
 import { DrizzleInboxStore } from '../../inbox/infrastructure/DrizzleInboxStore';
 import type { PageFetcher } from '../../links/application/PageFetcher';
 import { SafePageFetcher } from '../../links/infrastructure/SafePageFetcher';
+import type { MemberStore } from '../../paths/application/MemberStore';
 import type { PathStore } from '../../paths/application/PathStore';
+import { DrizzleMemberStore } from '../../paths/infrastructure/DrizzleMemberStore';
 import { DrizzlePathStore } from '../../paths/infrastructure/DrizzlePathStore';
 import type { ProjectStore } from '../../projects/application/ProjectStore';
 import { DrizzleProjectStore } from '../../projects/infrastructure/DrizzleProjectStore';
@@ -24,6 +26,7 @@ import { SqlLive } from './Sql';
 const AppLive = Layer.mergeAll(
   DrizzleProjectStore,
   DrizzlePathStore,
+  DrizzleMemberStore,
   DrizzleReviewStore,
   DrizzleSearchStore,
   DrizzleUserStore,
@@ -36,7 +39,7 @@ const AppLive = Layer.mergeAll(
 );
 
 /** The services a use case may ask for; anything per request (like the current user) is provided by its caller */
-export type AppServices = ProjectStore | PathStore | ReviewStore | SearchStore | UserStore | InboxStore | PasswordHasher | PageFetcher;
+export type AppServices = ProjectStore | PathStore | MemberStore | ReviewStore | SearchStore | UserStore | InboxStore | PasswordHasher | PageFetcher;
 
 /**
  * EffectRuntime

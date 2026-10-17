@@ -27,9 +27,9 @@ import { PathStore } from './PathStore';
 /** Whether the user's access to this map allows a command */
 type Needs = (path: Path) => boolean;
 
-const reads: Needs = (path) => canRead(path.access);
+export const reads: Needs = (path) => canRead(path.access);
 const edits: Needs = (path) => canEdit(path.access);
-const manages: Needs = (path) => canManage(path.access);
+export const manages: Needs = (path) => canManage(path.access);
 
 export const listPaths = Effect.fn('paths.list')(function* () {
   const user = yield* CurrentUser;
@@ -40,7 +40,7 @@ export const listPaths = Effect.fn('paths.list')(function* () {
 });
 
 /** The map when the user's access allows what is asked of it */
-const findFor = (id: PathId, needs: Needs, options?: { readonly lock?: boolean }) =>
+export const findFor = (id: PathId, needs: Needs, options?: { readonly lock?: boolean }) =>
   Effect.gen(function* () {
     const user = yield* CurrentUser;
     const store = yield* PathStore;

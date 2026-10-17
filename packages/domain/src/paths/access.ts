@@ -35,7 +35,7 @@ export type PathMember = typeof PathMember.Type
 export const PathShare = Schema.Struct({
   userId: UserId,
   name: Schema.NullOr(Schema.String),
-  email: Email,
+  email: Schema.String,
   role: MemberRole
 })
 export type PathShare = typeof PathShare.Type

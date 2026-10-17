@@ -1,61 +1,18 @@
-import { randomUUID } from 'node:crypto';
 import { assert, describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
-import { eq } from 'drizzle-orm';
-import { PageId, PathId } from '@wisepath/domain/paths';
-import type { MemberRole, PathVisibility } from '@wisepath/domain/paths';
-import { Database } from '../src/shared/infrastructure/database/Database';
-import { pathMembers, paths } from '../src/shared/infrastructure/database/schema';
-import { TestDatabase, useApp } from './app';
-import type { Client } from './app';
+import { outcomes, ownedMap, pgid, useApp } from './app';
+import type { Client, OwnedMap } from './app';
 
 /**
  * Who may do what with a path (docs/plans/14-public-and-shared-paths.md), through the API: the owner manages it, an
  * editor edits its pages, a reader reads it and keeps their own marks, and anyone else finds nothing, as if it did
- * not exist. Members and visibility are set in the database here; their own endpoints are tested beside them.
+ * not exist. Sharing itself (invites, taking, leaving) is tested in sharing.test.ts.
  */
 
 const { signedIn } = useApp();
 
-const pid = () => PathId.make(randomUUID());
-const pgid = () => PageId.make(randomUUID());
-
-/** An owner's map of a root linking one page */
-const ownedMap = Effect.gen(function* () {
-  const { client } = yield* signedIn('Ada');
-  const pathId = pid();
-  const rootPageId = pgid();
-  const pageId = pgid();
-  const [general] = yield* client.projects.list();
-  yield* client.paths.create({ payload: { id: pathId, projectId: general.id, rootPageId, title: 'Rust' } });
-  yield* client.paths.updatePage({ params: { pathId, pageId: rootPageId }, payload: { content: 'See [[Borrowing]]' } });
-  yield* client.paths.createPage({ params: { pathId }, payload: { id: pageId, title: 'Borrowing' } });
-  return { owner: client, pathId, rootPageId, pageId };
-});
-
-const join = (pathId: PathId, userId: string, role: MemberRole) =>
-  Effect.gen(function* () {
-    const { db, run } = yield* Database;
-    yield* run(db.insert(pathMembers).values({ pathId, userId, role, source: 'invited' }));
-  }).pipe(Effect.provide(TestDatabase));
-
-const show = (pathId: PathId, visibility: PathVisibility) =>
-  Effect.gen(function* () {
-    const { db, run } = yield* Database;
-    yield* run(db.update(paths).set({ visibility }).where(eq(paths.id, pathId)));
-  }).pipe(Effect.provide(TestDatabase));
-
-/** The tag of each failure, or 'ok', for a list of calls */
-const outcomes = (calls: ReadonlyArray<Effect.Effect<unknown, { readonly _tag: string }>>) =>
-  Effect.forEach(calls, (call) =>
-    call.pipe(
-      Effect.as('ok'),
-      Effect.catch((error) => Effect.succeed(error._tag)),
-    ),
-  );
-
 /** Every write a non-owner might try, in order: content, a new page, the root's title, the kind, the project */
-const writes = (client: Client, map: Effect.Success<typeof ownedMap>) => [
+const writes = (client: Client, map: OwnedMap) => [
   client.paths.updatePage({ params: { pathId: map.pathId, pageId: map.pageId }, payload: { content: 'Mine now' } }),
   client.paths.createPage({ params: { pathId: map.pathId }, payload: { id: pgid(), title: 'Lifetimes' } }),
   client.paths.updatePage({ params: { pathId: map.pathId, pageId: map.rootPageId }, payload: { title: 'Taken' } }),
@@ -65,7 +22,7 @@ const writes = (client: Client, map: Effect.Success<typeof ownedMap>) => [
 describe('paths API access', () => {
   it.effect('finds nothing of a private path it was not shared with', () =>
     Effect.gen(function* () {
-      const map = yield* ownedMap;
+      const map = yield* ownedMap(signedIn);
       const { client: stranger } = yield* signedIn('Eve');
 
       const read = yield* outcomes([
@@ -84,9 +41,9 @@ describe('paths API access', () => {
 
   it.effect('lets a reader read and keep their own marks, and nothing else', () =>
     Effect.gen(function* () {
-      const map = yield* ownedMap;
-      const { client: reader, user } = yield* signedIn('Bob');
-      yield* join(map.pathId, user.id, 'viewer');
+      const map = yield* ownedMap(signedIn);
+      const { client: reader, email } = yield* signedIn('Bob');
+      yield* map.owner.paths.share({ params: { pathId: map.pathId }, payload: { email, role: 'viewer' } });
 
       const [listed] = yield* reader.paths.list();
       assert.deepStrictEqual([listed.id, listed.access, listed.projectId, listed.ownerName], [map.pathId, 'viewer', null, 'Ada']);
@@ -111,9 +68,9 @@ describe('paths API access', () => {
 
   it.effect("lets an editor edit pages, but not rename, change, move or delete the path", () =>
     Effect.gen(function* () {
-      const map = yield* ownedMap;
-      const { client: editor, user } = yield* signedIn('Cy');
-      yield* join(map.pathId, user.id, 'editor');
+      const map = yield* ownedMap(signedIn);
+      const { client: editor, email } = yield* signedIn('Cy');
+      yield* map.owner.paths.share({ params: { pathId: map.pathId }, payload: { email, role: 'editor' } });
 
       const [content, page, rename, kind] = yield* outcomes(writes(editor, map));
       assert.deepStrictEqual([content, page, rename, kind], ['ok', 'ok', 'PathNotFound', 'PathNotFound']);
@@ -129,16 +86,18 @@ describe('paths API access', () => {
 
   it.effect('lets anyone read a public path without listing it for them', () =>
     Effect.gen(function* () {
-      const map = yield* ownedMap;
+      const map = yield* ownedMap(signedIn);
       const { client: stranger } = yield* signedIn('Dee');
-      yield* show(map.pathId, 'public');
+      const visibility = (to: 'public' | 'private') =>
+        map.owner.paths.setVisibility({ params: { pathId: map.pathId }, payload: { visibility: to } });
+      yield* visibility('public');
 
       const read = yield* stranger.paths.get({ params: { pathId: map.pathId } });
       assert.deepStrictEqual([read.access, read.visibility], ['viewer', 'public']);
       assert.deepStrictEqual(yield* stranger.paths.list(), []);
       assert.deepStrictEqual(yield* outcomes(writes(stranger, map)), Array(4).fill('PathNotFound'));
 
-      yield* show(map.pathId, 'private');
+      yield* visibility('private');
       assert.deepStrictEqual(yield* outcomes([stranger.paths.get({ params: { pathId: map.pathId } })]), ['PathNotFound']);
     }),
   );

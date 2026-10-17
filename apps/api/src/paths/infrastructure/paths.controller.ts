@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { Effect, Schema } from 'effect';
 import {
@@ -10,13 +10,18 @@ import {
   Path,
   PathEdit,
   PathId,
+  PathShare,
   PathSummary,
+  ShareEdit,
+  VisibilityEdit,
 } from '@wisepath/domain/paths';
+import { UserId } from '@wisepath/domain/auth';
 import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import { CurrentUser } from '../application/CurrentUser';
 import * as paths from '../application/paths';
+import * as sharing from '../application/sharing';
 
 /**
  * PathsController
@@ -30,6 +35,7 @@ const asUser = (req: Request) => Effect.provideService(CurrentUser, { id: req.us
 
 const pathId = new SchemaPipe(PathId);
 const pageId = new SchemaPipe(PageId);
+const userId = new SchemaPipe(UserId);
 
 @Controller('paths')
 @UseGuards(JwtAuthGuard)
@@ -95,5 +101,37 @@ export class PathsController {
     @Param('pageId', pageId) page: PageId,
   ) {
     await this.effect.run(paths.deletePage(id, page).pipe(asUser(req)));
+  }
+
+  @Get(':pathId/shares')
+  shares(@Req() req: Request, @Param('pathId', pathId) id: PathId) {
+    return this.effect.respond(sharing.listShares(id).pipe(asUser(req)), Schema.Array(PathShare));
+  }
+
+  @Put(':pathId/shares')
+  share(@Req() req: Request, @Param('pathId', pathId) id: PathId, @Body(new SchemaPipe(ShareEdit)) edit: ShareEdit) {
+    return this.effect.respond(sharing.sharePath(id, edit).pipe(asUser(req)), PathShare);
+  }
+
+  @Delete(':pathId/shares/:userId')
+  @HttpCode(204)
+  async unshare(@Req() req: Request, @Param('pathId', pathId) id: PathId, @Param('userId', userId) member: UserId) {
+    await this.effect.run(sharing.unsharePath(id, member).pipe(asUser(req)));
+  }
+
+  @Patch(':pathId/visibility')
+  @HttpCode(204)
+  async setVisibility(
+    @Req() req: Request,
+    @Param('pathId', pathId) id: PathId,
+    @Body(new SchemaPipe(VisibilityEdit)) edit: VisibilityEdit,
+  ) {
+    await this.effect.run(sharing.setVisibility(id, edit).pipe(asUser(req)));
+  }
+
+  @Post(':pathId/take')
+  @HttpCode(204)
+  async take(@Req() req: Request, @Param('pathId', pathId) id: PathId) {
+    await this.effect.run(sharing.takePath(id).pipe(asUser(req)));
   }
 }
