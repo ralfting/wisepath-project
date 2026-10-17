@@ -100,7 +100,8 @@ User 1──< PageProgress >── Page                          (studied marks,
 8. Web: public page, Study this path, middleware, metadata.
 9. Docs: `docs/FEATURES.md`, README endpoints.
 10. Once step 1 is deployed: a migration that drops `pages.studied` ([nest.md](../../.claude/rules/nest.md): never drop in the
-    release that stops reading it).
+    release that stops reading it). Until then, rolling the API back to before step 1 shows each owner the marks
+    `pages.studied` had at the migration: marks made since live only in `page_progress`.
 
 ## Checks
 
@@ -120,6 +121,8 @@ User 1──< PageProgress >── Page                          (studied marks,
 
 ## Open
 
+- Sharing by email answers `ShareTargetNotFound` for an email with no account, so it tells whether one is registered.
+  Accepted: signup already does (`EmailAlreadyRegistered`).
 - Search over paths from others.
 - Inviting an email with no account yet (today: it must exist).
 - Telling a taker that the path went private or was deleted (today it just leaves their list).
