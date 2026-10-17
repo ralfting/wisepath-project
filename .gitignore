@@ -9,12 +9,15 @@ dist
 
 # Next.js
 .next
+.next-e2e
 out
 .env.local
 .env.*.local
 
 # Testing
 coverage
+test-results
+playwright-report
 
 # Misc
 .DS_Store

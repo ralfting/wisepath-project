@@ -8,7 +8,7 @@ const resolve = {
     'server-only': path.resolve(__dirname, 'node_modules/server-only/empty.js'),
   },
 };
-const exclude = ['node_modules/**', '.next/**'];
+const exclude = ['node_modules/**', '.next/**', '.next-e2e/**', 'e2e/**'];
 
 export default defineConfig({
   test: {

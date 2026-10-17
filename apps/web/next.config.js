@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // End-to-end runs build into their own folder, with their own API URL inlined, and leave .next alone
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   transpilePackages: ["@wisepath/domain", "@wisepath/contract"],
   // Keep the dev badge off the sidebar's account button
   devIndicators: { position: "bottom-right" },

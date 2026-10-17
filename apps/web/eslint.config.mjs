@@ -43,7 +43,7 @@ const runEffectBare = { selector: "CallExpression[callee.name=/^run(Promise|Sync
 const restrict = (...selectors) => ({ 'no-restricted-syntax': ['error', ...selectors] });
 
 const config = [
-  { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
+  { ignores: ['.next/**', '.next-e2e/**', 'node_modules/**', 'next-env.d.ts', 'test-results/**', 'playwright-report/**'] },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   { rules: { ...ban(), ...restrict(processEnv, processEnvDestructured), 'react/no-danger': 'error' } },
   { files: ['features/**'], rules: ban(effect, infrastructure, featureInternals) },
@@ -51,7 +51,7 @@ const config = [
   { files: ['useCases/**'], rules: ban(features) },
   { files: ['infrastructure/**'], rules: { ...ban(features, useCases, react), ...restrict(processEnv, processEnvDestructured, runEffect, runEffectBare) } },
   // The config modules (and Next's config) read env vars
-  { files: ['infrastructure/http/ApiClient.ts', 'next.config.js'], rules: { 'no-restricted-syntax': 'off' } },
+  { files: ['infrastructure/http/ApiClient.ts', 'next.config.js', 'playwright.config.ts', 'e2e/**'], rules: { 'no-restricted-syntax': 'off' } },
   { files: ['infrastructure/server/ServerApiClient.ts'], rules: restrict(runEffect, runEffectBare) },
   // The server's one edge: it runs use cases for useCases/server.ts
   { files: ['infrastructure/server/ServerLayer.ts'], rules: restrict(processEnv, processEnvDestructured) },
