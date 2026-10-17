@@ -1,3 +1,5 @@
+'use client';
+
 import { createContext } from 'react';
 import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { Screen } from '../screen';
