@@ -73,9 +73,11 @@ export function useQuickCaptureForm({
     };
     onClose();
     if (straightToPage && page) {
-      void fileItem(input, page).then((result) =>
-        onDone(result.ok ? t('inbox.capture.added', { title: displayTitle({ title: result.title || pageTitle.current }) }) : result.message),
-      );
+      void fileItem(input, page).then((result) => {
+        // What the page couldn't take goes to the Inbox, as the message says, instead of being lost
+        if (!result.ok) capture(input);
+        onDone(result.ok ? t('inbox.capture.added', { title: displayTitle({ title: result.title || pageTitle.current }) }) : result.message);
+      });
     } else {
       capture(input);
       onDone(t('inbox.capture.saved'));

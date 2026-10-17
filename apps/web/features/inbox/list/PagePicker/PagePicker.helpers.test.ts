@@ -12,6 +12,12 @@ describe('pathsFor', () => {
     expect(pathsFor(paths, 'elixir', '').map((p) => p.title)).toEqual(['Elixir', 'Rust', 'Effect']);
     expect(pathsFor(paths, 'elixir', ' E ').map((p) => p.title)).toEqual(['Elixir', 'Effect']);
   });
+
+  it('leaves out the paths the learner may only read, and keeps those they may edit', () => {
+    const read = { ...summary('Go'), access: 'viewer' as const };
+    const edit = { ...summary('Zig'), access: 'editor' as const };
+    expect(pathsFor([summary('Rust'), read, edit], null, '').map((p) => p.title)).toEqual(['Rust', 'Zig']);
+  });
 });
 
 describe('pagesFor', () => {

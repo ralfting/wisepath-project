@@ -6,7 +6,7 @@ import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { Effect, Exit } from "effect"
 import { captured, fileItem, makePage } from "@wisepath/domain/inbox"
 import type { InboxItem, InboxItemId } from "@wisepath/domain/inbox"
-import { PageId } from "@wisepath/domain/paths"
+import { PageId, canEdit } from "@wisepath/domain/paths"
 import type { Path } from "@wisepath/domain/paths"
 import { useT } from "@/i18n/I18nProvider"
 import { newPageId, useOpenPath } from "../paths"
@@ -197,9 +197,12 @@ function useChangeMap() {
       const handle = await open(target.pathId)
       if (!handle) return t("inbox.errors.pathGone")
       const before = handle.path()
+      // A path the learner may only read takes nothing; its session would refuse every command
+      if (!canEdit(before.access)) return t("inbox.errors.readOnly")
       const exit = Effect.runSyncExit(change(before))
       if (Exit.isFailure(exit)) return t("inbox.errors.pageGone")
-      for (const command of pageCommands(before, exit.value)) handle.dispatch(command)
+      const sent = pageCommands(before, exit.value).map((command) => handle.dispatch(command))
+      if (sent.includes(false)) return t("inbox.errors.notFiled")
       return (await handle.saved()) ? null : t("inbox.errors.notFiled")
     },
     [open, t]

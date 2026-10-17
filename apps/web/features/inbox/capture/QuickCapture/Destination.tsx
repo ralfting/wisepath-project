@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { canEdit } from '@wisepath/domain/paths';
 import { Group, SegmentedControl, Text } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
 import { usePath } from '@/useCases/paths';
@@ -22,7 +23,8 @@ export function Destination({
 }) {
   const t = useT();
   const { state } = usePath(page.pathId);
-  const found = state.status === 'ready' ? state.path.pages.find((p) => p.id === page.pageId) : undefined;
+  // A path the learner may only read takes nothing: the Inbox is the only choice
+  const found = state.status === 'ready' && canEdit(state.path.access) ? state.path.pages.find((p) => p.id === page.pageId) : undefined;
   const title = found ? displayTitle(found) : '';
   useEffect(() => {
     onTitle(title);

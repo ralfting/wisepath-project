@@ -75,6 +75,7 @@ export const inbox = {
     pathGone: 'Essa trilha não existe mais. Escolha outra.',
     pageGone: 'Essa página não existe mais. Escolha outra.',
     notFiled: 'Não deu para adicionar à página, então continua na Caixa de entrada.',
+    readOnly: 'Você só pode ler essa trilha, então continua na Caixa de entrada.',
     unavailable: 'Não foi possível acessar a Caixa de entrada agora. Tente de novo em instantes.',
   },
 } as const satisfies Shape<typeof en>;

@@ -72,6 +72,7 @@ export const inbox = {
     pathGone: 'That path is gone. Pick another.',
     pageGone: 'That page is gone. Pick another.',
     notFiled: "It couldn't be added to the page, so it stays in the Inbox.",
+    readOnly: 'You can only read that path, so it stays in the Inbox.',
     unavailable: "Can't reach the Inbox right now. Try again in a moment.",
   },
 } as const;
