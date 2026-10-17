@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { titleTaken } from '@wisepath/domain/paths';
 import { MarkdownEditor } from '@/features/editor/MarkdownEditor';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';
-import { Stack, TextInput } from '@mantine/core';
+import { Stack, Textarea } from '@mantine/core';
+import { titleSizeFor } from './titleSize';
 import { useT } from '@/i18n/I18nProvider';
 import { useInbox, useTakeFromInbox } from '@/useCases/inbox';
 import classes from './PageContent.module.css';
@@ -99,7 +100,8 @@ export function PageContent({
 }
 
 /**
- * The page title, edited in place. Links to the page follow the new name when
+ * The page title, edited in place. A long one wraps, in a smaller size
+ * (titleSize.ts), rather than being cut. Links to the page follow the new name when
  * editing ends. A title another page has would make [[links]] ambiguous, so it
  * shows an error and is not saved; leaving the field then restores the title
  * the page had before editing.
@@ -133,10 +135,34 @@ export function PageTitleInput({
     },
     [],
   );
+  // As tall as its lines: measured again when the title or the field's width changes (a resize can
+  // reflow it after the page has laid out, which Mantine's autosize would miss)
+  const field = useRef<HTMLTextAreaElement>(null);
+  const fit = () => {
+    const el = field.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  };
+  useLayoutEffect(fit, [draft, size]);
+  useEffect(() => {
+    const el = field.current;
+    if (!el) return;
+    let width = el.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (el.clientWidth === width) return;
+      width = el.clientWidth;
+      fit();
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
   return (
-    <TextInput
+    <Textarea
+      ref={field}
       id={`title-${page.id}`}
       variant="unstyled"
+      rows={1}
       aria-label={t('page.title.label')}
       value={draft}
       error={clash ? t('page.title.taken') : undefined}
@@ -158,7 +184,8 @@ export function PageTitleInput({
         actions.renameLinks(titleAtFocus.current, page.title);
       }}
       onChange={(e) => {
-        const title = e.currentTarget.value;
+        // A title is one line: a pasted line break becomes a space
+        const title = e.currentTarget.value.replace(/\s*\n+\s*/g, ' ');
         setDraft(title);
         if (!titleTaken(path, page.id, title)) actions.updatePage(page.id, { title });
       }}
@@ -170,7 +197,7 @@ export function PageTitleInput({
       }}
       placeholder={t('page.title.placeholder')}
       classNames={{ input: classes.titleInput }}
-      style={{ '--title-size': `${size}px` } as CSSProperties}
+      style={{ '--title-size': `${titleSizeFor(size, draft)}px` } as CSSProperties}
     />
   );
 }

@@ -11,4 +11,21 @@
   }
 }
 
+/* On a phone the actions take the first line and the title the whole width below, so a long title
+   wraps in a few lines instead of a narrow column */
+.headerActions {
+  @media (max-width: $mantine-breakpoint-sm) {
+    order: -1;
+    margin-inline-start: auto;
+  }
+}
+
+.titleRow {
+  flex: 1;
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    flex-basis: 100%;
+  }
+}
+
 

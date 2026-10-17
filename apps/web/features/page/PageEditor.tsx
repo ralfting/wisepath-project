@@ -153,8 +153,8 @@ export function PageSheet({
 
   return (
     <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="xl" className={classes.sheet}>
-      <Group justify="space-between" align="center" wrap="nowrap" gap="lg" mb="lg" className={classes.header}>
-        <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
+      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="lg" mb="lg" className={classes.header}>
+        <Group gap="md" wrap="nowrap" align="flex-start" miw={0} className={classes.titleRow}>
           {back && (
             <Tooltip label={t('page.back', { title: displayTitle(back.page) })}>
               <ActionIcon variant="subtle" color="gray" size="lg" onClick={back.onClick} aria-label={t('page.back', { title: displayTitle(back.page) })}>
@@ -175,7 +175,7 @@ export function PageSheet({
             />
           </Box>
         </Group>
-        <Group gap="sm" wrap="nowrap">
+        <Group gap="sm" wrap="nowrap" className={classes.headerActions}>
           {save.status === 'saved' && !save.notice ? <SavedAt updatedAt={page.updatedAt} /> : <SaveStatus save={save} />}
           {/* A study has nothing to mark as studied */}
           {!isRoot && path.kind === 'learningPath' && (

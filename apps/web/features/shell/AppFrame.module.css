@@ -139,6 +139,12 @@
 .crumbs {
   min-width: 0;
   flex-wrap: nowrap;
+  color: var(--mantine-color-dimmed);
+}
+
+/* One crumb at most this wide, ending in … */
+.crumb {
+  max-width: 220px;
 }
 
 /* The account menu's languages, opened in place under its Language item */
