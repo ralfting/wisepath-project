@@ -49,7 +49,7 @@ export interface AccessFacts {
 
 /**
  * The one rule for access: the owner is the owner, a member has their role, a public path can be read by anyone
- * (signed in or not), and nobody else sees it. The API's queries enforce the same rule; a test keeps them agreeing.
+ * (signed in or not), and nobody else sees it. The API decides with it too, over what it reads with the path.
  */
 export function accessOf(path: AccessFacts, viewer: UserId | null): PathAccess {
   if (viewer !== null && viewer === path.ownerId) return "owner"

@@ -38,7 +38,9 @@ function path(spec: Record<string, string>): Path {
     title: entries[0][0],
     kind: "learningPath",
     pages: entries.map(([title, content]) => ({ id: id(title.toLowerCase()), title, content, studied: false, updatedAt: "" })),
-    rootPageId: id(entries[0][0].toLowerCase())
+    rootPageId: id(entries[0][0].toLowerCase()),
+    visibility: "private",
+    access: "owner"
   }
 }
 
@@ -118,8 +120,8 @@ describe("path rules", () => {
     assert.strictEqual(study.kind, "study")
     const course = startPath({ projectId: ProjectId.make("general"), id: PathId.make("c"), rootPageId: id("c"), title: "Course", kind: "learningPath" })
     assert.strictEqual(course.kind, "learningPath")
-    assert.isNull(summarize(samplePath, ProjectId.make("general")).next)
-    assert.strictEqual(summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general")).next?.title, "Modules")
+    assert.isNull(summarize(samplePath, ProjectId.make("general"), null).next)
+    assert.strictEqual(summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general"), null).next?.title, "Modules")
   })
 
   it("keeps the studied marks when a map switches kind, so they come back with the progress", () => {

@@ -11,15 +11,21 @@ import type { ProjectId } from '@wisepath/domain/projects';
 export class PathStore extends Context.Service<
   PathStore,
   {
-    /** The owner's maps (those in their projects), oldest first, with the project each is in and the owner's marks */
-    readonly listOwned: (ownerId: UserId) => Effect.Effect<ReadonlyArray<{ readonly path: Path; readonly projectId: ProjectId }>>;
+    /**
+     * The learner's maps, oldest first, with their marks: their own, with the project each is in, and those from
+     * others (shared with them or taken), with their owner's name. A public map they never took is not listed.
+     */
+    readonly listFor: (learnerId: UserId) => Effect.Effect<
+      ReadonlyArray<{ readonly path: Path; readonly projectId: ProjectId | null; readonly ownerName: string | null }>
+    >;
 
     /**
-     * One of the owner's maps, with the owner's marks; `lock` holds it until the transaction ends, so commands on it
-     * run one at a time
+     * A map as the reader may use it (its `access`), with their marks; none when they may not read it, as if it did
+     * not exist. No reader: a public link opened logged out. `lock` holds it until the transaction ends, so commands
+     * on it run one at a time.
      */
     readonly find: (
-      ownerId: UserId,
+      reader: UserId | null,
       id: PathId,
       options?: { readonly lock?: boolean },
     ) => Effect.Effect<Option.Option<Path>>;

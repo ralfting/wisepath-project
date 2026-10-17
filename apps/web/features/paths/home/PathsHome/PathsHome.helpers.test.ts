@@ -7,7 +7,7 @@ import { groupPaths } from './PathsHome.helpers';
 const general = aProject({ name: 'General', isDefault: true });
 const work = aProject({ name: 'Work' });
 const aPath = (title: string, projectId: string, description?: string): PathSummary => ({
-  ...summarize({ ...samplePath, id: PathId.make(title.toLowerCase()), title }, general.id),
+  ...summarize({ ...samplePath, id: PathId.make(title.toLowerCase()), title }, general.id, null),
   projectId: projectId as PathSummary['projectId'],
   ...(description ? { description } : {}),
 });

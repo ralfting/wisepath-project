@@ -1,11 +1,11 @@
 import { Effect, Layer, Option, Schema } from 'effect';
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
-import { Path } from '@wisepath/domain/paths';
+import { and, asc, eq, inArray, or, sql } from 'drizzle-orm';
+import { Path, accessOf } from '@wisepath/domain/paths';
 import type { Page, PathId } from '@wisepath/domain/paths';
 import type { UserId } from '@wisepath/domain/auth';
 import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pageProgress, pages, paths, projects } from '../../shared/infrastructure/database/schema';
+import { pageProgress, pages, pathMembers, paths, projects } from '../../shared/infrastructure/database/schema';
 import { PathStore } from '../application/PathStore';
 
 /**
@@ -14,16 +14,34 @@ import { PathStore } from '../application/PathStore';
  */
 
 type PageRow = typeof pages.$inferSelect & { readonly progress: ReadonlyArray<unknown> };
-type PathRow = typeof paths.$inferSelect & { readonly pages: ReadonlyArray<PageRow> };
+type PathRow = typeof paths.$inferSelect & {
+  readonly pages: ReadonlyArray<PageRow>;
+  readonly project: { readonly ownerId: string; readonly owner: { readonly name: string | null } };
+  /** Only the reader's membership, if they have one */
+  readonly members: ReadonlyArray<typeof pathMembers.$inferSelect>;
+};
 
-/** The map as the domain sees it, studied as the learner who reads it marked it: no nulls, ISO dates */
-const toDomain = (row: PathRow) =>
+/** What the reader may do with the map, by the domain's one rule */
+const accessFor = (row: PathRow, reader: UserId | null) =>
+  accessOf(
+    {
+      ownerId: row.project.ownerId as UserId,
+      visibility: row.visibility,
+      members: row.members.map((m) => ({ userId: m.userId as UserId, role: m.role, source: m.source })),
+    },
+    reader,
+  );
+
+/** The map as the domain sees it, as its reader may use it and with their marks: no nulls, ISO dates */
+const toDomain = (row: PathRow, reader: UserId | null) =>
   Schema.decodeUnknownEffect(Path)({
     id: row.id,
     title: row.title,
     ...(row.description !== null ? { description: row.description } : {}),
     kind: row.kind,
     rootPageId: row.rootPageId,
+    visibility: row.visibility,
+    access: accessFor(row, reader),
     pages: row.pages.map((page) => ({
       id: page.id,
       title: page.title,
@@ -59,11 +77,22 @@ const samePage = (a: Page, b: Page) =>
     a.color === b.color &&
     a.icon === b.icon);
 
-/** Pages in the order they were added, with the learner's mark when they studied it */
-const pagesFor = (learnerId: UserId) => ({
-  orderBy: [asc(pages.position), asc(pages.id)],
-  with: { progress: { columns: { pageId: true }, where: eq(pageProgress.userId, learnerId) } },
-});
+/**
+ * What a map is read with: its pages in the order they were added, each with the reader's mark when they studied
+ * it, the owner, and the reader's membership. No reader (a public link opened logged out): no marks, no membership.
+ */
+const readFor = (reader: UserId | null) => {
+  const theirs = (column: typeof pageProgress.userId | typeof pathMembers.userId) =>
+    reader === null ? sql`false` : eq(column, reader);
+  return {
+    pages: {
+      orderBy: [asc(pages.position), asc(pages.id)],
+      with: { progress: { columns: { pageId: true as const }, where: theirs(pageProgress.userId) } },
+    },
+    project: { columns: { ownerId: true as const }, with: { owner: { columns: { name: true as const } } } },
+    members: { where: theirs(pathMembers.userId) },
+  };
+};
 
 export const DrizzlePathStore = Layer.effect(
   PathStore,
@@ -103,35 +132,44 @@ export const DrizzlePathStore = Layer.effect(
     const ownedBy = (ownerId: UserId) =>
       inArray(paths.projectId, db.select({ id: projects.id }).from(projects).where(eq(projects.ownerId, ownerId)));
 
-    const listOwned = Effect.fn('PathStore.listOwned')(function* (ownerId: UserId) {
+    /** A path is someone's other than its owner's when they are its member */
+    const memberOf = (userId: UserId) =>
+      inArray(paths.id, db.select({ id: pathMembers.pathId }).from(pathMembers).where(eq(pathMembers.userId, userId)));
+
+    const listFor = Effect.fn('PathStore.listFor')(function* (learnerId: UserId) {
       const rows = yield* run(
         db.query.paths.findMany({
-          where: ownedBy(ownerId),
+          where: or(ownedBy(learnerId), memberOf(learnerId)),
           orderBy: [asc(paths.createdAt), asc(paths.id)],
-          with: { pages: pagesFor(ownerId) },
+          with: readFor(learnerId),
         }),
       );
 
       return yield* Effect.forEach(rows, (row) =>
-        toDomain(row).pipe(Effect.map((path) => ({ path, projectId: ProjectId.make(row.projectId) }))),
+        toDomain(row, learnerId).pipe(
+          Effect.map((path) =>
+            path.access === 'owner'
+              ? { path, projectId: ProjectId.make(row.projectId), ownerName: null }
+              : { path, projectId: null, ownerName: row.project.owner.name },
+          ),
+        ),
       );
     });
 
     const find = Effect.fn('PathStore.find')(function* (
-      ownerId: UserId,
+      reader: UserId | null,
       id: PathId,
       options?: { readonly lock?: boolean },
     ) {
-      const owned = and(eq(paths.id, id), ownedBy(ownerId));
-
       if (options?.lock) {
-        yield* run(db.select({ id: paths.id }).from(paths).where(owned).for('update'));
+        yield* run(db.select({ id: paths.id }).from(paths).where(eq(paths.id, id)).for('update'));
       }
 
-      const row = yield* run(db.query.paths.findFirst({ where: owned, with: { pages: pagesFor(ownerId) } }));
+      const row = yield* run(db.query.paths.findFirst({ where: eq(paths.id, id), with: readFor(reader) }));
       if (!row) return Option.none<Path>();
 
-      return Option.some(yield* toDomain(row));
+      const path = yield* toDomain(row, reader);
+      return path.access === 'none' ? Option.none<Path>() : Option.some(path);
     });
 
     const insert = Effect.fn('PathStore.insert')(function* (learnerId: UserId, projectId: ProjectId, path: Path) {
@@ -216,6 +254,6 @@ export const DrizzlePathStore = Layer.effect(
       yield* run(db.update(paths).set({ projectId }).where(eq(paths.id, id)));
     });
 
-    return PathStore.of({ listOwned, find, insert, move, save, remove, transaction });
+    return PathStore.of({ listFor, find, insert, move, save, remove, transaction });
   }),
 );

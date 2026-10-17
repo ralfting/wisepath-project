@@ -88,7 +88,7 @@ layer(TestStore)('Progress', (it) => {
 
       yield* store.insert(ownerId, projectId, path);
 
-      const [listed] = yield* store.listOwned(ownerId);
+      const [listed] = yield* store.listFor(ownerId);
       assert.deepStrictEqual(marked(listed.path), ['a']);
     }),
   );

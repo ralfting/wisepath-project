@@ -17,7 +17,8 @@ const cardsOwned = Effect.fn('review.cards')(function* (pathId?: PathId) {
   const user = yield* CurrentUser;
   const paths = yield* PathStore;
 
-  const owned = (yield* paths.listOwned(user.id)).map((o) => o.path);
+  // Review stays on the learner's own paths (plan 14 leaves paths from others out of it)
+  const owned = (yield* paths.listFor(user.id)).filter((o) => o.path.access === 'owner').map((o) => o.path);
   return owned.filter((p) => pathId === undefined || p.id === pathId).flatMap(cardsOf);
 });
 

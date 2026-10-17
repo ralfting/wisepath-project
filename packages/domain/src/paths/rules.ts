@@ -34,7 +34,7 @@ export function titleTaken(path: Path, pageId: PageId, title: string): boolean {
 /** A new, empty path: just its root page */
 export function newPath(id: Path['id'], title: string, rootId: PageId, now = new Date(), kind: PathKind = 'study'): Path {
   const root: Page = { id: rootId, title: title.trim(), content: '', studied: false, updatedAt: now.toISOString() };
-  return { id, title: root.title, kind, pages: [root], rootPageId: rootId };
+  return { id, title: root.title, kind, pages: [root], rootPageId: rootId, visibility: 'private', access: 'owner' };
 }
 
 /**

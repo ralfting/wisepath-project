@@ -156,4 +156,6 @@ export const samplePath: Path = {
   kind: 'study',
   pages,
   rootPageId: pages[0].id,
+  visibility: 'private',
+  access: 'owner',
 };

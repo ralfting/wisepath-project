@@ -70,11 +70,10 @@ User 1──< PageProgress >── Page                          (studied marks,
   - No endpoint copies a path that is not the caller's.
   - New group `PublicPathsApi`: `GET /api/public/paths/:pathId`, no session, read-only, `Path` without shares or emails.
 - **API** (`apps/api/src/paths`):
-  - `DrizzlePathStore`: `readableBy(userId)` and `editableBy(userId)` beside `ownedBy`; `listOwned` becomes
-    `listReadable`; `get` takes the access it needs. The access and the caller's marks are read in the same query,
-    not in a second one.
-  - A test runs every combination (owner, editor, viewer, public, stranger) through the SQL and `accessOf` and checks
-    they agree.
+  - `DrizzlePathStore` reads each path with its owner, visibility, the reader's membership and marks in one query,
+    and sets `access` with `accessOf`: one implementation of the rule, no SQL twin to keep in agreement.
+    `listOwned` becomes `listFor` (own paths and those the reader is a member of). Each use case states what it
+    needs (`reads`, `edits`, `manages`).
   - Sharing by email looks the user up; an unknown email answers `ShareTargetNotFound` to the owner only.
   - Search (`DrizzleSearchStore`) stays on the viewer's own paths in this plan.
 - **Web**:
@@ -92,9 +91,9 @@ User 1──< PageProgress >── Page                          (studied marks,
 
 1. Progress per learner, alone, before any sharing: `page_progress`, the owner's marks moved into it, the store
    reads and writes them. Nothing changes for anyone yet; it is the riskiest migration, so it ships by itself.
-2. Domain: literals, `accessOf` and its tests, `access` on `Path` and `PathSummary`, share commands and errors.
+2. Domain: literals, `accessOf` and its tests, share commands and errors.
 3. Migration and schema: `visibility`, `path_members`.
-4. API: store predicates and the agreement test; `get`/`list` by access; page commands need editor, studied needs viewer.
+4. API: access read with the path; `access` on `Path` and `PathSummary`; `get`/`list` by access; page commands need editor, studied needs viewer.
 5. API: share, visibility and take endpoints, public read endpoint, their integration tests.
 6. Web: the map and page follow `access` (read-only mode, own marks still work).
 7. Web: Share dialog and its actions; "From others" on My paths, with Leave.

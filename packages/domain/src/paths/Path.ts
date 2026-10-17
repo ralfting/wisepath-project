@@ -1,4 +1,5 @@
 import { Schema } from "effect"
+import { PathAccess, PathVisibility } from "./access"
 
 /**
  * A path is a map of what someone is learning: pages of free markdown that
@@ -84,6 +85,9 @@ export const Path = Schema.Struct({
   kind: PathKind,
   pages: Schema.Array(Page),
   /** The single page at the centre of the map */
-  rootPageId: PageId
+  rootPageId: PageId,
+  visibility: PathVisibility,
+  /** What whoever reads it may do with it; its pages' studied marks are that reader's too */
+  access: PathAccess
 })
 export type Path = typeof Path.Type

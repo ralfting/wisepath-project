@@ -5,6 +5,7 @@ import type { Page, Path } from "./Path"
 import { createPage, deletePage, findPageByTitle, newPath, renameLinks, setDescription, setKind, setLook, titleTaken, updatePage } from "./rules"
 import { lookOf, mapTree, nextPage, pathProgress } from "./tree"
 import { linksOf, withLinkTo } from "./links"
+import { PathAccess, PathVisibility } from "./access"
 import { ProjectId } from "../projects/Project"
 
 /**
@@ -62,8 +63,12 @@ export type PageEdit = typeof PageEdit.Type
 /** A map as the list of maps shows it */
 export const PathSummary = Schema.Struct({
   id: PathId,
-  /** The project it is filed in */
-  projectId: ProjectId,
+  /** The project it is filed in; null for a path from others (shared with the reader, or taken) */
+  projectId: Schema.NullOr(ProjectId),
+  /** Who owns a path from others; null for the reader's own (or an owner with no name) */
+  ownerName: Schema.NullOr(Schema.String),
+  visibility: PathVisibility,
+  access: PathAccess,
   title: Schema.String,
   description: Schema.optional(Schema.String),
   color: PageColor,
@@ -152,7 +157,7 @@ export const removePage = Effect.fnUntraced(function*(path: Path, pageId: PageId
 })
 
 /** The map as its card and the sidebar show it */
-export function summarize(path: Path, projectId: ProjectId): PathSummary {
+export function summarize(path: Path, projectId: ProjectId | null, ownerName: string | null): PathSummary {
   const tree = mapTree(path)
   const look = lookOf(path, path.rootPageId, tree)
   // A study has nothing to continue
@@ -160,6 +165,9 @@ export function summarize(path: Path, projectId: ProjectId): PathSummary {
   return {
     id: path.id,
     projectId,
+    ownerName,
+    visibility: path.visibility,
+    access: path.access,
     title: path.title,
     ...(path.description !== undefined ? { description: path.description } : {}),
     color: look.color,

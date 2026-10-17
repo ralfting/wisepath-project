@@ -36,7 +36,7 @@ are public POST endpoints, callable without the UI.
 
 ## Authorization
 
-Decided 2026-10-17. Not built yet: today every path is private to its owner (`ownedBy` in `DrizzlePathStore`).
+Decided 2026-10-17 (plan 14). Access is enforced by the API; sharing and the public page are being built.
 
 - The unit of access is the path (map). Projects, the Inbox and review states stay private to their owner;
   sharing a project, if it comes, means "every path in it".
@@ -48,8 +48,10 @@ Decided 2026-10-17. Not built yet: today every path is private to its owner (`ow
   another learner's path. Taking a path is a membership; the content stays the owner's.
 - A learner's access is one value, `'owner' | 'editor' | 'viewer' | 'none'`, computed by one pure rule
   `accessOf(path, viewer)` in `packages/domain/paths`: owner is owner, a membership gives its role, public gives viewer.
-- The API enforces it in SQL (`readableBy(userId)`, `editableBy(userId)` beside `ownedBy`), with a test that the
-  predicates agree with `accessOf`. Only the owner deletes a path, changes its visibility or its shares.
+- The API reads the facts with the path in one query (owner, visibility, the reader's membership) and decides with
+  `accessOf` itself (`DrizzlePathStore`), so the rule has one implementation. Each use case states what it needs
+  (`reads`, `edits`, `manages` in `apps/api/src/paths/application/paths.ts`); lists are the owner's paths and those
+  the reader is a member of. Only the owner deletes a path, renames it, changes its kind, visibility or members.
 - A public path is read without a session through its own read-only endpoint; no write endpoint accepts anonymous.
 - The API sends `access` with the path; the web app reads it to show or hide editing and never decides access.
 - No authorization library (CASL and the like). **Why:** the rules must become SQL for lists, CASL has no Drizzle

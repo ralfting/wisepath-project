@@ -60,7 +60,7 @@ const pathsViewAtom = Atom.make((get): ReadonlyArray<PathSummary> | null => {
     const summary = moved ? { ...listed, projectId: moved } : listed
     if (!opened.has(summary.id)) return summary
     const session = get(sessionAtom(summary.id))
-    return AsyncResult.isSuccess(session) ? summarize(get(stateAtomOf(session.value)).path, summary.projectId) : summary
+    return AsyncResult.isSuccess(session) ? summarize(get(stateAtomOf(session.value)).path, summary.projectId, summary.ownerName) : summary
   })
 })
 
