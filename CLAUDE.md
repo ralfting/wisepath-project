@@ -3,7 +3,7 @@
 A notebook for learning a subject: pages in markdown, linked with `[[Title]]`, read as a map from the root page.
 Product intent and users: [PRODUCT.md](PRODUCT.md). Setup, API endpoints and env vars: [README.md](README.md).
 
-Scope of this AI context: **`apps/web` only**. `apps/api` (NestJS) has no rules yet: `TODO(decide): api rules`.
+Scope: `apps/web` (Next.js) and `apps/api` (NestJS), on the shared `packages/domain` and `packages/contract`.
 
 ## How the context is loaded
 
@@ -21,6 +21,7 @@ matching their `paths:` is read or edited. Each rule has one owner file; the oth
 | [ui-patterns.md](.claude/rules/ui-patterns.md) | `apps/web/features/**`, `app/**/*.tsx`, CSS | Mantine, tokens, CSS Modules, i18n in UI, a11y |
 | [testing.md](.claude/rules/testing.md) | `*.test.{ts,tsx}`, `e2e/**` | Test granularity, Layers as test doubles |
 | [security.md](.claude/rules/security.md) | middleware, actions, route handlers, auth, infrastructure | Session, input decoding, secrets |
+| [nest.md](.claude/rules/nest.md) | `apps/api/**` | Nest layers, request flow, contract first, stores, migrations, API tests |
 
 Agents: [.claude/agents/code-reviewer.md](.claude/agents/code-reviewer.md) (review only, never edits).
 
