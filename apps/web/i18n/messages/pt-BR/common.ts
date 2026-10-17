@@ -18,5 +18,6 @@ export const common = {
   errors: {
     unavailable: 'Não foi possível falar com o WisePath agora. Tente de novo em instantes.',
     generic: 'Algo deu errado. Tente de novo em instantes.',
+    signedOut: 'Sua sessão terminou. Entre de novo para continuar.',
   },
 } as const satisfies Shape<typeof en>;

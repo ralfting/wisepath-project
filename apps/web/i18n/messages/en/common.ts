@@ -16,5 +16,7 @@ export const common = {
   errors: {
     unavailable: "Can't reach WisePath right now. Try again in a moment.",
     generic: 'Something went wrong. Try again in a moment.',
+    /** A Server Action found no session: it expired, or the learner logged out in another tab */
+    signedOut: 'Your session has ended. Log in again to continue.',
   },
 } as const;

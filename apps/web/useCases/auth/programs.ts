@@ -1,5 +1,5 @@
-import { Effect, Schema } from "effect"
-import { AccountSettings, Auth, Credentials, SignupDetails } from "@wisepath/domain/auth"
+import { Effect, Option, Schema } from "effect"
+import { AccountSettings, Auth, Credentials, NotAuthenticated, SignupDetails } from "@wisepath/domain/auth"
 
 /**
  * Account use cases as Effect programs: decode what the person typed with the
@@ -22,6 +22,17 @@ export const logout = Effect.fn("useCases.auth.logout")(function*() {
 })
 
 export const currentUser = Auth.use((auth) => auth.currentUser())
+
+/**
+ * Runs the program only for a signed-in learner, NotAuthenticated otherwise.
+ * Server Actions start with it: they are public endpoints, so the session is
+ * checked before anything is decoded or written.
+ */
+export const requireSession = <A, E, R>(program: Effect.Effect<A, E, R>) =>
+  Effect.gen(function*() {
+    if (Option.isNone(yield* currentUser)) return yield* new NotAuthenticated()
+    return yield* program
+  })
 
 export const updateSettings = Effect.fn("useCases.auth.updateSettings")(function*(input: { locale: string | null }) {
   const settings = yield* Schema.decodeUnknownEffect(AccountSettings)(input)
