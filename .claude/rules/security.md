@@ -40,9 +40,14 @@ Decided 2026-10-17. Not built yet: today every path is private to its owner (`ow
 
 - The unit of access is the path (map). Projects, the Inbox and review states stay private to their owner;
   sharing a project, if it comes, means "every path in it".
-- A path has `visibility: 'private' | 'public'` and shares `(pathId, userId, role: 'viewer' | 'editor')`.
-- A viewer's access is one value, `'owner' | 'editor' | 'viewer' | 'none'`, computed by one pure rule
-  `accessOf(path, viewer)` in `packages/domain/paths`: owner is owner, a share gives its role, public gives viewer.
+- A path has `visibility: 'private' | 'public'` and members `(pathId, userId, role: 'viewer' | 'editor')`, invited by
+  the owner or, for a public path, taken by a learner to study (as viewer).
+- Progress is per learner: studied marks live per user (`page_progress`), and nobody sees another learner's marks,
+  the owner included. Marking a page studied needs only `viewer`.
+- A path is never copied to someone who does not own it: no clone, no "Make a copy", no endpoint that republishes
+  another learner's path. Taking a path is a membership; the content stays the owner's.
+- A learner's access is one value, `'owner' | 'editor' | 'viewer' | 'none'`, computed by one pure rule
+  `accessOf(path, viewer)` in `packages/domain/paths`: owner is owner, a membership gives its role, public gives viewer.
 - The API enforces it in SQL (`readableBy(userId)`, `editableBy(userId)` beside `ownedBy`), with a test that the
   predicates agree with `accessOf`. Only the owner deletes a path, changes its visibility or its shares.
 - A public path is read without a session through its own read-only endpoint; no write endpoint accepts anonymous.
