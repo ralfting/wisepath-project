@@ -1,7 +1,13 @@
 import { defineConfig } from 'vitest/config';
 import path from 'node:path';
 
-const resolve = { alias: { '@': path.resolve(__dirname) } };
+const resolve = {
+  alias: {
+    '@': path.resolve(__dirname),
+    // Next resolves it to an empty module on the server; tests run server code, so they do the same
+    'server-only': path.resolve(__dirname, 'node_modules/server-only/empty.js'),
+  },
+};
 const exclude = ['node_modules/**', '.next/**'];
 
 export default defineConfig({

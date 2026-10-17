@@ -3,6 +3,8 @@ export const home = {
   meta: {
     paths: 'My paths | WisePath',
     path: 'Path | WisePath',
+    /** A map's tab, once its title is known */
+    pathNamed: '{title} | WisePath',
   },
   title: 'My paths',
   intro: 'Each path is a subject you are learning, page by page, connected by the links you write.',

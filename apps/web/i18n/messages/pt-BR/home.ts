@@ -6,6 +6,7 @@ export const home = {
   meta: {
     paths: 'Minhas trilhas | WisePath',
     path: 'Trilha | WisePath',
+    pathNamed: '{title} | WisePath',
   },
   title: 'Minhas trilhas',
   intro: 'Cada trilha é um assunto que você está aprendendo, página por página, ligado pelos links que você escreve.',
