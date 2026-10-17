@@ -1,1 +1,1 @@
-export { PathsHome } from './PathsHome';
+export { PathsHome } from './PathsHome/PathsHome';

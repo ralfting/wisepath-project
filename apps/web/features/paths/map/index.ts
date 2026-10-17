@@ -1,1 +1,1 @@
-export { PathMap } from './PathMap';
+export { PathMap } from './PathMap/PathMap';

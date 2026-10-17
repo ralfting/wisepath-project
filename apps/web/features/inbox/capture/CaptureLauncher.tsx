@@ -2,8 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { QuickCapture } from './QuickCapture';
-import { showToast } from './Toast';
+import { QuickCapture } from './QuickCapture/QuickCapture';
+import { showToast } from './Toast/Toast';
 import { isCaptureKey, pageOf, pathOf, rememberPath, useOnOpenCapture } from './keys';
 
 /**

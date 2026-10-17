@@ -1,0 +1,146 @@
+'use client';
+
+import { ActionIcon, Box, Card, Group, Menu, Tooltip } from '@mantine/core';
+import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
+import { useState } from 'react';
+import Link from 'next/link';
+import { branchProgress, trailTo, pathProgress } from '@wisepath/domain/paths';
+import { displayTitle } from '@/i18n/title';
+import { useT } from '@/i18n/I18nProvider';
+import { SaveStatus } from '@/features/paths/path';
+import { PageContent } from '../PageContent/PageContent';
+import { PageTitleInput } from '../PageContent/PageTitleInput';
+import type { PageActions } from '../PageContent/PageContent.helpers';
+import { DeletePageModal } from '../DeletePageModal';
+import { StudiedToggle } from '../StudiedToggle';
+import { PageLook } from '../PageLook/PageLook';
+import { moduleLook } from '../PageLook/PageLook.helpers';
+import classes from './PageEditor.module.css';
+import { SavedAt } from './SavedAt';
+import type { PageSheetProps } from './PageEditor.helpers';
+
+/**
+ * PageSheet
+ * The full page: title first with its look, when it was edited, the studied
+ * toggle, the way to the map and the delete menu, then the markdown. Shown by
+ * the page route and by the map's drawer once expanded, so both are the same.
+ */
+export function PageSheet({
+  path,
+  page,
+  store,
+  save,
+  isFresh = false,
+  onOpenPage,
+  showOnMap,
+  onDeleted,
+  back,
+  focusEditor = null,
+  onCursor,
+}: PageSheetProps) {
+  const t = useT();
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  // Enter in the title moves on to the text
+  const [textFocus, setTextFocus] = useState(0);
+  const isRoot = page.id === path.rootPageId;
+  const between = trailTo(path, page.id).slice(1, -1);
+
+  const actions: PageActions = {
+    updatePage: store.updatePage,
+    beginRename: store.beginRename,
+    renameLinks: store.renameLinks,
+    openPage: onOpenPage,
+    createLinkedPage: (title) => onOpenPage(store.createPage(title).id),
+    createPage: (title) => void store.createPage(title),
+  };
+
+  return (
+    <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="xl" className={classes.sheet}>
+      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="lg" mb="lg" className={classes.header}>
+        <Group gap="md" wrap="nowrap" align="flex-start" miw={0} className={classes.titleRow}>
+          {back && (
+            <Tooltip label={t('page.back', { title: displayTitle(back.page) })}>
+              <ActionIcon variant="subtle" color="gray" size="lg" onClick={back.onClick} aria-label={t('page.back', { title: displayTitle(back.page) })}>
+                <IconArrowLeft size={20} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          <PageLook path={path} page={page} store={store} size={48} />
+          <Box miw={0} style={{ flex: 1 }}>
+            <PageTitleInput
+              key={page.id}
+              path={path}
+              page={page}
+              actions={store}
+              size={34}
+              autoFocus={isFresh}
+              onEnter={() => setTextFocus((n) => n + 1)}
+            />
+          </Box>
+        </Group>
+        <Group gap="sm" wrap="nowrap" className={classes.headerActions}>
+          {save.status === 'saved' && !save.notice ? <SavedAt updatedAt={page.updatedAt} /> : <SaveStatus save={save} />}
+          {/* A study has nothing to mark as studied */}
+          {!isRoot && path.kind === 'learningPath' && (
+            <StudiedToggle
+              studied={page.studied}
+              onChange={(studied) => store.updatePage(page.id, { studied })}
+              progress={{ map: path.title, ...pathProgress(path) }}
+            />
+          )}
+          <Tooltip label={t('page.seeOnMap')}>
+            {'href' in showOnMap ? (
+              <ActionIcon component={Link} href={showOnMap.href} variant="default" size="lg" radius="md" aria-label={t('page.seeOnMap')}>
+                <IconSitemap size={18} />
+              </ActionIcon>
+            ) : (
+              <ActionIcon onClick={showOnMap.onClick} variant="default" size="lg" radius="md" aria-label={t('page.seeOnMap')}>
+                <IconSitemap size={18} />
+              </ActionIcon>
+            )}
+          </Tooltip>
+          {!isRoot && (
+            <Menu position="bottom-end">
+              <Menu.Target>
+                <ActionIcon variant="default" size="lg" radius="md" aria-label={t('page.menu.more')}>
+                  <IconDotsVertical size={18} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(path, page, !page.module))}>
+                  {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
+                  {t('page.menu.delete')}
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          )}
+        </Group>
+      </Group>
+      <DeletePageModal
+        opened={confirmDelete}
+        title={displayTitle(page)}
+        orphansPages={(branchProgress(path, page.id)?.total ?? 0) > 0}
+        onClose={() => setConfirmDelete(false)}
+        onDelete={() => {
+          // Leave first, so this page never renders as "not found" on the way out
+          onDeleted(between.at(-1)?.id ?? path.rootPageId);
+          store.deletePage(page.id);
+        }}
+      />
+      <PageContent
+        key={page.id}
+        path={path}
+        page={page}
+        actions={actions}
+        showTitle={false}
+        toolbarOffset={0}
+        focusEditor={focusEditor}
+        onCursor={onCursor}
+        focusSignal={textFocus}
+      />
+    </Card>
+  );
+}

@@ -1,3 +1,5 @@
-export { PageEditor } from './PageEditor';
-export { DRAWER_WIDTH, PageDrawer, PageDrawerShell } from './PageDrawer';
-export { DRAWER_GAP } from './PageDrawer';
+export { PageEditor } from './PageEditor/PageEditor';
+export { PageDrawer } from './PageDrawer/PageDrawer';
+export { DRAWER_WIDTH } from './PageDrawer/PageDrawer.helpers';
+export { PageDrawerShell } from './PageDrawer/PageDrawerShell';
+export { DRAWER_GAP } from './PageDrawer/PageDrawer';

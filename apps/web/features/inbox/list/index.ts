@@ -1,1 +1,1 @@
-export { InboxPage } from './InboxPage';
+export { InboxPage } from './InboxPage/InboxPage';
