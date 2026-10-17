@@ -103,7 +103,16 @@ test('a [[link]] written in a page makes the page it names, and the map grows wi
     .poll(async () => ((await (await page.request.get(`${API}/paths/${pathId}`)).json()) as { pages: unknown[] }).pages.length)
     .toBe(2);
   await page.reload();
-  await expect(page.getByRole('treeitem', { name: /Fibers/ })).toBeVisible();
+  const fibers = page.getByRole('treeitem', { name: /Fibers/ });
+  await expect(fibers).toBeVisible();
+
+  // From the keyboard: an arrow from the centre reaches the branch (on whichever side the map drew it), Enter opens it
+  await page.getByRole('treeitem', { name: /Learn Effect/ }).focus();
+  await page.keyboard.press('ArrowRight');
+  if (!(await fibers.evaluate((el) => el === document.activeElement))) await page.keyboard.press('ArrowLeft');
+  await expect(fibers).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Page beside the map' }).getByRole('textbox', { name: 'Page title' })).toHaveValue('Fibers');
 });
 
 test('a thought captured from the Inbox is filed into a page from the keyboard', async ({ page }) => {
@@ -121,7 +130,9 @@ test('a thought captured from the Inbox is filed into a page from the keyboard',
   const item = list.getByRole('listitem').filter({ hasText: 'Fibers are cheap threads' });
   await expect(item).toBeVisible();
 
-  // A adds it to a page: Enter picks the path, Enter its main page
+  // A adds it to a page: Enter picks the path, Enter its main page. First the capture box gives the focus back to
+  // its button as it closes, which would take it from the item
+  await expect(page.getByRole('button', { name: /^Capture/ })).toBeFocused();
   await item.focus();
   await page.keyboard.press('a');
   await expect(page.getByRole('combobox', { name: 'Find a path' })).toBeFocused();
