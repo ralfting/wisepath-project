@@ -72,7 +72,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | `features/paths/map` | One map: mind map, list, orphans, search results, branch prompt |
 | `features/paths/page` | A page: the drawer over the map and the full page |
 | `features/paths/editor` | The markdown editor, its extensions and video notes |
-| `features/paths/path` | Pieces about one path used across the above: gate, save status, kind switch, page glyph |
+| `features/paths/path` | Pieces about one path used across the above: gate, save status, kind switch, page glyph, the related-page hover between drawer and map |
 | `features/inbox/list` | The Inbox page and its page picker |
 | `features/inbox/capture` | Quick capture, toasts, and the palette keys other palettes share |
 | `features/auth`, `features/search`, `features/help`, `features/shell` | Login/signup, search palette, help panel, app frame |

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 /**
@@ -6,6 +8,9 @@ import { defineConfig, devices } from '@playwright/test';
  */
 const API = 'http://localhost:4201';
 const WEB = 'http://localhost:4202';
+// Read before the e2e build rewrites it, so the teardown can put it back (e2e/globalTeardown.ts)
+process.env.E2E_NEXT_ENV ??= readFileSync(path.join(__dirname, 'next-env.d.ts'), 'utf8');
+
 const databaseUrl = process.env.E2E_DATABASE_URL ?? 'postgresql://wisepath:wisepath@localhost:5432/wisepath_e2e';
 
 export default defineConfig({
