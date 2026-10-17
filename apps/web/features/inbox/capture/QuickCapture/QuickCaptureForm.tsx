@@ -8,11 +8,22 @@ import { useT } from '@/i18n/I18nProvider';
 import classes from './QuickCapture.module.css';
 import { Destination } from './Destination';
 import { useQuickCaptureForm } from './useQuickCaptureForm';
+import type { CaptureSavers } from './useQuickCaptureForm';
 
 /** Quick capture's field, the pasted link under it, and where the text goes */
-export function QuickCaptureForm({ page, onClose, onDone }: { page: PageTarget | null; onClose: () => void; onDone: (message: string) => void }) {
+export function QuickCaptureForm({
+  page,
+  savers,
+  onClose,
+  onDone,
+}: {
+  page: PageTarget | null;
+  savers: CaptureSavers;
+  onClose: () => void;
+  onDone: (message: string) => void;
+}) {
   const t = useT();
-  const { state, operations } = useQuickCaptureForm({ page, onClose, onDone });
+  const { state, operations } = useQuickCaptureForm({ page, savers, onClose, onDone });
   const shown = state.shownLink;
   return (
     <>

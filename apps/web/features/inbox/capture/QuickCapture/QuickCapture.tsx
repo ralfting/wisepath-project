@@ -1,5 +1,6 @@
 'use client';
 
+import { useCapture, useFileItem } from '@/useCases/inbox';
 import type { PageTarget } from '@/useCases/inbox';
 import { useT } from '@/i18n/I18nProvider';
 import { Palette } from '@/ui/Palette/Palette';
@@ -28,10 +29,12 @@ export function QuickCapture({
 }) {
   const t = useT();
   const modEnter = useModEnter();
+  // Here, not in the form: a capture is sent after the form has closed, and goes on only while these are mounted
+  const savers = { capture: useCapture(), fileItem: useFileItem() };
   return (
     <Palette opened={opened} onClose={onClose} label={t('inbox.capture.label')} footer={page ? t('inbox.capture.hintOnPage', { keys: modEnter }) : t('inbox.capture.hint')}>
       {/* The palette mounts its content on each opening, so every capture starts blank, headed for the Inbox */}
-      <QuickCaptureForm page={page} onClose={onClose} onDone={onDone} />
+      <QuickCaptureForm page={page} savers={savers} onClose={onClose} onDone={onDone} />
     </Palette>
   );
 }

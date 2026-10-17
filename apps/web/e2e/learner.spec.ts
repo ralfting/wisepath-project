@@ -138,6 +138,10 @@ test('a thought captured from the Inbox is filed into a page from the keyboard',
   const list = page.getByRole('list', { name: 'Waiting in the Inbox' });
   const item = list.getByRole('listitem').filter({ hasText: 'Fibers are cheap threads' });
   await expect(item).toBeVisible();
+  // The list shows the capture at once; the API has it too
+  await expect
+    .poll(async () => ((await (await page.request.get(`${API}/inbox`)).json()) as Array<{ text: string }>).map((i) => i.text))
+    .toContain('Fibers are cheap threads');
 
   // A adds it to a page: Enter picks the path, Enter its main page. First the capture box gives the focus back to
   // its button as it closes, which would take it from the item
@@ -153,6 +157,26 @@ test('a thought captured from the Inbox is filed into a page from the keyboard',
   await page.keyboard.press('Enter');
   await expect(page.getByText('Added to “Learn Effect”')).toBeVisible();
   await expect(item).toHaveCount(0);
+});
+
+test('a thought captured on another page reaches the Inbox, even when the connection is slow', async ({ page }) => {
+  await signUp(page);
+  // The capture request takes 1.5 s; the capture box has closed long before it answers
+  await page.route(`${API}/inbox**`, async (route) => {
+    if (route.request().method() === 'POST') await new Promise((resolve) => setTimeout(resolve, 1500));
+    await route.continue();
+  });
+  const aborted: string[] = [];
+  page.on('requestfailed', (request) => request.method() === 'POST' && aborted.push(request.url()));
+
+  await page.keyboard.press('Control+Shift+Space');
+  await page.getByRole('textbox', { name: 'What do you want to keep?' }).fill('Slow but kept');
+  await page.keyboard.press('Enter');
+
+  await expect
+    .poll(async () => ((await (await page.request.get(`${API}/inbox`)).json()) as Array<{ text: string }>).map((item) => item.text), { timeout: 10_000 })
+    .toContain('Slow but kept');
+  expect(aborted).toEqual([]);
 });
 
 test('a map asks for a login without a session', async ({ page }) => {

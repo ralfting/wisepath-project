@@ -4,8 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import type { ClipboardEvent, KeyboardEvent } from 'react';
 import { useT } from '@/i18n/I18nProvider';
 import { useLinkPreviewLoader } from '@/useCases/paths';
-import { useCapture, useFileItem } from '@/useCases/inbox';
-import type { CaptureInput, PageTarget } from '@/useCases/inbox';
+import type { CaptureInput, PageTarget, useCapture, useFileItem } from '@/useCases/inbox';
 import { displayTitle } from '@/i18n/title';
 import { isVideo, pastedAddress, startOf } from '../pasted';
 
@@ -18,14 +17,30 @@ export interface Link {
   readonly loading: boolean;
 }
 
+/** Saving what was captured: to the Inbox, or straight to a page */
+export interface CaptureSavers {
+  readonly capture: ReturnType<typeof useCapture>;
+  readonly fileItem: ReturnType<typeof useFileItem>;
+}
+
 /**
  * Quick capture's view model: the text, a pasted address with its preview, whether it goes to the page on screen,
  * and saving it to the Inbox or to that page. It starts blank on every opening, since the palette mounts it then.
+ * The savers come from outside: saving goes on after the form has closed, so they must live in something that stays.
  */
-export function useQuickCaptureForm({ page, onClose, onDone }: { page: PageTarget | null; onClose: () => void; onDone: (message: string) => void }) {
+export function useQuickCaptureForm({
+  page,
+  savers,
+  onClose,
+  onDone,
+}: {
+  page: PageTarget | null;
+  savers: CaptureSavers;
+  onClose: () => void;
+  onDone: (message: string) => void;
+}) {
   const t = useT();
-  const capture = useCapture();
-  const fileItem = useFileItem();
+  const { capture, fileItem } = savers;
   const loadPreview = useLinkPreviewLoader();
   const [text, setText] = useState('');
   const [link, setLink] = useState<Link | null>(null);
