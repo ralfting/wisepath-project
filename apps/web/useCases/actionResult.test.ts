@@ -26,7 +26,10 @@ const translator = (locale: Locale): Translate => (key, values) => translate(loc
 const answer = <A, E extends { readonly _tag: string }, R>(program: Effect.Effect<A, E, R>, locale: Locale = "en") => {
   const t = translator(locale)
   return Effect.exit(auth.requireSession(program)).pipe(
-    Effect.map((exit) => toActionResult(exit, { NotAuthenticated: t("common.errors.signedOut"), ProjectsUnavailable: t("common.errors.unavailable") }, t))
+    // Tags are checked by runAction's own signature; here any tag may be named
+    Effect.map((exit) =>
+      toActionResult<A, { readonly _tag: string }>(exit, { NotAuthenticated: t("common.errors.signedOut"), ProjectsUnavailable: t("common.errors.unavailable") }, t)
+    )
   )
 }
 const loggedIn = auth.login({ email: ada.email, password: ada.password })
