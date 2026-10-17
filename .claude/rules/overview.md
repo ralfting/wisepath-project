@@ -16,7 +16,7 @@
 | Data | NestJS API (`apps/api`) through the client generated from `@wisepath/contract`. No database access from web | - |
 | Auth | httpOnly `access_token` cookie set by the API | - |
 | i18n | In-house: `useT()`, `serverT()`, locales `en` and `pt-BR` | - |
-| Tests | Vitest + `@effect/vitest`; Testing Library + user-event on happy-dom for components | 5 |
+| Tests | Vitest + `@effect/vitest`; Testing Library + user-event on happy-dom for components; Playwright end to end | 5 |
 | Lint | ESLint 9 flat config, `next/core-web-vitals`, `next/typescript`, layer bans | - |
 
 ## Packages the web app depends on
@@ -57,6 +57,7 @@ Run from the repo root unless noted. `pnpm dev` also starts the API on 4001, whi
 | All web tests | `pnpm --filter @wisepath/web test` |
 | One test file | `cd apps/web && pnpm exec vitest run useCases/auth/programs.test.ts` |
 | Tests affected by the branch | `cd apps/web && pnpm exec vitest run --changed main` |
+| End to end (needs `docker compose up -d db`) | `pnpm --filter @wisepath/web test:e2e` |
 | Domain tests | `pnpm --filter @wisepath/domain test` |
 | Effect diagnostics | `cd apps/web && npx effect-language-service diagnostics --project tsconfig.json` |
 | Everything | `pnpm typecheck && pnpm lint && pnpm test` |

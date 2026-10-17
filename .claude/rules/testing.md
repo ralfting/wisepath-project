@@ -3,6 +3,7 @@ paths:
   - "apps/web/**/*.{test,spec}.{ts,tsx}"
   - "packages/domain/**/*.test.ts"
   - "apps/web/e2e/**"
+  - "apps/web/playwright.config.ts"
   - "apps/web/vitest.config.ts"
 ---
 
@@ -20,7 +21,7 @@ paths:
 | Client components | `@testing-library/react`, `@testing-library/user-event`, `happy-dom` | exists (`features/auth/LoginForm.test.tsx`) |
 | Server wiring | `@effect/vitest` + a fake `HttpClient` Layer recording what was sent | exists (`infrastructure/server/ServerLayer.test.ts`) |
 | Server Actions' answers | `@effect/vitest`: `requireSession` + `toActionResult` over `Memory*` Layers, real messages | exists (`useCases/actionResult.test.ts`) |
-| RSC pages end to end | Playwright | `TODO(decide): e2e` |
+| Journeys end to end (RSC reads, Server Actions, the real API and database) | Playwright | exists (`e2e/learner.spec.ts`) |
 
 `server-only` resolves to its empty module in tests, as Next does on the server. `vitest.config.ts` has two projects: `unit` runs `*.test.ts` in Node; `dom` runs `*.test.tsx` in happy-dom with
 `test/setup.ts` (cleanup, `matchMedia` for Mantine) and compiles JSX itself, since tsconfig keeps it for Next.
@@ -128,6 +129,18 @@ pnpm exec vitest run useCases/paths          # one folder
 pnpm exec vitest run -t "files an inbox item"  # one test by name
 pnpm --filter @wisepath/domain test          # domain rules
 ```
+
+## End to end (Playwright)
+
+- `pnpm --filter @wisepath/web test:e2e` builds the API, then `playwright.config.ts` starts it on 4201 over
+  `wisepath_e2e` (emptied and migrated each run by `e2e/prepareDatabase.mjs`, which refuses any name not ending in
+  `_e2e`) and the built web app on 4202, into `.next-e2e`. Needs the local Postgres (`docker compose up -d db`).
+- One spec per journey a learner takes, not per screen. Each test signs up its own learner, so tests run in
+  parallel and share nothing. Never log in as the demo account or rely on seeded data.
+- Use e2e for what only the whole stack shows: a server read (a tab title after a full load), a Server Action
+  surviving a reload, a redirect. Everything else is cheaper as a component or program test.
+- Same query rules as Testing Library: roles and labels, `toHaveURL`/`toHaveTitle`, no fixed waits.
+- The e2e build rewrites `next-env.d.ts` to `.next-e2e`; never commit that change.
 
 ## Pre-flight checklist
 
