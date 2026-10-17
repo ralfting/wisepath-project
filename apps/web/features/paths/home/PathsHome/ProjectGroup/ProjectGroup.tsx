@@ -97,7 +97,7 @@ export function ProjectGroup({
       ) : (
         <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
           {paths.map((path) => (
-            <PathCard key={path.id} path={path} projects={projects} dragging={dragging?.id === path.id} onDrag={onDrag} onMove={onMove} />
+            <PathCard key={path.id} path={path} owned={{ projects, dragging: dragging?.id === path.id, onDrag, onMove }} />
           ))}
         </SimpleGrid>
       )}

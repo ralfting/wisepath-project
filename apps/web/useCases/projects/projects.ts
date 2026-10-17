@@ -2,10 +2,11 @@
 
 import { useSyncExternalStore } from "react"
 import { AsyncResult, Atom } from "effect/reactivity"
-import { useAtomSet, useAtomValue } from "@effect/atom-react"
+import { useAtomValue } from "@effect/atom-react"
 import type { Project } from "@wisepath/domain/projects"
 import type { ActionResult } from "../actionResult"
-import { ReactivityKeys, appRuntime, invalidateAtom } from "../runtime"
+import { ReactivityKeys, appRuntime } from "../runtime"
+import { useAction } from "../useAction"
 import * as actions from "./actions"
 import * as programs from "./programs"
 
@@ -26,19 +27,6 @@ export function useProjects(): ReadonlyArray<Project> | null {
   const hydrated = useHydrated()
   const projects = useAtomValue(listAtom, (result) => (AsyncResult.isSuccess(result) ? result.value : null))
   return hydrated ? projects : null
-}
-
-/** Runs an action, then refreshes what it changed on the client when it worked */
-function useAction<Args extends ReadonlyArray<unknown>, A>(
-  action: (...args: Args) => Promise<ActionResult<A>>,
-  changes: ReadonlyArray<string>
-): (...args: Args) => Promise<ActionResult<A>> {
-  const invalidate = useAtomSet(invalidateAtom)
-  return async (...args) => {
-    const result = await action(...args)
-    if (result.ok) invalidate(changes)
-    return result
-  }
 }
 
 /** Makes a project; resolves to it, or to the message to show */

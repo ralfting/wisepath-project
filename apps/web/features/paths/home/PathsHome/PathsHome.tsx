@@ -6,6 +6,7 @@ import { ProjectNameModal } from './ProjectNameModal/ProjectNameModal';
 import { AppFrame } from '@/features/shell';
 import { useT } from '@/i18n/I18nProvider';
 import { NewMapModal } from './NewMapModal/NewMapModal';
+import { OthersGroup } from './OthersGroup';
 import { ProjectGroup } from './ProjectGroup/ProjectGroup';
 import { usePathsHome } from './usePathsHome';
 
@@ -14,6 +15,7 @@ import { usePathsHome } from './usePathsHome';
  * default project first, then by name). One card per map (a learning path with
  * its progress and the way back to where they stopped; a study with its size),
  * a search over them, ways to start a map or a project, and each one's menu.
+ * Paths shared with them or taken to study follow, in a group of their own.
  */
 export function PathsHome() {
   const t = useT();
@@ -56,7 +58,7 @@ export function PathsHome() {
           </Group>
         </Group>
 
-        {!state.loaded ? null : state.searching && state.groups.length === 0 ? (
+        {!state.loaded ? null : state.searching && state.groups.length === 0 && state.others.length === 0 ? (
           <Text c="dimmed">{t('home.noMatch', { query: state.query.trim() })}</Text>
         ) : (
           state.groups.map(({ project, paths: inThis }) => (
@@ -73,6 +75,7 @@ export function PathsHome() {
             />
           ))
         )}
+        {state.loaded && state.others.length > 0 && <OthersGroup paths={state.others} />}
       </Stack>
       {state.projects && (
         <NewMapModal opened={state.creatingIn !== null} projectId={state.creatingIn} projects={state.projects} onClose={operations.closeNewPath} />

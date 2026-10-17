@@ -1,0 +1,48 @@
+import type { Shape } from '@/i18n/format';
+import type { share as en } from '@/i18n/messages/en/share';
+
+/** Mensagens para compartilhar uma trilha (a janela Compartilhar, trilhas de outras pessoas, uma trilha pública), em português do Brasil */
+export const share = {
+  open: 'Compartilhar',
+  openFor: 'Compartilhar {title}',
+  title: 'Compartilhar “{title}”',
+  link: {
+    label: 'Link',
+    private: 'Privada',
+    privateHint: 'Só você e as pessoas que você adicionar podem abrir.',
+    public: 'Qualquer pessoa com o link pode ler',
+    publicHint: 'Quem tiver o link lê a trilha e pode estudá-la com o próprio progresso. Ela nunca aparece em listas ou buscas.',
+    copy: 'Copiar link',
+    copied: 'Link copiado',
+  },
+  people: {
+    label: 'Pessoas',
+    email: 'Email',
+    emailPlaceholder: 'alguem@exemplo.com',
+    role: 'Acesso',
+    roleFor: 'Acesso de {name}',
+    add: 'Adicionar',
+    viewer: 'Pode ler',
+    editor: 'Pode editar',
+    remove: 'Remover {name}',
+    none: 'Ainda não compartilhada com ninguém.',
+    unnamed: 'Sem nome',
+    loading: 'Carregando as pessoas com quem esta trilha está compartilhada',
+    progressHint: 'Cada pessoa tem o próprio progresso; ninguém vê o de outra.',
+  },
+  from: {
+    title: 'De outras pessoas',
+    hint: 'Trilhas compartilhadas com você e trilhas públicas que você pegou para estudar. Elas continuam sendo de quem as criou.',
+    by: 'De {name}',
+    bySomeone: 'Compartilhada com você',
+    leave: 'Sair',
+    leaveFor: 'Sair de {title}',
+    left: 'Você saiu de “{title}”.',
+    leaveFailed: 'Não foi possível sair de “{title}”.',
+  },
+  errors: {
+    noAccount: 'Nenhuma conta tem esse email. Peça para a pessoa criar uma conta antes.',
+    self: 'Esta trilha é sua.',
+    gone: 'Esta trilha não existe mais ou não está mais compartilhada com você.',
+  },
+} as const satisfies Shape<typeof en>;

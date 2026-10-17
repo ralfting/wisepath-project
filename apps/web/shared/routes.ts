@@ -33,6 +33,9 @@ export function openPageId(pathname: string, pathId: string): string | null {
 }
 
 /** Where the app sends a learner once logged in, unless they were on their way somewhere */
+/** A public map, read without an account (the Share dialog's link) */
+export const publicMapHref = (pathId: string) => `/public/paths/${pathId}`;
+
 export const HOME = '/paths';
 
 /** The login page, coming back to an address of the app's own once logged in */

@@ -9,7 +9,8 @@ export const ReactivityKeys = {
   session: "session",
   paths: "paths",
   projects: "projects",
-  inbox: "inbox"
+  inbox: "inbox",
+  shares: "shares"
 } as const
 
 /**

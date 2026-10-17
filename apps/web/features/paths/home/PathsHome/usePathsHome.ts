@@ -7,10 +7,11 @@ import { useMovePath, usePaths } from '@/useCases/paths';
 import { useProjects } from '@/useCases/projects';
 import { showToast } from '@/features/inbox/capture';
 import { useT } from '@/i18n/I18nProvider';
-import { defaultProject, groupPaths } from './PathsHome.helpers';
+import { defaultProject, fromOthers, groupPaths } from './PathsHome.helpers';
 
 /**
- * The paths page's view model: the learner's paths grouped by project and filtered by the search, the new path
+ * The paths page's view model: the learner's paths grouped by project and filtered by the search, those from others
+ * apart, the new path
  * and new project dialogs, and moving a path to another project by dragging its card (with Undo)
  */
 export function usePathsHome() {
@@ -46,6 +47,7 @@ export function usePathsHome() {
       query,
       searching: query.trim() !== '',
       groups: paths && projects ? groupPaths(paths, projects, query) : [],
+      others: paths ? fromOthers(paths, query) : [],
       creatingIn,
       newProject,
       dragging,

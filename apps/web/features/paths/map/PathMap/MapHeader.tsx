@@ -1,15 +1,16 @@
 'use client';
 
-import { ActionIcon, Box, Group, Menu, ThemeIcon, Title, Tooltip } from '@mantine/core';
-import { IconDots } from '@tabler/icons-react';
+import { useState } from 'react';
+import { ActionIcon, Box, Button, Group, Menu, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { IconDots, IconShare } from '@tabler/icons-react';
 import type { Page, PageColor, PageIcon, Path } from '@wisepath/domain/paths';
 import { canManage } from '@wisepath/domain/paths';
 import type { PathActions, SaveState } from '@/useCases/paths';
-import { KindSwitchItem, PageGlyph, SaveStatus } from '@/features/paths/path';
+import { KindSwitchItem, PageGlyph, SaveStatus, ShareDialog } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import { ContinueButton } from '../ContinueButton/ContinueButton';
 
-/** The map's top bar: its title and look, its menu, what is still being saved, and a learning path's way on */
+/** The map's top bar: its title and look, its menu and Share (the owner's), what is still being saved, and a learning path's way on */
 export function MapHeader({
   path,
   actions,
@@ -32,6 +33,7 @@ export function MapHeader({
   onContinue: () => void;
 }) {
   const t = useT();
+  const [sharing, setSharing] = useState(false);
   return (
     <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
       <Group gap="sm" wrap="nowrap" miw={0} style={{ flex: 1 }}>
@@ -56,6 +58,19 @@ export function MapHeader({
             </Menu.Dropdown>
           </Menu>
         )}
+        {canManage(path.access) && (
+          <Button
+            variant="default"
+            size="xs"
+            leftSection={<IconShare size={14} />}
+            onClick={() => setSharing(true)}
+            aria-label={t('share.openFor', { title: path.title })}
+            style={{ flexShrink: 0 }}
+          >
+            {t('share.open')}
+          </Button>
+        )}
+        <ShareDialog path={path} opened={sharing} onClose={() => setSharing(false)} />
         {/* Only while something is on its way, or was undone */}
         <Box visibleFrom="sm" style={{ flexShrink: 0 }}>
           <SaveStatus save={save} hideSaved />
