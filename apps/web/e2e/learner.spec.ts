@@ -6,6 +6,9 @@ import type { Page } from '@playwright/test';
  * Actions), a new map, and its tab named on the server.
  */
 
+/** The API the app talks to in these runs (playwright.config.ts) */
+const API = 'http://localhost:4201/api';
+
 /** A new account, signed in, on the paths page */
 async function signUp(page: Page) {
   await page.goto('/signup');
@@ -64,6 +67,43 @@ test('projects are created, renamed and deleted from the paths page', async ({ p
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Work' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Languages' })).toHaveCount(0);
+});
+
+test('a [[link]] written in a page makes the page it names, and the map grows with it', async ({ page }) => {
+  await signUp(page);
+  await page.getByRole('button', { name: 'New path' }).first().click();
+  await page.getByLabel(/^what are you learning/i).fill('Learn Effect');
+  await page.getByRole('button', { name: 'Create path' }).click();
+  await expect(page).toHaveURL(/\/pages\//);
+  const pathId = new URL(page.url()).pathname.split('/')[2];
+
+  // [[Fibers]] links a page that doesn't exist yet; following it offers to make it, and opens it
+  await page.getByLabel('Page content').click();
+  await page.keyboard.type('Start with [[Fibers]] ');
+  await page.locator('span[data-wikilink]', { hasText: 'Fibers' }).click();
+  await page.getByRole('button', { name: 'Create page' }).click();
+  const drawer = page.getByRole('dialog', { name: 'Page beside the map' });
+  await expect(drawer.getByRole('textbox', { name: 'Page title' })).toHaveValue('Fibers');
+
+  // The map shows it, branching from the root; the map's search finds it, and the list view shows it too
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(new RegExp(`/paths/${pathId}$`));
+  await expect(page.getByRole('treeitem', { name: /Fibers/ })).toBeVisible();
+  await page.keyboard.press('Control+k');
+  await page.getByRole('combobox', { name: 'Search this path' }).fill('Fib');
+  await expect(page.getByRole('listbox', { name: 'Pages found' }).getByRole('option', { name: /Fibers/ })).toBeVisible();
+  await page.getByRole('combobox', { name: 'Search this path' }).fill('');
+  await page.getByRole('radiogroup', { name: 'View' }).getByText('List').click();
+  await expect(page.getByRole('radio', { name: 'List' })).toBeChecked();
+  await expect(page.getByRole('button', { name: 'Fibers' })).toBeVisible();
+
+  // Once the API has both pages (edits are sent in the background; a real browser would ask before leaving
+  // earlier, which reload() skips), a full load shows the map with the new page on it
+  await expect
+    .poll(async () => ((await (await page.request.get(`${API}/paths/${pathId}`)).json()) as { pages: unknown[] }).pages.length)
+    .toBe(2);
+  await page.reload();
+  await expect(page.getByRole('treeitem', { name: /Fibers/ })).toBeVisible();
 });
 
 test('a thought captured from the Inbox is filed into a page from the keyboard', async ({ page }) => {
