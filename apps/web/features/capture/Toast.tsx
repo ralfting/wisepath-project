@@ -6,7 +6,7 @@ import classes from './Toast.module.css';
 
 /**
  * Toast
- * A short line at the bottom of the screen saying what just happened, with
+ * A short line at the top right of the screen saying what just happened, with
  * one action at most (Undo, Open). It is a live region, so it is read out
  * too, and it goes away by itself after a few seconds.
  */

@@ -1,24 +1,24 @@
+/* Top right, below the page drawer's own buttons (expand, ⋯, close), so it never covers them */
 .region {
   position: fixed;
-  left: 50%;
-  bottom: 24px;
-  transform: translateX(-50%);
+  top: 64px;
+  right: 16px;
   z-index: 500;
-  max-width: calc(100vw - 32px);
+  max-width: min(400px, calc(100vw - 32px));
 }
 
 .toast {
   border: 1px solid var(--wp-line, var(--mantine-color-default-border));
-  animation: rise 160ms ease-out;
+  animation: enter 180ms ease-out;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
   }
 }
 
-@keyframes rise {
+@keyframes enter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateX(16px);
   }
 }
