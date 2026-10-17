@@ -52,3 +52,15 @@
   transform: translate(-50%, -50%);
   box-shadow: var(--mantine-shadow-sm);
 }
+
+/* A step: room for the keys and code it shows inline */
+.step {
+  line-height: 1.6;
+}
+
+/* The tip under a topic's steps */
+.tip {
+  padding: 8px 10px;
+  border-radius: var(--mantine-radius-md);
+  background: var(--mantine-color-yellow-light);
+}
