@@ -1,9 +1,17 @@
-/* Top right, below the page drawer's own buttons (expand, ⋯, close), so it never covers them */
+/* Mantine draws one fixed container per position and this class lands on all six. Only the top right
+   one moves down, below the page drawer's own buttons (expand, ⋯, close); a top on the bottom ones
+   would stretch them over the whole height and swallow every click. The containers let clicks through
+   and only the toast takes them */
 .notifications {
-  top: 64px;
+  pointer-events: none;
+
+  &[data-position='top-right'] {
+    top: 64px;
+  }
 }
 
 .toast {
+  pointer-events: auto;
   border: 1px solid var(--wp-line, var(--mantine-color-default-border));
   padding-block: 8px;
   padding-inline-start: var(--mantine-spacing-md);
