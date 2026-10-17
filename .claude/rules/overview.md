@@ -31,8 +31,7 @@
 | Path | What | Status |
 |---|---|---|
 | `app/` | Routes: `page`, `layout`, `loading`, `error`, `not-found`, `route`, parallel `@drawer` + intercepting `(.)pages` | exists |
-| `app/_components/` | Route chrome shared by layouts (app frame, top bar, navigation) | target (today `features/shell`) |
-| `features/<domain>/<feature>/` | Components that render one domain's data | target (today flat `features/<feature>`) |
+| `features/<domain>/<feature>/` | Components that render one domain's data (map: [architecture.md](architecture.md), "Feature map") | exists |
 | `useCases/<domain>/` | `programs.ts` (Effect), client hooks, `queries.ts` (server), `actions.ts` (Server Actions) | hooks, programs, `paths/queries.ts`, `projects/actions.ts` exist |
 | `useCases/server.ts` | `runServer` (server reads) and `runAction` (Server Actions), with the request's cookies | exists |
 | `useCases/actionResult.ts` | `ActionResult` and `toActionResult`, shared by actions and the hooks that call them | exists |
@@ -40,7 +39,7 @@
 | `infrastructure/` | `Layer`s implementing domain services over `ApiClient`; `Memory*` doubles beside them | exists |
 | `infrastructure/server/` | `import 'server-only'` `ServerLayer(cookie)`, `ServerServices`, shared `ManagedRuntime` | exists |
 | `i18n/` | Provider, `serverT`, formatting, `messages/<locale>/<area>.ts` | exists |
-| `shared/` | Pure helpers with no I/O and no domain import (routes, form helpers) | target (today `features/shared`) |
+| `shared/` | Pure helpers with no I/O and no domain import (`routes.ts`, `forms.ts`) | exists |
 | `test/` | Vitest setup and `renderWithLayers` for component tests | exists |
 | `theme.ts` | Mantine theme and `--wp-*` CSS variables | exists |
 | `middleware.ts` | Cheap redirects on cookie presence and legacy URLs | exists |

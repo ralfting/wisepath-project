@@ -10,8 +10,8 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | Layer | Where | Owns | Never |
 |---|---|---|---|
 | Routes | `app/` | Read and decode `params`/`searchParams`, call `queries.ts`, render features, `notFound()`/`redirect()`, metadata | Business logic, Effect, `fetch`, infrastructure |
-| Route chrome | `app/_components/` | Frame, top bar, navigation shared by layouts | Domain data fetching of its own |
-| Features | `features/<domain>/<feature>/` | Components and colocated `use<Component>` hooks that render one domain's data | Effect, infrastructure, `fetch` |
+| Features | `features/<domain>/<feature>/` (`paths`, `inbox`); `features/<feature>/` for the rest (`auth`, `search`, `help`) | Components and colocated `use<Component>` hooks that render one domain's data | Effect, infrastructure, `fetch` |
+| App frame | `features/shell/` | The frame, top bar and navigation that feature screens render themselves in | Domain data of its own |
 | Use cases | `useCases/<domain>/` | Effect `programs.ts`; client hooks on atoms; `queries.ts` (server reads); `actions.ts` (Server Actions); flows over 2+ domains | React components, JSX |
 | Infrastructure | `infrastructure/` | `Layer`s implementing domain services over `ApiClient`; `Memory*` doubles; client `AppLayer`; server runtime | React, Next, Mantine, use cases, features |
 | Domain | `packages/domain` | Schemas, branded ids, tagged errors, pure rules, service interfaces, commands | React, I/O, `apps/*` |
@@ -37,8 +37,8 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | `app/` and `features/` import `@/infrastructure/*` (except `features/**/*.test.tsx`) | ESLint |
 | `useCases/` imports `@/features/*` | ESLint |
 | `infrastructure/` imports React, Next, Mantine, `@/features/*`, `@/useCases/*` | ESLint |
-| `features/<a>` imports a file inside `features/<b>` other than its `index.ts` | Review; becomes lint with the folder migration (about 50 imports break it today) |
-| `i18n/` or `shared/` imports `features/*` (today `I18nProvider` imports `features/shared/title`) | Review |
+| `app/` or a feature imports another feature's internals (anything but its `index.ts`) | ESLint (`featureInternals`) |
+| `i18n/` or `shared/` imports `features/*` | Review |
 | `packages/domain` imports another domain's `index.ts` at runtime | Review |
 | A client component imports `queries.ts` or `infrastructure/server/*` | `import 'server-only'` fails the build |
 | A `features/shared/` or `features/common/` folder | Review |
@@ -54,27 +54,36 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
   **Why:** `useCases/paths/sync.ts` already composes paths and projects; spreading that into the domain couples them.
 - A feature is owned by concept, not by import count. A component that renders paths lives in `features/paths/`
   even if only the inbox uses it today.
+- A feature's `index.ts` exports exactly what other features and `app/` use; inside a feature, imports are relative.
 - Generic primitives (a palette, a field wrapper, a keyboard hint) are not features: extend Mantine through
-  `theme.ts` or put the component in `app/_components/` if it is route chrome. `TODO(decide): ui primitives home`
-  for primitives that are neither (today `features/shared/look.tsx`, `usePaletteKeys`).
+  `theme.ts` first. `TODO(decide): ui primitives home` for the rest (today the palette keys live in
+  `features/inbox/capture` and the page glyph in `features/paths/path`, both exported through their index).
+- `features/shell` is the one feature that is not a domain: feature screens render themselves inside `AppFrame`, so
+  it can't live in `app/` (features would import from `app/`).
 - Ambient context is a parameter. The session user, the current path and the locale are passed in as arguments
   (or a `Context.Service` provided at the edge), never imported inside the domain or a program. They are resolved
   once: on the server by the `queries.ts`/`actions.ts` edge, on the client by `useSession` and the route params.
 
-## Target structure and migration
+## Feature map
+
+| Folder | What |
+|---|---|
+| `features/paths/home` | The paths page: cards, projects, new path |
+| `features/paths/map` | One map: mind map, list, orphans, search results, branch prompt |
+| `features/paths/page` | A page: the drawer over the map and the full page |
+| `features/paths/editor` | The markdown editor, its extensions and video notes |
+| `features/paths/path` | Pieces about one path used across the above: gate, save status, kind switch, page glyph |
+| `features/inbox/list` | The Inbox page and its page picker |
+| `features/inbox/capture` | Quick capture, toasts, and the palette keys other palettes share |
+| `features/auth`, `features/search`, `features/help`, `features/shell` | Login/signup, search palette, help panel, app frame |
+
+## Migration still open
 
 The rules describe the target. Code not yet moved keeps working; when you touch it, move it if the move is in scope,
 otherwise leave it and follow the target for new files.
 
 | Today | Target |
 |---|---|
-| `features/paths/` (home) | `features/paths/home/` |
-| `features/map/`, `features/page/`, `features/editor/` | `features/paths/map/`, `features/paths/page/`, `features/paths/editor/` |
-| `features/inbox/`, `features/capture/` | `features/inbox/list/`, `features/inbox/capture/` |
-| `features/search/`, `features/auth/`, `features/help/` | same names, one feature folder each |
-| `features/shell/AppFrame.tsx` | `app/_components/AppFrame/` |
-| `features/shared/fieldError.ts`, `title.ts` | `shared/forms.ts`, `shared/title.ts` (`routes.ts` already moved) |
-| `features/shared/look.tsx`, `relatedHover.ts` | the `paths` feature that owns them |
 | Client-only reads (`useProjects`, `usePaths`, map load) | `queries.ts` on the server runtime, data passed as props (first: the map's tab title) |
 | Discrete mutations through atoms (paths, inbox) | `actions.ts` Server Actions, as projects already are; the session (login, signup, logout) stays on atoms |
 | `inBrowser` guards in `Http*` Layers | stay for the browser's Layer (client components also render on the server, without the session); the server gets a twin without the guard (`ServerPathRepository`) |
@@ -82,7 +91,7 @@ otherwise leave it and follow the target for new files.
 ## Where does this file go?
 
 1. A URL segment, its loading/error/not-found state or metadata: `app/<segment>/`.
-2. Chrome shared by several layouts (frame, nav): `app/_components/`.
+2. The app frame, top bar or navigation: `features/shell/`.
 3. A schema, branded id, tagged error, pure rule or service interface: `packages/domain/src/<domain>/`.
 4. An Effect program over one or more domain services: `useCases/<domain>/programs.ts` (or `<flow>.ts` when it
    composes 2+ domains; the folder is the domain that owns the outcome).

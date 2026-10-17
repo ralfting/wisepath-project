@@ -57,7 +57,7 @@ are public POST endpoints, callable without the UI.
 - Every `href` from content or previews is checked to be `http:` or `https:` before rendering; never allow
   `javascript:` or `data:`.
 - External links: `target="_blank"` with `rel="noopener noreferrer"`; `window.open(url, '_blank', 'noopener,noreferrer')`.
-- Video embeds use `youtube-nocookie.com` or the YouTube iframe API as `features/editor/video` does; no other iframe
+- Video embeds use `youtube-nocookie.com` or the YouTube iframe API as `features/paths/editor/video` does; no other iframe
   source without asking.
 
 ## Secrets and config

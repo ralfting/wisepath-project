@@ -64,7 +64,7 @@ One line per finding, most severe first, then the verdict. No praise, no summary
 
 ```
 apps/web/useCases/projects/actions.ts:14 — blocking — renameProject runs before resolving the session; any POST can rename — resolve currentUser first and fail NotAuthenticated
-apps/web/features/inbox/InboxPage.tsx:88 — should_fix — try/catch around the file action drops InboxUnavailable — return the tagged error and map it with messageFor
+apps/web/features/inbox/list/InboxPage.tsx:88 — should_fix — try/catch around the file action drops InboxUnavailable — return the tagged error and map it with messageFor
 apps/web/features/paths/home/PathCard.module.css:12 — suggestion — padding: 12px — var(--mantine-spacing-sm)
 
 Verdict: changes requested (1 blocking, 1 should_fix)

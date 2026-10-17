@@ -16,7 +16,7 @@ paths:
 |---|---|---|
 | Domain rules (pure) | Vitest, `@effect/vitest` | exists (`packages/domain/test`) |
 | Programs and hooks' logic | `@effect/vitest` `it.effect` + `Memory*` Layers | exists (`useCases/auth/programs.test.ts`) |
-| Pure UI helpers | Vitest | exists (`features/page/titleSize.test.ts`) |
+| Pure UI helpers | Vitest | exists (`features/paths/page/titleSize.test.ts`) |
 | Client components | `@testing-library/react`, `@testing-library/user-event`, `happy-dom` | exists (`features/auth/LoginForm.test.tsx`) |
 | Server wiring | `@effect/vitest` + a fake `HttpClient` Layer recording what was sent | exists (`infrastructure/server/ServerLayer.test.ts`) |
 | Server Actions' answers | `@effect/vitest`: `requireSession` + `toActionResult` over `Memory*` Layers, real messages | exists (`useCases/actionResult.test.ts`) |
