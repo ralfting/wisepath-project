@@ -9,7 +9,7 @@ import { loginFormSchema, useLogin } from '@/useCases/auth';
 import { useDomainMessage } from '@/useCases/validation';
 import { useT } from '@/i18n/I18nProvider';
 import { fieldError } from '@/shared/forms';
-import { afterLogin } from '@/shared/routes';
+import { afterLogin, signupHref } from '@/shared/routes';
 
 /** Log in with email and password, then go to the paths page, or back to where ?next= says */
 export function LoginForm() {
@@ -92,7 +92,7 @@ export function LoginForm() {
       </form>
       <Text size="sm" ta="center" mt="lg">
         {t('auth.login.noAccount')}{' '}
-        <Anchor component={Link} href="/signup" fw={700}>
+        <Anchor component={Link} href={next ? signupHref(next) : '/signup'} fw={700}>
           {t('auth.login.signUp')}
         </Anchor>
       </Text>

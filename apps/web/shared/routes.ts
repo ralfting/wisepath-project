@@ -41,5 +41,8 @@ export const HOME = '/paths';
 /** The login page, coming back to an address of the app's own once logged in */
 export const loginHref = (next: string) => `/login?next=${encodeURIComponent(next)}`;
 
+/** The signup page, coming back the same way once the account exists */
+export const signupHref = (next: string) => `/signup?next=${encodeURIComponent(next)}`;
+
 /** Where to go after logging in: the address asked for, only when it is one of the app's own (not //other.site) */
 export const afterLogin = (next: string | null | undefined) => (next && /^\/(?![/\\])/.test(next) ? next : HOME);

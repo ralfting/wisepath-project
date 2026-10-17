@@ -41,7 +41,7 @@ export function PublicPath({ path }: { path: Path }) {
               </Button>
             ) : (
               <Group gap="sm">
-                <Button component={Link} href="/signup" variant="default">
+                <Button component={Link} href={state.signupHref} variant="default">
                   {t('share.public.signUp')}
                 </Button>
                 <Button component={Link} href={state.loginHref}>

@@ -2,5 +2,5 @@ export { useCreatePath, useMovePath, useOpenPath, useLinkPreview, useLinkPreview
 export type { LinkPreviewState, OpenPath, PathActionResult, PathActions, PathState, SaveState } from "./path"
 export { newPageId } from "./programs"
 export type { Command } from "./sync"
-export { useLeavePath, useSetVisibility, useSharePath, useShares, useTakePath, useUnsharePath, useVisibility } from "./sharing"
+export { shareFormSchema, useLeavePath, useSetVisibility, useSharePath, useShares, useTakePath, useUnsharePath, useVisibility } from "./sharing"
 export type { SharesState } from "./sharing"

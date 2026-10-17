@@ -45,6 +45,15 @@ describe('ShareDialog', () => {
     expect((email as HTMLInputElement).value).toBe('nobody@wisepath.test');
   });
 
+  it('asks for a valid email before sending anything', async () => {
+    const user = userEvent.setup();
+    renderWithLayers(<ShareDialog path={path} opened onClose={() => {}} />, layers);
+    await user.type(await screen.findByLabelText(/^email/i), 'not an email');
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+    expect(await screen.findByText('Enter a valid email address')).toBeTruthy();
+    expect(actions.sharePath).not.toHaveBeenCalled();
+  });
+
   it('makes the path public and offers its link, then private again', async () => {
     const user = userEvent.setup();
     renderWithLayers(<ShareDialog path={path} opened onClose={() => {}} />, layers);

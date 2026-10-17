@@ -3,7 +3,8 @@
 import { useContext, useSyncExternalStore } from "react"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomValue } from "@effect/atom-react"
-import { PathId } from "@wisepath/domain/paths"
+import { Schema } from "effect"
+import { PathId, ShareEdit } from "@wisepath/domain/paths"
 import type { MemberRole, Path, PathShare, PathVisibility } from "@wisepath/domain/paths"
 import type { ActionResult } from "../actionResult"
 import { ReactivityKeys, appRuntime } from "../runtime"
@@ -15,6 +16,9 @@ import * as programs from "./programs"
  * Sharing hooks for the Share dialog and the paths from others. Changes go
  * through Server Actions; what the client holds is read again after each.
  */
+
+/** The share form's rules, the domain's own: a valid email and an access */
+export const shareFormSchema = Schema.toStandardSchemaV1(ShareEdit)
 
 const sharesAtom = Atom.family((id: PathId) =>
   appRuntime.atom(programs.listShares(id)).pipe(Atom.withReactivity([ReactivityKeys.shares]))

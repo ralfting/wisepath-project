@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from '@tanstack/react-form';
 import { Alert, Anchor, Button, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
@@ -9,10 +9,12 @@ import { signupFormSchema, useSignup } from '@/useCases/auth';
 import { useDomainMessage } from '@/useCases/validation';
 import { useT } from '@/i18n/I18nProvider';
 import { fieldError } from '@/shared/forms';
+import { afterLogin, loginHref } from '@/shared/routes';
 
-/** Create an account, then go to the paths page */
+/** Create an account, then go to the paths page, or back to where the visitor came from (?next=) */
 export function SignupForm() {
   const router = useRouter();
+  const next = useSearchParams().get('next');
   const signup = useSignup();
   const t = useT();
   const domain = useDomainMessage();
@@ -25,7 +27,7 @@ export function SignupForm() {
       setError(null);
       const failure = await signup(value);
       if (failure) setError(failure);
-      else router.push('/paths');
+      else router.push(afterLogin(next));
     },
   });
 
@@ -104,7 +106,7 @@ export function SignupForm() {
       </form>
       <Text size="sm" ta="center" mt="lg">
         {t('auth.signup.haveAccount')}{' '}
-        <Anchor component={Link} href="/login" fw={700}>
+        <Anchor component={Link} href={next ? loginHref(next) : '/login'} fw={700}>
           {t('auth.signup.logIn')}
         </Anchor>
       </Text>

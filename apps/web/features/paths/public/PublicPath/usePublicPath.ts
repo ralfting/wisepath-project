@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { Path } from '@wisepath/domain/paths';
 import { useSession } from '@/useCases/auth';
 import { useTakePath } from '@/useCases/paths';
-import { loginHref, mapHref, publicMapHref } from '@/shared/routes';
+import { loginHref, mapHref, publicMapHref, signupHref } from '@/shared/routes';
 
 /**
  * The public path's view model: the page being read (the main page first), and taking the path to study it, which
@@ -29,7 +29,14 @@ export function usePublicPath(path: Path) {
   };
 
   return {
-    state: { page, signedIn: session.status === 'signedIn', loginHref: loginHref(publicMapHref(path.id)), error, busy },
+    state: {
+      page,
+      signedIn: session.status === 'signedIn',
+      loginHref: loginHref(publicMapHref(path.id)),
+      signupHref: signupHref(publicMapHref(path.id)),
+      error,
+      busy,
+    },
     operations: { select: setSelectedId, study },
   };
 }
