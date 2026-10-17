@@ -27,6 +27,11 @@ const config = [
   { files: ['useCases/**'], rules: ban(features) },
   { files: ['infrastructure/**'], rules: ban(features, useCases, react) },
   {
+    // Component tests wire the use cases to Memory* Layers (useCases/testing.ts), which needs Effect and infrastructure
+    files: ['features/**/*.test.tsx'],
+    rules: { 'no-restricted-imports': 'off' },
+  },
+  {
     // Service.use(...) in Effect programs is not a React hook
     files: ['useCases/**/programs.ts', 'infrastructure/**'],
     rules: { 'react-hooks/rules-of-hooks': 'off' },
