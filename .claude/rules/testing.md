@@ -66,8 +66,9 @@ reopen a component on the same data. Never assemble those providers in a test.
   `window` APIs the DOM lacks, and Next's client APIs (`vi.mock('next/navigation')` with `vi.hoisted` state, as in
   `features/auth/LoginForm.test.tsx`).
 - Failure paths: the `Memory*` Layer fails with the domain's tagged error (`ProjectsUnavailable`, `TitleTaken`).
-- `Http*` Layers (HTTP to domain mapping) have no web tests; the API tests cover the contract.
-  `TODO(decide): Http Layer tests`.
+- `Http*` Layers (HTTP to domain mapping) have no web tests, and none are to be written (decided 2026-10-17).
+  **Why:** they are thin calls to the client generated from the contract; the API tests run that same client
+  against the real API, and the e2e journeys run the Layers themselves.
 
 ## One `it` per behaviour
 
