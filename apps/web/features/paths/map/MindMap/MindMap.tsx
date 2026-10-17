@@ -45,7 +45,7 @@ interface MindMapProps {
   /** A learning path shows what was studied; a study shows its pages plainly, with counts */
   progress: boolean;
   /** Pages matching the search; null when not searching */
-  matchIds: Set<string> | null;
+  matchIds: ReadonlySet<string> | null;
   /** The search result marked in its list (by the pointer or the arrow keys) */
   searchActiveId?: string | null;
   focusRequest: FocusRequest | null;

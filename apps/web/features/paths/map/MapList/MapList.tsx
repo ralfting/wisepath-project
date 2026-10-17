@@ -29,7 +29,7 @@ interface MapListProps {
   currentId: string | null;
   /** A learning path shows what was studied; a study doesn't */
   progress: boolean;
-  matchIds: Set<string> | null;
+  matchIds: ReadonlySet<string> | null;
   onSelect: (pageId: string) => void;
   /** The + on a row, and N: start adding a page branching from it */
   onAddBranch?: (pageId: string) => void;
