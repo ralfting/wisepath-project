@@ -13,7 +13,7 @@ import { usePagesStep } from './usePagesStep';
 /** The picker's second step: which page of the chosen path, filtered by what is typed */
 export function PagesStep({ path, onBack, onPick }: { path: PathSummary; onBack: () => void; onPick: (page: PickedPage) => void }) {
   const t = useT();
-  const { state, operations } = usePagesStep({ path, onBack, onPick });
+  const { field, state, operations } = usePagesStep({ path, onBack, onPick });
 
   return (
     <>
@@ -26,6 +26,7 @@ export function PagesStep({ path, onBack, onPick }: { path: PathSummary; onBack:
         </Text>
       </Group>
       <TextInput
+        ref={field}
         {...state.fieldProps}
         aria-label={t('inbox.picker.findPage')}
         placeholder={t('inbox.picker.findPage')}

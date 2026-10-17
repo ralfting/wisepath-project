@@ -6,6 +6,7 @@ import type { Page, PathSummary } from '@wisepath/domain/paths';
 import { usePath } from '@/useCases/paths';
 import { displayTitle } from '@/i18n/title';
 import { paletteFieldProps, usePaletteId, usePaletteKeys } from '@/ui/Palette/usePaletteKeys';
+import { useFocusOnMount } from '@/ui/useFocusOnMount';
 import { caretAt, pagesFor } from '../PagePicker.helpers';
 import type { PickedPage } from '../PagePicker.helpers';
 
@@ -14,6 +15,8 @@ export function usePagesStep({ path, onBack, onPick }: { path: PathSummary; onBa
   const { state: loaded } = usePath(path.id);
   const [query, setQuery] = useState('');
   const listId = usePaletteId();
+  // The step's field takes the focus as the step appears (Enter from the other step)
+  const field = useFocusOnMount<HTMLInputElement>();
   const items = useMemo(() => (loaded.status === 'ready' ? pagesFor(loaded.path, query) : []), [loaded, query]);
   const pick = (page: Page) => onPick({ pathId: path.id, pageId: page.id, pageTitle: displayTitle(page) });
   const keys = usePaletteKeys(items, pick);
@@ -29,7 +32,9 @@ export function usePagesStep({ path, onBack, onPick }: { path: PathSummary; onBa
   };
 
   return {
+    field,
     state: { query, items, status: loaded.status, listId, active: keys.active, fieldProps: paletteFieldProps(listId, keys.active, items.length) },
     operations: { setQuery, keyDown, setActive: keys.setActive, pick, back: onBack },
   };
 }
+

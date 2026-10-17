@@ -12,11 +12,12 @@ import { usePathsStep } from './usePathsStep';
 /** The picker's first step: which path, filtered by what is typed, the last one used marked */
 export function PathsStep({ onPick, marked }: { onPick: (path: PathSummary) => void; marked: string | null }) {
   const t = useT();
-  const { state, operations } = usePathsStep({ onPick, marked });
+  const { field, state, operations } = usePathsStep({ onPick, marked });
 
   return (
     <>
       <TextInput
+        ref={field}
         {...state.fieldProps}
         aria-label={t('inbox.picker.findPath')}
         placeholder={t('inbox.picker.findPath')}
