@@ -57,7 +57,7 @@ reopen a component on the same data. Never assemble those providers in a test.
   against Effect upgrades.
 - One registry per test (a new `RegistryProvider` per `render`). `initialValues` is read only when the registry is
   created; changing it later does nothing.
-- `features/**/*.test.tsx` is exempt from the layer bans (`eslint.config.mjs`), so component tests may import
+- `features/**/*.test.{ts,tsx}` is exempt from the layer bans (`eslint.config.mjs`), so component tests may import
   `effect` and `@/infrastructure/*` to build their Layers. Only test files: the same import in a component fails lint.
 - Server Actions are the one module of ours a component test mocks: an action is a call to the Next server, which no
   Layer reaches. `vi.mock('@/useCases/<domain>/actions')` with `ActionResult`s; the action's own answer is tested

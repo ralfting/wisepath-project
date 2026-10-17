@@ -35,8 +35,8 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 
 | Rule | Enforced by |
 |---|---|
-| `app/` and `features/` import `effect`, `effect/*`, `@effect/*` (except `features/**/*.test.tsx`) | ESLint `no-restricted-imports` |
-| `app/` and `features/` import `@/infrastructure/*` (except `features/**/*.test.tsx`) | ESLint |
+| `app/` and `features/` import `effect`, `effect/*`, `@effect/*` (except `features/**/*.test.{ts,tsx}`) | ESLint `no-restricted-imports` |
+| `app/` and `features/` import `@/infrastructure/*` (except `features/**/*.test.{ts,tsx}`) | ESLint |
 | `useCases/` imports `@/features/*` | ESLint |
 | `infrastructure/` imports React, Next, Mantine, `@/features/*`, `@/useCases/*` | ESLint |
 | `app/` or a feature imports another feature's internals (anything but its `index.ts`) | ESLint (`featureInternals`) |

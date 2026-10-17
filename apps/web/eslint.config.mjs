@@ -60,7 +60,7 @@ const config = [
   { files: ['infrastructure/server/ServerLayer.ts'], rules: restrict(processEnv, processEnvDestructured) },
   {
     // Component tests wire the use cases to Memory* Layers (useCases/testing.ts), which needs Effect and infrastructure
-    files: ['features/**/*.test.tsx'],
+    files: ['features/**/*.test.{ts,tsx}'],
     rules: ban(featureInternals),
   },
   {

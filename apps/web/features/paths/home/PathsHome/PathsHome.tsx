@@ -1,60 +1,23 @@
 'use client';
 
-import { useState } from 'react';
 import { Button, Group, Stack, Text, TextInput, Title } from '@mantine/core';
 import { IconFolderPlus, IconPlus, IconSearch } from '@tabler/icons-react';
-import type { PathSummary } from '@wisepath/domain/paths';
-import type { Project } from '@wisepath/domain/projects';
-import { useMovePath, usePaths } from '@/useCases/paths';
-import { useProjects } from '@/useCases/projects';
 import { ProjectNameModal } from './ProjectNameModal/ProjectNameModal';
-import { showToast } from '@/features/inbox/capture';
 import { AppFrame } from '@/features/shell';
 import { useT } from '@/i18n/I18nProvider';
 import { NewMapModal } from './NewMapModal/NewMapModal';
-import { ProjectGroup } from './ProjectGroup';
+import { ProjectGroup } from './ProjectGroup/ProjectGroup';
+import { usePathsHome } from './usePathsHome';
 
 /**
- * PathsHome
  * Where a logged-in learner lands: their paths, one group per project (the
  * default project first, then by name). One card per map (a learning path with
  * its progress and the way back to where they stopped; a study with its size),
  * a search over them, ways to start a map or a project, and each one's menu.
  */
 export function PathsHome() {
-  const paths = usePaths();
-  const projects = useProjects();
   const t = useT();
-  // The project a new path starts in; null while the dialog is closed
-  const [creatingIn, setCreatingIn] = useState<string | null>(null);
-  const [newProject, setNewProject] = useState(false);
-  const [query, setQuery] = useState('');
-  // The card being dragged to another project, if any
-  const [dragging, setDragging] = useState<PathSummary | null>(null);
-  const movePath = useMovePath();
-
-  /** Files a path in another project: shown there at once, back where it was if that fails; Undo moves it back */
-  const move = async (path: PathSummary, to: Project) => {
-    if (path.projectId === to.id) return;
-    const from = projects?.find((p) => p.id === path.projectId);
-    const failed = await movePath(path.id, to.id);
-    showToast({
-      text: failed ? `${t('home.card.moveFailed', { title: path.title })} ${failed}` : t('home.card.moved', { title: path.title, project: to.name }),
-      ...(!failed && from ? { action: { label: t('home.card.undo'), onClick: () => void move({ ...path, projectId: to.id }, from) } } : {}),
-    });
-  };
-
-  const needle = query.trim().toLowerCase();
-  const shown = (paths ?? []).filter(
-    (p) => !needle || p.title.toLowerCase().includes(needle) || p.description?.toLowerCase().includes(needle),
-  );
-  const fallback = projects?.find((p) => p.isDefault) ?? projects?.[0];
-  // A path whose project isn't listed (just deleted elsewhere) shows with the default
-  const inProject = (project: Project) =>
-    shown.filter((p) => p.projectId === project.id || (project === fallback && !projects?.some((q) => q.id === p.projectId)));
-  const groups = (projects ?? []).map((project) => ({ project, paths: inProject(project) }));
-  // While searching, a project with nothing matching is left out
-  const visible = needle ? groups.filter((g) => g.paths.length > 0) : groups;
+  const { state, operations } = usePathsHome();
 
   return (
     <AppFrame crumbs={[{ label: t('home.title') }]}>
@@ -67,25 +30,25 @@ export function PathsHome() {
             <Text c="dimmed">{t('home.intro')}</Text>
           </Stack>
           <Group gap="sm" wrap="nowrap">
-            {paths && paths.length > 0 && (
+            {state.hasPaths && (
               <TextInput
                 type="search"
                 placeholder={t('home.search')}
                 aria-label={t('home.search')}
                 leftSection={<IconSearch size={16} />}
-                value={query}
-                onChange={(e) => setQuery(e.currentTarget.value)}
-                onKeyDown={(e) => e.key === 'Escape' && setQuery('')}
+                value={state.query}
+                onChange={(event) => operations.setQuery(event.currentTarget.value)}
+                onKeyDown={(event) => event.key === 'Escape' && operations.clearQuery()}
                 w={{ base: '100%', xs: 240 }}
               />
             )}
-            <Button variant="default" leftSection={<IconFolderPlus size={16} />} onClick={() => setNewProject(true)} style={{ flexShrink: 0 }}>
+            <Button variant="default" leftSection={<IconFolderPlus size={16} />} onClick={operations.openNewProject} style={{ flexShrink: 0 }}>
               {t('home.newProject')}
             </Button>
             <Button
               leftSection={<IconPlus size={16} />}
-              onClick={() => fallback && setCreatingIn(fallback.id)}
-              disabled={!fallback}
+              onClick={() => state.fallback && operations.newPathIn(state.fallback.id)}
+              disabled={!state.fallback}
               style={{ flexShrink: 0 }}
             >
               {t('home.newPath')}
@@ -93,28 +56,28 @@ export function PathsHome() {
           </Group>
         </Group>
 
-        {paths === null || projects === null ? null : needle && visible.length === 0 ? (
-          <Text c="dimmed">{t('home.noMatch', { query: query.trim() })}</Text>
+        {!state.loaded ? null : state.searching && state.groups.length === 0 ? (
+          <Text c="dimmed">{t('home.noMatch', { query: state.query.trim() })}</Text>
         ) : (
-          visible.map(({ project, paths: inThis }) => (
+          state.groups.map(({ project, paths: inThis }) => (
             <ProjectGroup
               key={project.id}
               project={project}
               paths={inThis}
-              projects={projects}
-              fallback={fallback?.name ?? ''}
-              onNewPath={() => setCreatingIn(project.id)}
-              dragging={dragging}
-              onDrag={setDragging}
-              onMove={move}
+              projects={state.projects ?? []}
+              fallback={state.fallback?.name ?? ''}
+              onNewPath={() => operations.newPathIn(project.id)}
+              dragging={state.dragging}
+              onDrag={operations.setDragging}
+              onMove={operations.move}
             />
           ))
         )}
       </Stack>
-      {projects && (
-        <NewMapModal opened={creatingIn !== null} projectId={creatingIn} projects={projects} onClose={() => setCreatingIn(null)} />
+      {state.projects && (
+        <NewMapModal opened={state.creatingIn !== null} projectId={state.creatingIn} projects={state.projects} onClose={operations.closeNewPath} />
       )}
-      <ProjectNameModal opened={newProject} onClose={() => setNewProject(false)} />
+      <ProjectNameModal opened={state.newProject} onClose={operations.closeNewProject} />
     </AppFrame>
   );
 }
