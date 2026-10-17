@@ -73,6 +73,10 @@ export const paths = pgTable(
       .notNull()
       .default('study'),
     rootPageId: text('root_page_id').notNull(),
+    /** 'private' (its owner and members) or 'public' (anyone with the link reads it) */
+    visibility: text({ enum: ['private', 'public'] })
+      .notNull()
+      .default('private'),
     createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -112,6 +116,33 @@ export const pages = pgTable(
     index('pages_title_search_idx').using('gin', sql`wp_fold(${t.title}) gin_trgm_ops`),
     index('pages_content_search_idx').using('gin', sql`wp_fold(${t.content}) gin_trgm_ops`),
     foreignKey({ name: 'pages_path_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
+ * People a path is shared with: invited by its owner to read or edit, or who took a public path to study (as
+ * viewers). The owner is never a member of their own path.
+ */
+export const pathMembers = pgTable(
+  'path_members',
+  {
+    pathId: text('path_id').notNull(),
+    userId: text('user_id').notNull(),
+    role: text({ enum: ['viewer', 'editor'] }).notNull(),
+    source: text({ enum: ['invited', 'taken'] }).notNull(),
+    createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    primaryKey({ name: 'path_members_pkey', columns: [t.pathId, t.userId] }),
+    index('path_members_user_id_idx').on(t.userId),
+    foreignKey({ name: 'path_members_path_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({ name: 'path_members_user_id_fkey', columns: [t.userId], foreignColumns: [users.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -212,6 +243,12 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
 export const pathsRelations = relations(paths, ({ one, many }) => ({
   project: one(projects, { fields: [paths.projectId], references: [projects.id] }),
   pages: many(pages),
+  members: many(pathMembers),
+}));
+
+export const pathMembersRelations = relations(pathMembers, ({ one }) => ({
+  path: one(paths, { fields: [pathMembers.pathId], references: [paths.id] }),
+  user: one(users, { fields: [pathMembers.userId], references: [users.id] }),
 }));
 
 export const pagesRelations = relations(pages, ({ one, many }) => ({

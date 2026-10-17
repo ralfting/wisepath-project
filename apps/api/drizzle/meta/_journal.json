@@ -57,6 +57,13 @@
       "when": 1792265495002,
       "tag": "0007_page_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792265775473,
+      "tag": "0008_path_members",
+      "breakpoints": true
     }
   ]
 }
