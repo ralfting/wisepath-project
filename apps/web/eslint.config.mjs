@@ -16,6 +16,11 @@ const infrastructure = {
 const features = { group: ['@/features', '@/features/*'], message: 'Lower layers must not depend on features.' };
 const useCases = { group: ['@/useCases', '@/useCases/*'], message: 'Infrastructure must not depend on useCases.' };
 const react = { group: ['react', 'react-dom', 'next', 'next/*', '@mantine/*'], message: 'Infrastructure is UI-free.' };
+/** A feature is features/<domain>/<feature> for paths and inbox, features/<feature> otherwise; others see only its index.ts */
+const featureInternals = {
+  regex: '^@/features/((paths|inbox)/[^/]+|auth|search|help|shell)/.+',
+  message: "Import another feature through its index.ts (export what you need there); inside a feature, use relative paths.",
+};
 const validation = {
   group: ['zod', 'zod/*', 'yup', 'valibot', 'io-ts', 'io-ts/*', 'arktype', 'joi', 'superstruct'],
   message: 'Effect Schema is the only validation library.',
@@ -41,8 +46,8 @@ const config = [
   { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   { rules: { ...ban(), ...restrict(processEnv, processEnvDestructured), 'react/no-danger': 'error' } },
-  { files: ['features/**'], rules: ban(effect, infrastructure) },
-  { files: ['app/**'], rules: ban(effect, infrastructure) },
+  { files: ['features/**'], rules: ban(effect, infrastructure, featureInternals) },
+  { files: ['app/**'], rules: ban(effect, infrastructure, featureInternals) },
   { files: ['useCases/**'], rules: ban(features) },
   { files: ['infrastructure/**'], rules: { ...ban(features, useCases, react), ...restrict(processEnv, processEnvDestructured, runEffect, runEffectBare) } },
   // The config modules (and Next's config) read env vars
@@ -53,7 +58,7 @@ const config = [
   {
     // Component tests wire the use cases to Memory* Layers (useCases/testing.ts), which needs Effect and infrastructure
     files: ['features/**/*.test.tsx'],
-    rules: ban(),
+    rules: ban(featureInternals),
   },
   {
     // Service.use(...) in Effect programs is not a React hook

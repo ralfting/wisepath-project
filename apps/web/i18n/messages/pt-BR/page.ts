@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { page as en } from '../en/page';
+import type { Shape } from '@/i18n/format';
+import type { page as en } from '@/i18n/messages/en/page';
 
 /** Mensagens da área page, em português do Brasil */
 export const page = {

@@ -6,7 +6,7 @@ import { Paper, Text, TextInput } from '@mantine/core';
 import { IconFilePlus } from '@tabler/icons-react';
 import type { Page } from '@wisepath/domain/paths';
 import { findPageByTitle } from '@wisepath/domain/paths';
-import { displayTitle } from '@/features/shared/title';
+import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './BranchPrompt.module.css';
 

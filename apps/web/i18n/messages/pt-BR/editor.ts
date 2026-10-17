@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { editor as en } from '../en/editor';
+import type { Shape } from '@/i18n/format';
+import type { editor as en } from '@/i18n/messages/en/editor';
 
 /** Mensagens da área editor, em português do Brasil */
 export const editor = {

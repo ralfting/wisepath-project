@@ -7,7 +7,7 @@ import { IconCheck, IconPencil } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { PageColor, PageIcon, lookOf } from '@wisepath/domain/paths';
 import type { PathActions } from '@/useCases/paths';
-import { PageGlyph, shade } from '@/features/shared/look';
+import { PageGlyph, shade } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PageLook.module.css';
 

@@ -8,9 +8,9 @@ import type { PathSummary } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { usePath, usePaths } from '@/useCases/paths';
 import type { PageTarget } from '@/useCases/inbox';
-import { PageGlyph } from '@/features/shared/look';
-import { displayTitle } from '@/features/shared/title';
-import { CaptureBox, PaletteOptions, lastPathId, paletteFieldProps, usePaletteId, usePaletteKeys } from '@/features/capture';
+import { PageGlyph } from '@/features/paths/path';
+import { displayTitle } from '@/i18n/title';
+import { CaptureBox, PaletteOptions, lastPathId, paletteFieldProps, usePaletteId, usePaletteKeys } from '@/features/inbox/capture';
 import classes from './PagePicker.module.css';
 
 /**

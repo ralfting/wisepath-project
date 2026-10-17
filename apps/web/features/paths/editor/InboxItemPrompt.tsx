@@ -8,7 +8,7 @@ import { formatTime } from '@wisepath/domain/inbox';
 import type { InboxItem } from '@wisepath/domain/inbox';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { relativeTime } from '@/i18n/dates';
-import { PaletteOptions, paletteFieldProps, usePaletteId, usePaletteKeys } from '@/features/capture';
+import { PaletteOptions, paletteFieldProps, usePaletteId, usePaletteKeys } from '@/features/inbox/capture';
 import classes from './MarkdownEditor.module.css';
 
 /**

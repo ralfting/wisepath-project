@@ -1,4 +1,4 @@
-import { PageDrawer } from '@/features/page';
+import { PageDrawer } from '@/features/paths/page';
 
 interface PageDrawerRouteProps {
   params: Promise<{ pathId: string; pageId: string }>;

@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { search as en } from '../en/search';
+import type { Shape } from '@/i18n/format';
+import type { search as en } from '@/i18n/messages/en/search';
 
 /** Mensagens da busca em todas as trilhas (a paleta do ⌘P), em português do Brasil */
 export const search = {

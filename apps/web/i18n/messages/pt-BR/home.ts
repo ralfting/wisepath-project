@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { home as en } from '../en/home';
+import type { Shape } from '@/i18n/format';
+import type { home as en } from '@/i18n/messages/en/home';
 
 /** Mensagens da área home (a lista de trilhas, o tipo de uma trilha, o salvamento), em português do Brasil */
 export const home = {

@@ -8,7 +8,7 @@ import { Alert, Anchor, Button, Paper, PasswordInput, Stack, Text, TextInput, Ti
 import { signupFormSchema, useSignup } from '@/useCases/auth';
 import { useDomainMessage } from '@/useCases/validation';
 import { useT } from '@/i18n/I18nProvider';
-import { fieldError } from '../shared/fieldError';
+import { fieldError } from '@/shared/forms';
 
 /** Create an account, then go to the paths page */
 export function SignupForm() {

@@ -5,8 +5,8 @@ import { ScrollArea, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/cor
 import { IconPlus } from '@tabler/icons-react';
 import type { MapNode, Path } from '@wisepath/domain/paths';
 import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths';
-import { displayTitle } from '@/features/shared/title';
-import { PageGlyph } from '@/features/shared/look';
+import { displayTitle } from '@/i18n/title';
+import { PageGlyph } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import { PageIcon, StatusIcon } from './MindMap';
 import classes from './MapList.module.css';

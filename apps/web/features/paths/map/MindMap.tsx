@@ -15,9 +15,9 @@ import {
 } from '@tabler/icons-react';
 import type { Page, PageColor, Path } from '@wisepath/domain/paths';
 import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths';
-import { displayTitle } from '@/features/shared/title';
-import { PageGlyph, shade } from '@/features/shared/look';
-import { RELATED_HOVER_EVENT, relatedFromEvent } from '@/features/shared/relatedHover';
+import { displayTitle } from '@/i18n/title';
+import { PageGlyph, shade } from '@/features/paths/path';
+import { RELATED_HOVER_EVENT, relatedFromEvent } from './relatedHover';
 import { useWindowEvent } from '@mantine/hooks';
 import { useT } from '@/i18n/I18nProvider';
 import type { TranslationKey } from '@/i18n/I18nProvider';

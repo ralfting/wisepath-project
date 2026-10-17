@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { inbox as en } from '../en/inbox';
+import type { Shape } from '@/i18n/format';
+import type { inbox as en } from '@/i18n/messages/en/inbox';
 
 /** Mensagens da Caixa de entrada e da captura rápida, em português do Brasil */
 export const inbox = {

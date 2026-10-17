@@ -1,4 +1,4 @@
-import { PageEditor } from '@/features/page';
+import { PageEditor } from '@/features/paths/page';
 
 interface PageEditorPageProps {
   params: Promise<{ pathId: string; pageId: string }>;

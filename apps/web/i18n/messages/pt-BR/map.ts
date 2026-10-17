@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { map as en } from '../en/map';
+import type { Shape } from '@/i18n/format';
+import type { map as en } from '@/i18n/messages/en/map';
 
 /** Mensagens da área map, em português do Brasil */
 export const map = {

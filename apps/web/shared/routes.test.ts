@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { afterLogin, loginHref } from './routes';
+import { afterLogin, loginHref } from '@/shared/routes';
 
 describe('after logging in', () => {
   it('goes back to where the learner was going', () => {

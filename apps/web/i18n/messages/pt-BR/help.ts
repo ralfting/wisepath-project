@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { help as en } from '../en/help';
+import type { Shape } from '@/i18n/format';
+import type { help as en } from '@/i18n/messages/en/help';
 
 /** Mensagens da Ajuda (o que posso fazer aqui), em português do Brasil; a marcação é a mesma do inglês */
 export const help = {

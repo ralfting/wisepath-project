@@ -30,12 +30,12 @@ import {
 import type { Icon } from '@tabler/icons-react';
 import type { Page, Path, Relation } from '@wisepath/domain/paths';
 import { branchProgress, lookOf, mapTree, trailTo, pathProgress, relatedPages } from '@wisepath/domain/paths';
-import { displayTitle } from '@/features/shared/title';
+import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
-import { PageGlyph } from '@/features/shared/look';
-import { pointAtRelated } from '@/features/shared/relatedHover';
+import { PageGlyph } from '@/features/paths/path';
+import { pointAtRelated } from '@/features/paths/map';
 import { PageContent, PageTitleInput } from './PageContent';
-import type { EditorFocus } from '@/features/editor/MarkdownEditor';
+import type { EditorFocus } from '@/features/paths/editor';
 import type { PageActions } from './PageContent';
 import { DeletePageModal } from './DeletePageModal';
 import { StudiedToggle } from './StudiedToggle';

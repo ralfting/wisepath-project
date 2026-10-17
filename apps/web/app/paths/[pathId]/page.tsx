@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { PathMap } from '@/features/map';
+import { PathMap } from '@/features/paths/map';
 import { serverT } from '@/i18n/server';
 import { pathTitle } from '@/useCases/paths/queries';
 

@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { common as en } from '../en/common';
+import type { Shape } from '@/i18n/format';
+import type { common as en } from '@/i18n/messages/en/common';
 
 /** Mensagens usadas em todo o app, em português do Brasil */
 export const common = {

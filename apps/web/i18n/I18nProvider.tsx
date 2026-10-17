@@ -2,14 +2,14 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { translate } from './format';
-import type { MessageKey, MessageTree, Values } from './format';
-import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, matchLocale } from './locales';
-import type { Locale } from './locales';
-import { en } from './messages/en';
-import type { Messages } from './messages/en';
-import { ptBR } from './messages/pt-BR';
-import { setUntitledLabel } from '@/features/shared/title';
+import { translate } from '@/i18n/format';
+import type { MessageKey, MessageTree, Values } from '@/i18n/format';
+import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale, matchLocale } from '@/i18n/locales';
+import type { Locale } from '@/i18n/locales';
+import { en } from '@/i18n/messages/en';
+import type { Messages } from '@/i18n/messages/en';
+import { ptBR } from '@/i18n/messages/pt-BR';
+import { setUntitledLabel } from '@/i18n/title';
 
 /**
  * I18nProvider

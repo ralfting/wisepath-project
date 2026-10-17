@@ -5,11 +5,11 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
 import { Anchor, Drawer, Stack, Text, Title } from '@mantine/core';
-import { PathGate } from '@/features/paths/PathGate';
+import { PathGate } from '@/features/paths/path';
 import { openPageId, pageHref, swapOpenPage } from '@/shared/routes';
 import { PagePanel } from './PagePanel';
 import { PageSheet, pageCrumbs } from './PageEditor';
-import { CrumbTrail, TopBar } from '@/features/shell/AppFrame';
+import { CrumbTrail, TopBar } from '@/features/shell';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PagePanel.module.css';
 

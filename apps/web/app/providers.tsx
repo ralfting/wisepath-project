@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { cssVariablesResolver, theme } from '@/theme';
 import { UseCasesProvider } from '@/useCases/UseCasesProvider';
 import { useSession } from '@/useCases/auth';
-import { ToastHost } from '@/features/capture/Toast';
+import { ToastHost } from '@/features/inbox/capture';
 import { I18nProvider, useLocale } from '@/i18n/I18nProvider';
 import type { Locale } from '@/i18n/locales';
 

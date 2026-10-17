@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { render, translate } from './format';
-import { fromAcceptLanguage, matchLocale } from './locales';
-import { relativeTime } from './dates';
+import { render, translate } from '@/i18n/format';
+import { fromAcceptLanguage, matchLocale } from '@/i18n/locales';
+import { relativeTime } from '@/i18n/dates';
 
 describe('messages', () => {
   const en = { home: { pages: { one: '{count} page', other: '{count} pages' }, hello: 'Hello, {name}' } };

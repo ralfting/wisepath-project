@@ -8,17 +8,17 @@ import { useClickOutside, useHotkeys, useMediaQuery, useWindowEvent } from '@man
 import { IconDots, IconLayoutList, IconSearch, IconSitemap, IconX } from '@tabler/icons-react';
 import type { Path } from '@wisepath/domain/paths';
 import { lookOf, mapTree, nextPage, pagesInMapOrder, pathProgress } from '@wisepath/domain/paths';
-import { displayTitle } from '@/features/shared/title';
-import { PathGate } from '@/features/paths/PathGate';
-import { SaveStatus } from '@/features/paths/SaveStatus';
+import { displayTitle } from '@/i18n/title';
+import { PathGate } from '@/features/paths/path';
+import { SaveStatus } from '@/features/paths/path';
 import type { PathActions, SaveState } from '@/useCases/paths';
-import { KindSwitchItem } from '@/features/paths/PathKind';
-import { AppFrame } from '@/features/shell/AppFrame';
+import { KindSwitchItem } from '@/features/paths/path';
+import { AppFrame } from '@/features/shell';
 import { useT } from '@/i18n/I18nProvider';
-import { PageGlyph } from '@/features/shared/look';
-import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
+import { PageGlyph } from '@/features/paths/path';
+import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/paths/page';
 import { openPageId, pageHref, swapOpenPage } from '@/shared/routes';
-import { OPEN_SEARCH_EVENT } from '@/features/editor/extensions';
+import { OPEN_SEARCH_EVENT } from '@/features/paths/editor';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';
 import { MapList } from './MapList';
@@ -26,7 +26,7 @@ import { MapOrphans } from './MapOrphans';
 import { ContinueButton } from './ContinueButton';
 import { MapSearchResults, SEARCH_RESULTS_ID } from './MapSearchResults';
 import { BranchPrompt } from './BranchPrompt';
-import { showToast } from '@/features/capture';
+import { showToast } from '@/features/inbox/capture';
 import classes from './PathMap.module.css';
 
 /**

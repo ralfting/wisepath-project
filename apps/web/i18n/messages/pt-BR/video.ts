@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { video as en } from '../en/video';
+import type { Shape } from '@/i18n/format';
+import type { video as en } from '@/i18n/messages/en/video';
 
 /** Mensagens da área video, em português do Brasil */
 export const video = {

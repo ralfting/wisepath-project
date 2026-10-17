@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { PathsHome } from '@/features/paths';
+import { PathsHome } from '@/features/paths/home';
 import { serverT } from '@/i18n/server';
 
 export async function generateMetadata(): Promise<Metadata> {

@@ -9,7 +9,7 @@ import { useT } from '@/i18n/I18nProvider';
 import { useLinkPreviewLoader, usePath } from '@/useCases/paths';
 import { useCapture, useFileItem } from '@/useCases/inbox';
 import type { CaptureInput, PageTarget } from '@/useCases/inbox';
-import { displayTitle } from '@/features/shared/title';
+import { displayTitle } from '@/i18n/title';
 import { CaptureBox } from './CaptureBox';
 import { useModEnter } from './keys';
 import { isVideo, pastedAddress, startOf } from './pasted';

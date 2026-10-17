@@ -1,5 +1,5 @@
-import type { Shape } from '../../format';
-import type { shell as en } from '../en/shell';
+import type { Shape } from '@/i18n/format';
+import type { shell as en } from '@/i18n/messages/en/shell';
 
 /** Mensagens da moldura do app (barra lateral, barra do topo, conta), em português do Brasil */
 export const shell = {

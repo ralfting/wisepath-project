@@ -3,7 +3,7 @@
 import { Button, Group, RingProgress, Text, Tooltip } from '@mantine/core';
 import { IconArrowRight, IconCircleCheckFilled } from '@tabler/icons-react';
 import type { Page } from '@wisepath/domain/paths';
-import { displayTitle } from '@/features/shared/title';
+import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './ContinueButton.module.css';
 

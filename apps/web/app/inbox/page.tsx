@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { InboxPage } from '@/features/inbox';
+import { InboxPage } from '@/features/inbox/list';
 import { serverT } from '@/i18n/server';
 
 export async function generateMetadata(): Promise<Metadata> {
