@@ -97,6 +97,7 @@ export const pages = pgTable(
     /** lower(trim(title)), or null while the page has no title: keeps titles unique per map */
     titleKey: text('title_key'),
     content: text().notNull().default(''),
+    /** No longer read or written: marks moved to page_progress. Dropped once the API that reads it is gone */
     studied: boolean().notNull().default(false),
     module: boolean(),
     color: text(),
@@ -111,6 +112,31 @@ export const pages = pgTable(
     index('pages_title_search_idx').using('gin', sql`wp_fold(${t.title}) gin_trgm_ops`),
     index('pages_content_search_idx').using('gin', sql`wp_fold(${t.content}) gin_trgm_ops`),
     foreignKey({ name: 'pages_path_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
+ * The pages a learner marked studied. Progress is each learner's own, on their paths and on anyone else's,
+ * and never shown to another (docs/plans/14-public-and-shared-paths.md).
+ */
+export const pageProgress = pgTable(
+  'page_progress',
+  {
+    userId: text('user_id').notNull(),
+    pathId: text('path_id').notNull(),
+    pageId: text('page_id').notNull(),
+    studiedAt: timestamp('studied_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    primaryKey({ name: 'page_progress_pkey', columns: [t.userId, t.pathId, t.pageId] }),
+    foreignKey({ name: 'page_progress_user_id_fkey', columns: [t.userId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({ name: 'page_progress_page_fkey', columns: [t.pathId, t.pageId], foreignColumns: [pages.pathId, pages.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -188,6 +214,11 @@ export const pathsRelations = relations(paths, ({ one, many }) => ({
   pages: many(pages),
 }));
 
-export const pagesRelations = relations(pages, ({ one }) => ({
+export const pagesRelations = relations(pages, ({ one, many }) => ({
   path: one(paths, { fields: [pages.pathId], references: [paths.id] }),
+  progress: many(pageProgress),
+}));
+
+export const pageProgressRelations = relations(pageProgress, ({ one }) => ({
+  page: one(pages, { fields: [pageProgress.pathId, pageProgress.pageId], references: [pages.pathId, pages.id] }),
 }));

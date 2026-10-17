@@ -11,24 +11,27 @@ import type { ProjectId } from '@wisepath/domain/projects';
 export class PathStore extends Context.Service<
   PathStore,
   {
-    /** The owner's maps (those in their projects), oldest first, with the project each is in */
+    /** The owner's maps (those in their projects), oldest first, with the project each is in and the owner's marks */
     readonly listOwned: (ownerId: UserId) => Effect.Effect<ReadonlyArray<{ readonly path: Path; readonly projectId: ProjectId }>>;
 
-    /** One of the owner's maps; `lock` holds it until the transaction ends, so commands on it run one at a time */
+    /**
+     * One of the owner's maps, with the owner's marks; `lock` holds it until the transaction ends, so commands on it
+     * run one at a time
+     */
     readonly find: (
       ownerId: UserId,
       id: PathId,
       options?: { readonly lock?: boolean },
     ) => Effect.Effect<Option.Option<Path>>;
 
-    /** Stores a new map in a project; false when its id is already used */
-    readonly insert: (projectId: ProjectId, path: Path) => Effect.Effect<boolean>;
+    /** Stores a new map in a project, its studied pages as the learner's marks; false when its id is already used */
+    readonly insert: (learnerId: UserId, projectId: ProjectId, path: Path) => Effect.Effect<boolean>;
 
     /** Files the map in another project */
     readonly move: (id: PathId, projectId: ProjectId) => Effect.Effect<void>;
 
-    /** Writes what changed between two versions of a map */
-    readonly save: (before: Path, after: Path) => Effect.Effect<void>;
+    /** Writes what changed between two versions of a map; changed studied marks are the learner's */
+    readonly save: (learnerId: UserId, before: Path, after: Path) => Effect.Effect<void>;
 
     readonly remove: (ownerId: UserId, id: PathId) => Effect.Effect<void>;
 

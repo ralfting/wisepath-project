@@ -49,7 +49,8 @@ User 1──< PageProgress >── Page                          (studied marks,
   - table `path_members` (`path_id` -> paths, cascade; `user_id` -> users, cascade; `role` `'viewer' | 'editor'`;
     `source` `'invited' | 'taken'`; `created_at`), primary key `(path_id, user_id)`, index on `user_id`;
   - table `page_progress` (`user_id` -> users, cascade; `page_id` -> pages, cascade; `studied_at`), primary key
-    `(user_id, page_id)`; filled from `pages.studied` with each path's owner, then `pages.studied` is dropped.
+    `(user_id, path_id, page_id)`; filled from `pages.studied` with each path's owner. `pages.studied` is dropped in
+    a later release (step 10).
 - **Domain** (`packages/domain/src/paths`):
   - `PathVisibility`, `ShareRole`, `PathAccess = 'owner' | 'editor' | 'viewer' | 'none'` as `Schema.Literals`;
   - `accessOf(path, viewer)`: owner is owner, a membership gives its role, public gives viewer, else none; and
@@ -99,6 +100,8 @@ User 1──< PageProgress >── Page                          (studied marks,
 7. Web: Share dialog and its actions; "From others" on My paths, with Leave.
 8. Web: public page, Study this path, middleware, metadata.
 9. Docs: `docs/FEATURES.md`, README endpoints.
+10. Once step 1 is deployed: a migration that drops `pages.studied` ([nest.md](../../.claude/rules/nest.md): never drop in the
+    release that stops reading it).
 
 ## Checks
 

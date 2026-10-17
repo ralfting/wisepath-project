@@ -5,7 +5,7 @@ import type { Page, PathId } from '@wisepath/domain/paths';
 import type { UserId } from '@wisepath/domain/auth';
 import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pages, paths, projects } from '../../shared/infrastructure/database/schema';
+import { pageProgress, pages, paths, projects } from '../../shared/infrastructure/database/schema';
 import { PathStore } from '../application/PathStore';
 
 /**
@@ -13,9 +13,10 @@ import { PathStore } from '../application/PathStore';
  * domain's Path schema, so a row the domain would not accept fails loudly.
  */
 
-type PathRow = typeof paths.$inferSelect & { readonly pages: ReadonlyArray<typeof pages.$inferSelect> };
+type PageRow = typeof pages.$inferSelect & { readonly progress: ReadonlyArray<unknown> };
+type PathRow = typeof paths.$inferSelect & { readonly pages: ReadonlyArray<PageRow> };
 
-/** The map as the domain sees it: no nulls, ISO dates */
+/** The map as the domain sees it, studied as the learner who reads it marked it: no nulls, ISO dates */
 const toDomain = (row: PathRow) =>
   Schema.decodeUnknownEffect(Path)({
     id: row.id,
@@ -27,7 +28,7 @@ const toDomain = (row: PathRow) =>
       id: page.id,
       title: page.title,
       content: page.content,
-      studied: page.studied,
+      studied: page.progress.length > 0,
       updatedAt: page.updatedAt.toISOString(),
       ...(page.module !== null ? { module: page.module } : {}),
       ...(page.color !== null ? { color: page.color } : {}),
@@ -38,12 +39,11 @@ const toDomain = (row: PathRow) =>
 /** Keeps titles unique per map in the database too; untitled pages don't count */
 const titleKey = (title: string) => title.trim().toLowerCase() || null;
 
-/** A page's columns, except the keys and its position */
+/** A page's columns, except the keys and its position; studied is the learner's, in page_progress */
 const pageColumns = (page: Page) => ({
   title: page.title,
   titleKey: titleKey(page.title),
   content: page.content,
-  studied: page.studied,
   module: page.module ?? null,
   color: page.color ?? null,
   icon: page.icon ?? null,
@@ -54,14 +54,16 @@ const samePage = (a: Page, b: Page) =>
   a === b ||
   (a.title === b.title &&
     a.content === b.content &&
-    a.studied === b.studied &&
     a.updatedAt === b.updatedAt &&
     a.module === b.module &&
     a.color === b.color &&
     a.icon === b.icon);
 
-/** Pages in the order they were added */
-const pagesInOrder = { orderBy: [asc(pages.position), asc(pages.id)] };
+/** Pages in the order they were added, with the learner's mark when they studied it */
+const pagesFor = (learnerId: UserId) => ({
+  orderBy: [asc(pages.position), asc(pages.id)],
+  with: { progress: { columns: { pageId: true }, where: eq(pageProgress.userId, learnerId) } },
+});
 
 export const DrizzlePathStore = Layer.effect(
   PathStore,
@@ -76,6 +78,28 @@ export const DrizzlePathStore = Layer.effect(
     };
 
     /** A path is the owner's when its project is */
+    /** Writes the learner's marks that differ between two versions of a map; its pages already stored */
+    const saveProgress = (learnerId: UserId, pathId: PathId, before: ReadonlyArray<Page>, after: ReadonlyArray<Page>) =>
+      Effect.gen(function* () {
+        const was = new Set(before.filter((p) => p.studied).map((p) => p.id));
+        const marked = after.filter((p) => p.studied && !was.has(p.id)).map((p) => p.id);
+        const unmarked = after.filter((p) => !p.studied && was.has(p.id)).map((p) => p.id);
+
+        if (marked.length > 0) {
+          const rows = marked.map((pageId) => ({ userId: learnerId, pathId, pageId }));
+          yield* run(db.insert(pageProgress).values(rows).onConflictDoNothing());
+        }
+        if (unmarked.length > 0) {
+          yield* run(
+            db
+              .delete(pageProgress)
+              .where(
+                and(eq(pageProgress.userId, learnerId), eq(pageProgress.pathId, pathId), inArray(pageProgress.pageId, unmarked)),
+              ),
+          );
+        }
+      });
+
     const ownedBy = (ownerId: UserId) =>
       inArray(paths.projectId, db.select({ id: projects.id }).from(projects).where(eq(projects.ownerId, ownerId)));
 
@@ -84,7 +108,7 @@ export const DrizzlePathStore = Layer.effect(
         db.query.paths.findMany({
           where: ownedBy(ownerId),
           orderBy: [asc(paths.createdAt), asc(paths.id)],
-          with: { pages: pagesInOrder },
+          with: { pages: pagesFor(ownerId) },
         }),
       );
 
@@ -104,13 +128,13 @@ export const DrizzlePathStore = Layer.effect(
         yield* run(db.select({ id: paths.id }).from(paths).where(owned).for('update'));
       }
 
-      const row = yield* run(db.query.paths.findFirst({ where: owned, with: { pages: pagesInOrder } }));
+      const row = yield* run(db.query.paths.findFirst({ where: owned, with: { pages: pagesFor(ownerId) } }));
       if (!row) return Option.none<Path>();
 
       return Option.some(yield* toDomain(row));
     });
 
-    const insert = Effect.fn('PathStore.insert')(function* (projectId: ProjectId, path: Path) {
+    const insert = Effect.fn('PathStore.insert')(function* (learnerId: UserId, projectId: ProjectId, path: Path) {
       return yield* transaction(
         Effect.gen(function* () {
           const created = yield* run(
@@ -130,12 +154,13 @@ export const DrizzlePathStore = Layer.effect(
           if (created.length === 0) return false;
 
           yield* insertPages(path.id, path.pages, 0);
+          yield* saveProgress(learnerId, path.id, [], path.pages);
           return true;
         }),
       );
     });
 
-    const save = Effect.fn('PathStore.save')(function* (before: Path, after: Path) {
+    const save = Effect.fn('PathStore.save')(function* (learnerId: UserId, before: Path, after: Path) {
       yield* transaction(
         Effect.gen(function* () {
           if (before.title !== after.title || before.description !== after.description || before.kind !== after.kind) {
@@ -177,6 +202,8 @@ export const DrizzlePathStore = Layer.effect(
             );
             yield* insertPages(after.id, added, next);
           }
+
+          yield* saveProgress(learnerId, after.id, before.pages, after.pages);
         }),
       );
     });

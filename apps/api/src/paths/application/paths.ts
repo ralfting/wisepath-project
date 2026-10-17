@@ -23,7 +23,6 @@ export const listPaths = Effect.fn('paths.list')(function* () {
   const user = yield* CurrentUser;
   const store = yield* PathStore;
 
-
   const paths = yield* store.listOwned(user.id);
   return paths.map(({ path, projectId }) => summarize(path, projectId));
 });
@@ -46,7 +45,7 @@ export const createPath = Effect.fn('paths.create')(function* (command: NewPath)
   yield* ownProject(command.projectId);
 
   const path = startPath(command);
-  if (yield* store.insert(command.projectId, path)) return path;
+  if (yield* store.insert(user.id, command.projectId, path)) return path;
 
   const existing = yield* store.find(user.id, command.id);
   if (Option.isSome(existing)) return existing.value;
@@ -73,7 +72,7 @@ const change = <E>(id: PathId, apply: (path: Path) => Effect.Effect<Path, E>) =>
         if (Option.isNone(found)) return yield* new PathNotFound({ pathId: id });
 
         const after = yield* apply(found.value);
-        if (after !== found.value) yield* store.save(found.value, after);
+        if (after !== found.value) yield* store.save(user.id, found.value, after);
 
         return after;
       }),

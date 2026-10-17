@@ -49,10 +49,10 @@ layer(TestDatabase)('Database', (it) => {
 
       assert.strictEqual(found?.title, 'Rust');
       assert.deepStrictEqual(
-        found?.pages.map((p) => [p.id, p.title, p.studied]),
+        found?.pages.map((p) => [p.id, p.title, p.module]),
         [
-          ['root', 'Rust', false],
-          ['b', 'Borrowing', false],
+          ['root', 'Rust', null],
+          ['b', 'Borrowing', null],
         ],
       );
       assert.strictEqual(found?.pages[1].updatedAt.toISOString(), '2026-01-02T00:00:00.000Z');
