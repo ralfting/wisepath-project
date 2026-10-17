@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useIsMac } from '@/ui/platform';
 
 /**
  * Keys
@@ -27,9 +28,7 @@ export function useOnOpenCapture(open: () => void) {
 
 /** The shortcut as this computer writes it; the Mac's until the browser says otherwise, so the server render matches */
 export function useCaptureKeys(): string {
-  const [mac, setMac] = useState(true);
-  useEffect(() => setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)), []);
-  return mac ? '⌘⇧Space' : 'Ctrl+Shift+Space';
+  return useIsMac() ? '⌘⇧Space' : 'Ctrl+Shift+Space';
 }
 
 /** ⌘Enter, or Ctrl+Enter off a Mac */

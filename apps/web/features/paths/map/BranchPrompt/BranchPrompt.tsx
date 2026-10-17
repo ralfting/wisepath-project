@@ -9,6 +9,7 @@ import { findPageByTitle } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './BranchPrompt.module.css';
+import { useIsMac } from '@/ui/platform';
 
 /**
  * BranchPrompt
@@ -17,7 +18,6 @@ import classes from './BranchPrompt.module.css';
  * A name another page has links that page instead, and says so before Enter.
  */
 
-const MOD = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
 
 export function BranchPrompt({
   parent,
@@ -36,6 +36,7 @@ export function BranchPrompt({
   onClose: () => void;
 }) {
   const t = useT();
+  const mod = useIsMac() ? '⌘' : 'Ctrl+';
   const [name, setName] = useState('');
   const title = name.trim();
   const existing = title ? findPageByTitle(pages, title) : undefined;
@@ -44,7 +45,7 @@ export function BranchPrompt({
     ? t('map.branch.isThis')
     : existing
       ? t('map.branch.exists', { title: displayTitle(existing) })
-      : t('map.branch.hint', { mod: MOD });
+      : t('map.branch.hint', { mod });
 
   return (
     <Paper

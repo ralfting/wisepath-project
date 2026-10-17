@@ -2,6 +2,7 @@ import { Extension, InputRule } from '@tiptap/react';
 import { NodeSelection, Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import type { ResolvedPos } from '@tiptap/pm/model';
 import { videoAbove } from './video/videos';
+import { isMacPlatform } from '@/ui/platform';
 
 /**
  * The editor's keys: "- [ ]" checklists, keys for whole blocks, opening the link on the
@@ -205,7 +206,7 @@ export const ActiveBlockRail = Extension.create({
 
   addProseMirrorPlugins() {
     const editor = this.editor;
-    const key = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘↵' : 'Ctrl+↵';
+    const key = isMacPlatform() ? '⌘↵' : 'Ctrl+↵';
     return [
       new Plugin({
         key: new PluginKey('activeBlockRail'),

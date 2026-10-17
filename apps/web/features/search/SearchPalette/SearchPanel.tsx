@@ -13,16 +13,17 @@ import { useT } from '@/i18n/I18nProvider';
 import { usePaths } from '@/useCases/paths';
 import { usePageSearch, useRecentPages } from '@/useCases/search';
 import classes from './SearchPalette.module.css';
-import { LIST_ID, optionId, useModKey } from './SearchPalette.helpers';
+import { LIST_ID, optionId } from './SearchPalette.helpers';
 import { Marked } from './Marked';
 import { Hint } from './Hint';
 import type { Row } from './SearchPalette.helpers';
+import { useIsMac } from '@/ui/platform';
 
 /** The field and the list; `onDone` is called once a page is opened, or on Esc */
 export function SearchPanel({ onDone }: { onDone: () => void }) {
   const t = useT();
   const router = useRouter();
-  const mod = useModKey();
+  const mod = useIsMac() ? '⌘' : 'Ctrl';
   const { query, setQuery, state, retry } = usePageSearch();
   const recent = useRecentPages();
   const paths = usePaths();

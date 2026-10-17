@@ -28,6 +28,7 @@ import { BranchPrompt } from '../BranchPrompt/BranchPrompt';
 import { showToast } from '@/features/inbox/capture';
 import classes from './PathMap.module.css';
 import type { View } from './PathMap.helpers';
+import { useIsMac } from '@/ui/platform';
 
 /** A loaded map: its toolbar, search, and mind map or list; selecting a page opens it in the drawer beside it */
 export function MapView({ path, actions, save }: { path: Path; actions: PathActions; save: SaveState }) {
@@ -135,8 +136,7 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
 
   // The search stays folded until it is wanted: a click or ⌘K (Ctrl K) opens it
   const [searchOpen, setSearchOpen] = useState(false);
-  // The map renders only on the client (it loads in the browser), so the platform is known here
-  const shortcut = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K';
+  const shortcut = useIsMac() ? '⌘K' : 'Ctrl K';
   // Focused once rendered: opened from the page's text, the field may not exist yet on the next frame
   const [searchFocus, setSearchFocus] = useState(0);
   const openSearch = () => {

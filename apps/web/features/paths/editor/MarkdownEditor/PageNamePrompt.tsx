@@ -8,6 +8,7 @@ import { findPageByTitle } from '@wisepath/domain/paths';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { useT } from '@/i18n/I18nProvider';
+import { useIsMac } from '@/ui/platform';
 
 /** The text a popup belongs to, in window coordinates */
 export type Anchor = { top: number; bottom: number; left: number };
@@ -28,7 +29,6 @@ export function placeNear(anchor: Anchor, width: number, height: number): CSSPro
     : { bottom: window.innerHeight - anchor.top + 6, left, maxHeight: above };
 }
 
-const MOD_KEY = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent) ? '⌘' : 'Ctrl+';
 
 /**
  * The Page command's name field. Enter links the page where / was typed and
@@ -49,6 +49,7 @@ export function PageNamePrompt({
   onSubmit: (title: string, page: PreviewPage | undefined, stay: boolean) => void;
 }) {
   const t = useT();
+  const mod = useIsMac() ? '⌘' : 'Ctrl+';
   const [name, setName] = useState('');
   const title = name.trim();
   const page = title ? findPageByTitle(pages, title) : undefined;
@@ -56,8 +57,8 @@ export function PageNamePrompt({
   const note = isThisPage
     ? t('editor.newPage.isThisPage')
     : page
-      ? t('editor.newPage.exists', { mod: MOD_KEY })
-      : t('editor.newPage.creates', { mod: MOD_KEY });
+      ? t('editor.newPage.exists', { mod })
+      : t('editor.newPage.creates', { mod });
 
   return (
     <Paper withBorder shadow="md" p="sm" role="dialog" aria-label={t('editor.newPage.dialog')} className={classes.prompt} style={placeNear(prompt.anchor, 288, 110)}>
