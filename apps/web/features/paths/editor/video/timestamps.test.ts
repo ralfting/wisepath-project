@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { formatTime, noteAt, parseTime } from './timestamps';
-import type { VideoNote } from './timestamps';
+import { formatTime, parseTime } from './timestamps';
+import { noteAt } from './videoNotes';
+import type { VideoNote } from './videoNotes';
 
 describe('video times', () => {
   it('writes minutes and seconds, and hours past the first', () => {

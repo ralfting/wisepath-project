@@ -4,7 +4,7 @@ import { ActionIcon, Group } from '@mantine/core';
 import { IconArrowsMinimize, IconLayoutSidebarRightCollapse, IconLayoutSidebarRightExpand } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { useT } from '@/i18n/I18nProvider';
-import type { VideoNote } from '../timestamps';
+import type { VideoNote } from '../videoNotes';
 import classes from './VideoBlock.module.css';
 import { NoteList } from './NoteList';
 

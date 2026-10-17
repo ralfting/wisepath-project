@@ -5,8 +5,9 @@ import { useCallback, useEffect, useState } from 'react';
 import type { MutableRefObject, RefObject } from 'react';
 import { PLAYING } from '../youtubeApi';
 import type { YouTubePlayer } from '../youtubeApi';
-import { addNote, noteAt, notesAfter, setActiveNote } from '../timestamps';
-import type { VideoNote } from '../timestamps';
+import { setActiveNote } from '../activeNote';
+import { addNote, noteAt, notesAfter } from '../videoNotes';
+import type { VideoNote } from '../videoNotes';
 import { markUsed } from './VideoBlock.helpers';
 
 /**

@@ -3,7 +3,7 @@
 import { Text, UnstyledButton } from '@mantine/core';
 import { useEffect, useRef } from 'react';
 import { useT } from '@/i18n/I18nProvider';
-import type { VideoNote } from '../timestamps';
+import type { VideoNote } from '../videoNotes';
 import classes from './VideoBlock.module.css';
 
 /** The notes beside the video in fullscreen, in time order: each plays from there; the one playing now is marked */
