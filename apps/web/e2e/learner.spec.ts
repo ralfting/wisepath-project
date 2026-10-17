@@ -16,7 +16,7 @@ async function signUp(page: Page) {
   await expect(page).toHaveURL(/\/paths$/);
 }
 
-test('a new path opens on its first page, and its map tab is named after it', async ({ page }) => {
+test('a new path opens on its first page, its map tab is named after it, and search finds it', async ({ page }) => {
   await signUp(page);
   await page.getByRole('button', { name: 'New path' }).first().click();
   await page.getByLabel(/^what are you learning/i).fill('Learn Effect');
@@ -32,6 +32,13 @@ test('a new path opens on its first page, and its map tab is named after it', as
   // A full load of the map: the title comes from generateMetadata, read on the server with the session cookie
   await page.goto(`/paths/${pathId}`);
   await expect(page).toHaveTitle('Learn Effect | WisePath');
+
+  // Search finds the page by its title, from anywhere, and Enter opens it in the drawer
+  await page.keyboard.press('Control+p');
+  await page.getByRole('combobox', { name: 'Search every path' }).fill('Learn Eff');
+  await expect(page.getByRole('option', { name: /Learn Effect/ })).toBeVisible();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Page beside the map' })).toBeVisible();
 });
 
 test('projects are created, renamed and deleted from the paths page', async ({ page }) => {

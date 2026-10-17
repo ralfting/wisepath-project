@@ -2,7 +2,7 @@
 
 import { Palette } from '@/ui/Palette/Palette';
 import { useT } from '@/i18n/I18nProvider';
-import { SearchPanel } from './SearchPanel';
+import { SearchPanel } from './SearchPanel/SearchPanel';
 import { OPEN_SEARCH_PALETTE_EVENT } from './SearchPalette.helpers';
 
 /**

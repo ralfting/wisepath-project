@@ -1,6 +1,7 @@
-'use client';
-
+import { marksIn } from '@wisepath/domain/search';
 import type { Mark } from '@wisepath/domain/search';
+import type { PageSearchState, RecentPage } from '@/useCases/search';
+import { displayTitle } from '@/i18n/title';
 
 /** Asks the mounted host to open the palette, from a button or another shortcut */
 export const OPEN_SEARCH_PALETTE_EVENT = 'wisepath:open-search-palette';
@@ -22,4 +23,42 @@ export interface Row {
   titleMarks: ReadonlyArray<Mark>;
   where: string;
   excerpt: { text: string; marks: ReadonlyArray<Mark> } | null;
+}
+
+/**
+ * The palette's rows: the search's hits once it has answered, else (nothing typed) the pages opened most recently.
+ * A recent page whose path was deleted since is dropped, and one whose path was renamed shows its title now.
+ */
+export function searchRows(
+  search: PageSearchState,
+  recent: ReadonlyArray<RecentPage>,
+  paths: ReadonlyArray<{ readonly id: string; readonly title: string }> | null,
+): ReadonlyArray<Row> {
+  if (search.status === 'ready') {
+    return search.hits.map((hit) => {
+      const title = displayTitle(hit);
+      return {
+        key: `${hit.pathId}/${hit.pageId}`,
+        pathId: hit.pathId,
+        pageId: hit.pageId,
+        title,
+        titleMarks: marksIn(title, search.query),
+        where: [hit.pathTitle, ...hit.where.map((w) => displayTitle({ title: w }))].join(' › '),
+        excerpt: hit.excerpt,
+      };
+    });
+  }
+  if (search.status !== 'idle') return [];
+  const titles = paths ? new Map(paths.map((p) => [p.id, p.title])) : null;
+  return recent
+    .filter((page) => !titles || titles.has(page.pathId))
+    .map((page) => ({
+      key: `${page.pathId}/${page.pageId}`,
+      pathId: page.pathId,
+      pageId: page.pageId,
+      title: displayTitle(page),
+      titleMarks: [],
+      where: titles?.get(page.pathId) ?? page.pathTitle,
+      excerpt: null,
+    }));
 }
