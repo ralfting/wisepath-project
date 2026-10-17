@@ -1,23 +1,10 @@
 import { expect, test } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import { API, signUp } from './helpers';
 
 /**
  * A learner's first steps, through the real web app, API and database: the paths page and its projects (Server
  * Actions), a new map, and its tab named on the server.
  */
-
-/** The API the app talks to in these runs (playwright.config.ts) */
-const API = 'http://localhost:4201/api';
-
-/** A new account, signed in, on the paths page */
-async function signUp(page: Page) {
-  await page.goto('/signup');
-  await page.getByLabel(/^name/i).fill('E2E Learner');
-  await page.getByLabel(/^email/i).fill(`e2e-${crypto.randomUUID()}@wisepath.test`);
-  await page.getByLabel(/^password/i).fill('long-enough-password');
-  await page.getByRole('button', { name: 'Create account' }).click();
-  await expect(page).toHaveURL(/\/paths$/);
-}
 
 test('a new path opens on its first page, its map tab is named after it, and search finds it', async ({ page }) => {
   await signUp(page);

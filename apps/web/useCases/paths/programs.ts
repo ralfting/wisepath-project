@@ -97,3 +97,9 @@ export const leavePath = Effect.fn("useCases.paths.leave")(function*(pathId: str
   const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
   yield* PathSharing.use((sharing) => sharing.leave(id))
 })
+
+/** A public map as someone with no account reads it, from an id that came from the URL */
+export const readPublicPath = Effect.fn("useCases.paths.readPublic")(function*(pathId: string) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  return yield* PathSharing.use((sharing) => sharing.readPublic(id))
+})

@@ -85,3 +85,12 @@ export function useLeavePath(): (pathId: string) => Promise<string | null> {
     return result.ok ? null : result.message
   }
 }
+
+/** Adds a public map to the learner's maps, to study it with their own marks; resolves to null, or to the message to show */
+export function useTakePath(): (pathId: string) => Promise<string | null> {
+  const take = useAction(actions.takePath, [ReactivityKeys.paths])
+  return async (pathId) => {
+    const result = await take(pathId)
+    return result.ok ? null : result.message
+  }
+}
