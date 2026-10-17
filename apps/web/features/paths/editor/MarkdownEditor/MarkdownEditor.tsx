@@ -28,7 +28,7 @@ import { WikiLink } from '../wikiLink';
 import { YouTubeVideo } from '../youtube';
 import type { PageLinkItem, PageLinkPickerState, SlashMenuState } from '../menus';
 import { LinkPreview } from '../LinkPreview/LinkPreview';
-import { InboxItemPrompt } from './InboxItemPrompt';
+import { InboxItemPrompt } from './InboxItemPrompt/InboxItemPrompt';
 import { MarkdownHelp } from './MarkdownHelp';
 import type { PreviewPage, PreviewTarget } from '../LinkPreview/LinkPreview';
 import classes from './MarkdownEditor.module.css';
