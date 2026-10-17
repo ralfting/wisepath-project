@@ -16,14 +16,25 @@ interface Sent {
   readonly cookie: string | undefined
 }
 
-/** An API that answers every call with the sample map after a short wait, and remembers what it was sent */
+/** The session the API starts for a request that comes without one, as a login does */
+const SESSION = "access_token=fresh; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400"
+
+/**
+ * An API that answers every call with the sample map after a short wait, starts a session for a request without
+ * one, and remembers what it was sent
+ */
 function recordingApi() {
   const sent: Array<Sent> = []
   const client = HttpClient.make((request, url) =>
     Effect.sync(() => sent.push({ url: url.toString(), cookie: request.headers["cookie"] })).pipe(
       Effect.andThen(Effect.sleep("5 millis")),
       Effect.as(
-        HttpClientResponse.fromWeb(request, new Response(JSON.stringify(samplePath), { headers: { "content-type": "application/json" } }))
+        HttpClientResponse.fromWeb(
+          request,
+          new Response(JSON.stringify(samplePath), {
+            headers: { "content-type": "application/json", ...(request.headers["cookie"] ? {} : { "set-cookie": SESSION }) }
+          })
+        )
       )
     )
   )
@@ -38,11 +49,21 @@ describe("serverRunner", () => {
     const run = serverRunner(api.layer)
     const cookies = ["access_token=ada", "access_token=lin; wp-locale=pt-BR", ""]
 
-    const exits = await Promise.all(cookies.map((cookie) => run(readTitle, cookie)))
+    const runs = await Promise.all(cookies.map((cookie) => run(readTitle, cookie)))
 
-    expect(exits.map((exit) => Exit.isSuccess(exit) && exit.value)).toEqual(cookies.map(() => samplePath.title))
+    expect(runs.map(({ exit }) => Exit.isSuccess(exit) && exit.value)).toEqual(cookies.map(() => samplePath.title))
     expect(api.sent.map((call) => call.cookie).sort()).toEqual([...cookies].sort())
     expect(api.sent.every((call) => call.url.endsWith(`/paths/${samplePath.id}`))).toBe(true)
+  })
+
+  it("keeps the cookies the API sets, with its flags, for that request only", async () => {
+    const run = serverRunner(recordingApi().layer)
+
+    const [signedIn, fresh] = await Promise.all([run(readTitle, "access_token=ada"), run(readTitle, "")])
+
+    expect(Object.keys(signedIn.cookies.cookies)).toEqual([])
+    const session = fresh.cookies.cookies["access_token"]
+    expect([session?.value, session?.options?.httpOnly, session?.options?.sameSite, session?.options?.path]).toEqual(["fresh", true, "lax", "/"])
   })
 })
 
