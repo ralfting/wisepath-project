@@ -16,6 +16,8 @@ export const map = {
   },
   search: {
     label: 'Search this path',
+    /** The closed search's button, which shows the shortcut: its name says it too */
+    labelWithKeys: 'Search this path {keys}',
     placeholder: 'Search pages…',
     withQuery: 'Search this path: {query}',
     clear: 'Clear the search',
@@ -44,8 +46,6 @@ export const map = {
     module: 'module',
     belowStudied: { one: '{studied} of {count} below studied', other: '{studied} of {count} below studied' },
     pagesBelow: { one: '{count} page below', other: '{count} pages below' },
-    rootLabel: { one: '{title}, {count} page', other: '{title}, {count} pages' },
-    rootLabelStudied: { one: '{title}, {studied} of {count} page studied', other: '{title}, {studied} of {count} pages studied' },
     rootStudied: { one: '{studied} of {count} studied', other: '{studied} of {count} studied' },
   },
   tools: {
@@ -53,6 +53,8 @@ export const map = {
     zoomOut: 'Zoom out',
     zoomIn: 'Zoom in',
     fit: 'Fit the map to the screen',
+    /** The zoom button shows the zoom; its name starts with it */
+    fitAt: '{zoom}%, fit the map to the screen',
     centreOn: 'Centre on {title}',
     legend: 'Legend',
   },

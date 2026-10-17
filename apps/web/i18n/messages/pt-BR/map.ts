@@ -19,6 +19,7 @@ export const map = {
   },
   search: {
     label: 'Buscar nesta trilha',
+    labelWithKeys: 'Buscar nesta trilha {keys}',
     placeholder: 'Buscar páginas…',
     withQuery: 'Buscar nesta trilha: {query}',
     clear: 'Limpar a busca',
@@ -47,8 +48,6 @@ export const map = {
     module: 'módulo',
     belowStudied: { one: '{studied} de {count} abaixo estudada', other: '{studied} de {count} abaixo estudadas' },
     pagesBelow: { one: '{count} página abaixo', other: '{count} páginas abaixo' },
-    rootLabel: { one: '{title}, {count} página', other: '{title}, {count} páginas' },
-    rootLabelStudied: { one: '{title}, {studied} de {count} página estudada', other: '{title}, {studied} de {count} páginas estudadas' },
     rootStudied: { one: '{studied} de {count} estudada', other: '{studied} de {count} estudadas' },
   },
   tools: {
@@ -56,6 +55,7 @@ export const map = {
     zoomOut: 'Diminuir o zoom',
     zoomIn: 'Aumentar o zoom',
     fit: 'Ajustar o mapa à tela',
+    fitAt: '{zoom}%, ajustar o mapa à tela',
     centreOn: 'Centralizar em {title}',
     legend: 'Legenda',
   },

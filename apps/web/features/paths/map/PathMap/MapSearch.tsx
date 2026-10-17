@@ -91,7 +91,12 @@ export function MapSearch({
     );
   }
   return (
-    <UnstyledButton onClick={operations.open} aria-label={t('map.search.label')} className={classes.searchButton}>
+    <UnstyledButton
+      onClick={operations.open}
+      aria-label={hasKeyboard ? t('map.search.labelWithKeys', { keys: shortcut }) : t('map.search.label')}
+      aria-keyshortcuts={hasKeyboard ? 'Control+K Meta+K' : undefined}
+      className={classes.searchButton}
+    >
       <IconSearch size={16} />
       {hasKeyboard && <Kbd size="xs">{shortcut}</Kbd>}
     </UnstyledButton>

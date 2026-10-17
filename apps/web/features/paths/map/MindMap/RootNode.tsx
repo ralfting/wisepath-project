@@ -48,10 +48,8 @@ export function RootNode({ shape, page, color, icon, studied, total, progress, s
       onClick={() => onSelect(page.id)}
       onPointerEnter={() => onIntent?.(page.id)}
       onFocus={() => onIntent?.(page.id)}
-      aria-label={
-        progress ? t('map.mind.rootLabelStudied', { title, studied, count: total }) : t('map.mind.rootLabel', { title, count: total })
-      }
-      title={displayTitle(page)}
+      // Its name is what it shows (the title and the count), so speech input can call it by what is on screen
+      title={title}
     >
       <span className={classes.rootRing}>
         {progress && <ProgressRing size={64} stroke={5} share={total ? studied / total : 0} />}

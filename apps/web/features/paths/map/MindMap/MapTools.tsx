@@ -36,7 +36,7 @@ export function MapTools({
         </ActionIcon>
       </Tooltip>
       <Tooltip label={t('map.tools.fit')}>
-        <UnstyledButton className={classes.zoomValue} onClick={onFit} aria-label={t('map.tools.fit')}>
+        <UnstyledButton className={classes.zoomValue} onClick={onFit} aria-label={t('map.tools.fitAt', { zoom: Math.round(zoom * 100) })}>
           {Math.round(zoom * 100)}%
         </UnstyledButton>
       </Tooltip>
