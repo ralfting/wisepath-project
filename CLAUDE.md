@@ -18,7 +18,7 @@ matching their `paths:` is read or edited. Each rule has one owner file; the oth
 | [code-style.md](.claude/rules/code-style.md) | `apps/web/**/*.{ts,tsx}` | TypeScript, formatting, KISS |
 | [effect.md](.claude/rules/effect.md) | use cases, infrastructure, domain, actions, route handlers | Schema, tagged errors, services, runtimes |
 | [react-next.md](.claude/rules/react-next.md) | `apps/web/app/**`, `*.tsx` | Server/client boundary, data fetching, actions, hooks |
-| [ui-patterns.md](.claude/rules/ui-patterns.md) | `apps/web/features/**`, `app/**/*.tsx`, CSS | Mantine, tokens, CSS Modules, i18n in UI, a11y |
+| [ui-patterns.md](.claude/rules/ui-patterns.md) | `apps/web/features/**`, `apps/web/ui/**`, `app/**/*.tsx`, CSS | Mantine, tokens, components and their folders, i18n in UI, a11y |
 | [testing.md](.claude/rules/testing.md) | `*.test.{ts,tsx}`, `e2e/**` | Test granularity, Layers as test doubles, end to end |
 | [security.md](.claude/rules/security.md) | middleware, actions, route handlers, auth, infrastructure | Session, input decoding, secrets |
 | [nest.md](.claude/rules/nest.md) | `apps/api/**` | Nest layers, request flow, contract first, stores, migrations, API tests |

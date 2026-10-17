@@ -113,6 +113,14 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
   more than one piece of state, any effect beyond a single subscription, or derivations before its JSX. The
   component renders what the hook returns and wires events to `operations`; no JSX in the hook. A component with
   one state and one subscription (`SavedAt`, `HelpHost`) keeps them: a hook file would add a file and nothing else.
+  ```ts
+  // PagePicker/PathsStep/usePathsStep.ts
+  export function usePathsStep({ onPick, marked }: { onPick: (path: PathSummary) => void; marked: string | null }) {
+    const [query, setQuery] = useState('');
+    const items = useMemo(() => pathsFor(paths ?? [], last, query), [paths, last, query]);   // pure, tested
+    return { state: { query, items }, operations: { setQuery, keyDown } };
+  }
+  ```
 - Derivations that need no React (filtering, grouping, ordering) are pure functions in `<Component>.helpers.ts`,
   unit tested, and the view model calls them: `groupPaths`, `searchRows`, `pathsFor`.
 - A form inside a modal, popover or palette lives in its own component inside it, so the container's unmounting on
@@ -121,13 +129,6 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
 - A hook whose atom runs work that outlives the form (fire and forget, not awaited before closing) lives in the
   container that stays mounted, never in the remounting form; pass its function down. **Why:** an unmounted
   `fn` atom is dropped and its running Effect interrupted: quick captures were lost on slow connections (BUG-001).
-  ```ts
-  export function usePagePicker(pages: ReadonlyArray<PageSummary>) {
-    const [query, setQuery] = useState('');
-    const matches = useMemo(() => matchPages(pages, query), [pages, query]);
-    return { state: { query, matches }, operations: { setQuery } };
-  }
-  ```
 - Hooks that run Effect programs live in `useCases/`, not in features. Feature hooks hold view state only.
 
 ## State rules
@@ -137,7 +138,7 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
 - `useEffect` is for syncing with something outside React (DOM, subscription, timer). Never for deriving state or
   for reacting to an event: handle it in the event handler.
 - Effect deps list only what must re-run the effect. Objects and arrays derived during render never go in deps;
-  read them through a ref updated in an effect, as `AccountLocale` in `app/providers.tsx` does with `seen`.
+  read them through a ref updated in an effect, as `AccountLocale` in `app/AccountLocale.tsx` does with `seen`.
 - `useAtomValue(atom, selector)` with the narrowest selector; never read a whole atom to use one field.
 - Keys are stable ids from the domain, never array indexes for lists that reorder.
 

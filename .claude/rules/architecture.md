@@ -77,7 +77,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | `features/paths/editor` | The markdown editor, its extensions and video notes |
 | `features/paths/path` | Pieces about one path used across the above: gate, save status, kind switch, page glyph, the related-page hover between drawer and map |
 | `features/inbox/list` | The Inbox page and its page picker |
-| `features/inbox/capture` | Quick capture, toasts, and the palette keys other palettes share |
+| `features/inbox/capture` | Quick capture, its shortcut and toasts |
 | `features/auth`, `features/search`, `features/help`, `features/shell` | Login/signup, search palette, help panel, app frame |
 
 ## Migration still open
@@ -104,7 +104,8 @@ otherwise leave it and follow the target for new files.
    `Memory<Service>.ts` double beside it.
 8. A component rendering one domain's data: `features/<domain>/<feature>/`, one component per file. With more than one
    file (CSS module, view model, test, private parts), in a folder named after it ([ui-patterns.md](ui-patterns.md), "Components").
-9. A component or hook with no domain in it, used by 2+ features: `ui/`.
+9. A component or hook with no domain in it, generic enough for any screen (a palette, focus, the platform): `ui/`,
+   even while one feature uses it.
 10. A pure helper with no domain import and no I/O used by 2+ layers: `shared/`. Used by one module: keep it there.
 11. A message: `i18n/messages/en/<area>.ts` and `i18n/messages/pt-BR/<area>.ts`.
 12. None fits: stop and ask.
