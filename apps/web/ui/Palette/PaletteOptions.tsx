@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { Text, UnstyledButton } from '@mantine/core';
-import classes from './CaptureBox.module.css';
+import classes from './Palette.module.css';
 
 /** The choices under a palette's field; the field keeps focus, so a click picks without moving it */
 export function PaletteOptions<T>({

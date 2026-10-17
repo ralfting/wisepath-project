@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Text } from '@mantine/core';
 import type { PathSummary } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
-import { CaptureBox } from '@/features/inbox/capture';
+import { Palette } from '@/ui/Palette/Palette';
 import classes from './PagePicker.module.css';
 import { PathsStep } from './PathsStep';
 import { PagesStep } from './PagesStep';
@@ -40,7 +40,7 @@ export function PagePicker({
     onClose();
   };
   return (
-    <CaptureBox opened={opened} onClose={close} label={title} footer={t('inbox.picker.keys')}>
+    <Palette opened={opened} onClose={close} label={title} footer={t('inbox.picker.keys')}>
       <Text size="xs" fw={700} c="dimmed" tt="uppercase" lts={0.5} className={classes.heading}>
         {title}
       </Text>
@@ -60,6 +60,6 @@ export function PagePicker({
       ) : (
         <PathsStep onPick={setPath} marked={cameFrom} />
       )}
-    </CaptureBox>
+    </Palette>
   );
 }

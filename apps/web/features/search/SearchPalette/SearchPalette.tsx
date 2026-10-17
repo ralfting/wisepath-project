@@ -1,6 +1,6 @@
 'use client';
 
-import { CaptureBox } from '@/features/inbox/capture';
+import { Palette } from '@/ui/Palette/Palette';
 import { useT } from '@/i18n/I18nProvider';
 import { SearchPanel } from './SearchPanel';
 import { OPEN_SEARCH_PALETTE_EVENT } from './SearchPalette.helpers';
@@ -29,8 +29,8 @@ export function openSearchPalette(): void {
 export function SearchPalette({ opened, onClose }: { opened: boolean; onClose: () => void }) {
   const t = useT();
   return (
-    <CaptureBox opened={opened} onClose={onClose} label={t('search.palette.label')}>
+    <Palette opened={opened} onClose={onClose} label={t('search.palette.label')}>
       <SearchPanel onDone={onClose} />
-    </CaptureBox>
+    </Palette>
   );
 }

@@ -8,7 +8,9 @@ import type { PathSummary } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { usePaths } from '@/useCases/paths';
 import { PageGlyph } from '@/features/paths/path';
-import { PaletteOptions, lastPathId, paletteFieldProps, usePaletteId, usePaletteKeys } from '@/features/inbox/capture';
+import { lastPathId } from '@/features/inbox/capture';
+import { PaletteOptions } from '@/ui/Palette/PaletteOptions';
+import { paletteFieldProps, usePaletteId, usePaletteKeys } from '@/ui/Palette/usePaletteKeys';
 import classes from './PagePicker.module.css';
 import { caretAt, matches } from './PagePicker.helpers';
 

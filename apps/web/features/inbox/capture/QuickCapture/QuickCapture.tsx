@@ -10,7 +10,7 @@ import { useLinkPreviewLoader } from '@/useCases/paths';
 import { useCapture, useFileItem } from '@/useCases/inbox';
 import type { CaptureInput, PageTarget } from '@/useCases/inbox';
 import { displayTitle } from '@/i18n/title';
-import { CaptureBox } from '../CaptureBox/CaptureBox';
+import { Palette } from '@/ui/Palette/Palette';
 import { useModEnter } from '../keys';
 import { isVideo, pastedAddress, startOf } from '../pasted';
 import classes from './QuickCapture.module.css';
@@ -108,7 +108,7 @@ export function QuickCapture({
   const shown = link && text.includes(link.url) ? link : null;
 
   return (
-    <CaptureBox opened={opened} onClose={onClose} label={t('inbox.capture.label')} footer={page ? t('inbox.capture.hintOnPage', { keys: modEnter }) : t('inbox.capture.hint')}>
+    <Palette opened={opened} onClose={onClose} label={t('inbox.capture.label')} footer={page ? t('inbox.capture.hintOnPage', { keys: modEnter }) : t('inbox.capture.hint')}>
       <Textarea
         aria-label={t('inbox.capture.field')}
         placeholder={t('inbox.capture.placeholder')}
@@ -150,6 +150,6 @@ export function QuickCapture({
         </Group>
       )}
       {page && <Destination page={page} toPage={toPage} onChange={setToPage} onTitle={rememberTitle} />}
-    </CaptureBox>
+    </Palette>
   );
 }

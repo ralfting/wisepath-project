@@ -16,6 +16,8 @@ const infrastructure = {
 const features = { group: ['@/features', '@/features/*'], message: 'Lower layers must not depend on features.' };
 const useCases = { group: ['@/useCases', '@/useCases/*'], message: 'Infrastructure must not depend on useCases.' };
 const react = { group: ['react', 'react-dom', 'next', 'next/*', '@mantine/*'], message: 'Infrastructure is UI-free.' };
+const domain = { group: ['@wisepath/*'], message: 'ui/ holds primitives with no domain in them: take plain props instead.' };
+const upward = { group: ['@/useCases', '@/useCases/*', '@/features', '@/features/*'], message: 'ui/ sits below features and use cases.' };
 /** A feature is features/<domain>/<feature> for paths and inbox, features/<feature> otherwise; others see only its index.ts */
 const featureInternals = {
   regex: '^@/features/((paths|inbox)/[^/]+|auth|search|help|shell)/.+',
@@ -49,6 +51,7 @@ const config = [
   { files: ['features/**'], rules: ban(effect, infrastructure, featureInternals) },
   { files: ['app/**'], rules: ban(effect, infrastructure, featureInternals) },
   { files: ['useCases/**'], rules: ban(features) },
+  { files: ['ui/**'], rules: ban(effect, infrastructure, upward, domain) },
   { files: ['infrastructure/**'], rules: { ...ban(features, useCases, react), ...restrict(processEnv, processEnvDestructured, runEffect, runEffectBare) } },
   // The config modules (and Next's config) read env vars
   { files: ['infrastructure/http/ApiClient.ts', 'next.config.js', 'playwright.config.ts', 'e2e/**'], rules: { 'no-restricted-syntax': 'off' } },

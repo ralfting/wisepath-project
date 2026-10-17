@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo } from 'react';
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Group, Kbd, Loader, ScrollArea, Text, UnstyledButton, VisuallyHidden } from '@mantine/core';
-import { paletteFieldProps, usePaletteKeys } from '@/features/inbox/capture';
+import { paletteFieldProps, usePaletteKeys } from '@/ui/Palette/usePaletteKeys';
 import { IconFileText, IconSearch } from '@tabler/icons-react';
 import { marksIn } from '@wisepath/domain/search';
 import { mapWithPageHref, pageHref } from '@/shared/routes';
