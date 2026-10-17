@@ -1,52 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-  ActionIcon,
-  Anchor,
-  Breadcrumbs,
-  Card,
-  Group,
-  Menu,
-  Stack,
-  Tabs,
-  Text,
-  ThemeIcon,
-  Tooltip,
-  UnstyledButton,
-} from '@mantine/core';
-import {
-  IconArrowDownRight,
-  IconArrowLeft,
-  IconArrowRight,
-  IconArrowUpLeft,
-  IconArrowsDiagonal,
-  IconBox,
-  IconChevronRight,
-  IconDotsVertical,
-  IconTrash,
-  IconX,
-} from '@tabler/icons-react';
+import { ActionIcon, Anchor, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
+import { IconArrowDownRight, IconArrowLeft, IconArrowRight, IconArrowUpLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import type { Page, Path, Relation } from '@wisepath/domain/paths';
-import { branchProgress, lookOf, mapTree, trailTo, pathProgress, relatedPages } from '@wisepath/domain/paths';
+import { lookOf, pathProgress } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
 import { PageGlyph, pointAtRelated } from '@/features/paths/path';
 import { PageContent } from '../PageContent/PageContent';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
 import type { EditorFocus } from '@/features/paths/editor';
-import type { PageActions } from '../PageContent/PageContent.helpers';
 import { DeletePageModal } from '../DeletePageModal';
 import { StudiedToggle } from '../StudiedToggle';
 import { PageLook } from '../PageLook/PageLook';
 import { moduleLook } from '../PageLook/PageLook.helpers';
 import { useT } from '@/i18n/I18nProvider';
-import { useRememberOpened } from '@/useCases/search';
 import classes from './PagePanel.module.css';
+import { usePagePanel } from './usePagePanel';
+import type { PanelTab } from './usePagePanel';
 
 /**
- * PagePanel
  * The selected page beside the map: where it sits, its title and markdown,
  * the pages related to it, and how it shows on the map.
  */
@@ -71,8 +45,6 @@ interface PagePanelProps {
   onCursor?: (pos: number) => void;
 }
 
-type PanelTab = 'content' | 'related';
-
 /**
  * The related pages, grouped by how they connect, in a fixed order: up the
  * branch, down it, then [[links]] out and in. Each arrow reads from this page,
@@ -87,41 +59,8 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
 
 export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
   const t = useT();
-  const [tab, setTab] = useState<PanelTab>('content');
-  // Offered again by the search palette (⌘P), across paths
-  useRememberOpened({ pathId: path.id, pageId: page.id, title: page.title, pathTitle: path.title });
-  // A related page still pointed at when the panel goes (another page opened, the drawer closed) lets go
-  useEffect(() => () => pointAtRelated(null), [page.id]);
-  // Enter in the title moves on to the text
-  const [textFocus, setTextFocus] = useState(0);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const isRoot = page.id === path.rootPageId;
-  const tree = mapTree(path);
-  const isOrphan = !tree.nodes.has(page.id);
-  const trail = trailTo(path, page.id, tree);
-  const related = relatedPages(path, page.id);
-  const below = branchProgress(path, page.id);
-  const branchFrom = trail.length > 1 ? trail[trail.length - 2] : null;
-
-  const pageActions: PageActions = {
-    updatePage: store.updatePage,
-    beginRename: store.beginRename,
-    renameLinks: store.renameLinks,
-    openPage: onSelect,
-    createLinkedPage: (title) => onSelect(store.createPage(title).id),
-    createPage: (title) => void store.createPage(title),
-  };
-
-  const kind = t(isRoot ? 'page.kind.path' : isOrphan ? 'page.kind.orphan' : page.module ? 'page.kind.module' : 'page.kind.page');
-  // A learning path counts what below was studied; a study, how many pages are below
-  const progress = path.kind === 'learningPath';
-  const belowText =
-    !below || below.total === 0
-      ? null
-      : progress
-        ? t('page.below.studied', { studied: below.studied, count: below.total })
-        : t('page.below.pages', { count: below.total });
-  const subtitle = belowText ? `${kind} · ${belowText}` : kind;
+  const { state, operations } = usePagePanel({ path, page, store, onSelect });
+  const { isRoot, isOrphan, tree, trail, below, progress, related, subtitle } = state;
 
   return (
     <Card
@@ -184,7 +123,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
                   {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
                 </Menu.Item>
                 <Menu.Divider />
-                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setConfirmDelete(true)}>
+                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={operations.confirmDelete}>
                   {t('page.menu.delete')}
                 </Menu.Item>
               </Menu.Dropdown>
@@ -201,15 +140,11 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
       </Group>
 
       <DeletePageModal
-        opened={confirmDelete}
+        opened={state.confirmingDelete}
         title={displayTitle(page)}
         orphansPages={!!below && below.total > 0}
-        onClose={() => setConfirmDelete(false)}
-        onDelete={() => {
-          setConfirmDelete(false);
-          store.deletePage(page.id);
-          onSelect(branchFrom?.id ?? path.rootPageId);
-        }}
+        onClose={operations.cancelDelete}
+        onDelete={operations.remove}
       />
 
       <Group gap="md" wrap="nowrap" align="flex-start" px="lg" pt="md">
@@ -222,10 +157,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             actions={store}
             size={26}
             autoFocus={focusTitle}
-            onEnter={() => {
-              setTab('content');
-              setTextFocus((n) => n + 1);
-            }}
+            onEnter={operations.focusText}
           />
           <Text size="sm" c="dimmed">
             {subtitle}
@@ -243,7 +175,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
         </Group>
       )}
 
-      <Tabs value={tab} onChange={(v) => setTab((v as PanelTab) ?? 'content')} mt="md" className={classes.tabs}>
+      <Tabs value={state.tab} onChange={(v) => operations.showTab((v as PanelTab) ?? 'content')} mt="md" className={classes.tabs}>
         <Tabs.List px="lg">
           <Tabs.Tab value="content">{t('page.tabs.content')}</Tabs.Tab>
           <Tabs.Tab value="related">{t('page.tabs.related', { count: related.length })}</Tabs.Tab>
@@ -254,11 +186,11 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             key={page.id}
             path={path}
             page={page}
-            actions={pageActions}
+            actions={state.actions}
             showTitle={false}
             focusEditor={focusEditor}
             onCursor={onCursor}
-            focusSignal={textFocus}
+            focusSignal={state.textFocus}
             // The panel's top padding: the toolbar sticks at the very top, so no text shows above it
             toolbarOffset={-16}
           />
