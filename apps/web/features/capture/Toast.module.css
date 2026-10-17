@@ -1,24 +1,15 @@
 /* Top right, below the page drawer's own buttons (expand, ⋯, close), so it never covers them */
-.region {
-  position: fixed;
+.notifications {
   top: 64px;
-  right: 16px;
-  z-index: 500;
-  max-width: min(400px, calc(100vw - 32px));
 }
 
 .toast {
   border: 1px solid var(--wp-line, var(--mantine-color-default-border));
-  animation: enter 180ms ease-out;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
+  padding-block: 8px;
+  padding-inline-start: var(--mantine-spacing-md);
 }
 
-@keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateX(16px);
-  }
+/* No colour bar: the toast is a plain line, like the rest of the app's quiet chrome */
+.toast::before {
+  display: none;
 }

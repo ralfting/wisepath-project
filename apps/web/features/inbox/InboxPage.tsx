@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { ActionIcon, Anchor, Button, Group, Image, Kbd, Loader, Paper, Stack, Text, Title, Tooltip } from '@mantine/core';
 import { IconFilePlus, IconFolderSymlink, IconInbox, IconLink, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
@@ -12,7 +12,7 @@ import { dateTime, relativeTime } from '@/i18n/dates';
 import { useDiscard, useFileItem, useInbox, useMakePage } from '@/useCases/inbox';
 import { useLinkPreview } from '@/useCases/paths';
 import { AppFrame } from '@/features/shell/AppFrame';
-import { Toast, openCapture, useCaptureKeys } from '@/features/capture';
+import { openCapture, showToast, useCaptureKeys } from '@/features/capture';
 import type { ToastMessage } from '@/features/capture';
 import { mapWithPageHref } from '@/features/shared/routes';
 import { PagePicker } from './PagePicker';
@@ -37,8 +37,6 @@ export function InboxPage() {
   const makePage = useMakePage();
   const keys = useCaptureKeys();
   const [picking, setPicking] = useState<Picking>(null);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
-  const dismiss = useCallback(() => setToast(null), []);
   const items = useMemo(() => (inbox.status === 'ready' ? inbox.items : []), [inbox]);
 
   // Which item has the keyboard; after one leaves, its neighbour takes it
@@ -51,7 +49,7 @@ export function InboxPage() {
     setFocusAt(null);
   }, [focusAt, items, picking]);
 
-  const say = (text: string, action?: ToastMessage['action']) => setToast({ text, key: Date.now(), ...(action ? { action } : {}) });
+  const say = (text: string, action?: ToastMessage['action']) => showToast({ text, ...(action ? { action } : {}) });
 
   const remove = (item: InboxItem) => {
     setFocusAt(items.indexOf(item));
@@ -176,7 +174,6 @@ export function InboxPage() {
         }}
         onPick={(page) => void onPicked(page)}
       />
-      <Toast message={toast} onDismiss={dismiss} />
     </AppFrame>
   );
 }

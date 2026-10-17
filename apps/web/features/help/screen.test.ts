@@ -6,6 +6,7 @@ describe('help', () => {
     expect(screenOf('/paths/p1/pages/a')).toBe('page');
     expect(screenOf('/paths/p1')).toBe('map');
     expect(screenOf('/paths')).toBe('home');
-    expect(screenOf('/inbox')).toBe('home');
+    expect(screenOf('/inbox')).toBe('inbox');
+    expect(screenOf('/settings')).toBe('home');
   });
 });

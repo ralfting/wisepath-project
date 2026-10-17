@@ -26,8 +26,7 @@ import { MapOrphans } from './MapOrphans';
 import { ContinueButton } from './ContinueButton';
 import { MapSearchResults, SEARCH_RESULTS_ID } from './MapSearchResults';
 import { BranchPrompt } from './BranchPrompt';
-import { Toast } from '@/features/capture';
-import type { ToastMessage } from '@/features/capture';
+import { showToast } from '@/features/capture';
 import classes from './PathMap.module.css';
 
 /**
@@ -115,8 +114,6 @@ function MapView({ path, actions, save }: { path: Path; actions: PathActions; sa
 
   // Adding a page branching from another (the + on a page, or N): the name field stays open for the next one
   const [branchFrom, setBranchFrom] = useState<string | null>(null);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
-  const dismissToast = useCallback(() => setToast(null), []);
   const closeBranch = (refocus: boolean) => {
     const from = branchFrom;
     setBranchFrom(null);
@@ -128,10 +125,9 @@ function MapView({ path, actions, save }: { path: Path; actions: PathActions; sa
     const added = actions.addBranch(parentId, title);
     if (!parent || !added) return;
     const names = { title: displayTitle(added.page), parent: displayTitle(parent) };
-    setToast({
+    showToast({
       text: added.created ? t('map.branch.added', names) : t('map.branch.linked', names),
       action: { label: t('map.branch.undo'), onClick: added.undo },
-      key: Date.now(),
     });
     if (stay) setFocusRequest((r) => ({ pageId: parentId, nonce: (r?.nonce ?? 0) + 1 }));
     else {
@@ -383,7 +379,6 @@ function MapView({ path, actions, save }: { path: Path; actions: PathActions; sa
           )}
         </div>
       </div>
-      <Toast message={toast} onDismiss={dismissToast} />
     </AppFrame>
   );
 }

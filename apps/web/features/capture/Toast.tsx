@@ -1,50 +1,54 @@
 'use client';
 
-import { useEffect } from 'react';
-import { Button, Group, Paper, Text } from '@mantine/core';
+import { Button, Group, Text } from '@mantine/core';
+import { Notifications, notifications } from '@mantine/notifications';
 import classes from './Toast.module.css';
 
 /**
  * Toast
  * A short line at the top right of the screen saying what just happened, with
- * one action at most (Undo, Open). It is a live region, so it is read out
- * too, and it goes away by itself after a few seconds.
+ * one action at most (Undo, Open). Mantine's notifications show it (mounted
+ * once, by the providers): read out, and gone by itself after a few seconds.
+ * A new one takes the place of the one showing.
  */
 export interface ToastMessage {
   readonly text: string;
   readonly action?: { readonly label: string; readonly onClick: () => void };
-  /** Changes for every new message, so the same words twice still show again */
-  readonly key: number;
 }
 
-export function Toast({ message, onDismiss }: { message: ToastMessage | null; onDismiss: () => void }) {
-  useEffect(() => {
-    if (!message) return;
-    const timer = window.setTimeout(onDismiss, message.action ? 6000 : 3500);
-    return () => window.clearTimeout(timer);
-  }, [message, onDismiss]);
+const TOAST_ID = 'wisepath-toast';
 
-  return (
-    <div role="status" aria-live="polite" className={classes.region}>
-      {message && (
-        <Paper key={message.key} shadow="lg" radius="md" px="md" py={8} className={classes.toast}>
-          <Group gap="md" wrap="nowrap">
-            <Text size="sm">{message.text}</Text>
-            {message.action && (
-              <Button
-                size="compact-sm"
-                variant="subtle"
-                onClick={() => {
-                  message.action?.onClick();
-                  onDismiss();
-                }}
-              >
-                {message.action.label}
-              </Button>
-            )}
-          </Group>
-        </Paper>
-      )}
-    </div>
-  );
+/** Where the toasts show; mounted once, inside MantineProvider */
+export function ToastHost() {
+  return <Notifications position="top-right" zIndex={500} limit={1} containerWidth={400} className={classes.notifications} />;
+}
+
+export function showToast({ text, action }: ToastMessage): void {
+  notifications.hide(TOAST_ID);
+  notifications.show({
+    id: TOAST_ID,
+    autoClose: action ? 6000 : 3500,
+    withCloseButton: false,
+    radius: 'md',
+    classNames: { root: classes.toast },
+    message: (
+      <Group gap="md" wrap="nowrap" justify="space-between">
+        <Text size="sm" c="var(--mantine-color-text)">
+          {text}
+        </Text>
+        {action && (
+          <Button
+            size="compact-sm"
+            variant="subtle"
+            onClick={() => {
+              action.onClick();
+              notifications.hide(TOAST_ID);
+            }}
+          >
+            {action.label}
+          </Button>
+        )}
+      </Group>
+    ),
+  });
 }

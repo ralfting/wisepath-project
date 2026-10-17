@@ -98,6 +98,16 @@ const TOPICS: Record<Screen, { intro: TranslationKey; topics: ReadonlyArray<Topi
       { base: 'help.map.keys', steps: 4 },
     ],
   },
+  inbox: {
+    intro: 'help.inbox.intro',
+    topics: [
+      { base: 'help.inbox.capture', steps: 3, clip: 'inbox-capture' },
+      { base: 'help.inbox.file', steps: 3, clip: 'inbox-file' },
+      { base: 'help.inbox.makePage', steps: 3 },
+      { base: 'help.inbox.fromPage', steps: 2 },
+      { base: 'help.inbox.keys', steps: 4 },
+    ],
+  },
   home: {
     intro: 'help.home.intro',
     topics: [

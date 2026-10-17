@@ -70,6 +70,54 @@ export const help = {
       tip: 'Clique no mapa antes, ou chegue nele com <kbd>Tab</kbd>.',
     },
   },
+  inbox: {
+    intro: 'Anote agora, organize depois: o que você captura espera aqui.',
+    capture: {
+      title: 'Capturar uma ideia',
+      steps: {
+        a: 'Clique em **Capturar**, ou aperte <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>Space</kbd> em qualquer lugar do WisePath',
+        b: 'Escreva a ideia, o link ou a pergunta',
+        c: 'Aperte <kbd>Enter</kbd>: fica esperando aqui, as mais novas primeiro',
+      },
+      tip: 'Um link colado guarda o **título**; um link do YouTube com tempo guarda o **momento**.',
+    },
+    file: {
+      title: 'Adicionar a uma página',
+      steps: {
+        a: 'Clique em **Adicionar a…** num item',
+        b: 'Escolha a **trilha** e depois a **página**',
+        c: 'O item vai para o **fim** daquela página e sai da Caixa de entrada',
+      },
+      tip: 'Um momento de vídeo entra nas notas **embaixo daquele vídeo**, como `- [01:25]`.',
+    },
+    makePage: {
+      title: 'Virar uma página',
+      steps: {
+        a: 'Clique em **Virar uma página** num item',
+        b: 'Escolha a trilha e a página que vai ligar a ela',
+        c: 'Uma página nova guarda o item, ligada àquela página',
+      },
+      tip: 'A página nova recebe o título do link, ou a primeira linha do item.',
+    },
+    fromPage: {
+      title: 'Trazer de dentro de uma página',
+      steps: {
+        a: 'Numa página, digite `/` e escolha **Item da Caixa de entrada**',
+        b: 'Escolha o item: ele entra onde está o cursor',
+      },
+      tip: 'Ele sai da Caixa de entrada quando a página é salva.',
+    },
+    keys: {
+      title: 'Usar o teclado',
+      steps: {
+        a: '<kbd>↑</kbd> <kbd>↓</kbd> passam entre os itens',
+        b: '<kbd>A</kbd> adiciona o item a uma página',
+        c: '<kbd>D</kbd> exclui, com **Desfazer** por alguns segundos',
+        d: '<kbd>Enter</kbd> abre de onde ele veio',
+      },
+      tip: 'Nas listas de escolha, <kbd>→</kbd> abre as páginas de uma trilha e <kbd>←</kbd> volta.',
+    },
+  },
   home: {
     intro: 'Suas trilhas, agrupadas por projeto.',
     newPath: {

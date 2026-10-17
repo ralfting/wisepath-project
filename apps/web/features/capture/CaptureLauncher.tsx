@@ -3,8 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { QuickCapture } from './QuickCapture';
-import { Toast } from './Toast';
-import type { ToastMessage } from './Toast';
+import { showToast } from './Toast';
 import { isCaptureKey, pageOf, pathOf, rememberPath, useOnOpenCapture } from './keys';
 
 /**
@@ -16,7 +15,6 @@ import { isCaptureKey, pageOf, pathOf, rememberPath, useOnOpenCapture } from './
 export function CaptureLauncher() {
   const pathname = usePathname();
   const [opened, setOpened] = useState(false);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
   const page = pageOf(pathname);
   const open = useCallback(() => setOpened(true), []);
 
@@ -39,17 +37,14 @@ export function CaptureLauncher() {
     if (pathId) rememberPath(pathId);
   }, [pathname]);
 
-  const dismiss = useCallback(() => setToast(null), []);
-
   return (
     <>
       <QuickCapture
         opened={opened}
         onClose={() => setOpened(false)}
         page={page}
-        onDone={(text) => setToast({ text, key: Date.now() })}
+        onDone={(text) => showToast({ text })}
       />
-      <Toast message={toast} onDismiss={dismiss} />
     </>
   );
 }

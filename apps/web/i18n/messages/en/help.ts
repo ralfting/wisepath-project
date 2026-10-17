@@ -73,6 +73,54 @@ export const help = {
       tip: 'Click the map first, or <kbd>Tab</kbd> to it.',
     },
   },
+  inbox: {
+    intro: 'Write things down now, file them later: what you capture waits here.',
+    capture: {
+      title: 'Capture an idea',
+      steps: {
+        a: 'Click **Capture**, or press <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>Space</kbd> anywhere in WisePath',
+        b: 'Write the idea, link or question',
+        c: 'Press <kbd>Enter</kbd>: it waits here, newest first',
+      },
+      tip: 'A pasted link keeps its **title**; a YouTube link with a time keeps the **moment**.',
+    },
+    file: {
+      title: 'Add it to a page',
+      steps: {
+        a: 'Click **Add to…** on an item',
+        b: 'Choose the **path**, then the **page**',
+        c: 'The item goes to the **end** of that page and leaves the Inbox',
+      },
+      tip: 'A video moment goes into the notes **under that video**, as `- [01:25]`.',
+    },
+    makePage: {
+      title: 'Make it a page',
+      steps: {
+        a: 'Click **Make it a page** on an item',
+        b: 'Choose the path and the page to link it from',
+        c: 'A new page holds the item, linked from that page',
+      },
+      tip: 'The new page is named after the link’s title, or the item’s first line.',
+    },
+    fromPage: {
+      title: 'Bring it in from a page',
+      steps: {
+        a: 'On a page, type `/` and choose **Inbox item**',
+        b: 'Pick the item: it goes where the cursor is',
+      },
+      tip: 'It leaves the Inbox once the page is saved.',
+    },
+    keys: {
+      title: 'Use the keyboard',
+      steps: {
+        a: '<kbd>↑</kbd> <kbd>↓</kbd> move between items',
+        b: '<kbd>A</kbd> adds the item to a page',
+        c: '<kbd>D</kbd> deletes it, with **Undo** for a few seconds',
+        d: '<kbd>Enter</kbd> opens where it came from',
+      },
+      tip: 'In the pickers, <kbd>→</kbd> opens a path’s pages and <kbd>←</kbd> goes back.',
+    },
+  },
   home: {
     intro: 'Your paths, grouped by project.',
     newPath: {
