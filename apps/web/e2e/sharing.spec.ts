@@ -91,8 +91,8 @@ test('a public path is read by its link without an account, taken to study, and 
   const visitor = await (await browser.newContext()).newPage();
   const map = await learningPath(ada.page);
 
-  // Private, the link leads nowhere
-  await visitor.goto(`/public/paths/${map.pathId}`);
+  // Private, the link leads nowhere: a real 404, which a streamed loading screen would turn into a 200
+  expect((await visitor.goto(`/public/paths/${map.pathId}`))?.status()).toBe(404);
   await expect(visitor.getByRole('heading', { name: 'Path not found' })).toBeVisible();
 
   await ada.page.goto(`/paths/${map.pathId}`);

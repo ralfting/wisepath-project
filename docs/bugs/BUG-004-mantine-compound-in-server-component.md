@@ -32,6 +32,8 @@ component; in a Server Component the import is a client reference, which has no 
 - Files changed: `apps/web/app/public/paths/[pathId]/loading.tsx`
 - Commit: the one that adds the public page ("a public path is read by its link, and taken to study")
 - The loading screen is a client component (`'use client'`), as Mantine's docs ask for compound components.
+- Later removed altogether: a public route must answer 404 when missing, which a streamed loading screen prevents
+  (react-next.md, "Routes").
 
 ## Prevention
 

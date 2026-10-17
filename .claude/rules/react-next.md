@@ -59,10 +59,13 @@ while offline; a Server Action per command adds a hop through Next and loses the
 - `page.tsx`/`layout.tsx` stay thin: await and decode `params`, call queries, render a feature. No `fetch`, no Effect,
   no business rules.
 - `params` and `searchParams` are Promises in Next 15: `const { pathId } = await params`.
-- Every segment that loads data has `loading.tsx` (skeleton matching the final layout) and `error.tsx`
-  (`'use client'`, translated message, retry with `reset`). Missing resources call `notFound()` and render the
-  segment's `not-found.tsx`. **Why:** today `PathGate` decides not-found in the browser, so the server answers 200 for
-  a missing map.
+- Every segment that loads data has `error.tsx` (`'use client'`, translated message, retry with `reset`). Missing
+  resources call `notFound()` and render the segment's `not-found.tsx`. **Why:** today `PathGate` decides not-found in
+  the browser, so the server answers 200 for a missing map.
+- `loading.tsx` (a skeleton matching the final layout) only where the read is slow enough to show one. Never on a
+  public or indexable route that can be missing (`app/public/**`): it streams the page, so the status is sent before
+  `notFound()` runs and a missing page answers 200 (with `noindex`) instead of 404. That is Next's documented
+  streaming behaviour, not a bug of ours.
 - Parallel `@drawer` + intercepting `(.)pages/[pageId]` open a page over the map; a direct load renders the full page.
   Navigate to another path's page with `mapWithPageHref`, never `pageHref` (see the comment in `routes.ts`).
 - `middleware.ts` only redirects (legacy URLs, logged-in users away from /login). It never decides access.
@@ -156,7 +159,7 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
 
 - [ ] New screen reads on the server through `queries.ts`; `'use client'` only on interactive leaves.
 - [ ] `page`/`layout` have no `fetch`, Effect or rules; `params` awaited and decoded.
-- [ ] Data segments have `loading.tsx`, `error.tsx` and call `notFound()` for missing resources.
+- [ ] Data segments have `error.tsx` and call `notFound()` for missing resources; `loading.tsx` only for slow reads, never on public routes.
 - [ ] Each Server Action decodes, checks the session, runs, maps the error and revalidates.
 - [ ] Client logic is in a colocated `use<Component>` returning `{ state, operations }`.
 - [ ] No `setState` in render; no derived objects in effect deps; narrow atom selectors.
