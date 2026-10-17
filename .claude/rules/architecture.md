@@ -37,11 +37,15 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | `app/` and `features/` import `@/infrastructure/*` | ESLint |
 | `useCases/` imports `@/features/*` | ESLint |
 | `infrastructure/` imports React, Next, Mantine, `@/features/*`, `@/useCases/*` | ESLint |
-| `features/<a>` imports a file inside `features/<b>` other than its `index.ts` | Review (`TODO(decide)`: lint) |
+| `features/<a>` imports a file inside `features/<b>` other than its `index.ts` | Review; becomes lint with the folder migration (about 50 imports break it today) |
 | `i18n/` or `shared/` imports `features/*` (today `I18nProvider` imports `features/shared/title`) | Review |
 | `packages/domain` imports another domain's `index.ts` at runtime | Review |
 | A client component imports `queries.ts` or `infrastructure/server/*` | `import 'server-only'` fails the build |
 | A `features/shared/` or `features/common/` folder | Review |
+| Zod, Yup, Valibot, io-ts, ArkType, Joi, Superstruct anywhere | ESLint, web and API |
+| `process.env` outside `infrastructure/http/ApiClient.ts` and `next.config.js` (`NODE_ENV` allowed) | ESLint |
+| `Effect.run*` inside `infrastructure/` | ESLint |
+| `dangerouslySetInnerHTML` | ESLint `react/no-danger` |
 
 ## Ownership
 

@@ -38,7 +38,7 @@ Stop and ask the user (one question) when:
 ## Validation
 
 - Effect Schema (`import { Schema } from "effect"`) is the only validation and parsing library.
-  Never add Zod, Yup, Valibot, io-ts, ArkType or similar.
+  Never add Zod, Yup, Valibot, io-ts, ArkType or similar (ESLint rejects the import in web and API).
 - Forms validate with the domain schema through Standard Schema (TanStack Form `validators`), never with a
   hand-written validator.
 

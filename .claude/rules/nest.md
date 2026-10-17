@@ -22,7 +22,8 @@ errors, services), [code-style.md](code-style.md).
 | Contract | `packages/contract` | Every endpoint as `HttpApiEndpoint` with its payload, success and errors | - |
 
 Enforced by ESLint (`apps/api/eslint.config.mjs`): `application/**` cannot import `@nestjs/*`, `express`,
-`cookie-parser`, `drizzle-orm`, `effect/sql`, `@effect/sql-pg` or `**/infrastructure`.
+`cookie-parser`, `drizzle-orm`, `effect/sql`, `@effect/sql-pg` or `**/infrastructure`. Everywhere: no validation
+library but Effect Schema (`class-validator` included), and no `process.env` outside the files listed under Config.
 
 ## A request, in order
 
