@@ -144,6 +144,8 @@ pnpm --filter @wisepath/domain test          # domain rules
 - Use e2e for what only the whole stack shows: a server read (a tab title after a full load), a Server Action
   surviving a reload, a redirect. Everything else is cheaper as a component or program test.
 - Same query rules as Testing Library: roles and labels, `toHaveURL`/`toHaveTitle`, no fixed waits.
+- `e2e/video.spec.ts` runs the video block against YouTube itself, so it is skipped unless `E2E_YOUTUBE=1`: run it
+  after changing anything under `features/paths/editor/video`. Never make a default journey depend on a third party.
 - The e2e build points `next-env.d.ts` at `.next-e2e` and writes route types there; `e2e/globalTeardown.ts` puts
   both back after every run. If a run is killed before it, `git checkout -- apps/web/next-env.d.ts`.
 
