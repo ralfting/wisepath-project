@@ -17,7 +17,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import { useT } from '@/i18n/I18nProvider';
-import { youTubeId } from '../extensions';
+import { youTubeId } from '../youtube';
 import { LOAD_TIMEOUT_MS, PAUSED, PLAYING, embedUrl, loadYouTubeApi } from './youtubeApi';
 import type { YouTubePlayer } from './youtubeApi';
 import { addNote, formatTime, noteAt, notesAfter, setActiveNote } from './timestamps';

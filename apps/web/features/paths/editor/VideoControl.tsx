@@ -5,7 +5,7 @@ import { RichTextEditor } from '@mantine/tiptap';
 import { Button, Popover, Stack, TextInput } from '@mantine/core';
 import { IconBrandYoutube } from '@tabler/icons-react';
 import { useState } from 'react';
-import { youTubeId } from './extensions';
+import { youTubeId } from './youtube';
 import { useT } from '@/i18n/I18nProvider';
 
 /** Toolbar control that embeds a YouTube video from its link */
