@@ -19,7 +19,8 @@ describe('searchRows', () => {
   it("lists the search's hits with where they sit and the matched part of the title", () => {
     const [row] = searchRows({ status: 'ready', query: 'own', hits: [hit('Ownership', ['Memory'])], stale: false }, [], null);
     expect(row.where).toBe('Rust › Memory');
-    expect(row.titleMarks.length).toBeGreaterThan(0);
+    // "own" at the start of "Ownership"
+    expect(row.titleMarks).toEqual([[0, 3]]);
   });
 
   it('offers recent pages when nothing is typed, dropping deleted paths and showing renamed ones by their new title', () => {

@@ -35,10 +35,13 @@ describe('neighbourOf', () => {
     expect(neighbourOf(layout, tree, 'a1', 'Home')).toBe('root');
   });
 
-  it('moves up and down among the pages on the same branch and side, and stops at the ends', () => {
-    const down = neighbourOf(layout, tree, 'a1', 'ArrowDown') ?? neighbourOf(layout, tree, 'a1', 'ArrowUp');
-    expect(down).toBe('a2');
-    expect(neighbourOf(layout, tree, 'a2', 'ArrowDown') === null || neighbourOf(layout, tree, 'a2', 'ArrowUp') === null).toBe(true);
+  it('moves up and down among the pages on the same branch and side, as drawn, and stops at the ends', () => {
+    const yOf = (id: string) => layout.nodes.find((n) => n.page.id === id)!.inner.y;
+    const [upper, lower] = ['a1', 'a2'].sort((x, y) => yOf(x) - yOf(y));
+    expect(neighbourOf(layout, tree, upper, 'ArrowDown')).toBe(lower);
+    expect(neighbourOf(layout, tree, lower, 'ArrowUp')).toBe(upper);
+    expect(neighbourOf(layout, tree, upper, 'ArrowUp')).toBeNull();
+    expect(neighbourOf(layout, tree, lower, 'ArrowDown')).toBeNull();
     expect(neighbourOf(layout, tree, 'root', 'ArrowUp')).toBeNull();
   });
 });
