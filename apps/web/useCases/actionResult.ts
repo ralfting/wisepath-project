@@ -1,5 +1,7 @@
-import { Exit, Option } from "effect"
+import { Effect, Exit, Option } from "effect"
+import type { Auth } from "@wisepath/domain/auth"
 import type { Translate } from "@/i18n/I18nProvider"
+import { requireSession } from "./auth/programs"
 import { translateDomainMessage } from "./domainMessages"
 import { messageFor } from "./messages"
 
@@ -24,3 +26,22 @@ export function toActionResult<A, E extends { readonly _tag: string }>(
   const message = translateDomainMessage(t)(messageFor(exit, messages, generic)) ?? generic
   return { ok: false, _tag: Option.isSome(error) ? error.value._tag : "Defect", message }
 }
+
+/**
+ * A whole Server Action as an Effect that never fails: the session first, then the use case, then its answer.
+ * The session check reaches the API before anything else, so an outage shows as AuthUnavailable here.
+ */
+export const actionAnswer = <A, E extends { readonly _tag: string }, R>(
+  program: Effect.Effect<A, E, R>,
+  t: Translate,
+  messages: Partial<Record<string, string>>
+): Effect.Effect<ActionResult<A>, never, R | Auth> =>
+  Effect.exit(requireSession(program)).pipe(
+    Effect.map((exit) =>
+      toActionResult<A, { readonly _tag: string }>(
+        exit,
+        { NotAuthenticated: t("common.errors.signedOut"), AuthUnavailable: t("common.errors.unavailable"), ...messages },
+        t
+      )
+    )
+  )
