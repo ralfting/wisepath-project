@@ -7,11 +7,11 @@ import type { PathSummary } from '@wisepath/domain/paths';
 import type { Project } from '@wisepath/domain/projects';
 import { useMovePath, usePaths } from '@/useCases/paths';
 import { useProjects } from '@/useCases/projects';
-import { ProjectNameModal } from './ProjectNameModal';
+import { ProjectNameModal } from './ProjectNameModal/ProjectNameModal';
 import { showToast } from '@/features/inbox/capture';
 import { AppFrame } from '@/features/shell';
 import { useT } from '@/i18n/I18nProvider';
-import { NewMapModal } from './NewMapModal';
+import { NewMapModal } from './NewMapModal/NewMapModal';
 import { ProjectGroup } from './ProjectGroup';
 
 /**

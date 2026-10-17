@@ -28,7 +28,8 @@ paths:
 A test that renders React is `.test.tsx`; everything else is `.test.ts`.
 
 Render components with `renderWithLayers(ui, layers, locale?)` from `test/render.tsx`: Mantine theme, `I18nProvider`
-and a fresh registry on the given Layers, as the app wraps them. Never assemble those providers in a test.
+and a fresh registry on the given Layers, as the app wraps them; `rerender` keeps them, so a test can close and
+reopen a component on the same data. Never assemble those providers in a test.
 
 ## Test doubles: Layers, not mocks
 
@@ -58,6 +59,9 @@ and a fresh registry on the given Layers, as the app wraps them. Never assemble 
   created; changing it later does nothing.
 - `features/**/*.test.tsx` is exempt from the layer bans (`eslint.config.mjs`), so component tests may import
   `effect` and `@/infrastructure/*` to build their Layers. Only test files: the same import in a component fails lint.
+- Server Actions are the one module of ours a component test mocks: an action is a call to the Next server, which no
+  Layer reaches. `vi.mock('@/useCases/<domain>/actions')` with `ActionResult`s; the action's own answer is tested
+  through `actionAnswer` (`useCases/actionResult.test.ts`). Model: `ProjectNameModal.test.tsx`.
 - Mock only what we do not control and cannot put behind a Layer: the clock (`TestClock`, `vi.useFakeTimers`),
   `window` APIs the DOM lacks, and Next's client APIs (`vi.mock('next/navigation')` with `vi.hoisted` state, as in
   `features/auth/LoginForm.test.tsx`).

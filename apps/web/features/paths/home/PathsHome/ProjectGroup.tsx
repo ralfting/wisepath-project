@@ -6,7 +6,7 @@ import { ActionIcon, Badge, Group, Menu, SimpleGrid, Stack, Text, Title, Tooltip
 import { IconDots, IconPencil, IconPlus, IconTrash } from '@tabler/icons-react';
 import type { PathSummary } from '@wisepath/domain/paths';
 import type { Project } from '@wisepath/domain/projects';
-import { ProjectNameModal } from './ProjectNameModal';
+import { ProjectNameModal } from './ProjectNameModal/ProjectNameModal';
 import { DeleteProjectModal } from './DeleteProjectModal';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PathsHome.module.css';
