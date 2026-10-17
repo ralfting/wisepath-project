@@ -1,6 +1,6 @@
 "use client"
 
-import { useContext, useSyncExternalStore } from "react"
+import { useContext } from "react"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomValue } from "@effect/atom-react"
 import { Schema } from "effect"
@@ -8,6 +8,7 @@ import { PathId, ShareEdit } from "@wisepath/domain/paths"
 import type { MemberRole, Path, PathShare, PathVisibility } from "@wisepath/domain/paths"
 import type { ActionResult } from "../actionResult"
 import { ReactivityKeys, appRuntime } from "../runtime"
+import { useHydrated } from "../useHydrated"
 import { useAction } from "../useAction"
 import * as actions from "./actions"
 import * as programs from "./programs"
@@ -29,9 +30,6 @@ const sharesAtom = Atom.family((id: PathId) =>
  * read, and the dialog should not flip back when opened again
  */
 const visibilityAtom = Atom.family((_: PathId) => Atom.keepAlive(Atom.make<PathVisibility | null>(null)))
-
-const noSubscription = () => () => {}
-const useHydrated = () => useSyncExternalStore(noSubscription, () => true, () => false)
 
 export type SharesState =
   | { readonly status: "loading" }

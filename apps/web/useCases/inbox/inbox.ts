@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useContext, useSyncExternalStore } from "react"
+import { useCallback, useContext } from "react"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { Effect, Exit } from "effect"
@@ -12,6 +12,7 @@ import { useT } from "@/i18n/I18nProvider"
 import { newPageId, useOpenPath } from "../paths"
 import type { Command } from "../paths"
 import { ReactivityKeys, appRuntime } from "../runtime"
+import { useHydrated } from "../useHydrated"
 import * as programs from "./programs"
 
 /**
@@ -55,10 +56,6 @@ const inboxViewAtom = Atom.make((get): InboxState => {
     .sort(newestFirst)
   return { status: "ready", items }
 })
-
-/** The Inbox loads in the browser (the session cookie belongs to the API), so the server render says "loading" */
-const noSubscription = () => () => {}
-const useHydrated = () => useSyncExternalStore(noSubscription, () => true, () => false)
 
 /** What is waiting in the Inbox, newest first */
 export function useInbox(): InboxState {

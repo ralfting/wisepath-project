@@ -1,11 +1,11 @@
 "use client"
 
-import { useSyncExternalStore } from "react"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { useAtomValue } from "@effect/atom-react"
 import type { Project } from "@wisepath/domain/projects"
 import type { ActionResult } from "../actionResult"
 import { ReactivityKeys, appRuntime } from "../runtime"
+import { useHydrated } from "../useHydrated"
 import { useAction } from "../useAction"
 import * as actions from "./actions"
 import * as programs from "./programs"
@@ -18,9 +18,6 @@ import * as programs from "./programs"
 const listAtom = appRuntime
   .atom(programs.listProjects)
   .pipe(Atom.withReactivity([ReactivityKeys.projects, ReactivityKeys.session]))
-
-const noSubscription = () => () => {}
-const useHydrated = () => useSyncExternalStore(noSubscription, () => true, () => false)
 
 /** Every project, the default first; null until loaded */
 export function useProjects(): ReadonlyArray<Project> | null {
