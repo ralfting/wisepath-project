@@ -76,7 +76,8 @@ async rename(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, 
   Never call Drizzle outside `run`/`use`: the bridge needs the running fiber (it throws "must run through
   Database.run").
 - Map rows to domain values in one `toDomain` per store; branded ids with `X.make(row.id)` (rows are trusted).
-- Every query filters by `ownerId`. A query without the owner is a review blocker.
+- Every query filters by `ownerId`, or for a path by the predicate of the access it needs (`readableBy`,
+  `editableBy`; [security.md](security.md), "Authorization"). A query with neither is a review blocker.
 - Tables live in `src/shared/infrastructure/database/schema.ts`; relational queries are checked by the compiler.
 
 ## Migrations

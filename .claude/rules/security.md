@@ -36,8 +36,19 @@ are public POST endpoints, callable without the UI.
 
 ## Authorization
 
-- `TODO(decide): permission model`. Today a learner can only reach their own paths, and the API enforces it.
-  Do not build roles, permissions, `can(...)` helpers or ownership checks in the web app.
+Decided 2026-10-17. Not built yet: today every path is private to its owner (`ownedBy` in `DrizzlePathStore`).
+
+- The unit of access is the path (map). Projects, the Inbox and review states stay private to their owner;
+  sharing a project, if it comes, means "every path in it".
+- A path has `visibility: 'private' | 'public'` and shares `(pathId, userId, role: 'viewer' | 'editor')`.
+- A viewer's access is one value, `'owner' | 'editor' | 'viewer' | 'none'`, computed by one pure rule
+  `accessOf(path, viewer)` in `packages/domain/paths`: owner is owner, a share gives its role, public gives viewer.
+- The API enforces it in SQL (`readableBy(userId)`, `editableBy(userId)` beside `ownedBy`), with a test that the
+  predicates agree with `accessOf`. Only the owner deletes a path, changes its visibility or its shares.
+- A public path is read without a session through its own read-only endpoint; no write endpoint accepts anonymous.
+- The API sends `access` with the path; the web app reads it to show or hide editing and never decides access.
+- No authorization library (CASL and the like). **Why:** the rules must become SQL for lists, CASL has no Drizzle
+  adapter, and three levels fit one pure function. Revisit with teams or configurable roles.
 
 ## Input
 
@@ -85,4 +96,4 @@ are public POST endpoints, callable without the UI.
 - [ ] No `dangerouslySetInnerHTML` with content; hrefs restricted to http(s); external links `noopener noreferrer`.
 - [ ] No secret in `NEXT_PUBLIC_*` or client-reachable modules.
 - [ ] Session cookie stays httpOnly; no request data in module scope or the shared runtime.
-- [ ] No permission abstraction added.
+- [ ] Access comes from `accessOf` and the API's `access`; no permission abstraction or library added.
