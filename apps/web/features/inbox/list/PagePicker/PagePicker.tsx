@@ -6,8 +6,8 @@ import type { PathSummary } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { Palette } from '@/ui/Palette/Palette';
 import classes from './PagePicker.module.css';
-import { PathsStep } from './PathsStep';
-import { PagesStep } from './PagesStep';
+import { PathsStep } from './PathsStep/PathsStep';
+import { PagesStep } from './PagesStep/PagesStep';
 import type { PickedPage } from './PagePicker.helpers';
 
 /**
