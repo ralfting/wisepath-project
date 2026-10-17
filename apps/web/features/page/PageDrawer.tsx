@@ -159,16 +159,8 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  // The dialog is what screen readers announce, and Drawer gives it no name without a visible title
-  useEffect(() => {
-    const frame = requestAnimationFrame(() =>
-      document.querySelector('.mantine-Drawer-content')?.setAttribute('aria-label', t('page.drawer.label')),
-    );
-    return () => cancelAnimationFrame(frame);
-  });
-
   return (
-    <Drawer
+    <Drawer.Root
       opened
       // Esc first closes a popover or menu open in the drawer (they close themselves), then shrinks
       // an expanded drawer back, then closes it
@@ -187,11 +179,9 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       transitionProps={{ duration: 0 }}
       position="right"
       size={expanded ? '100%' : DRAWER_WIDTH}
-      withOverlay={false}
       lockScroll={false}
       trapFocus={false}
       closeOnClickOutside={false}
-      withCloseButton={false}
       padding={0}
       shadow="xl"
       classNames={{ inner: classes.drawerInner, content: classes.drawer, body: classes.drawerBody }}
@@ -199,10 +189,16 @@ export function PageDrawerShell({ children }: { children: ReactNode }) {
       data-expanded={expanded || undefined}
       style={{ '--drawer-left': `${sidebarEdge}px` } as CSSProperties}
     >
-      <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail, cursors, shown }}>
-        {children}
-      </DrawerContext.Provider>
-    </Drawer>
+      {/* No overlay and no close button: the map stays usable, and the page's own top bar closes it.
+          The dialog has no visible title, so it is named here for screen readers */}
+      <Drawer.Content aria-label={t('page.drawer.label')}>
+        <Drawer.Body>
+          <DrawerContext.Provider value={{ close, expanded, toggleExpanded, trail, setTrail, cursors, shown }}>
+            {children}
+          </DrawerContext.Provider>
+        </Drawer.Body>
+      </Drawer.Content>
+    </Drawer.Root>
   );
 }
 
