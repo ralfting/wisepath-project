@@ -28,9 +28,9 @@ are public POST endpoints, callable without the UI.
 - `middleware.ts` checks only that the `access_token` cookie exists. It is a redirect convenience, never access
   control. **Why:** an expired or forged cookie passes it.
 - Hiding a button, a route or a menu item protects nothing; the check is on the server, every time.
-- The session cookie is httpOnly and set by the API. When an action forwards it (login, signup), it keeps httpOnly,
-  `secure` in production, `sameSite` and path exactly as the API sent them. Never expose the token to client JS,
-  never store it in `localStorage`.
+- The session cookie is httpOnly and set by the API, straight on the browser (login, signup and logout are not
+  Server Actions; see [react-next.md](react-next.md)). Never copy it in web code, never expose the token to client
+  JS, never store it in `localStorage`.
 - Never put request-specific data (cookie, user) in a module-level variable or the shared `ManagedRuntime`
   ([effect.md](effect.md), "The edge").
 

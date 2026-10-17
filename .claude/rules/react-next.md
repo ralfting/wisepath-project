@@ -19,9 +19,14 @@ and when a change is already rewriting a screen ([architecture.md](architecture.
 |---|---|
 | First render data: paths list, projects, inbox, a map, a page, the session | Server Component calling `useCases/<domain>/queries.ts` |
 | Tab title, `notFound()`, `redirect()` | Server: `generateMetadata` and the page, through the same queries |
-| Discrete mutation: login, signup, logout, project CRUD, create/delete path, file/discard inbox item | Server Action in `useCases/<domain>/actions.ts` |
+| Discrete mutation: project CRUD, create/delete path, file/discard inbox item | Server Action in `useCases/<domain>/actions.ts` |
+| Session: login, signup, logout, account language | Client atoms in `useCases/auth/session.ts`, straight to the API |
 | Continuous map editing (commands, offline queue, 400 ms debounce) | Client atoms in `useCases/paths/sync.ts`, straight to the API |
 | Pure interaction: palettes, drawer, editor, mind map, keyboard | Client component, as deep in the tree as possible |
+
+**Why the session stays client-side:** the browser reaches the API on the same origin (the `/api` rewrite in
+production, the same host in dev), so the API's `Set-Cookie` lands where the next server read needs it. As Server
+Actions they would add a hop and copy cookies by hand, and their tests could no longer swap services through Layers.
 
 **Why the editor stays client-side:** each keystroke becomes a command applied locally and sent in order with retry
 while offline; a Server Action per command adds a hop through Next and loses the offline queue.
@@ -101,8 +106,6 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
   session in every action: the pages that do import it are public URLs.
 - Forms posting straight to an action may use `useActionState`/`useOptimistic`; TanStack Form stays for field-level
   validation, and its `onSubmit` calls the hook.
-- Login and signup: the API's `Set-Cookie` is copied into `cookies().set(...)` in the action, httpOnly, same flags.
-  `TODO(decide): session cookie forwarding helper` owner and flags.
 
 ## Client components with logic
 
