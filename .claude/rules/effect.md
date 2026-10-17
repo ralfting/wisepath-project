@@ -40,7 +40,7 @@ Data from outside is `unknown` until decoded; inside programs and the domain it 
 | `params` / `searchParams` | A route params schema | The page or the `queries.ts` it calls |
 | API responses | The contract (`HttpApiClient` decodes) | `infrastructure/` |
 | `localStorage`, `postMessage`, clipboard, URL hash | `Schema.decodeUnknownOption`/`Effect` | The use case or Layer that reads it |
-| Env vars | Schema over literal `process.env.X` reads | One module: `infrastructure/config.ts` (target) |
+| Env vars | Literal `process.env.X` reads | `infrastructure/http/ApiClient.ts` (browser-safe), `infrastructure/server/ServerApiClient.ts` (server-only) |
 
 **Why env reads stay literal:** Next inlines `process.env.NEXT_PUBLIC_*` only when written literally; Effect `Config`
 reading `process.env` dynamically gets `undefined` in the client bundle. Use `Config` only for server-only vars.
@@ -67,9 +67,9 @@ reading `process.env` dynamically gets `undefined` in the client bundle. Use `Co
   `Service.of({...})`, each method with `Effect.withSpan("<Service>.<method>")`; `Memory<Service>` beside it for tests.
 - Programs and the domain never build a client (`HttpApiClient.make`, `fetch`). They `yield*` the service.
 - Client wiring: `infrastructure/AppLayer.ts` merges every client Layer. Server wiring:
-  `infrastructure/server/ServerLayer.ts` builds the same services per request over `ApiClient.forRequest(cookie)`,
-  which sends that request's `cookie` header to `serverApiBaseUrl` (`API_ORIGIN` when set, the one the production
-  rewrite targets; else `NEXT_PUBLIC_API_URL` when absolute). `ServerServices` lists what it provides: add a
+  `infrastructure/server/ServerLayer.ts` builds the same services per request over `requestApiClient(cookie)`
+  (`infrastructure/server/ServerApiClient.ts`), which sends that request's `cookie` header to `serverBaseUrl(...)`:
+  `API_ORIGIN` when set, the one the production rewrite targets; else `NEXT_PUBLIC_API_URL` when absolute. `ServerServices` lists what it provides: add a
   service there (and its server Layer, like `ServerPathRepository`) when a query needs it.
 - A Layer whose reads are guarded with `inBrowser` (`Effect.never` during the server render of client components)
   gets a server twin without the guard, from the same `make`, as `HttpPathRepository` / `ServerPathRepository` do.
@@ -79,13 +79,14 @@ reading `process.env` dynamically gets `undefined` in the client bundle. Use `Co
 | Edge | Runs with | File |
 |---|---|---|
 | Client hook | `appRuntime.atom(...)` / `appRuntime.fn(..., { reactivityKeys })` | `useCases/<domain>/<domain>.ts` |
-| Server read | `runServer(program)` (`useCases/server.ts`): the request's cookies, `ServerLayer`, a shared `ManagedRuntime` holding only the HTTP client; returns an `Exit` | `useCases/<domain>/queries.ts` (`useCases/paths/queries.ts`) |
+| Server read | `runServer(program)` (`useCases/server.ts`) over `runOnServer` (`infrastructure/server/ServerLayer.ts`, the one run ESLint allows in infrastructure): the request's cookies, `ServerLayer`, a shared `ManagedRuntime` holding only the HTTP client; returns an `Exit` | `useCases/<domain>/queries.ts` (`useCases/paths/queries.ts`); the program itself in `programs.ts` |
 | Server Action / route handler | `runAction(program)` over `runServer`, mapped to `ActionResult` | `useCases/<domain>/actions.ts`, `app/**/route.ts` (target: first action adds `runAction`) |
 | Test | `it.effect(...)` + `Effect.provide(MemoryX(...))` | `*.test.ts` |
 
 - The request's cookie header is read by `runServer` from `cookies()` and goes into `ServerLayer(cookie)`, built per
   call; it never goes into the shared runtime or a module variable. **Why:** the runtime is shared across requests;
-  a cookie in it would leak one learner's session into another's request (`ServerLayer.test.ts` pins this).
+  a cookie in it would leak one learner's session into another's request. `ServerLayer.test.ts` pins this with
+  overlapping requests on one shared runtime.
 - Never call `Effect.runPromise`/`runSync`/`runFork` in a program, a Layer, the domain or a component.
   ```ts
   // Wrong: runs inside a service, outside the caller's runtime, errors become rejections

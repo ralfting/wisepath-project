@@ -34,7 +34,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | Rule | Enforced by |
 |---|---|
 | `app/` and `features/` import `effect`, `effect/*`, `@effect/*` (except `features/**/*.test.tsx`) | ESLint `no-restricted-imports` |
-| `app/` and `features/` import `@/infrastructure/*` | ESLint |
+| `app/` and `features/` import `@/infrastructure/*` (except `features/**/*.test.tsx`) | ESLint |
 | `useCases/` imports `@/features/*` | ESLint |
 | `infrastructure/` imports React, Next, Mantine, `@/features/*`, `@/useCases/*` | ESLint |
 | `features/<a>` imports a file inside `features/<b>` other than its `index.ts` | Review; becomes lint with the folder migration (about 50 imports break it today) |
@@ -43,8 +43,8 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | A client component imports `queries.ts` or `infrastructure/server/*` | `import 'server-only'` fails the build |
 | A `features/shared/` or `features/common/` folder | Review |
 | Zod, Yup, Valibot, io-ts, ArkType, Joi, Superstruct anywhere | ESLint, web and API |
-| `process.env` outside `infrastructure/http/ApiClient.ts` and `next.config.js` (`NODE_ENV` allowed) | ESLint |
-| `Effect.run*` inside `infrastructure/` | ESLint |
+| `process.env` outside `infrastructure/http/ApiClient.ts`, `infrastructure/server/ServerApiClient.ts` and `next.config.js` (`NODE_ENV` allowed) | ESLint |
+| `run*` (`Effect.run*`, `runtime.run*`) inside `infrastructure/`, except `infrastructure/server/ServerLayer.ts` | ESLint |
 | `dangerouslySetInnerHTML` | ESLint `react/no-danger` |
 
 ## Ownership
@@ -77,7 +77,7 @@ otherwise leave it and follow the target for new files.
 | `features/shared/look.tsx`, `relatedHover.ts` | the `paths` feature that owns them |
 | Client-only reads (`useProjects`, `usePaths`, map load) | `queries.ts` on the server runtime, data passed as props (first: the map's tab title) |
 | Discrete mutations through atoms (`useCreateProject`, login) | `actions.ts` Server Actions |
-| `inBrowser` guards in `Http*` Layers | removed once the server runtime forwards the session cookie |
+| `inBrowser` guards in `Http*` Layers | stay for the browser's Layer (client components also render on the server, without the session); the server gets a twin without the guard (`ServerPathRepository`) |
 
 ## Where does this file go?
 

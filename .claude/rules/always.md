@@ -62,8 +62,9 @@ Stop and ask the user (one question) when:
 
 ## Auth
 
-- Every Server Action, route handler and server query resolves the session on the server before reading or writing.
-  Hiding a button protects nothing; neither does `middleware.ts`, which only checks that a cookie exists.
+- Every server read sends the request's cookies to the API (`runServer`), which checks the session. Every Server
+  Action and route handler also resolves the session itself before writing or redirecting. Hiding a button protects
+  nothing; neither does `middleware.ts`, which only checks that a cookie exists.
   Details: [security.md](security.md).
 
 ## File size

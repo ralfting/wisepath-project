@@ -18,9 +18,13 @@ are public POST endpoints, callable without the UI.
 
 ## Session
 
-- Every Server Action, route handler and `queries.ts` function resolves the session on the server before any read or
-  write (`currentUser` program on the server runtime, which asks the API). No session: fail with `NotAuthenticated`
-  (action) or `redirect(loginHref(...))` (page).
+- Reads (`queries.ts`): run through `runServer`, which sends the request's cookies; the API checks the session on
+  every call and answers another learner's data as not found. A failed read maps to "nothing to show" (`null`,
+  `notFound()`), never to data. When a page must send a logged-out learner to the login, it resolves the session
+  (`currentUser` through `runServer`) and calls `redirect(loginHref(...))`.
+- Writes (`actions.ts`, route handlers): resolve the session (`currentUser` through `runServer`) before anything
+  else; none: fail with `NotAuthenticated`. **Why:** an action is a public POST endpoint; checking first keeps a
+  half-done write or a redirect from depending on the API refusing later.
 - `middleware.ts` checks only that the `access_token` cookie exists. It is a redirect convenience, never access
   control. **Why:** an expired or forged cookie passes it.
 - Hiding a button, a route or a menu item protects nothing; the check is on the server, every time.
@@ -60,7 +64,8 @@ are public POST endpoints, callable without the UI.
 
 - No secret in the client bundle: nothing secret in `NEXT_PUBLIC_*`, in a client component or in a module a client
   component imports. Server-only values live in `import 'server-only'` modules.
-- `API_ORIGIN` is a server-only rewrite target (`next.config.js`). Never read it in client code.
+- `API_ORIGIN` is a server-only rewrite target (`next.config.js`), read by `infrastructure/server/ServerApiClient.ts`
+  (`server-only`). Never read it in a module the browser bundle can load.
 - Never commit `.env.local`. `apps/api/.env` is tracked by the user's choice; do not change that, do not copy its values
   into web code or docs.
 - Never log cookies, tokens, passwords or full request bodies. Errors sent to the client carry `_tag` and a
@@ -74,7 +79,7 @@ are public POST endpoints, callable without the UI.
 
 ## Pre-flight checklist
 
-- [ ] Action, route handler or query resolves the session on the server first.
+- [ ] Reads go through `runServer`; actions and route handlers resolve the session first.
 - [ ] Nothing relies on `middleware.ts` or hidden UI for access.
 - [ ] Every external input decoded with a Schema; redirects go through `afterLogin`/`loginHref`.
 - [ ] No `dangerouslySetInnerHTML` with content; hrefs restricted to http(s); external links `noopener noreferrer`.

@@ -110,8 +110,9 @@ Order inside every action, no step skipped:
 
 ## Environment variables
 
-- Read once in `infrastructure/config.ts` (target; today `infrastructure/http/ApiClient.ts`), decoded with Schema.
-  Never read `process.env` elsewhere (exception: `next.config.js`).
+- Read in a config module only: `infrastructure/http/ApiClient.ts` (browser-safe, `NEXT_PUBLIC_*`) or
+  `infrastructure/server/ServerApiClient.ts` (`server-only`). ESLint rejects `process.env` anywhere else
+  (`next.config.js` and `NODE_ENV` aside).
 - Secrets never use `NEXT_PUBLIC_*`. Server-only vars are read only from `server-only` modules.
 
 ## Pre-flight checklist
