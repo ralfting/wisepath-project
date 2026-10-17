@@ -7,6 +7,7 @@ import {
   canRead,
   editPage,
   editPath,
+  mayEditPage,
   removePage,
   startPath,
   summarize,
@@ -109,20 +110,9 @@ export const createPage = Effect.fn('paths.createPage')(function* (id: PathId, c
   return path.pages.find((p) => p.id === command.id)!;
 });
 
-/**
- * Marking a page studied is the reader's progress, so reading is enough; anything else edits the page, and renaming
- * the root renames the map, which only its owner does. An edit with both is refused whole.
- */
-const needsFor =
-  (pageId: PageId, edit: PageEdit): Needs =>
-  (path) => {
-    const { studied: _studied, ...rest } = edit;
-    if (Object.values(rest).every((value) => value === undefined)) return reads(path);
-    return pageId === path.rootPageId && edit.title !== undefined ? manages(path) : edits(path);
-  };
-
+/** A studied mark is the reader's own; renaming the root is the owner's; an edit with both is refused whole */
 export const updatePage = Effect.fn('paths.updatePage')(function* (id: PathId, pageId: PageId, edit: PageEdit) {
-  yield* change(id, needsFor(pageId, edit), (path) => editPage(path, pageId, edit));
+  yield* change(id, (path) => mayEditPage(path, pageId, edit), (path) => editPage(path, pageId, edit));
 });
 
 export const deletePage = Effect.fn('paths.deletePage')(function* (id: PathId, pageId: PageId) {

@@ -5,7 +5,7 @@ import { useWindowEvent } from '@mantine/hooks';
 import { Popover, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
 import { IconPencil } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
-import { lookOf } from '@wisepath/domain/paths';
+import { canEdit, canManage, lookOf } from '@wisepath/domain/paths';
 import type { PathActions } from '@/useCases/paths';
 import { PageGlyph } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
@@ -17,7 +17,7 @@ import { LookFields } from './LookFields';
  * The page's icon, which is also where its look changes: a click opens
  * whether it shows as a module, its colour and icon (and, for the path's
  * main page, its description). Like a page icon in Notion, the setting sits
- * on the thing it changes.
+ * on the thing it changes. Someone who may not change it sees the icon alone.
  */
 export function PageLook({ path, page, store, size }: { path: Path; page: Page; store: PathActions; size: number }) {
   const t = useT();
@@ -29,6 +29,14 @@ export function PageLook({ path, page, store, size }: { path: Path; page: Page; 
   const isRoot = page.id === path.rootPageId;
   const look = lookOf(path, page.id);
   const label = t(isRoot ? 'page.look.changeWithDescription' : 'page.look.change');
+  // The main page's look carries the path's description, which is the owner's
+  const editable = isRoot ? canManage(path.access) : canEdit(path.access);
+  const glyph = (
+    <ThemeIcon size={size} radius="xl" variant="light" color={look.color}>
+      <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={Math.round(size / 2)} />
+    </ThemeIcon>
+  );
+  if (!editable) return glyph;
 
   return (
     <Popover opened={opened} onChange={setOpened} position="bottom-start" shadow="md" radius="md" width={300} trapFocus>
@@ -41,9 +49,7 @@ export function PageLook({ path, page, store, size }: { path: Path; page: Page; 
             className={classes.target}
             data-mantine-stop-propagation={opened || undefined}
           >
-            <ThemeIcon size={size} radius="xl" variant="light" color={look.color}>
-              <PageGlyph icon={isRoot || page.module ? look.icon : 'book'} size={Math.round(size / 2)} />
-            </ThemeIcon>
+            {glyph}
             <span className={classes.badge} aria-hidden="true">
               <IconPencil size={11} stroke={2.2} />
             </span>

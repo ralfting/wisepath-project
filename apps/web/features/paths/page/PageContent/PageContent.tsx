@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Page, Path } from '@wisepath/domain/paths';
+import { canEdit } from '@wisepath/domain/paths';
 import { MarkdownEditor } from '@/features/paths/editor';
 import type { EditorFocus } from '@/features/paths/editor';
 import { Stack } from '@mantine/core';
@@ -11,8 +12,8 @@ import type { PageActions } from './PageContent.helpers';
 
 /**
  * PageContent
- * One page's title and markdown, edited in place. Used by the map's side
- * panel and by the full-screen page.
+ * One page's title and markdown, edited in place, or read by someone who may
+ * not edit them. Used by the map's side panel and by the full-screen page.
  */
 
 interface PageContentProps {
@@ -77,6 +78,7 @@ export function PageContent({
         toolbarOffset={toolbarOffset}
         focusOnOpen={focusEditor}
         onCursor={onCursor}
+        readOnly={!canEdit(path.access)}
         inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, path.id) }}
       />
     </Stack>

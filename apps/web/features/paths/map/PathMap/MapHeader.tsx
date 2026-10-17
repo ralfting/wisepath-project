@@ -3,6 +3,7 @@
 import { ActionIcon, Box, Group, Menu, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { IconDots } from '@tabler/icons-react';
 import type { Page, PageColor, PageIcon, Path } from '@wisepath/domain/paths';
+import { canManage } from '@wisepath/domain/paths';
 import type { PathActions, SaveState } from '@/useCases/paths';
 import { KindSwitchItem, PageGlyph, SaveStatus } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
@@ -42,17 +43,19 @@ export function MapHeader({
             {path.title}
           </Title>
         </Tooltip>
-        {/* What can be done to the path itself */}
-        <Menu position="bottom-start">
-          <Menu.Target>
-            <ActionIcon variant="subtle" color="gray" aria-label={t('map.header.more', { title: path.title })} style={{ flexShrink: 0 }}>
-              <IconDots size={18} />
-            </ActionIcon>
-          </Menu.Target>
-          <Menu.Dropdown>
-            <KindSwitchItem kind={path.kind} onSwitch={actions.setKind} />
-          </Menu.Dropdown>
-        </Menu>
+        {/* What can be done to the path itself, by its owner */}
+        {canManage(path.access) && (
+          <Menu position="bottom-start">
+            <Menu.Target>
+              <ActionIcon variant="subtle" color="gray" aria-label={t('map.header.more', { title: path.title })} style={{ flexShrink: 0 }}>
+                <IconDots size={18} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <KindSwitchItem kind={path.kind} onSwitch={actions.setKind} />
+            </Menu.Dropdown>
+          </Menu>
+        )}
         {/* Only while something is on its way, or was undone */}
         <Box visibleFrom="sm" style={{ flexShrink: 0 }}>
           <SaveStatus save={save} hideSaved />

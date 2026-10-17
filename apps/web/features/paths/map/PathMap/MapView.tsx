@@ -2,6 +2,7 @@
 
 import { Group, Stack } from '@mantine/core';
 import type { Path } from '@wisepath/domain/paths';
+import { canEdit } from '@wisepath/domain/paths';
 import type { PathActions, SaveState } from '@/useCases/paths';
 import { AppFrame } from '@/features/shell';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/paths/page';
@@ -19,6 +20,8 @@ import { useMapView } from './useMapView';
 export function MapView({ path, actions, save }: { path: Path; actions: PathActions; save: SaveState }) {
   const { search, branch, state, operations } = useMapView({ path, actions });
   const currentId = state.next?.id ?? null;
+  // A reader studies the map: no + to add pages, no N
+  const editable = canEdit(path.access);
 
   const parent = branch.state.parent;
   const branchPrompt = parent ? (
@@ -74,7 +77,7 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
               onSelect={(pageId) => operations.select(pageId)}
               onIntent={operations.prefetch}
               topLeft={canvasTools}
-              onAddBranch={branch.operations.start}
+              onAddBranch={editable ? branch.operations.start : undefined}
               branch={branchSlot}
             />
           ) : (
@@ -86,7 +89,7 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
               progress={state.progress}
               matchIds={search.state.matchIds}
               onSelect={(pageId) => operations.select(pageId)}
-              onAddBranch={branch.operations.start}
+              onAddBranch={editable ? branch.operations.start : undefined}
               branch={branchSlot}
             />
           )}

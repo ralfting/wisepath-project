@@ -26,7 +26,7 @@ import type { MarkdownEditorProps } from './MarkdownEditor';
  * prompts, the link card, and putting the cursor in the text when asked
  */
 export function useMarkdownEditor(props: MarkdownEditorProps) {
-  const { content, pages, focusSignal = 0, focusOnOpen = null, inbox } = props;
+  const { content, pages, focusSignal = 0, focusOnOpen = null, readOnly = false, inbox } = props;
   const t = useT();
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
   const [headings, setHeadings] = useState<ReadonlyArray<Heading>>([]);
@@ -46,6 +46,7 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     pages: () => latest.current.props.pages,
     onOpenPage: (pageId) => latest.current.props.onOpenPage(pageId),
     onCreatePage: (title) => latest.current.props.onCreatePage(title),
+    canCreate: () => !latest.current.props.readOnly,
   });
 
   const anchorAt = (e: Editor) => {
@@ -56,6 +57,7 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
 
   const editor = useEditor({
     immediatelyRender: false,
+    editable: !readOnly,
     extensions: editorExtensions({
       context,
       openUrl: openInNewTab,
@@ -113,6 +115,11 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
   useEffect(() => {
     if (editor && focusSignal > 0) editor.commands.focus('end');
   }, [editor, focusSignal]);
+
+  // Access can change while the page is open (the owner makes someone an editor)
+  useEffect(() => {
+    if (editor && !editor.isDestroyed) editor.setEditable(!readOnly);
+  }, [editor, readOnly]);
 
   /** The / Page command's name: links it where / was typed, then opens it (made when missing), or stays */
   const submitPageName = (title: string, page: PreviewPage | undefined, stay: boolean) => {

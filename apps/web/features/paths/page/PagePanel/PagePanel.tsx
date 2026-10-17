@@ -4,7 +4,7 @@ import { ActionIcon, Anchor, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, 
 import { IconArrowDownRight, IconArrowLeft, IconArrowRight, IconArrowUpLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import type { Page, Path, Relation } from '@wisepath/domain/paths';
-import { lookOf, pathProgress } from '@wisepath/domain/paths';
+import { canEdit, lookOf, pathProgress } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
 import { PageGlyph, pointAtRelated } from '@/features/paths/path';
@@ -111,7 +111,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
               </ActionIcon>
             </Tooltip>
           )}
-          {!isRoot && (
+          {!isRoot && canEdit(path.access) && (
             <Menu position="bottom-end">
               <Menu.Target>
                 <ActionIcon variant="subtle" color="gray" aria-label={t('page.menu.more')}>
@@ -195,7 +195,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             toolbarOffset={-16}
           />
           {/* Help while the page is empty; once there is writing it only takes room */}
-          {!page.content.trim() && (
+          {!page.content.trim() && canEdit(path.access) && (
             <Text size="xs" c="dimmed" mt="md">
               {t('page.panel.emptyHelp')}
             </Text>

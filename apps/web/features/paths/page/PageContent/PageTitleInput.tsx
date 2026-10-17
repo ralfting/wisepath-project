@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react';
 import type { Page, Path } from '@wisepath/domain/paths';
+import { mayEditPage } from '@wisepath/domain/paths';
 import { Textarea } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PageContent.module.css';
@@ -13,7 +14,7 @@ import { usePageTitleInput } from './usePageTitleInput';
  * (titleSize.ts), rather than being cut. Links to the page follow the new name when
  * editing ends. A title another page has would make [[links]] ambiguous, so it
  * shows an error and is not saved; leaving the field then restores the title
- * the page had before editing.
+ * the page had before editing. Someone who may not rename the page reads it.
  */
 export function PageTitleInput({
   path,
@@ -47,6 +48,7 @@ export function PageTitleInput({
       onChange={operations.change}
       onKeyDown={operations.keyDown}
       placeholder={t('page.title.placeholder')}
+      readOnly={!mayEditPage(path, page.id, { title: page.title })}
       classNames={{ input: classes.titleInput }}
       style={{ '--title-size': `${state.titleSize}px` } as CSSProperties}
     />

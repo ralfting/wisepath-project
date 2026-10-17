@@ -3,7 +3,7 @@
 import { ActionIcon, Box, Card, Group, Menu, Tooltip } from '@mantine/core';
 import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
 import Link from 'next/link';
-import { branchProgress, pathProgress } from '@wisepath/domain/paths';
+import { branchProgress, canEdit, pathProgress } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import { SaveStatus } from '@/features/paths/path';
@@ -85,7 +85,7 @@ export function PageSheet({
               </ActionIcon>
             )}
           </Tooltip>
-          {!isRoot && (
+          {!isRoot && canEdit(path.access) && (
             <Menu position="bottom-end">
               <Menu.Target>
                 <ActionIcon variant="default" size="lg" radius="md" aria-label={t('page.menu.more')}>

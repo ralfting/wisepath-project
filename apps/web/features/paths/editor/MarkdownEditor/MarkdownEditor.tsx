@@ -37,6 +37,8 @@ export interface MarkdownEditorProps {
   focusOnOpen?: EditorFocus | null;
   /** Follows the cursor, so it can be put back later */
   onCursor?: (pos: number) => void;
+  /** For someone who may only read the page: no toolbar, no typing, and a link to a missing page offers nothing */
+  readOnly?: boolean;
   /** What waits in the Inbox (null while it loads), for the / command that brings an item in; without it, no command */
   inbox?: { items: ReadonlyArray<InboxItem> | null; onTaken: (item: InboxItem) => void };
 }
@@ -55,7 +57,7 @@ export type EditorFocus = number | 'start' | 'end';
  * Its Inbox item command puts something waiting in the Inbox where / was typed.
  */
 export function MarkdownEditor(props: MarkdownEditorProps) {
-  const { pages, currentPageId, toolbarOffset = 0, inbox } = props;
+  const { pages, currentPageId, toolbarOffset = 0, readOnly = false, inbox } = props;
   const t = useT();
   const { editor, wrapper, card, state, operations } = useMarkdownEditor(props);
   const { headings, picker, slash, prompt, inboxPrompt } = state;
@@ -89,8 +91,8 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           linkEditorSave: t('common.actions.save'),
         }}
       >
-        <EditorToolbar editor={editor} offset={toolbarOffset} />
-        {editor && <SelectionBubble editor={editor} />}
+        {!readOnly && <EditorToolbar editor={editor} offset={toolbarOffset} />}
+        {editor && !readOnly && <SelectionBubble editor={editor} />}
         <RichTextEditor.Content />
       </RichTextEditor>
 

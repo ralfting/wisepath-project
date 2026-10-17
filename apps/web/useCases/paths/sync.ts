@@ -1,6 +1,6 @@
 import { Duration, Effect, Exit, Queue, Schedule, SubscriptionRef } from "effect"
 import type { Scope } from "effect"
-import { PathRepository, addPage, editPage, editPath, removePage } from "@wisepath/domain/paths"
+import { PathRepository, addPage, canEdit, canManage, editPage, editPath, mayEditPage, removePage } from "@wisepath/domain/paths"
 import type {
   NewPage,
   PageEdit,
@@ -26,6 +26,8 @@ import type { ProjectNotFound } from "@wisepath/domain/projects"
  *   pauses (SEND_AFTER).
  * - No connection or a server error: the command waits and is sent again,
  *   more slowly each time; nothing typed is lost while the tab stays open.
+ * - A change the reader's access does not allow (a reader editing text) is
+ *   not applied; the API would refuse it anyway.
  * - The API refuses a command (a title another tab just took, a page someone
  *   deleted): that command is dropped, the map is read again, and the
  *   changes still waiting are applied on top of it.
@@ -71,6 +73,19 @@ export const applyCommand = (path: Path, command: Command) => {
       return editPage(path, command.pageId, command.edit)
     case "RemovePage":
       return removePage(path, command.pageId)
+  }
+}
+
+/** Whether the map's reader may make this change: a reader only marks pages studied */
+const mayApply = (path: Path, command: Command) => {
+  switch (command._tag) {
+    case "UpdatePath":
+      return canManage(path.access)
+    case "CreatePage":
+    case "RemovePage":
+      return canEdit(path.access)
+    case "UpdatePage":
+      return mayEditPage(path, command.pageId, command.edit)
   }
 }
 
@@ -154,6 +169,7 @@ export const openPathSession = Effect.fn("useCases.paths.openSession")(function*
   const publish = (next: Partial<SyncState>) => Effect.runSync(SubscriptionRef.update(state, (s) => ({ ...s, ...next })))
 
   const dispatch = (command: Command): boolean => {
+    if (!mayApply(current().path, command)) return false
     const next = applied(current().path, command)
     if (!next) return false
     const now = Date.now()

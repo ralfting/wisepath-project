@@ -1,5 +1,7 @@
 import { Schema } from "effect"
 import { Email, UserId } from "../auth/User"
+import type { PageEdit } from "./commands"
+import type { PageId, Path } from "./Path"
 
 /**
  * Who may do what with a path (docs/plans/14-public-and-shared-paths.md). A path is its owner's; they can make it
@@ -66,6 +68,16 @@ export const canEdit = (access: PathAccess) => access === "owner" || access === 
 
 /** Renaming, moving, deleting the path, its kind, its visibility and its members */
 export const canManage = (access: PathAccess) => access === "owner"
+
+/**
+ * Whether the path's reader may make this edit of a page. A studied mark alone is their own progress, so reading is
+ * enough; renaming the root renames the path, which is its owner's; anything else edits the page.
+ */
+export function mayEditPage(path: Pick<Path, "access" | "rootPageId">, pageId: PageId, edit: PageEdit): boolean {
+  const { studied: _studied, ...rest } = edit
+  if (Object.values(rest).every((value) => value === undefined)) return canRead(path.access)
+  return pageId === path.rootPageId && edit.title !== undefined ? canManage(path.access) : canEdit(path.access)
+}
 
 /** Share a path with an account, or change the role of someone it is shared with */
 export const ShareEdit = Schema.Struct({

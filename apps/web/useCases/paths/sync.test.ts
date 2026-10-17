@@ -30,8 +30,8 @@ interface Api {
   readonly dropNext: Ref.Ref<number>
 }
 
-const memoryApi = Effect.gen(function*() {
-  const path = yield* Ref.make<Path>(samplePath)
+const memoryApi = (start: Path) => Effect.gen(function*() {
+  const path = yield* Ref.make<Path>(start)
   const calls = yield* Ref.make<ReadonlyArray<string>>([])
   const dropNext = yield* Ref.make(0)
   const api: Api = { path, calls, dropNext }
@@ -76,7 +76,7 @@ const settled = (state: SubscriptionRef.SubscriptionRef<SyncState>) =>
 describe("path sync", () => {
   it.live("shows a change at once and sends a burst of typing as one edit", () =>
     Effect.gen(function*() {
-      const { api, layer } = yield* memoryApi
+      const { api, layer } = yield* memoryApi(samplePath)
       yield* Effect.gen(function*() {
         const session = yield* openPathSession(samplePath.id)
         assert.isTrue(session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("guards"), edit: { content: "G" } }))
@@ -93,7 +93,7 @@ describe("path sync", () => {
 
   it.live("sends commands in order: a new page, then its text", () =>
     Effect.gen(function*() {
-      const { api, layer } = yield* memoryApi
+      const { api, layer } = yield* memoryApi(samplePath)
       yield* Effect.gen(function*() {
         const session = yield* openPathSession(samplePath.id)
         const id = PageId.make("new-page")
@@ -108,7 +108,7 @@ describe("path sync", () => {
 
   it.live("keeps a change while offline and sends it once the API is back", () =>
     Effect.gen(function*() {
-      const { api, layer } = yield* memoryApi
+      const { api, layer } = yield* memoryApi(samplePath)
       yield* Effect.gen(function*() {
         const session = yield* openPathSession(samplePath.id)
         yield* Ref.set(api.dropNext, 2)
@@ -123,7 +123,7 @@ describe("path sync", () => {
 
   it.live("undoes a change the API refuses and keeps the ones after it", () =>
     Effect.gen(function*() {
-      const { api, layer } = yield* memoryApi
+      const { api, layer } = yield* memoryApi(samplePath)
       yield* Effect.gen(function*() {
         const session = yield* openPathSession(samplePath.id)
         // Another tab takes the title first
@@ -139,9 +139,28 @@ describe("path sync", () => {
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 
+  it.live("lets a reader mark pages studied and nothing else", () =>
+    Effect.gen(function*() {
+      const { api, layer } = yield* memoryApi({ ...samplePath, access: "viewer" })
+      yield* Effect.gen(function*() {
+        const session = yield* openPathSession(samplePath.id)
+        const tried = [
+          session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("guards"), edit: { content: "Mine" } }),
+          session.dispatch({ _tag: "CreatePage", page: { id: PageId.make("new"), title: "New" } }),
+          session.dispatch({ _tag: "RemovePage", pageId: PageId.make("guards") }),
+          session.dispatch({ _tag: "UpdatePath", edit: { kind: "learningPath" } }),
+          session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("scopes"), edit: { studied: true } })
+        ]
+        assert.deepStrictEqual(tried, [false, false, false, false, true])
+        yield* settled(session.state)
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:studied"])
+        assert.strictEqual(page((yield* SubscriptionRef.get(session.state)).path, "guards")?.content, page(samplePath, "guards")?.content)
+      }).pipe(Effect.scoped, Effect.provide(layer))
+    }))
+
   it.effect("says when the map does not exist", () =>
     Effect.gen(function*() {
-      const { layer } = yield* memoryApi
+      const { layer } = yield* memoryApi(samplePath)
       const error = yield* Effect.flip(openPathSession(samplePath.id.replace("nestjs", "other") as never).pipe(Effect.scoped, Effect.provide(layer)))
       assert.strictEqual(error._tag, "PathNotFound")
     }))

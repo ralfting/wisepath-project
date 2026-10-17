@@ -16,11 +16,14 @@ export function useLinkCard({
   pages,
   onOpenPage,
   onCreatePage,
+  canCreate,
 }: {
   wrapper: RefObject<HTMLDivElement | null>;
   pages: () => ReadonlyArray<PreviewPage>;
   onOpenPage: (pageId: string) => void;
   onCreatePage: (title: string) => void;
+  /** Whether a link to a missing page may offer to make it (not for a reader) */
+  canCreate: () => boolean;
 }) {
   const [card, setCard] = useState<LinkCard | null>(null);
   const hoverTimer = useRef<number>(0);
@@ -41,6 +44,7 @@ export function useLinkCard({
       onOpenPage(page.id);
       return;
     }
+    if (!canCreate()) return;
     window.clearTimeout(hoverTimer.current);
     setCard({ target: { kind: 'page', title, page: undefined }, confirmCreate: true, ...placeBelow(el) });
   };

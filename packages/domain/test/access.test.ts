@@ -1,6 +1,6 @@
 import { assert, describe, it } from "@effect/vitest"
 import { UserId } from "../src/auth"
-import { accessOf, canEdit, canManage, canRead } from "../src/paths/index"
+import { PageId, accessOf, canEdit, canManage, canRead, mayEditPage } from "../src/paths/index"
 import type { AccessFacts, MemberRole, MemberSource, PathAccess, PathVisibility } from "../src/paths/index"
 
 const owner = UserId.make("owner")
@@ -52,6 +52,29 @@ describe("what each access allows", () => {
       ["editor", true, true, false],
       ["viewer", true, false, false],
       ["none", false, false, false]
+    ])
+  })
+})
+
+describe("mayEditPage", () => {
+  it("needs reading for a studied mark, the owner to rename the root, and editing for the rest", () => {
+    const root = PageId.make("root")
+    const page = PageId.make("page")
+    const edits = [
+      [page, { studied: true }],
+      [page, { content: "x" }],
+      [page, { title: "New" }],
+      [root, { title: "Renamed" }],
+      [root, { content: "x" }],
+      [page, { studied: true, content: "x" }]
+    ] as const
+    const table = (["owner", "editor", "viewer"] as const).map((access) =>
+      edits.map(([pageId, edit]) => mayEditPage({ access, rootPageId: root }, pageId, edit))
+    )
+    assert.deepStrictEqual(table, [
+      [true, true, true, true, true, true],
+      [true, true, true, false, true, true],
+      [true, false, false, false, false, false]
     ])
   })
 })
