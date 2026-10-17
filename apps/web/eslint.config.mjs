@@ -25,27 +25,31 @@ const validation = {
 const ban = (...patterns) => ({ 'no-restricted-imports': ['error', { patterns: [validation, ...patterns] }] });
 
 /** Env vars are read in one module; Next inlines NODE_ENV and NEXT_PUBLIC_* only when written literally there */
+const envMessage = 'Read env vars only in a config module (infrastructure/http/ApiClient.ts, infrastructure/server/ServerApiClient.ts).';
 const processEnv = {
   selector: "MemberExpression[object.type='MemberExpression'][object.object.name='process'][object.property.name='env'][property.name!='NODE_ENV']",
-  message: 'Read env vars only in the config module (today infrastructure/http/ApiClient.ts).',
+  message: envMessage,
 };
+const processEnvDestructured = { selector: "VariableDeclarator[init.object.name='process'][init.property.name='env']", message: envMessage };
 /** Effects run at an edge (use-case hooks, server queries and actions), never inside a Layer */
-const runEffect = {
-  selector: "CallExpression[callee.object.name='Effect'][callee.property.name=/^run/]",
-  message: 'Layers never run Effects: return the Effect and let the edge run it.',
-};
+const runMessage = 'Layers never run Effects: return the Effect and let the edge run it (infrastructure/server/ServerLayer.ts).';
+const runEffect = { selector: "CallExpression[callee.property.name=/^run(Promise|Sync|Fork)/]", message: runMessage };
+const runEffectBare = { selector: "CallExpression[callee.name=/^run(Promise|Sync|Fork)/]", message: runMessage };
 const restrict = (...selectors) => ({ 'no-restricted-syntax': ['error', ...selectors] });
 
 const config = [
   { ignores: ['.next/**', 'node_modules/**', 'next-env.d.ts'] },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
-  { rules: { ...ban(), ...restrict(processEnv), 'react/no-danger': 'error' } },
+  { rules: { ...ban(), ...restrict(processEnv, processEnvDestructured), 'react/no-danger': 'error' } },
   { files: ['features/**'], rules: ban(effect, infrastructure) },
   { files: ['app/**'], rules: ban(effect, infrastructure) },
   { files: ['useCases/**'], rules: ban(features) },
-  { files: ['infrastructure/**'], rules: { ...ban(features, useCases, react), ...restrict(processEnv, runEffect) } },
-  // The config module itself (and Next's config) read env vars
+  { files: ['infrastructure/**'], rules: { ...ban(features, useCases, react), ...restrict(processEnv, processEnvDestructured, runEffect, runEffectBare) } },
+  // The config modules (and Next's config) read env vars
   { files: ['infrastructure/http/ApiClient.ts', 'next.config.js'], rules: { 'no-restricted-syntax': 'off' } },
+  { files: ['infrastructure/server/ServerApiClient.ts'], rules: restrict(runEffect, runEffectBare) },
+  // The server's one edge: it runs use cases for useCases/server.ts
+  { files: ['infrastructure/server/ServerLayer.ts'], rules: restrict(processEnv, processEnvDestructured) },
   {
     // Component tests wire the use cases to Memory* Layers (useCases/testing.ts), which needs Effect and infrastructure
     files: ['features/**/*.test.tsx'],

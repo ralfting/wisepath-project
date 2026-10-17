@@ -1,13 +1,14 @@
-import { assert, describe, it } from "@effect/vitest"
-import { Effect, Layer, Ref } from "effect"
+import { describe, expect, it } from "vitest"
+import { Effect, Exit, Layer } from "effect"
 import { HttpClient, HttpClientResponse } from "effect/http"
 import { PathId, PathRepository, samplePath } from "@wisepath/domain/paths"
-import { serverApiBaseUrl } from "../http/ApiClient"
-import { ServerLayer } from "./ServerLayer"
+import { serverBaseUrl } from "./ServerApiClient"
+import { serverRunner } from "./ServerLayer"
 
 /**
- * What the Next server sends the API for one request: its cookies, to the
- * server's base URL, and nothing carried over from another request.
+ * What the Next server sends the API for one request: its cookies, and nothing
+ * carried over from another request, even when requests overlap on the one
+ * runtime they share.
  */
 
 interface Sent {
@@ -15,39 +16,43 @@ interface Sent {
   readonly cookie: string | undefined
 }
 
-/** An API that answers every call with the sample map and remembers what it was sent */
-const recordingApi = Effect.gen(function*() {
-  const sent = yield* Ref.make<ReadonlyArray<Sent>>([])
+/** An API that answers every call with the sample map after a short wait, and remembers what it was sent */
+function recordingApi() {
+  const sent: Array<Sent> = []
   const client = HttpClient.make((request, url) =>
-    Ref.update(sent, (all) => [...all, { url: url.toString(), cookie: request.headers["cookie"] }]).pipe(
+    Effect.sync(() => sent.push({ url: url.toString(), cookie: request.headers["cookie"] })).pipe(
+      Effect.andThen(Effect.sleep("5 millis")),
       Effect.as(
         HttpClientResponse.fromWeb(request, new Response(JSON.stringify(samplePath), { headers: { "content-type": "application/json" } }))
       )
     )
   )
   return { sent, layer: Layer.succeed(HttpClient.HttpClient)(client) }
+}
+
+const readTitle = PathRepository.use((repo) => repo.get(PathId.make(samplePath.id))).pipe(Effect.map((path) => path.title))
+
+describe("serverRunner", () => {
+  it("sends each request only its own cookies, even when requests overlap", async () => {
+    const api = recordingApi()
+    const run = serverRunner(api.layer)
+    const cookies = ["access_token=ada", "access_token=lin; wp-locale=pt-BR", ""]
+
+    const exits = await Promise.all(cookies.map((cookie) => run(readTitle, cookie)))
+
+    expect(exits.map((exit) => Exit.isSuccess(exit) && exit.value)).toEqual(cookies.map(() => samplePath.title))
+    expect(api.sent.map((call) => call.cookie).sort()).toEqual([...cookies].sort())
+    expect(api.sent.every((call) => call.url.endsWith(`/paths/${samplePath.id}`))).toBe(true)
+  })
 })
 
-const readMap = (cookie: string, api: Layer.Layer<HttpClient.HttpClient>) =>
-  PathRepository.use((repo) => repo.get(PathId.make(samplePath.id))).pipe(Effect.provide(ServerLayer(cookie)), Effect.provide(api))
-
-describe("ServerLayer", () => {
-  it.effect("reads a map with the request's cookies, from the server's API address", () =>
-    Effect.gen(function*() {
-      const api = yield* recordingApi
-      const path = yield* readMap("access_token=ada; wp-locale=pt-BR", api.layer)
-      const [call] = yield* Ref.get(api.sent)
-      assert.strictEqual(path.title, samplePath.title)
-      assert.strictEqual(call.url, `${serverApiBaseUrl}/paths/${samplePath.id}`)
-      assert.strictEqual(call.cookie, "access_token=ada; wp-locale=pt-BR")
-    }))
-
-  it.effect("sends each request only its own session", () =>
-    Effect.gen(function*() {
-      const api = yield* recordingApi
-      yield* readMap("access_token=ada", api.layer)
-      yield* readMap("access_token=lin", api.layer)
-      yield* readMap("", api.layer)
-      assert.deepStrictEqual((yield* Ref.get(api.sent)).map((call) => call.cookie), ["access_token=ada", "access_token=lin", ""])
-    }))
+describe("serverBaseUrl", () => {
+  it.each([
+    ["the rewrite's target in production", "https://api.wisepath.app", "/api", "https://api.wisepath.app/api"],
+    ["the public URL when it is absolute", undefined, "http://localhost:4101/api", "http://localhost:4101/api"],
+    ["the local API when the public URL is relative", undefined, "/api", "http://localhost:4001/api"],
+    ["the local API when nothing is set", undefined, undefined, "http://localhost:4001/api"]
+  ])("uses %s", (_case, apiOrigin, publicApiUrl, expected) => {
+    expect(serverBaseUrl(apiOrigin, publicApiUrl)).toBe(expected)
+  })
 })

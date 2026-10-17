@@ -1,5 +1,5 @@
 import { Effect, Layer, Ref } from "effect"
-import { DefaultProjectProtected, ProjectNotFound, ProjectRepository, sortProjects } from "@wisepath/domain/projects"
+import { DefaultProjectProtected, ProjectId, ProjectNotFound, ProjectRepository, sortProjects } from "@wisepath/domain/projects"
 import type { Project } from "@wisepath/domain/projects"
 
 /**
@@ -36,3 +36,10 @@ export const MemoryProjectRepository = (projects: ReadonlyArray<Project> = []) =
       })
     })
   )
+
+/** A project for tests: a named, non-default one unless told otherwise; the id follows the name */
+export const aProject = (fields: Partial<Project> & { readonly name: string }): Project => ({
+  id: ProjectId.make(fields.name.toLowerCase()),
+  isDefault: false,
+  ...fields
+})

@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest"
 import { AsyncResult, Atom } from "effect/reactivity"
 import type { AtomRegistry } from "effect/reactivity"
-import { ProjectId } from "@wisepath/domain/projects"
 import type { Project } from "@wisepath/domain/projects"
-import { MemoryProjectRepository } from "@/infrastructure/projects/MemoryProjectRepository"
+import { MemoryProjectRepository, aProject } from "@/infrastructure/projects/MemoryProjectRepository"
 import { ReactivityKeys, appRuntime } from "./runtime"
 import { testRegistry } from "./testing"
 import * as programs from "./projects/programs"
@@ -18,7 +17,7 @@ import * as programs from "./projects/programs"
 const listAtom = appRuntime.atom(programs.listProjects).pipe(Atom.withReactivity([ReactivityKeys.projects]))
 const createAtom = appRuntime.fn(programs.createProject, { reactivityKeys: [ReactivityKeys.projects] })
 
-const general = { id: ProjectId.make("general"), name: "General", isDefault: true }
+const general = aProject({ name: "General", isDefault: true })
 
 /** The atom's value once it stops waiting */
 async function settled<A, E>(registry: AtomRegistry.AtomRegistry, atom: Atom.Atom<AsyncResult.AsyncResult<A, E>>) {

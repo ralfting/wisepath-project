@@ -1,4 +1,4 @@
-import { Effect } from "effect"
+import { Effect, Schema } from "effect"
 import { LinkPreviews, PageId, PathId, PathRepository } from "@wisepath/domain/paths"
 import type { PathKind } from "@wisepath/domain/paths"
 import type { ProjectId } from "@wisepath/domain/projects"
@@ -17,6 +17,13 @@ export const newPageId = (): PageId => PageId.make(newId())
 
 /** Every map the learner has, as their cards show them */
 export const listPaths = PathRepository.use((repo) => repo.list).pipe(Effect.withSpan("useCases.paths.list"))
+
+/** A map's title, from an id that came from the URL */
+export const pathTitle = Effect.fn("useCases.paths.title")(function*(pathId: string) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  const path = yield* PathRepository.use((repo) => repo.get(id))
+  return path.title
+})
 
 /** A new map named after its root page, in one of the learner's projects: a study, or a learning path */
 export const createPath = Effect.fn("useCases.paths.create")(function*(input: {

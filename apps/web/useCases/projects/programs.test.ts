@@ -1,11 +1,11 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect } from "effect"
 import { ProjectId } from "@wisepath/domain/projects"
-import { MemoryProjectRepository } from "@/infrastructure/projects/MemoryProjectRepository"
+import { MemoryProjectRepository, aProject } from "@/infrastructure/projects/MemoryProjectRepository"
 import * as programs from "./programs"
 
-const general = { id: ProjectId.make("general"), name: "General", isDefault: true }
-const work = { id: ProjectId.make("work"), name: "Work", isDefault: false }
+const general = aProject({ name: "General", isDefault: true })
+const work = aProject({ name: "Work" })
 
 describe("project use cases", () => {
   it.effect("creates a project with its name trimmed and lists the default first", () =>
