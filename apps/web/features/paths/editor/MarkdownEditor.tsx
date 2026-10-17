@@ -44,7 +44,7 @@ import { VideoControl } from './VideoControl';
 import { Outline, headingsOf, sameHeadings } from './Outline';
 import type { Heading } from './Outline';
 import { PageNamePrompt, placeNear } from './PageNamePrompt';
-import type { Anchor, PagePrompt } from './PageNamePrompt';
+import type { PagePrompt } from './PageNamePrompt';
 
 /**
  * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,

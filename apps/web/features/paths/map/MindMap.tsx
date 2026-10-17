@@ -7,8 +7,7 @@ import { IconCircleCheckFilled, IconFocusCentered, IconInfoCircle, IconMinus, Ic
 import type { Page, Path } from '@wisepath/domain/paths';
 import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
-import { PageGlyph, shade } from '@/features/paths/path';
-import { RELATED_HOVER_EVENT, relatedFromEvent } from './relatedHover';
+import { PageGlyph, RELATED_HOVER_EVENT, relatedFromEvent, shade } from '@/features/paths/path';
 import { useWindowEvent } from '@mantine/hooks';
 import { useT } from '@/i18n/I18nProvider';
 import { layoutMind, rootShape } from './mindLayout';

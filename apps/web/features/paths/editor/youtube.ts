@@ -1,4 +1,3 @@
-import type { Editor } from '@tiptap/react';
 import Youtube from '@tiptap/extension-youtube';
 import type { MarkdownState } from './markdown';
 
