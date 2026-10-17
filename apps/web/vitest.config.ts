@@ -9,16 +9,17 @@ const resolve = {
   },
 };
 const exclude = ['node_modules/**', '.next/**', '.next-e2e/**', 'e2e/**'];
+const oxc = { jsx: { runtime: 'automatic' as const } };
 
 export default defineConfig({
   test: {
     // Rules and use cases run in Node; components need a DOM, which only their tests pay for
     projects: [
-      { resolve, test: { name: 'unit', include: ['**/*.test.ts'], exclude, environment: 'node' } },
+      // tsconfig keeps JSX for Next ("preserve"); tests compile it themselves, a .test.ts too, for the modules it imports
+      { resolve, oxc, test: { name: 'unit', include: ['**/*.test.ts'], exclude, environment: 'node' } },
       {
         resolve,
-        // tsconfig keeps JSX for Next ("preserve"); component tests compile it themselves
-        oxc: { jsx: { runtime: 'automatic' } },
+        oxc,
         test: { name: 'dom', include: ['**/*.test.tsx'], exclude, environment: 'happy-dom', setupFiles: ['./test/setup.ts'] },
       },
     ],
