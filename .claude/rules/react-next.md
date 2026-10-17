@@ -71,16 +71,36 @@ while offline; a Server Action per command adds a hop through Next and loses the
 
 ## Server Actions
 
-Order inside every action, no step skipped:
+Model: `useCases/projects/actions.ts`. An action is a thin `"use server"` function:
 
-1. Decode the payload (`FormData` or object) with the domain schema.
-2. Resolve the session on the server; fail with `NotAuthenticated` if absent.
-3. Run the program with `runAction`.
-4. Map the result with `toActionResult` (tagged error to `{ ok: false, _tag, message }`).
-5. `revalidateTag(ReactivityKeys.x)` for every key the mutation changes, or `redirect()`.
+1. `runAction(program, (t) => ({ Tag: t("…") }))` (`useCases/server.ts`). It resolves the session first
+   (`requireSession`; none: `NotAuthenticated`), runs the program as the learner, and answers an `ActionResult`
+   in the learner's language (`toActionResult`).
+2. The program decodes its own input with the domain schemas (`useCases/projects/programs.ts`), so a form and an
+   action get the same answer. Never trust an action's parameter types: they come from any POST.
+3. On success, `revalidatePath(...)` for each route that renders the data (`HOME` for projects), or `redirect()`.
+   Use `revalidateTag` once reads are cached with tags; none are today.
 
-- Call actions from forms with `useActionState` for pending and error state; `useOptimistic` when the result must
-  show before the round trip. TanStack Form stays for field-level validation; its `onSubmit` calls the action.
+```ts
+// Wrong: no session check, raw input, error thrown to the client
+export async function renameProject(id: string, name: string) {
+  await api.projects.rename({ params: { projectId: id as ProjectId }, payload: { name } })
+}
+// Right
+export async function renameProject(projectId: string, name: string): Promise<ActionResult<void>> {
+  const result = await runAction(programs.renameProject({ id: projectId, name }), (t) => ({ ProjectNotFound: t("home.errors.projectGone") }))
+  if (result.ok) revalidatePath(HOME)
+  return result
+}
+```
+
+- Client data still read by atoms (`useProjects`) is refreshed after a successful action: the hook wraps the action
+  and calls `invalidateAtom` (`useCases/runtime.ts`) with the `ReactivityKeys` it changed, as `useAction` in
+  `useCases/projects/projects.ts` does. Features keep calling hooks, never actions directly.
+- An action is registered only in the pages that import it; a POST naming it elsewhere does nothing. Still, check the
+  session in every action: the pages that do import it are public URLs.
+- Forms posting straight to an action may use `useActionState`/`useOptimistic`; TanStack Form stays for field-level
+  validation, and its `onSubmit` calls the hook.
 - Login and signup: the API's `Set-Cookie` is copied into `cookies().set(...)` in the action, httpOnly, same flags.
   `TODO(decide): session cookie forwarding helper` owner and flags.
 

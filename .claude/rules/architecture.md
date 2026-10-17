@@ -76,7 +76,7 @@ otherwise leave it and follow the target for new files.
 | `features/shared/fieldError.ts`, `title.ts` | `shared/forms.ts`, `shared/title.ts` (`routes.ts` already moved) |
 | `features/shared/look.tsx`, `relatedHover.ts` | the `paths` feature that owns them |
 | Client-only reads (`useProjects`, `usePaths`, map load) | `queries.ts` on the server runtime, data passed as props (first: the map's tab title) |
-| Discrete mutations through atoms (`useCreateProject`, login) | `actions.ts` Server Actions |
+| Discrete mutations through atoms (login, signup, paths) | `actions.ts` Server Actions, as projects already are |
 | `inBrowser` guards in `Http*` Layers | stay for the browser's Layer (client components also render on the server, without the session); the server gets a twin without the guard (`ServerPathRepository`) |
 
 ## Where does this file go?

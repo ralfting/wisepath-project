@@ -80,7 +80,7 @@ reading `process.env` dynamically gets `undefined` in the client bundle. Use `Co
 |---|---|---|
 | Client hook | `appRuntime.atom(...)` / `appRuntime.fn(..., { reactivityKeys })` | `useCases/<domain>/<domain>.ts` |
 | Server read | `runServer(program)` (`useCases/server.ts`) over `runOnServer` (`infrastructure/server/ServerLayer.ts`, the one run ESLint allows in infrastructure): the request's cookies, `ServerLayer`, a shared `ManagedRuntime` holding only the HTTP client; returns an `Exit` | `useCases/<domain>/queries.ts` (`useCases/paths/queries.ts`); the program itself in `programs.ts` |
-| Server Action / route handler | `runAction(program)` over `runServer`, mapped to `ActionResult` | `useCases/<domain>/actions.ts`, `app/**/route.ts` (target: first action adds `runAction`) |
+| Server Action / route handler | `runAction(program, messages)` (`useCases/server.ts`): `requireSession`, then `runServer`, then `toActionResult` | `useCases/<domain>/actions.ts` (`useCases/projects/actions.ts`); `app/**/route.ts` when one exists |
 | Test | `it.effect(...)` + `Effect.provide(MemoryX(...))` | `*.test.ts` |
 
 - The request's cookie header is read by `runServer` from `cookies()` and goes into `ServerLayer(cookie)`, built per
@@ -106,17 +106,18 @@ reading `process.env` dynamically gets `undefined` in the client bundle. Use `Co
 
 - Client: `messageFor(exit, { Tag: t("…") }, t("common.errors.generic"))` from `useCases/messages.ts`, passed through
   `useDomainMessage`. Every tag a hook can fail with is mapped or falls to the generic message on purpose.
-- Server Action: one `toActionResult` at the edge returns
-  `{ ok: true; value: A } | { ok: false; _tag: E["_tag"]; message: string }` with `message` already translated
-  (`serverT`). This replaces the per-domain `ProjectActionResult` when actions land.
+- Server Action: `toActionResult` (`useCases/actionResult.ts`) returns `ActionResult<A>`:
+  `{ ok: true; value } | { ok: false; _tag; message }`, the message already in the learner's language (domain
+  validation messages included, through `translateDomainMessage`). A defect answers `_tag: "Defect"` with the
+  generic sentence. Never add a per-domain result type.
 - Never send `cause`, stack traces or `Schema.Defect` fields to the client. `<Domain>Unavailable` carries a `cause`;
   map it to `common.errors.unavailable`.
 
 ## Reactivity and cache
 
 - Mutation atoms declare every `ReactivityKeys` they change (`useCases/runtime.ts`); deleting a project also refreshes `paths`.
-- Server Actions call `revalidateTag` with the same key names, so client atoms and server renders refresh the same set.
-  Add new keys to `ReactivityKeys`, never as string literals.
+- After a Server Action, the client hook calls `invalidateAtom` with the `ReactivityKeys` it changed, and the action
+  calls `revalidatePath` for the routes that render the data. Add new keys to `ReactivityKeys`, never as string literals.
 - No atom hydration yet: hydrated atoms that use `Atom.withReactivity` refetch after hydration
   ([Effect #8398](https://github.com/Effect-TS/effect/issues/8398)), and all of ours do. Server data reaches client
   components as props. Revisit when the issue is closed.
@@ -129,5 +130,5 @@ reading `process.env` dynamically gets `undefined` in the client bundle. Use `Co
 - [ ] Errors handled with `catchTag(s)`; no `Effect.catch` outside `classify`.
 - [ ] Programs `yield*` services; no client built outside `infrastructure/`.
 - [ ] `run*` only at an edge from the table; request data never stored in a runtime.
-- [ ] Mutations declare `reactivityKeys` / `revalidateTag` from `ReactivityKeys`.
+- [ ] Mutations refresh what they change: `reactivityKeys` on atoms, `invalidateAtom` + `revalidatePath` around actions.
 - [ ] Errors reach the UI translated, without `cause` or stack.
