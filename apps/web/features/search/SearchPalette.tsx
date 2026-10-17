@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react';
 import { Group, Kbd, Loader, ScrollArea, Text, UnstyledButton, VisuallyHidden } from '@mantine/core';
-import { CaptureBox } from '@/features/capture/CaptureBox';
+import { CaptureBox, paletteFieldProps, usePaletteKeys } from '@/features/capture/CaptureBox';
 import { IconFileText, IconSearch } from '@tabler/icons-react';
 import { marksIn } from '@wisepath/domain/search';
 import type { Mark } from '@wisepath/domain/search';
@@ -142,10 +142,6 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
       }));
   }, [state, recent, paths]);
 
-  // The row the arrows mark, opened by Enter; back to the first whenever the list changes
-  const [active, setActive] = useState(0);
-  useEffect(() => setActive(0), [rows]);
-
   const open = (row: Row, full: boolean) => {
     onDone();
     // A page URL loaded directly is the full page; navigating to it inside the app would open the drawer instead
@@ -153,6 +149,10 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
     // On its map, the page opens in the drawer
     else router.push(mapWithPageHref(row.pathId, row.pageId));
   };
+
+  // The row the arrows mark, opened by Enter; back to the first whenever the list changes
+  const keys = usePaletteKeys(rows, (row) => open(row, false));
+  const { active, setActive } = keys;
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
@@ -162,15 +162,13 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
       onDone();
       return;
     }
-    if (rows.length === 0) return;
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    // ⌘Enter opens the marked row as a full page; the rest (↑ ↓ Enter) is the palette's
+    if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && rows[active] && !event.nativeEvent.isComposing) {
       event.preventDefault();
-      const step = event.key === 'ArrowDown' ? 1 : -1;
-      setActive((i) => (i + step + rows.length) % rows.length);
-    } else if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-      event.preventDefault();
-      open(rows[Math.min(active, rows.length - 1)], event.metaKey || event.ctrlKey);
+      open(rows[active], true);
+      return;
     }
+    keys.onKeyDown(event);
   };
 
   // The marked row stays in view as the arrows move it
@@ -216,11 +214,7 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
           onKeyDown={onKeyDown}
           placeholder={t('search.palette.placeholder')}
           aria-label={t('search.palette.label')}
-          role="combobox"
-          aria-expanded={rows.length > 0}
-          aria-controls={LIST_ID}
-          aria-autocomplete="list"
-          aria-activedescendant={rows.length > 0 ? optionId(Math.min(active, rows.length - 1)) : undefined}
+          {...paletteFieldProps(LIST_ID, active, rows.length)}
           autoComplete="off"
           spellCheck={false}
         />
