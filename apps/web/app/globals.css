@@ -4,7 +4,7 @@
  */
 
 /* The app's ground; Mantine surfaces (cards, inputs) keep --mantine-color-body.
-   html body outranks Mantine's own body rule, which loads after this file. */
+   Mantine's own body rule sits in its CSS layer, so this one wins. */
 html body {
   background-color: var(--wp-ground);
   font-variant-numeric: tabular-nums;

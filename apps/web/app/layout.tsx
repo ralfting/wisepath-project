@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-// Mantine after globals.css; globals only adds touches Mantine does not cover
-import "@mantine/core/styles.css";
-import "@mantine/notifications/styles.css";
-import "@mantine/tiptap/styles.css";
+// Mantine's styles in its own CSS layer (@layer mantine): the app's CSS (globals and each component's
+// module) always outranks them, whatever order the bundler loads the files in
+import "@mantine/core/styles.layer.css";
+import "@mantine/notifications/styles.layer.css";
+import "@mantine/tiptap/styles.layer.css";
 import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
 import { Inter } from "next/font/google";
 import { cookies, headers } from "next/headers";
