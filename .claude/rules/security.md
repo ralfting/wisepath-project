@@ -36,7 +36,7 @@ are public POST endpoints, callable without the UI.
 
 ## Authorization
 
-Decided 2026-10-17 (plan 14). Access is enforced by the API; sharing and the public page are being built.
+Decided 2026-10-17, built (plan 14): the API enforces access, the web follows the `access` it sends.
 
 - The unit of access is the path (map). Projects, the Inbox and review states stay private to their owner;
   sharing a project, if it comes, means "every path in it".

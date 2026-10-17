@@ -147,7 +147,7 @@ Never commit real `.env` files; use the `.env.example` files as templates.
 
 ## API endpoints
 
-The full description, generated from the contract, is at <http://localhost:4001/api/openapi.json> (OpenAPI 3). Every endpoint except signup, login and logout needs the session: the `access_token` cookie, or the same token as `Authorization: Bearer`.
+The full description, generated from the contract, is at <http://localhost:4001/api/openapi.json> (OpenAPI 3). Every endpoint except signup, login, logout and the public read needs the session: the `access_token` cookie, or the same token as `Authorization: Bearer`. A map answers with the reader's `access` (`owner`, `editor`, `viewer`); without the access an endpoint needs, it answers 404 `PathNotFound`, as if the map did not exist.
 
 | Method | Path | |
 |---|---|---|
@@ -159,14 +159,21 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `POST` | `/api/projects` | `{ id, name }`: a new project; ids are UUIDs chosen by the client |
 | `PATCH` | `/api/projects/:projectId` | `{ name }` |
 | `DELETE` | `/api/projects/:projectId` | its paths move to the default project, which can't be deleted (422 `DefaultProjectProtected`) |
-| `GET` | `/api/paths` | your maps, summarised (project, progress, next page) |
+| `GET` | `/api/paths` | your maps and those from others (shared with you or taken), summarised (project or owner, access, progress, next page); progress is yours |
 | `POST` | `/api/paths` | `{ id, projectId, rootPageId, title }`: a new map in one of your projects (404 `ProjectNotFound` otherwise) |
 | `GET` | `/api/paths/:pathId` | one map with its pages |
 | `PATCH` | `/api/paths/:pathId` | `{ description, kind, projectId }`; `projectId` moves it; the title follows the root page's |
 | `DELETE` | `/api/paths/:pathId` | deletes the map and its pages |
 | `POST` | `/api/paths/:pathId/pages` | `{ id, title }`: a new page; 409 `TitleTaken` |
-| `PATCH` | `/api/paths/:pathId/pages/:pageId` | title, content, studied, module, colour, icon; a rename passes `previousTitle` to move the `[[links]]` |
+| `PATCH` | `/api/paths/:pathId/pages/:pageId` | title, content, studied, module, colour, icon; a rename passes `previousTitle` to move the `[[links]]`. `studied` alone is the reader's own mark and needs only reading; the rest needs an editor; renaming the root needs the owner |
 | `DELETE` | `/api/paths/:pathId/pages/:pageId` | pages only it reached become orphans; the root can't be deleted (422) |
+| `GET` | `/api/paths/:pathId/shares` | the people the owner invited (owner only) |
+| `PUT` | `/api/paths/:pathId/shares` | `{ email, role }` with `role` `viewer` or `editor`: invites an account or changes its role; 404 `ShareTargetNotFound`, 422 `CannotShareWithSelf` |
+| `DELETE` | `/api/paths/:pathId/shares/:userId` | the owner removes someone (their marks on it go too) |
+| `DELETE` | `/api/paths/:pathId/membership` | leave a map from others (your marks on it go too) |
+| `PATCH` | `/api/paths/:pathId/visibility` | `{ visibility }`, `private` or `public`; private removes those who took it |
+| `POST` | `/api/paths/:pathId/take` | add a public map to your maps, to study with your own marks; never a copy |
+| `GET` | `/api/public/paths/:pathId` | a public map without a session, with no one's marks; 404 for a private one |
 | `GET` | `/api/link-preview?url=` | title, description, site and icon of a public http(s) page; 422 `LinkNotPreviewable` |
 
 Sending the same create or delete twice changes nothing more, so clients can retry safely. Someone else's map answers 404, as if it didn't exist.

@@ -46,6 +46,9 @@ while offline; a Server Action per command adds a hop through Next and loses the
     return <PathsHome paths={paths} actions={<NewPathMenu />} />;   // NewPathMenu is the only 'use client'
   }
   ```
+- A Server Component uses only flat Mantine components; a compound member (`Grid.Col`, `Menu.Item`, `Card.Section`)
+  needs `'use client'`. **Why:** on the server the import is a client reference without those properties, so the
+  member is `undefined` and the segment fails (BUG-004).
 - Props crossing to a client component are serializable: no functions (except Server Actions), no class instances.
   Domain `Schema.Class` values (`User`) cross as their encoded form.
 - `queries.ts` and `infrastructure/server/*` start with `import 'server-only'`. Actions start with `'use server'` and
