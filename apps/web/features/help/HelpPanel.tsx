@@ -110,11 +110,12 @@ const TOPICS: Record<Screen, { intro: TranslationKey; topics: ReadonlyArray<Topi
 
 const key = (k: string) => k as TranslationKey;
 
-/** The screen's topics, one open at a time (the first to start with), so the panel stays short; a clip only plays while open */
+/** The screen's topics, one open at a time, so the panel stays short; a clip only plays while open */
 function Topics({ screen }: { screen: Screen }) {
   const t = useT();
   const { intro, topics } = TOPICS[screen];
-  const [open, setOpen] = useState<string | null>(topics[0].base);
+  // A single topic starts open; with more, all start closed so the list reads first
+  const [open, setOpen] = useState<string | null>(topics.length === 1 ? topics[0].base : null);
 
   return (
     <Stack gap="md">
