@@ -6,7 +6,7 @@ import { ApiClient } from "../http/ApiClient"
  * Auth backed by the WisePath API. Expected outcomes (wrong password, email
  * taken, no session) stay typed; anything else becomes AuthUnavailable.
  */
-export const ApiAuth = Layer.effect(
+const make = Layer.effect(
   Auth,
   Effect.gen(function*() {
     const client = yield* ApiClient
@@ -54,4 +54,10 @@ export const ApiAuth = Layer.effect(
 
     return Auth.of({ login, signup, logout, currentUser, updateSettings })
   })
-).pipe(Layer.provide(ApiClient.layer))
+)
+
+/** In the browser, which sends the session cookie itself */
+export const ApiAuth = make.pipe(Layer.provide(ApiClient.layer))
+
+/** On the Next server, over the ApiClient of the request it serves (requestApiClient) */
+export const ServerAuth = make

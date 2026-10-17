@@ -3,18 +3,23 @@ import { Effect, Layer, ManagedRuntime } from "effect"
 import type { Exit } from "effect"
 import { FetchHttpClient } from "effect/http"
 import type { HttpClient } from "effect/http"
+import type { Auth } from "@wisepath/domain/auth"
 import type { PathRepository } from "@wisepath/domain/paths"
+import type { ProjectRepository } from "@wisepath/domain/projects"
+import { ServerAuth } from "../auth/ApiAuth"
 import { ServerPathRepository } from "../paths/HttpPathRepository"
+import { ServerProjectRepository } from "../projects/HttpProjectRepository"
 import { requestApiClient } from "./ServerApiClient"
 
 /**
  * The services a use case gets on the Next server, wired for one request. Only
- * what Server Components read so far; add a service here when a query needs it.
+ * what server reads and actions use so far; add a service here when one needs it.
  */
-export type ServerServices = PathRepository
+export type ServerServices = Auth | PathRepository | ProjectRepository
 
 /** The services over the API client of one request, which sends that request's cookies */
-export const ServerLayer = (cookie: string) => ServerPathRepository.pipe(Layer.provide(requestApiClient(cookie)))
+export const ServerLayer = (cookie: string) =>
+  Layer.mergeAll(ServerAuth, ServerPathRepository, ServerProjectRepository).pipe(Layer.provide(requestApiClient(cookie)))
 
 /**
  * A runner over a runtime that holds only the HTTP client: nothing about a request or a learner lives in it. Each

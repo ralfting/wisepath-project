@@ -33,21 +33,29 @@ const classify = <A, E, R>(effect: Effect.Effect<A, E, R>): Effect.Effect<A, Ext
         : Effect.die(error)
   )
 
-/** The server render has no session; projects load once the page runs in the browser */
+/** The server render of a client component has no session; projects load once the page runs in the browser */
 const inBrowser = <A, E, R>(effect: Effect.Effect<A, E, R>) => (typeof window === "undefined" ? Effect.never : effect)
+const anywhere = <A, E, R>(effect: Effect.Effect<A, E, R>) => effect
 
-export const HttpProjectRepository = Layer.effect(
-  ProjectRepository,
-  Effect.gen(function*() {
-    const client = yield* ApiClient
-    const api = client.projects
+const make = (reads: typeof inBrowser) =>
+  Layer.effect(
+    ProjectRepository,
+    Effect.gen(function*() {
+      const client = yield* ApiClient
+      const api = client.projects
 
-    return ProjectRepository.of({
-      list: inBrowser(classify(api.list())).pipe(Effect.withSpan("ProjectRepository.list")),
-      create: (command) => classify(api.create({ payload: command })).pipe(Effect.withSpan("ProjectRepository.create")),
-      rename: (projectId, edit) =>
-        classify(api.rename({ params: { projectId }, payload: edit })).pipe(Effect.withSpan("ProjectRepository.rename")),
-      remove: (projectId) => classify(api.remove({ params: { projectId } })).pipe(Effect.withSpan("ProjectRepository.remove"))
+      return ProjectRepository.of({
+        list: reads(classify(api.list())).pipe(Effect.withSpan("ProjectRepository.list")),
+        create: (command) => classify(api.create({ payload: command })).pipe(Effect.withSpan("ProjectRepository.create")),
+        rename: (projectId, edit) =>
+          classify(api.rename({ params: { projectId }, payload: edit })).pipe(Effect.withSpan("ProjectRepository.rename")),
+        remove: (projectId) => classify(api.remove({ params: { projectId } })).pipe(Effect.withSpan("ProjectRepository.remove"))
+      })
     })
-  })
-).pipe(Layer.provide(ApiClient.layer))
+  )
+
+/** In the browser, which sends the session cookie itself */
+export const HttpProjectRepository = make(inBrowser).pipe(Layer.provide(ApiClient.layer))
+
+/** On the Next server, over the ApiClient of the request it serves (requestApiClient) */
+export const ServerProjectRepository = make(anywhere)
