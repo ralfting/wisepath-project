@@ -11,6 +11,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 |---|---|---|---|
 | Routes | `app/` | Read and decode `params`/`searchParams`, call `queries.ts`, render features, `notFound()`/`redirect()`, metadata | Business logic, Effect, `fetch`, infrastructure |
 | Features | `features/<domain>/<feature>/` (`paths`, `inbox`); `features/<feature>/` for the rest (`auth`, `search`, `help`) | Components and colocated `use<Component>` hooks that render one domain's data | Effect, infrastructure, `fetch` |
+| UI primitives | `ui/` | Components and hooks with no domain: `Palette`, `usePaletteKeys`, `useIsMac` | Domain, use cases, features, Effect |
 | App frame | `features/shell/` | The frame, top bar and navigation that feature screens render themselves in | Domain data of its own |
 | Use cases | `useCases/<domain>/` | Effect `programs.ts`; client hooks on atoms; `queries.ts` (server reads); `actions.ts` (Server Actions); flows over 2+ domains | React components, JSX |
 | Infrastructure | `infrastructure/` | `Layer`s implementing domain services over `ApiClient`; `Memory*` doubles; client `AppLayer`; server runtime | React, Next, Mantine, use cases, features |
@@ -26,6 +27,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | `features/` | `useCases/*` (hooks, `actions`, types), own feature internals, other features by their `index.ts` only, `i18n/`, `shared/`, `@wisepath/domain` types and pure rules, Mantine |
 | `useCases/` | `infrastructure/*`, `@wisepath/domain`, `effect`, `@effect/atom-react`, `i18n/` (message lookup), `shared/`, React (hooks only), Next server APIs in `queries`/`actions` |
 | `infrastructure/` | `@wisepath/domain`, `@wisepath/contract`, `effect` |
+| `ui/` | React, Mantine, `i18n/`, `shared/` |
 | `shared/` | Nothing in the app; standard library only |
 | `packages/domain/<a>` | `effect`; another domain only by `import type` or a schema/constant from its deep file (`../auth/User`), never its `index.ts` |
 
@@ -46,6 +48,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | `process.env` outside `infrastructure/http/ApiClient.ts`, `infrastructure/server/ServerApiClient.ts`, `next.config.js`, `playwright.config.ts` and `e2e/**` (`NODE_ENV` allowed) | ESLint |
 | `run*` (`Effect.run*`, `runtime.run*`) inside `infrastructure/`, except `infrastructure/server/ServerLayer.ts` | ESLint |
 | `dangerouslySetInnerHTML` | ESLint `react/no-danger` |
+| `ui/` imports `@wisepath/*`, `@/useCases/*`, `@/features/*`, `@/infrastructure/*` or Effect | ESLint |
 
 ## Ownership
 
@@ -56,8 +59,8 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
   even if only the inbox uses it today.
 - A feature's `index.ts` exports exactly what other features and `app/` use; inside a feature, imports are relative.
 - Generic primitives (a palette, a field wrapper, a keyboard hint) are not features: extend Mantine through
-  `theme.ts` first. `TODO(decide): ui primitives home` for the rest (today the palette keys live in
-  `features/inbox/capture` and the page glyph in `features/paths/path`, both exported through their index).
+  `theme.ts` first, else put them in `ui/`, taking plain props. A piece that knows a domain type (the page glyph
+  takes a `PageIcon`) stays in the feature that owns that domain.
 - `features/shell` is the one feature that is not a domain: feature screens render themselves inside `AppFrame`, so
   it can't live in `app/` (features would import from `app/`).
 - Ambient context is a parameter. The session user, the current path and the locale are passed in as arguments
@@ -99,17 +102,21 @@ otherwise leave it and follow the target for new files.
 6. A client hook that runs a program on atoms: `useCases/<domain>/<domain>.ts`, exported from its `index.ts`.
 7. A Layer that talks to the API, the browser or a third party: `infrastructure/<domain>/Http<Service>.ts`, with its
    `Memory<Service>.ts` double beside it.
-8. A component rendering one domain's data: `features/<domain>/<feature>/`. Its view-state hook: same folder, `use<Component>.ts`.
-9. A pure helper with no domain import and no I/O used by 2+ layers: `shared/`. Used by one module: keep it there.
-10. A message: `i18n/messages/en/<area>.ts` and `i18n/messages/pt-BR/<area>.ts`.
-11. None fits: stop and ask.
+8. A component rendering one domain's data: `features/<domain>/<feature>/`, one component per file. With more than one
+   file (CSS module, view model, test, private parts), in a folder named after it ([ui-patterns.md](ui-patterns.md), "Components").
+9. A component or hook with no domain in it, used by 2+ features: `ui/`.
+10. A pure helper with no domain import and no I/O used by 2+ layers: `shared/`. Used by one module: keep it there.
+11. A message: `i18n/messages/en/<area>.ts` and `i18n/messages/pt-BR/<area>.ts`.
+12. None fits: stop and ask.
 
 ## Naming
 
 | Thing | Convention | Example |
 |---|---|---|
 | Component file | PascalCase, one exported component | `PagePicker.tsx` + `PagePicker.module.css` |
-| Colocated hook | `use<Component>` | `usePagePicker.ts` |
+| View model | `use<Component>`, beside the component | `MindMap/useMindMap.ts` |
+| Component folder | the component's name, no `index.ts` | `MindMap/MindMap.tsx`, imported as `./MindMap/MindMap` |
+| What a component and its parts share | `<Component>.helpers.ts` in its folder | `PageDrawer/PageDrawer.helpers.ts` |
 | Local event handler | `handle<Event>` | `handleSubmit`, `handleTitleBlur` |
 | Callback prop | `on<Event>` | `onSelect`, `onClose` |
 | Effect program | verb + noun, span `useCases.<domain>.<verb>` | `createProject`, `Effect.fn("useCases.projects.create")` |

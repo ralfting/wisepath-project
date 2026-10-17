@@ -39,6 +39,7 @@
 | `infrastructure/` | `Layer`s implementing domain services over `ApiClient`; `Memory*` doubles beside them | exists |
 | `infrastructure/server/` | `import 'server-only'` `ServerLayer(cookie)`, `ServerServices`, shared `ManagedRuntime` | exists |
 | `i18n/` | Provider, `serverT`, formatting, `messages/<locale>/<area>.ts` | exists |
+| `ui/` | UI primitives with no domain: `Palette/`, `platform.ts` (`useIsMac`) | exists |
 | `shared/` | Pure helpers with no I/O and no domain import (`routes.ts`, `forms.ts`) | exists |
 | `test/` | Vitest setup and `renderWithLayers` for component tests | exists |
 | `theme.ts` | Mantine theme and `--wp-*` CSS variables | exists |

@@ -109,8 +109,10 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
 
 ## Client components with logic
 
-- Component plus colocated hook `use<Component>.ts` returning `{ state, operations }`; no JSX in the hook. With no
-  callables, return `operations: {}`.
+- A component with state, effects or derivations has a view model: `use<Component>.ts` in its folder, returning
+  `{ state, operations }`; the component renders what the hook returns and wires events to `operations`. No JSX in
+  the hook, no `useState`/`useEffect` left in the component beyond refs it hands to the DOM. With no callables,
+  return `operations: {}`.
   ```ts
   export function usePagePicker(pages: ReadonlyArray<PageSummary>) {
     const [query, setQuery] = useState('');

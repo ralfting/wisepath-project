@@ -5,6 +5,7 @@ paths:
   - "apps/web/app/**/*.css"
   - "apps/web/theme.ts"
   - "apps/web/i18n/**"
+  - "apps/web/ui/**"
 ---
 
 # UI patterns
@@ -60,7 +61,21 @@ paths:
 
 ## Components
 
-- One exported component per file; small private subcomponents in the same file until it nears ~300 lines.
+- One component per file, exported or not. A second component goes to its own file, however small.
+- A component with more than one file lives in a folder named after it, holding its CSS module, its view model
+  (`use<Component>.ts`), its test, and the parts only it renders, each in a file of its own:
+  ```
+  MindMap/
+    MindMap.tsx           # the component: rendering only
+    useMindMap.ts         # its view model
+    MindMap.module.css    # its styles, shared with its parts
+    MindMap.helpers.ts    # what the component and its parts share (types, constants, pure helpers)
+    RootNode.tsx          # a part only MindMap renders
+  ```
+  No `index.ts` in a component folder: import `./MindMap/MindMap`. A part used by another component as well moves
+  up to the feature (`features/paths/map/StatusIcon.tsx`) or, with no domain in it, to `ui/`.
+- A `.helpers.ts` that creates context or calls hooks starts with `'use client'`. **Why:** a Server Component that
+  imports the feature's index otherwise reaches `createContext` and the build fails.
 - Props are a named `interface <Component>Props` when there are more than two, `readonly` where the component does
   not own the value.
 - Callbacks are `on<Event>`; the handler that implements one is `handle<Event>` ([architecture.md](architecture.md)).
