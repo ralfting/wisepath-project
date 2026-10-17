@@ -118,6 +118,9 @@ export async function renameProject(projectId: string, name: string): Promise<Ac
 - A form inside a modal, popover or palette lives in its own component inside it, so the container's unmounting on
   close resets it. Never reset a form with an effect on `opened`. **Why:** the project, new map, video link and
   quick capture forms each did, and each got it slightly different (one cleared on close, one on open).
+- A hook whose atom runs work that outlives the form (fire and forget, not awaited before closing) lives in the
+  container that stays mounted, never in the remounting form; pass its function down. **Why:** an unmounted
+  `fn` atom is dropped and its running Effect interrupted: quick captures were lost on slow connections (BUG-001).
   ```ts
   export function usePagePicker(pages: ReadonlyArray<PageSummary>) {
     const [query, setQuery] = useState('');
