@@ -6,7 +6,7 @@ import { Drawer } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
 import { screenOf } from '../screen';
 import { Topics } from './Topics';
-import { EnlargedContext, OPEN_HELP_EVENT, key } from './HelpPanel.helpers';
+import { EnlargedContext, OPEN_HELP_EVENT } from './HelpPanel.helpers';
 
 /**
  * HelpPanel

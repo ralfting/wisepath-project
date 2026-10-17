@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useContext, useEffect, useRef } from 'react';
-import { Anchor, Drawer, Stack, Text, Title } from '@mantine/core';
+import { Anchor, Stack, Text, Title } from '@mantine/core';
 import { PathGate } from '@/features/paths/path';
 import { openPageId, pageHref, swapOpenPage } from '@/shared/routes';
 import { PagePanel } from '../PagePanel/PagePanel';
