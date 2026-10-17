@@ -29,7 +29,6 @@ export function placeNear(anchor: Anchor, width: number, height: number): CSSPro
     : { bottom: window.innerHeight - anchor.top + 6, left, maxHeight: above };
 }
 
-
 /**
  * The Page command's name field. Enter links the page where / was typed and
  * goes to it: a name no page has creates the page, a taken one opens that page.

@@ -18,7 +18,6 @@ import { useIsMac } from '@/ui/platform';
  * A name another page has links that page instead, and says so before Enter.
  */
 
-
 export function BranchPrompt({
   parent,
   pages,

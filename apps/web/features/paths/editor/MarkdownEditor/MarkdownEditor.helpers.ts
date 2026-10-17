@@ -16,7 +16,6 @@ import type { PagePrompt } from './PageNamePrompt';
  */
 export const lowlight = createLowlight(common);
 
-
 /** A link's card under it: what it points to, where it shows, and whether it asks to make a missing page */
 export type LinkCard = { target: PreviewTarget; top: number; left: number; confirmCreate?: boolean };
 
@@ -83,7 +82,6 @@ export const SLASH_COMMANDS: ReadonlyArray<{
 /** How many pages the [[ picker offers at once */
 export const MAX_PICKER_ITEMS = 6;
 
-
 /**
  * What the [[ picker offers for what is typed after [[: the pages whose title has it (not this page, nor untitled
  * ones), and a page of that name to make when none has it exactly
@@ -112,5 +110,3 @@ export function openInNewTab(href: string) {
   a.click();
 }
 
-/** Where a page link's card goes: under the link, kept inside the editor's box */
-export type CardPlace = { top: number; left: number };
