@@ -228,7 +228,7 @@
 
   &[data-status='current'] {
     border-color: var(--mantine-color-blue-4);
-    background: var(--mantine-color-blue-0);
+    background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-light));
   }
 
   &[data-selected] {

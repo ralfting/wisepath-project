@@ -16,12 +16,13 @@
     margin-top: 6px;
   }
 
+  /* Both follow the colour scheme: the fixed light shades made the row unreadable in dark */
   &:hover {
-    background: var(--mantine-color-gray-0);
+    background: var(--mantine-color-default-hover);
   }
 
   &[data-selected] {
-    background: var(--mantine-color-blue-0);
+    background: var(--mantine-color-blue-light);
   }
 }
 
