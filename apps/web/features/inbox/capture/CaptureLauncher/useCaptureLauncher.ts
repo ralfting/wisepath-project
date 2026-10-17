@@ -2,20 +2,15 @@
 
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import { QuickCapture } from './QuickCapture/QuickCapture';
-import { showToast } from './Toast/Toast';
-import { isCaptureKey, pageOf, pathOf, rememberPath, useOnOpenCapture } from './keys';
+import { isCaptureKey, pageOf, pathOf, rememberPath, useOnOpenCapture } from '../keys';
 
 /**
- * CaptureLauncher
- * Opens quick capture from ⌘⇧Space (Ctrl+Shift+Space) anywhere in the app, even
- * while typing in a page, and says what happened to what was captured. It also
- * remembers the path last opened, which the Inbox's pickers offer first.
+ * The capture launcher's view model: whether quick capture is open, opened by its shortcut (before the editor and
+ * the map see the keys) or by openCapture; the page on screen it can add to; and the path last opened, remembered
  */
-export function CaptureLauncher() {
+export function useCaptureLauncher() {
   const pathname = usePathname();
   const [opened, setOpened] = useState(false);
-  const page = pageOf(pathname);
   const open = useCallback(() => setOpened(true), []);
 
   useOnOpenCapture(open);
@@ -37,14 +32,5 @@ export function CaptureLauncher() {
     if (pathId) rememberPath(pathId);
   }, [pathname]);
 
-  return (
-    <>
-      <QuickCapture
-        opened={opened}
-        onClose={() => setOpened(false)}
-        page={page}
-        onDone={(text) => showToast({ text })}
-      />
-    </>
-  );
+  return { state: { opened, page: pageOf(pathname) }, operations: { close: () => setOpened(false) } };
 }
