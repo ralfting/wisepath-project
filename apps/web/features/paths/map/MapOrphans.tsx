@@ -6,7 +6,7 @@ import type { Path } from '@wisepath/domain/paths';
 import { mapTree } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
-import { StatusIcon } from './MindMap';
+import { StatusIcon } from './MindMapNodes';
 import classes from './MapOrphans.module.css';
 
 /**

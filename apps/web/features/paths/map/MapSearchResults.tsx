@@ -5,7 +5,7 @@ import type { Page, Path } from '@wisepath/domain/paths';
 import { mapTree, trailTo } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
-import { PageIcon, StatusIcon } from './MindMap';
+import { PageIcon, StatusIcon } from './MindMapNodes';
 import classes from './MapSearchResults.module.css';
 
 /**

@@ -8,7 +8,7 @@ import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths
 import { displayTitle } from '@/i18n/title';
 import { PageGlyph } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
-import { PageIcon, StatusIcon } from './MindMap';
+import { PageIcon, StatusIcon } from './MindMapNodes';
 import classes from './MapList.module.css';
 
 /**
