@@ -44,7 +44,7 @@ are public POST endpoints, callable without the UI.
 - Every action payload, route handler body, `params`, `searchParams`, `localStorage` value and `postMessage` payload is
   decoded with a Schema before use ([effect.md](effect.md), "Decode at every boundary"). TypeScript types from the
   client prove nothing at runtime.
-- `?next=` and any redirect target go through `afterLogin`/`loginHref` (`features/shared/routes.ts`), which keep it
+- `?next=` and any redirect target go through `afterLogin`/`loginHref` (`shared/routes.ts`), which keep it
   on our origin. Never `redirect(searchParams.get('next'))`. **Why:** an open redirect sends a learner to a phishing page
   after a real login.
 - Ids from the URL are decoded to branded ids; never interpolated into an API path by hand (the contract client builds paths).

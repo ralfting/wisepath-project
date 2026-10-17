@@ -16,7 +16,7 @@ import { DeleteProjectModal, ProjectNameModal } from './ProjectModals';
 import { showToast } from '@/features/capture';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { PageGlyph } from '@/features/shared/look';
-import { mapHref, mapWithPageHref } from '@/features/shared/routes';
+import { mapHref, mapWithPageHref } from '@/shared/routes';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PathsHome.module.css';
 

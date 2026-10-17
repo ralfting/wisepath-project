@@ -17,7 +17,7 @@ import { AppFrame } from '@/features/shell/AppFrame';
 import { useT } from '@/i18n/I18nProvider';
 import { PageGlyph } from '@/features/shared/look';
 import { DRAWER_GAP, DRAWER_WIDTH } from '@/features/page/PageDrawer';
-import { openPageId, pageHref, swapOpenPage } from '@/features/shared/routes';
+import { openPageId, pageHref, swapOpenPage } from '@/shared/routes';
 import { OPEN_SEARCH_EVENT } from '@/features/editor/extensions';
 import { MindMap } from './MindMap';
 import type { FocusRequest } from './MindMap';

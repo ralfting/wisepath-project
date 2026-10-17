@@ -6,7 +6,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
 import { Anchor, Drawer, Stack, Text, Title } from '@mantine/core';
 import { PathGate } from '@/features/paths/PathGate';
-import { openPageId, pageHref, swapOpenPage } from '@/features/shared/routes';
+import { openPageId, pageHref, swapOpenPage } from '@/shared/routes';
 import { PagePanel } from './PagePanel';
 import { PageSheet, pageCrumbs } from './PageEditor';
 import { CrumbTrail, TopBar } from '@/features/shell/AppFrame';

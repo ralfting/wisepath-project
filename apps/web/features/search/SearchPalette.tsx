@@ -8,7 +8,7 @@ import { CaptureBox, paletteFieldProps, usePaletteKeys } from '@/features/captur
 import { IconFileText, IconSearch } from '@tabler/icons-react';
 import { marksIn } from '@wisepath/domain/search';
 import type { Mark } from '@wisepath/domain/search';
-import { mapWithPageHref, pageHref } from '@/features/shared/routes';
+import { mapWithPageHref, pageHref } from '@/shared/routes';
 import { displayTitle } from '@/features/shared/title';
 import { useT } from '@/i18n/I18nProvider';
 import { usePaths } from '@/useCases/paths';

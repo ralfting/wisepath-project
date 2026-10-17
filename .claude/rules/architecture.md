@@ -73,7 +73,7 @@ otherwise leave it and follow the target for new files.
 | `features/inbox/`, `features/capture/` | `features/inbox/list/`, `features/inbox/capture/` |
 | `features/search/`, `features/auth/`, `features/help/` | same names, one feature folder each |
 | `features/shell/AppFrame.tsx` | `app/_components/AppFrame/` |
-| `features/shared/routes.ts`, `fieldError.ts`, `title.ts` | `shared/routes.ts`, `shared/forms.ts`, `shared/title.ts` |
+| `features/shared/fieldError.ts`, `title.ts` | `shared/forms.ts`, `shared/title.ts` (`routes.ts` already moved) |
 | `features/shared/look.tsx`, `relatedHover.ts` | the `paths` feature that owns them |
 | Client-only reads (`useProjects`, `usePaths`, map load) | `queries.ts` on the server runtime, data passed as props (first: the map's tab title) |
 | Discrete mutations through atoms (`useCreateProject`, login) | `actions.ts` Server Actions |

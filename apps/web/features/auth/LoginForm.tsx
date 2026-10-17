@@ -9,7 +9,7 @@ import { loginFormSchema, useLogin } from '@/useCases/auth';
 import { useDomainMessage } from '@/useCases/validation';
 import { useT } from '@/i18n/I18nProvider';
 import { fieldError } from '../shared/fieldError';
-import { afterLogin } from '../shared/routes';
+import { afterLogin } from '@/shared/routes';
 
 /** Log in with email and password, then go to the paths page, or back to where ?next= says */
 export function LoginForm() {

@@ -14,7 +14,7 @@ import { useLinkPreview } from '@/useCases/paths';
 import { AppFrame } from '@/features/shell/AppFrame';
 import { openCapture, showToast, useCaptureKeys } from '@/features/capture';
 import type { ToastMessage } from '@/features/capture';
-import { mapWithPageHref } from '@/features/shared/routes';
+import { mapWithPageHref } from '@/shared/routes';
 import { PagePicker } from './PagePicker';
 import type { PickedPage } from './PagePicker';
 import classes from './InboxPage.module.css';

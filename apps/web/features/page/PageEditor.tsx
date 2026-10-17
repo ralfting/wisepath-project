@@ -17,7 +17,7 @@ import { SaveStatus } from '@/features/paths/SaveStatus';
 import { PathGate } from '@/features/paths/PathGate';
 import { AppFrame } from '@/features/shell/AppFrame';
 import type { Crumb } from '@/features/shell/AppFrame';
-import { mapHref, mapWithPageHref, pageHref as pageHrefOf } from '@/features/shared/routes';
+import { mapHref, mapWithPageHref, pageHref as pageHrefOf } from '@/shared/routes';
 import { PageContent, PageTitleInput } from './PageContent';
 import type { PageActions } from './PageContent';
 import type { EditorFocus } from '@/features/editor/MarkdownEditor';

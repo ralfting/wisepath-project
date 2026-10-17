@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { HOME, afterLogin, loginHref } from '@/features/shared/routes';
+import { HOME, afterLogin, loginHref } from '@/shared/routes';
 
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
