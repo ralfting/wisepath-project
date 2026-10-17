@@ -69,7 +69,14 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     }),
     content,
     editorProps: {
-      attributes: () => ({ class: 'wp-editor', 'aria-label': latest.current.t('editor.content.label') }),
+      // A text field to assistive tech: an aria-label needs a role to be allowed on a div
+      attributes: () => ({
+        class: 'wp-editor',
+        role: 'textbox',
+        'aria-multiline': 'true',
+        'aria-label': latest.current.t('editor.content.label'),
+        ...(latest.current.props.readOnly ? { 'aria-readonly': 'true' } : {}),
+      }),
       handleDOMEvents: {
         click: (_view, event) => {
           const target = event.target as HTMLElement;
