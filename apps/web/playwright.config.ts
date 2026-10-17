@@ -10,6 +10,7 @@ const databaseUrl = process.env.E2E_DATABASE_URL ?? 'postgresql://wisepath:wisep
 
 export default defineConfig({
   testDir: './e2e',
+  globalTeardown: './e2e/globalTeardown.ts',
   // Each test signs up its own learner, so tests share nothing
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

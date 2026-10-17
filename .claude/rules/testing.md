@@ -140,7 +140,8 @@ pnpm --filter @wisepath/domain test          # domain rules
 - Use e2e for what only the whole stack shows: a server read (a tab title after a full load), a Server Action
   surviving a reload, a redirect. Everything else is cheaper as a component or program test.
 - Same query rules as Testing Library: roles and labels, `toHaveURL`/`toHaveTitle`, no fixed waits.
-- The e2e build rewrites `next-env.d.ts` to `.next-e2e`; never commit that change.
+- The e2e build points `next-env.d.ts` at `.next-e2e` and writes route types there; `e2e/globalTeardown.ts` puts
+  both back after every run. If a run is killed before it, `git checkout -- apps/web/next-env.d.ts`.
 
 ## Pre-flight checklist
 
