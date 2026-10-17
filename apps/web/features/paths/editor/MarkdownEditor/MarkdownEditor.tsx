@@ -40,9 +40,10 @@ import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { editor as editorMessages } from '@/i18n/messages/en/editor';
 import { VideoBlock } from '../video/VideoBlock/VideoBlock';
 import { Timestamp, timestampLabels } from '../video/timestamps';
-import { VideoControl } from './VideoControl';
-import { Outline, headingsOf, sameHeadings } from './Outline';
-import type { Heading } from './Outline';
+import { VideoControl } from './VideoControl/VideoControl';
+import { Outline } from './Outline/Outline';
+import { headingsOf, sameHeadings } from './Outline/Outline.helpers';
+import type { Heading } from './Outline/Outline.helpers';
 import { PageNamePrompt, placeNear } from './PageNamePrompt';
 import type { PagePrompt } from './PageNamePrompt';
 
