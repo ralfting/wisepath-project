@@ -61,11 +61,13 @@ while offline; a Server Action per command adds a hop through Next and loses the
 
 ## Server reads
 
-- A query is `export const listProjects = cache(() => runServer(programs.listProjects))` in `useCases/projects/queries.ts`:
-  React `cache` dedupes calls within one render (layout + page + metadata).
-- Queries resolve the session themselves ([security.md](security.md)); pages never pass a user id in.
-- Data that client atoms also read is dehydrated with `Hydration.dehydrate` and handed to `HydrationBoundary`
-  (`@effect/atom-react`), so the client does not fetch it again. Known refetch issue: [effect.md](effect.md).
+- A query is a `cache(async (...) => ...)` in `useCases/<domain>/queries.ts` that decodes its input, runs a program
+  with `runServer` and maps the `Exit` to what the page needs. React `cache` dedupes calls within one render
+  (layout + page + metadata). Model: `pathTitle` in `useCases/paths/queries.ts`, used by
+  `app/paths/[pathId]/page.tsx`'s `generateMetadata`.
+- Queries send the request's cookies, and the API checks the session ([security.md](security.md)); pages never
+  pass a user id in.
+- Server data reaches client components as props, not hydrated atoms ([effect.md](effect.md), "Reactivity and cache").
 
 ## Server Actions
 

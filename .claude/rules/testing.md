@@ -18,10 +18,11 @@ paths:
 | Programs and hooks' logic | `@effect/vitest` `it.effect` + `Memory*` Layers | exists (`useCases/auth/programs.test.ts`) |
 | Pure UI helpers | Vitest | exists (`features/page/titleSize.test.ts`) |
 | Client components | `@testing-library/react`, `@testing-library/user-event`, `happy-dom` | exists (`features/auth/LoginForm.test.tsx`) |
+| Server wiring | `@effect/vitest` + a fake `HttpClient` Layer recording what was sent | exists (`infrastructure/server/ServerLayer.test.ts`) |
 | Server queries and actions | `@effect/vitest` on the program + `Memory*` Layers | target |
 | RSC pages end to end | Playwright | `TODO(decide): e2e` |
 
-`vitest.config.ts` has two projects: `unit` runs `*.test.ts` in Node; `dom` runs `*.test.tsx` in happy-dom with
+`server-only` resolves to its empty module in tests, as Next does on the server. `vitest.config.ts` has two projects: `unit` runs `*.test.ts` in Node; `dom` runs `*.test.tsx` in happy-dom with
 `test/setup.ts` (cleanup, `matchMedia` for Mantine) and compiles JSX itself, since tsconfig keeps it for Next.
 A test that renders React is `.test.tsx`; everything else is `.test.ts`.
 
