@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext } from 'react';
-import type { DrawerControls } from './PageDrawer';
 
 export const DRAWER_WIDTH = 560;
 
@@ -30,3 +29,31 @@ export const TABBABLE = 'a[href], button:not([disabled]), input:not([disabled]),
 
 /** Matches the leave animation in PageDrawer.module.css */
 export const LEAVE_MS = 180;
+
+/** Gap between the floating drawer and the window's edges */
+export const DRAWER_GAP = 12;
+
+/** Closes the drawer with its exit animation, then leaves its URL */
+export interface DrawerControls {
+  close: () => void;
+  /** Grown to the whole window, in place: no navigation, no reload */
+  expanded: boolean;
+  toggleExpanded: () => void;
+  /** The pages walked through inside the drawer, ending at the one it shows now */
+  trail: Trail;
+  setTrail: (trail: Trail) => void;
+  /** Where the cursor last was in each page's text, to put it back on return */
+  cursors: Map<string, number>;
+  /** The page the drawer showed last: the route remounts the page for each one, the drawer stays */
+  shown: { current: string | null };
+}
+
+/**
+ * Whether the page is being opened from the keyboard: the control that opened it (a map node, the
+ * Continue button) still has the focus, and shows it, as the browser does only for keys
+ */
+export function openedByKeyboard(): boolean {
+  if (typeof document === 'undefined') return false;
+  const active = document.activeElement;
+  return !!active && active !== document.body && !active.closest('.mantine-Drawer-content') && active.matches(':focus-visible');
+}

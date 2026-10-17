@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
 import { LEAVE_MS, TABBABLE } from './PageDrawer.helpers';
 import type { Trail } from './PageDrawer.helpers';
-import type { DrawerControls } from './PageDrawer';
+import type { DrawerControls } from './PageDrawer.helpers';
 
 /**
  * The page drawer's view model: whether it is leaving or expanded, the trail of pages inside it, closing it (with
