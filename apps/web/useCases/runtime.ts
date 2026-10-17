@@ -1,4 +1,4 @@
-import { Atom } from "effect/reactivity"
+import { Atom, Reactivity } from "effect/reactivity"
 import { AppLayer } from "@/infrastructure/AppLayer"
 
 /** Runtime every use case's atoms run on: the app's services, built once per registry */
@@ -11,3 +11,9 @@ export const ReactivityKeys = {
   projects: "projects",
   inbox: "inbox"
 } as const
+
+/**
+ * Refreshes every atom that reads the given keys. For changes made outside the
+ * client's atoms, like a Server Action, so the screen shows them at once.
+ */
+export const invalidateAtom = appRuntime.fn((keys: ReadonlyArray<string>) => Reactivity.invalidate(keys))

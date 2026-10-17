@@ -3,24 +3,20 @@
 import { useSyncExternalStore } from "react"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { useAtomSet, useAtomValue } from "@effect/atom-react"
-import { ProjectId } from "@wisepath/domain/projects"
 import type { Project } from "@wisepath/domain/projects"
-import { useT } from "@/i18n/I18nProvider"
-import { ReactivityKeys, appRuntime } from "../runtime"
-import { messageFor } from "../messages"
-import { useDomainMessage } from "../validation"
+import type { ActionResult } from "../actionResult"
+import { ReactivityKeys, appRuntime, invalidateAtom } from "../runtime"
+import * as actions from "./actions"
 import * as programs from "./programs"
 
-/** Project hooks for the list of paths, which groups them by project */
+/**
+ * Project hooks for the list of paths, which groups them by project. Changes
+ * go through Server Actions; the list the client holds is read again after each.
+ */
 
 const listAtom = appRuntime
   .atom(programs.listProjects)
   .pipe(Atom.withReactivity([ReactivityKeys.projects, ReactivityKeys.session]))
-
-const createProjectAtom = appRuntime.fn(programs.createProject, { reactivityKeys: [ReactivityKeys.projects] })
-const renameProjectAtom = appRuntime.fn(programs.renameProject, { reactivityKeys: [ReactivityKeys.projects] })
-// Deleting one moves its paths, so the paths are read again too
-const removeProjectAtom = appRuntime.fn(programs.removeProject, { reactivityKeys: [ReactivityKeys.projects, ReactivityKeys.paths] })
 
 const noSubscription = () => () => {}
 const useHydrated = () => useSyncExternalStore(noSubscription, () => true, () => false)
@@ -32,45 +28,39 @@ export function useProjects(): ReadonlyArray<Project> | null {
   return hydrated ? projects : null
 }
 
-/** Result of a project action: the message to show when it failed */
-export type ProjectActionResult<A> = { readonly ok: true; readonly value: A } | { readonly ok: false; readonly message: string }
+/** Runs an action, then refreshes what it changed on the client when it worked */
+function useAction<Args extends ReadonlyArray<unknown>, A>(
+  action: (...args: Args) => Promise<ActionResult<A>>,
+  changes: ReadonlyArray<string>
+): (...args: Args) => Promise<ActionResult<A>> {
+  const invalidate = useAtomSet(invalidateAtom)
+  return async (...args) => {
+    const result = await action(...args)
+    if (result.ok) invalidate(changes)
+    return result
+  }
+}
 
 /** Makes a project; resolves to it, or to the message to show */
-export function useCreateProject(): (name: string) => Promise<ProjectActionResult<Project>> {
-  const run = useAtomSet(createProjectAtom, { mode: "promiseExit" })
-  const t = useT()
-  const domain = useDomainMessage()
-  return async (name) => {
-    const exit = await run(name)
-    if (exit._tag === "Success") return { ok: true, value: exit.value }
-    const unavailable = t("common.errors.unavailable")
-    return { ok: false, message: domain(messageFor(exit, { ProjectsUnavailable: unavailable }, t("common.errors.generic"))) ?? unavailable }
-  }
+export function useCreateProject(): (name: string) => Promise<ActionResult<Project>> {
+  return useAction(actions.createProject, [ReactivityKeys.projects])
 }
 
 /** Renames a project; resolves to null, or to the message to show */
 export function useRenameProject(): (projectId: string, name: string) => Promise<string | null> {
-  const run = useAtomSet(renameProjectAtom, { mode: "promiseExit" })
-  const t = useT()
-  const domain = useDomainMessage()
-  return async (projectId, name) =>
-    domain(
-      messageFor(
-        await run({ id: ProjectId.make(projectId), name }),
-        { ProjectsUnavailable: t("common.errors.unavailable"), ProjectNotFound: t("home.errors.projectGone") },
-        t("common.errors.generic")
-      )
-    )
+  const rename = useAction(actions.renameProject, [ReactivityKeys.projects])
+  return async (projectId, name) => {
+    const result = await rename(projectId, name)
+    return result.ok ? null : result.message
+  }
 }
 
 /** Deletes a project, its paths going to the default one; resolves to null, or to the message to show */
 export function useRemoveProject(): (projectId: string) => Promise<string | null> {
-  const run = useAtomSet(removeProjectAtom, { mode: "promiseExit" })
-  const t = useT()
-  return async (projectId) =>
-    messageFor(
-      await run(ProjectId.make(projectId)),
-      { ProjectsUnavailable: t("common.errors.unavailable"), DefaultProjectProtected: t("home.errors.defaultProtected") },
-      t("common.errors.generic")
-    )
+  // Deleting one moves its paths, so the paths are read again too
+  const remove = useAction(actions.removeProject, [ReactivityKeys.projects, ReactivityKeys.paths])
+  return async (projectId) => {
+    const result = await remove(projectId)
+    return result.ok ? null : result.message
+  }
 }
