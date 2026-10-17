@@ -69,5 +69,5 @@ const make = (reads: typeof inBrowser) =>
 /** In the browser, which sends the session cookie itself */
 export const HttpPathRepository = make(inBrowser).pipe(Layer.provide(ApiClient.layer))
 
-/** On the Next server, over the ApiClient of the request it serves (ApiClient.forRequest) */
+/** On the Next server, over the ApiClient of the request it serves (requestApiClient in infrastructure/server/ServerApiClient.ts) */
 export const ServerPathRepository = make(anywhere)

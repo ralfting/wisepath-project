@@ -33,7 +33,7 @@ only: `git diff`, `git log`, `git show`, `rg`, and the checks listed below.
 
 1. **Behaviour bugs:** wrong result, crash, lost edit, stale screen after a mutation (missing `reactivityKeys` or
    `revalidateTag`), race in `sync.ts`, broken keyboard path, hydration mismatch.
-2. **Security:** session not resolved on the server in an action/route handler/query, input not decoded, open
+2. **Security:** an action or route handler that does not resolve the session before writing or redirecting, a server read not going through `runServer`, input not decoded, open
    redirect, secret in `NEXT_PUBLIC_*` or a client-reachable module, `dangerouslySetInnerHTML` with content,
    request data in module scope or the shared runtime ([security.md](../rules/security.md)).
 3. **Architecture and Effect:** layer import violations, a feature importing another's internals, an untyped error
