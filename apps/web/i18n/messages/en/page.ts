@@ -37,8 +37,9 @@ export const page = {
   back: 'Back to {title}',
   seeOnMap: 'See it on the map',
   savedAt: {
-    label: 'Saved · edited {when}',
-    hint: 'Saved · {date}',
+    label: 'Saved',
+    /** On hovering Saved: when the page was last edited */
+    hint: 'Edited {when} · {date}',
   },
   menu: {
     more: 'More',

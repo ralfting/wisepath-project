@@ -40,8 +40,8 @@ export const page = {
   back: 'Voltar para {title}',
   seeOnMap: 'Ver no mapa',
   savedAt: {
-    label: 'Salva · editada {when}',
-    hint: 'Salva · {date}',
+    label: 'Salva',
+    hint: 'Editada {when} · {date}',
   },
   menu: {
     more: 'Mais opções',

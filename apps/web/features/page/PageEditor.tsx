@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ActionIcon, Anchor, Box, Card, Center, Group, Menu, Stack, Text, Title, Tooltip } from '@mantine/core';
-import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
+import { IconArrowLeft, IconBox, IconCloudCheck, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Page, Path } from '@wisepath/domain/paths';
@@ -254,10 +254,14 @@ function SavedAt({ updatedAt }: { updatedAt: string }) {
   }, [updatedAt]);
   if (!updatedAt || Number.isNaN(new Date(updatedAt).getTime())) return null;
   return (
-    <Tooltip label={t('page.savedAt.hint', { date: dateTime(updatedAt, locale) })}>
-      <Text size="sm" c="dimmed" visibleFrom="md" style={{ whiteSpace: 'nowrap' }}>
-        {t('page.savedAt.label', { when: relativeTime(updatedAt, now, locale) })}
-      </Text>
+    // Just whether it is saved; when it was last edited shows on hover
+    <Tooltip label={t('page.savedAt.hint', { when: relativeTime(updatedAt, now, locale), date: dateTime(updatedAt, locale) })}>
+      <Group gap={6} wrap="nowrap" c="dimmed" visibleFrom="md" role="status">
+        <IconCloudCheck size={16} aria-hidden="true" />
+        <Text size="sm" style={{ whiteSpace: 'nowrap' }}>
+          {t('page.savedAt.label')}
+        </Text>
+      </Group>
     </Tooltip>
   );
 }
