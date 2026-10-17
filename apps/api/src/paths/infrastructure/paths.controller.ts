@@ -119,6 +119,12 @@ export class PathsController {
     await this.effect.run(sharing.unsharePath(id, member).pipe(asUser(req)));
   }
 
+  @Delete(':pathId/membership')
+  @HttpCode(204)
+  async leave(@Req() req: Request, @Param('pathId', pathId) id: PathId) {
+    await this.effect.run(sharing.leavePath(id).pipe(asUser(req)));
+  }
+
   @Patch(':pathId/visibility')
   @HttpCode(204)
   async setVisibility(

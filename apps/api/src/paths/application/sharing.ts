@@ -42,6 +42,11 @@ export const unsharePath = Effect.fn('paths.unshare')(function* (id: PathId, use
   yield* (yield* MemberStore).remove(id, userId);
 });
 
+export const leavePath = Effect.fn('paths.leave')(function* (id: PathId) {
+  const user = yield* CurrentUser;
+  yield* unsharePath(id, user.id);
+});
+
 export const setVisibility = Effect.fn('paths.setVisibility')(function* (id: PathId, edit: VisibilityEdit) {
   const store = yield* PathStore;
   const members = yield* MemberStore;

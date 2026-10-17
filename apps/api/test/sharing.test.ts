@@ -72,14 +72,14 @@ describe('sharing a path', () => {
   it.effect('lets a member leave, taking their marks with them, and the owner remove them', () =>
     Effect.gen(function* () {
       const map = yield* ownedMap(signedIn);
-      const { client: reader, email, user } = yield* signedIn('Bob');
+      const { client: reader, email } = yield* signedIn('Bob');
       const { email: otherEmail, user: other } = yield* signedIn('Eve');
       const params = { pathId: map.pathId };
       yield* map.owner.paths.share({ params, payload: { email, role: 'viewer' } });
       yield* map.owner.paths.share({ params, payload: { email: otherEmail, role: 'viewer' } });
       yield* markStudied(reader, map);
 
-      yield* reader.paths.unshare({ params: { ...params, userId: user.id } });
+      yield* reader.paths.leave({ params });
       assert.deepStrictEqual(yield* reader.paths.list(), []);
       // Invited again, they start with no marks
       yield* map.owner.paths.share({ params, payload: { email, role: 'viewer' } });

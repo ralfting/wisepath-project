@@ -102,6 +102,11 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
       params: member,
       error: [SessionRequired, PathNotFound]
     }),
+    /** The reader leaves a map that is not theirs (shared with them, or taken); their marks on it go too */
+    HttpApiEndpoint.delete("leave", "/:pathId/membership", {
+      params: path,
+      error: [SessionRequired, PathNotFound]
+    }),
     /** Making a map private removes those who took it, and their marks */
     HttpApiEndpoint.patch("setVisibility", "/:pathId/visibility", {
       params: path,
