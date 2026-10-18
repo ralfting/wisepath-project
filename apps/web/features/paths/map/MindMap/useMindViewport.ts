@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { MapTree, Page } from '@wisepath/domain/paths';
 import type { MindLayout, Point } from '../mindLayout';
+import { isGhost } from '../ghosts';
 import { READABLE_ZOOM, fitView, focusView, frameView, zoomAround } from './MindMap.helpers';
 import type { View } from './MindMap.helpers';
 import type { FocusRequest } from './MindMap';
@@ -87,6 +88,19 @@ export function useMindViewport({
     // Only when the field opens on another page, not on every render
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [branchFrom]);
+  // A page just named with [[ ]] is brought into view with the page naming it: it often grows under the drawer
+  const ghosts = useRef<ReadonlySet<string> | null>(null);
+  useEffect(() => {
+    const now = new Set([...tree.nodes.keys()].filter(isGhost));
+    const before = ghosts.current;
+    ghosts.current = now;
+    // Not on the first drawing: a map opening with ghosts stays as it opened
+    const added = before ? [...now].find((id) => !before.has(id)) : undefined;
+    const parentId = added && tree.nodes.get(added as Page['id'])?.parentId;
+    if (parentId) frameOn(parentId);
+    // Only when the ghosts change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tree]);
   useEffect(() => {
     if (focusRequest) frameOn(focusRequest.pageId);
     // Runs again once the size is known, so a page opened from the URL is brought into view

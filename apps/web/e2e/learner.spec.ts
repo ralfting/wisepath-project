@@ -217,6 +217,11 @@ test('pages named with [[ ]] show on the map before they are made, and opening o
   const borrowing = page.getByRole('treeitem', { name: 'Borrowing, not made yet. Make it' });
   await expect(ownership).toBeVisible();
   await expect(borrowing).toBeVisible();
+  // They are brought into view beside the drawer the learner is writing in, not left under it
+  const drawerLeft = async () => (await page.getByRole('dialog', { name: 'Page beside the map' }).boundingBox())!.x;
+  for (const ghost of [ownership, borrowing]) {
+    await expect.poll(async () => { const box = await ghost.boundingBox(); return box !== null && box.x + box.width <= (await drawerLeft()); }).toBe(true);
+  }
 
   // Opening one makes it and opens it; the other stays a ghost
   await page.keyboard.press('Escape');
