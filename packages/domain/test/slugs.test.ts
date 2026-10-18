@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
-import { PageId, PathId, freeSlug, pageAt, pageSlugs, slugOf } from "../src/paths/index"
+import { PageId, PathId, catalogEntry, freeSlug, pageAt, pageSlugs, slugOf } from "../src/paths/index"
 import type { Path } from "../src/paths/index"
 
 const path = (titles: ReadonlyArray<string>): Path => ({
@@ -42,5 +42,16 @@ describe("addresses of published paths", () => {
     assert.strictEqual(pageAt(p, null)?.title, "React")
     assert.strictEqual(pageAt(p, "hooks")?.title, "Hooks")
     assert.isUndefined(pageAt(p, "react"))
+  })
+
+  it("lists a published path for the sitemap: its address, its pages', and when each last changed", () => {
+    const p = { ...path(["React", "Hooks"]), slug: "react" }
+    const dated = { ...p, pages: p.pages.map((page, index) => ({ ...page, updatedAt: `2026-10-0${index + 1}T00:00:00.000Z` })) }
+    assert.deepStrictEqual(catalogEntry(dated), {
+      slug: "react",
+      updatedAt: "2026-10-02T00:00:00.000Z",
+      pages: [{ slug: "hooks", updatedAt: "2026-10-02T00:00:00.000Z" }]
+    })
+    assert.isNull(catalogEntry(path(["React"])))
   })
 })

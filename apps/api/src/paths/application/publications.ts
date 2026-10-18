@@ -1,5 +1,5 @@
 import { Config, Effect, Option } from 'effect';
-import { NotAdmin, PathNotFound } from '@wisepath/domain/paths';
+import { NotAdmin, PathNotFound, catalogEntry } from '@wisepath/domain/paths';
 import type { PathId, PublicationRequest } from '@wisepath/domain/paths';
 import { UserStore } from '../../auth/application/UserStore';
 import { CurrentUser } from './CurrentUser';
@@ -94,4 +94,10 @@ export const readPublished = Effect.fn('publications.readPublished')(function* (
   const found = yield* (yield* PathStore).findPublished(slug);
   if (Option.isNone(found)) return yield* new PathNotFound({ pathId: slug });
   return found.value;
+});
+
+/** Every published map's address and its pages', for the sitemap */
+export const listCatalog = Effect.fn('publications.listCatalog')(function* () {
+  const published = yield* (yield* PathStore).listPublished();
+  return published.flatMap((path) => catalogEntry(path) ?? []);
 });

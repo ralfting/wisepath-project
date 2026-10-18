@@ -33,6 +33,9 @@ export class PathStore extends Context.Service<
     /** A published map by its catalog address, as a visitor with no account reads it */
     readonly findPublished: (slug: string) => Effect.Effect<Option.Option<Path>>;
 
+    /** Every published map, as a visitor reads it, oldest first */
+    readonly listPublished: () => Effect.Effect<ReadonlyArray<Path>>;
+
     /** Stores a new map in a project, its studied pages as the learner's marks; false when its id is already used */
     readonly insert: (learnerId: UserId, projectId: ProjectId, path: Path) => Effect.Effect<boolean>;
 

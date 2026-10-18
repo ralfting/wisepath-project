@@ -3,6 +3,7 @@ import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema } from "effect/http-api"
 import { NotAuthenticated, UserId } from "@wisepath/domain/auth"
 import {
   CannotShareWithSelf,
+  CatalogEntry,
   NewPage,
   NewPath,
   Page,
@@ -208,6 +209,10 @@ export class AdminApiGroup extends HttpApiGroup.make("admin")
  */
 export class CatalogApiGroup extends HttpApiGroup.make("catalog")
   .add(
+    /** Every published map's address and its pages', with when each changed: what the sitemap lists */
+    HttpApiEndpoint.get("list", "/", {
+      success: Schema.Array(CatalogEntry)
+    }),
     HttpApiEndpoint.get("get", "/:slug", {
       params: { slug: Schema.String },
       success: Path,

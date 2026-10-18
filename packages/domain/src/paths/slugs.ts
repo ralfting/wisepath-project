@@ -1,3 +1,4 @@
+import { Schema } from "effect"
 import type { Page, Path, PageId } from "./Path"
 
 /**
@@ -45,4 +46,27 @@ export function pageAt(path: Path, slug: string | null): Page | undefined {
   if (slug === null) return path.pages.find((page) => page.id === path.rootPageId)
   for (const [id, pageSlug] of pageSlugs(path)) if (pageSlug === slug) return path.pages.find((page) => page.id === id)
   return undefined
+}
+
+/** A published path as the sitemap lists it: its address, and each page's with when it last changed (ISO dates) */
+export const CatalogEntry = Schema.Struct({
+  slug: Schema.String,
+  updatedAt: Schema.String,
+  pages: Schema.Array(Schema.Struct({ slug: Schema.String, updatedAt: Schema.String }))
+})
+export type CatalogEntry = typeof CatalogEntry.Type
+
+/** A published path's entry in the sitemap; the path changed when its latest page did. None without an address */
+export function catalogEntry(path: Path): CatalogEntry | null {
+  if (!path.slug) return null
+  const slugs = pageSlugs(path)
+  const latest = (dates: ReadonlyArray<string>) => dates.reduce((a, b) => (b > a ? b : a), "")
+  return {
+    slug: path.slug,
+    updatedAt: latest(path.pages.map((page) => page.updatedAt)),
+    pages: path.pages.flatMap((page) => {
+      const slug = slugs.get(page.id)
+      return slug ? [{ slug, updatedAt: page.updatedAt }] : []
+    })
+  }
 }

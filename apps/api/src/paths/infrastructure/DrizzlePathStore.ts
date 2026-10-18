@@ -188,6 +188,17 @@ export const DrizzlePathStore = Layer.effect(
       return row ? Option.some(yield* toDomain(row, null)) : Option.none<Path>();
     });
 
+    const listPublished = Effect.fn('PathStore.listPublished')(function* () {
+      const rows = yield* run(
+        db.query.paths.findMany({
+          where: eq(paths.visibility, 'published'),
+          orderBy: [asc(paths.createdAt), asc(paths.id)],
+          with: readFor(null),
+        }),
+      );
+      return yield* Effect.forEach(rows, (row) => toDomain(row, null));
+    });
+
     const insert = Effect.fn('PathStore.insert')(function* (learnerId: UserId, projectId: ProjectId, path: Path) {
       return yield* transaction(
         Effect.gen(function* () {
@@ -274,6 +285,6 @@ export const DrizzlePathStore = Layer.effect(
       yield* run(db.update(paths).set({ visibility }).where(eq(paths.id, id)));
     });
 
-    return PathStore.of({ listFor, find, findPublished, insert, move, setVisibility, save, remove, transaction });
+    return PathStore.of({ listFor, find, findPublished, listPublished, insert, move, setVisibility, save, remove, transaction });
   }),
 );
