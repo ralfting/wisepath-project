@@ -123,6 +123,9 @@ export const readPublishedPath = Effect.fn("useCases.paths.readPublished")(funct
   return yield* PathSharing.use((sharing) => sharing.readPublished(address))
 })
 
+/** Every published map's address and its pages', for the sitemap */
+export const listCatalog = PathSharing.use((sharing) => sharing.catalog()).pipe(Effect.withSpan("useCases.paths.listCatalog"))
+
 /** The learner's notices of paths they lost */
 export const listNotices = AccessNotices.use((notices) => notices.list).pipe(Effect.withSpan("useCases.paths.notices"))
 

@@ -5,6 +5,7 @@ import type { SharedWith, ShareEdit, ShareResult, VisibilityEdit } from "./acces
 import type { CannotShareWithSelf, PathNotFound, PathsUnavailable } from "./errors"
 import type { Path, PathId } from "./Path"
 import type { PublicationRequest } from "./publication"
+import type { CatalogEntry } from "./slugs"
 
 /**
  * Sharing paths (docs/plans/14-public-and-shared-paths.md): the owner's invites and visibility, a reader taking a
@@ -28,6 +29,8 @@ export class PathSharing extends Context.Service<PathSharing, {
   readonly withdrawPublication: (id: PathId) => Effect.Effect<void, PathNotFound | PathsUnavailable>
   /** A public path as someone with no account reads it */
   readonly readPublic: (id: PathId) => Effect.Effect<Path, PathNotFound | PathsUnavailable>
+  /** Every published path's address and its pages', for the sitemap */
+  readonly catalog: () => Effect.Effect<ReadonlyArray<CatalogEntry>, PathsUnavailable>
   /** A published path by its catalog address, as someone with no account reads it */
   readonly readPublished: (slug: string) => Effect.Effect<Path, PathNotFound | PathsUnavailable>
 }>()("@wisepath/domain/paths/PathSharing") {}

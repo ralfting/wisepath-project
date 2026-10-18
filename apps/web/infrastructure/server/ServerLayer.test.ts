@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { Effect, Exit, Layer } from "effect"
 import { HttpClient, HttpClientResponse } from "effect/http"
 import { PathId, PathRepository, samplePath } from "@wisepath/domain/paths"
-import { serverBaseUrl } from "./ServerApiClient"
+import { serverBaseUrl, siteOrigin } from "./ServerApiClient"
 import { serverRunner } from "./ServerLayer"
 
 /**
@@ -54,5 +54,18 @@ describe("serverBaseUrl", () => {
     ["the local API when nothing is set", undefined, undefined, "http://localhost:4001/api"]
   ])("uses %s", (_case, apiOrigin, publicApiUrl, expected) => {
     expect(serverBaseUrl(apiOrigin, publicApiUrl)).toBe(expected)
+  })
+})
+
+describe("siteOrigin", () => {
+  it("keeps the origin of an http(s) address, and nothing for anything else", () => {
+    expect(siteOrigin("https://wisepath.com.br/")).toBe("https://wisepath.com.br")
+    expect(siteOrigin(" https://wisepath.com.br/p ")).toBe("https://wisepath.com.br")
+    expect([siteOrigin(undefined), siteOrigin(""), siteOrigin("wisepath.com.br"), siteOrigin("ftp://wisepath.com.br")]).toEqual([
+      null,
+      null,
+      null,
+      null
+    ])
   })
 })

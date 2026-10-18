@@ -10,10 +10,15 @@ import { Inter } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { Providers } from "./providers";
 import { LOCALE_COOKIE, fromAcceptLanguage, isLocale } from "@/i18n/locales";
+import { site } from "@/useCases/paths/queries";
+
+const origin = site();
 
 export const metadata: Metadata = {
   title: "WisePath",
   description: "Map what you are learning: modules, topics and how they connect",
+  // Canonical and social addresses are absolute once the site has a domain of its own
+  ...(origin ? { metadataBase: new URL(origin) } : {}),
 };
 
 const inter = Inter({

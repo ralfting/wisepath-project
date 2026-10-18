@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { pageAt } from '@wisepath/domain/paths';
 import { PublishedPage } from '@/features/paths/catalog';
 import { serverT } from '@/i18n/server';
-import { publishedPath } from '@/useCases/paths/queries';
+import { catalogHref } from '@/shared/routes';
+import { publishedPath, site } from '@/useCases/paths/queries';
 
 interface PublishedPageRouteProps {
   params: Promise<{ slug: string; page?: string[] }>;
@@ -15,19 +16,29 @@ async function read(params: PublishedPageRouteProps['params']) {
   if (page && page.length > 1) return null;
   const path = await publishedPath(slug);
   const current = path ? pageAt(path, page?.[0] ?? null) : undefined;
-  return path && current ? { path, slug, page: current } : null;
+  return path && current ? { path, slug, page: current, href: catalogHref(slug, page?.[0]) } : null;
 }
 
 export async function generateMetadata({ params }: PublishedPageRouteProps): Promise<Metadata> {
   const [t, found] = await Promise.all([serverT(), read(params)]);
   if (!found) return { title: t('share.public.notFoundTitle') };
-  const { path, page } = found;
-  const isRoot = page.id === path.rootPageId;
+  const { path, page, href } = found;
+  const title = page.id === path.rootPageId ? t('catalog.metaRoot', { path: path.title }) : t('catalog.meta', { page: page.title, path: path.title });
+  const description = path.description;
+  // Search engines are let in once the site has a domain of its own (SITE_URL, docs/DEPLOY.md)
+  if (site() === null) return { title, ...(description ? { description } : {}), robots: { index: false, follow: false } };
   return {
-    title: isRoot ? t('catalog.metaRoot', { path: path.title }) : t('catalog.meta', { page: page.title, path: path.title }),
-    ...(path.description ? { description: path.description } : {}),
-    // Search engines come with a domain of our own and the sitemap (docs/plans/20-published-pages.md)
-    robots: { index: false, follow: false },
+    title,
+    ...(description ? { description } : {}),
+    alternates: { canonical: href },
+    openGraph: {
+      type: 'article',
+      siteName: 'WisePath',
+      title,
+      url: href,
+      ...(description ? { description } : {}),
+      ...(path.language ? { locale: path.language === 'pt-BR' ? 'pt_BR' : 'en_US' } : {}),
+    },
   };
 }
 

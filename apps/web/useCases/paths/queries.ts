@@ -1,7 +1,8 @@
 import "server-only"
 import { cache } from "react"
 import { Cause, Exit, Option } from "effect"
-import type { Path, PendingPublication } from "@wisepath/domain/paths"
+import type { CatalogEntry, Path, PendingPublication } from "@wisepath/domain/paths"
+import { siteUrl } from "@/infrastructure/server/ServerApiClient"
 import { runServer } from "../server"
 import * as programs from "./programs"
 
@@ -61,4 +62,13 @@ export const pendingPublications = async (): Promise<ReadonlyArray<PendingPublic
   const error = Cause.findErrorOption(exit.cause)
   if (Option.isSome(error) && error.value._tag === "NotAdmin") return null
   throw new Error("The requests to publish could not be read")
+}
+
+/** Where WisePath lives once it has a domain of its own; null until then, which keeps search engines out */
+export const site = (): string | null => siteUrl
+
+/** Every published map's address and its pages, for the sitemap; none when the API can't be reached */
+export const catalogEntries = async (): Promise<ReadonlyArray<CatalogEntry>> => {
+  const exit = await runServer(programs.listCatalog)
+  return Exit.isSuccess(exit) ? exit.value : []
 }

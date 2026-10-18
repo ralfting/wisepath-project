@@ -46,6 +46,10 @@ test('an owner asks to publish a path, and an administrator approves it', async 
   await expect(reader).toHaveURL(new RegExp(`/p/${slug}/borrowing$`));
   await expect(reader.getByRole('heading', { name: 'Borrowing', level: 1 })).toBeVisible();
 
+  // Without a domain of its own (no SITE_URL here) search engines are kept out: noindex, and robots.txt closed
+  await expect(reader.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+  expect(await (await reader.request.get('/robots.txt')).text()).toContain('Disallow: /');
+
   // Its old public link leads to the catalog address
   await reader.goto(`/public/paths/${map.pathId}`);
   await expect(reader).toHaveURL(new RegExp(`/p/${slug}$`));

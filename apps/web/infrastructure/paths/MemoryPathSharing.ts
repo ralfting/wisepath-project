@@ -44,6 +44,7 @@ export const MemoryPathSharing = (
           const path = seed.publicPaths?.find((p) => p.id === id)
           return path ? Effect.succeed(path) : Effect.fail(new PathNotFound({ pathId: id }))
         },
+        catalog: () => Effect.succeed([]),
         readPublished: (slug) => {
           const path = seed.publicPaths?.find((p) => p.visibility === "published" && p.slug === slug)
           return path ? Effect.succeed(path) : Effect.fail(new PathNotFound({ pathId: slug }))
