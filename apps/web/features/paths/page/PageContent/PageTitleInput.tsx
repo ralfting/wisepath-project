@@ -32,7 +32,7 @@ export function PageTitleInput({
   onEnter?: () => void;
 }) {
   const t = useT();
-  const { field, state, operations } = usePageTitleInput({ path, page, actions, size, onEnter });
+  const { field, state, operations } = usePageTitleInput({ path, page, actions, size, autoFocus, onEnter });
   return (
     <Textarea
       ref={field}
@@ -42,7 +42,6 @@ export function PageTitleInput({
       aria-label={t('page.title.label')}
       value={state.draft}
       error={state.clash ? t('page.title.taken') : undefined}
-      autoFocus={autoFocus}
       onFocus={operations.focus}
       onBlur={operations.blur}
       onChange={operations.change}

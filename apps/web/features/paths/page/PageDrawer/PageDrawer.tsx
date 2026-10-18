@@ -23,7 +23,7 @@ export function PageDrawer({ pathId, pageId: routePageId }: { pathId: string; pa
   const t = useT();
   const { controls, state, operations } = usePageDrawer({ pathId, routePageId });
   const { close, expanded, toggleExpanded } = controls;
-  const { pageId, before, swapped, byKeyboard, cursor } = state;
+  const { pageId, before, swapped, titleFirst, cursor } = state;
   const { go, goBack } = operations;
 
   return (
@@ -80,7 +80,7 @@ export function PageDrawer({ pathId, pageId: routePageId }: { pathId: string; pa
             store={store}
             onSelect={go}
             focusEditor={cursor}
-            focusTitle={byKeyboard}
+            focusTitle={titleFirst}
             onCursor={(pos) => operations.rememberCursor(page.id, pos)}
             back={back && { page: back, onClick: () => goBack(back.id, before.slice(0, backIndex)) }}
             onExpand={toggleExpanded}

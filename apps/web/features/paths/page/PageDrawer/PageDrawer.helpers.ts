@@ -47,13 +47,3 @@ export interface DrawerControls {
   /** The page the drawer showed last: the route remounts the page for each one, the drawer stays */
   shown: { current: string | null };
 }
-
-/**
- * Whether the page is being opened from the keyboard: the control that opened it (a map node, the
- * Continue button) still has the focus, and shows it, as the browser does only for keys
- */
-export function openedByKeyboard(): boolean {
-  if (typeof document === 'undefined') return false;
-  const active = document.activeElement;
-  return !!active && active !== document.body && !active.closest('.mantine-Drawer-content') && active.matches(':focus-visible');
-}

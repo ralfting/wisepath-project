@@ -16,12 +16,14 @@ export function usePageTitleInput({
   page,
   actions,
   size,
+  autoFocus,
   onEnter,
 }: {
   path: Path;
   page: Page;
   actions: Pick<PageActions, 'updatePage' | 'beginRename' | 'renameLinks'>;
   size: number;
+  autoFocus: boolean;
   onEnter?: () => void;
 }) {
   const titleAtFocus = useRef(page.title);
@@ -38,6 +40,12 @@ export function usePageTitleInput({
     [],
   );
   const field = useFitToLines(draft, size);
+  // After a frame, not on mount: the drawer and the editor settle their own focus first, and the title must win
+  useEffect(() => {
+    if (!autoFocus) return;
+    const frame = requestAnimationFrame(() => field.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [autoFocus, field]);
 
   const focus = () => {
     titleAtFocus.current = page.title;
