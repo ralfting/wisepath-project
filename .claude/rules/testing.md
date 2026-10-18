@@ -140,6 +140,7 @@ pnpm --filter @wisepath/domain test          # domain rules
 - `pnpm --filter @wisepath/web test:e2e` builds the API, then `playwright.config.ts` starts it on 4201 over
   `wisepath_e2e` (emptied and migrated each run by `e2e/prepareDatabase.mjs`, which refuses any name not ending in
   `_e2e`) and the built web app on 4202, into `.next-e2e`. Needs the local Postgres (`docker compose up -d db`).
+- CI runs them in the `e2e` job of `.github/workflows/ci.yml`, beside `check`; a deploy waits for both.
 - One spec per journey a learner takes, not per screen. Each test signs up its own learner, so tests run in
   parallel and share nothing. Never log in as the demo account or rely on seeded data.
 - Use e2e for what only the whole stack shows: a server read (a tab title after a full load), a Server Action

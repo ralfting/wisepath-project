@@ -1,4 +1,4 @@
-# Typecheck, lint and test the whole monorepo on every push to main and every pull request.
+# Typecheck, lint and test the whole monorepo, and run the end-to-end journeys, on every push to main and every pull request.
 # The API's integration tests run against the Postgres service below (database wisepath_test,
 # wiped and migrated by apps/api/test/globalSetup.ts).
 # Pushes to main that pass then deploy to Vercel (docs/plans/11-continuous-deploy.md).
@@ -61,8 +61,54 @@ jobs:
       - name: Test
         run: pnpm test
 
+  # The learner journeys in a browser, over the built API and web app (apps/web/playwright.config.ts)
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: wisepath
+          POSTGRES_PASSWORD: wisepath
+          POSTGRES_DB: wisepath_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U wisepath -d wisepath_e2e"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm --filter @wisepath/web exec playwright install --with-deps chromium
+
+      - name: End to end
+        run: pnpm --filter @wisepath/web test:e2e
+
+      - name: Keep the traces of failed tests
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-traces
+          path: apps/web/test-results
+          retention-days: 7
+
   deploy:
-    needs: check
+    needs: [check, e2e]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
