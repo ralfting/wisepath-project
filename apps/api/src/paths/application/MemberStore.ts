@@ -19,8 +19,11 @@ export class MemberStore extends Context.Service<
     /** Adds someone who takes a public path, as a viewer; nothing when they are already a member */
     readonly take: (pathId: PathId, userId: UserId) => Effect.Effect<void>;
 
-    /** Removes someone and their marks on the path, member or not */
-    readonly remove: (pathId: PathId, userId: UserId) => Effect.Effect<void>;
+    /** Removes someone and their marks on the path, member or not; whether they were a member */
+    readonly remove: (pathId: PathId, userId: UserId) => Effect.Effect<boolean>;
+
+    /** Everyone the path is shared with or who took it */
+    readonly memberIds: (pathId: PathId) => Effect.Effect<ReadonlyArray<UserId>>;
 
     /** The emails the path waits for, by when they were invited */
     readonly listInvites: (pathId: PathId) => Effect.Effect<ReadonlyArray<PathInvite>>;
@@ -33,7 +36,7 @@ export class MemberStore extends Context.Service<
     /** Turns every invite for this email into a membership of the new account, with its role */
     readonly claimInvites: (userId: UserId, email: string) => Effect.Effect<void>;
 
-    /** Removes everyone who took the path (it went private) and the marks of all but the owner and the invited */
-    readonly removeTaken: (pathId: PathId) => Effect.Effect<void>;
+    /** Removes everyone who took the path (it went private) and the marks of all but the owner and the invited; who they were */
+    readonly removeTaken: (pathId: PathId) => Effect.Effect<ReadonlyArray<UserId>>;
   }
 >()('@wisepath/api/paths/application/MemberStore') {}

@@ -172,6 +172,30 @@ export const pathInvites = pgTable(
 );
 
 /**
+ * Paths a learner lost without choosing to, shown to them once (then deleted): the title and owner are copied,
+ * since the path itself may be gone.
+ */
+export const accessNotices = pgTable(
+  'access_notices',
+  {
+    id: text().primaryKey(),
+    userId: text('user_id').notNull(),
+    pathTitle: text('path_title').notNull(),
+    ownerName: text('owner_name'),
+    reason: text({ enum: ['private', 'removed', 'deleted'] }).notNull(),
+    createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index('access_notices_user_id_idx').on(t.userId),
+    foreignKey({ name: 'access_notices_user_id_fkey', columns: [t.userId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
  * The pages a learner marked studied. Progress is each learner's own, on their paths and on anyone else's,
  * and never shown to another (docs/plans/14-public-and-shared-paths.md).
  */

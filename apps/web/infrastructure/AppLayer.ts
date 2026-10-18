@@ -2,10 +2,11 @@ import { Layer } from "effect"
 import { ApiAuth } from "./auth/ApiAuth"
 import { HttpInbox } from "./inbox/HttpInbox"
 import { HttpLinkPreviews } from "./links/HttpLinkPreviews"
+import { HttpAccessNotices } from "./paths/HttpAccessNotices"
 import { HttpPathRepository } from "./paths/HttpPathRepository"
 import { HttpPathSharing } from "./paths/HttpPathSharing"
 import { HttpProjectRepository } from "./projects/HttpProjectRepository"
 import { HttpPageSearch } from "./search/HttpPageSearch"
 
 /** Every service the web app runs with, wired to their real implementations */
-export const AppLayer = Layer.mergeAll(ApiAuth, HttpProjectRepository, HttpPathRepository, HttpPathSharing, HttpLinkPreviews, HttpPageSearch, HttpInbox)
+export const AppLayer = Layer.mergeAll(ApiAuth, HttpProjectRepository, HttpPathRepository, HttpPathSharing, HttpAccessNotices, HttpLinkPreviews, HttpPageSearch, HttpInbox)

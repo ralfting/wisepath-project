@@ -79,3 +79,8 @@ export async function leavePath(pathId: string): Promise<ActionResult<void>> {
   if (result.ok) revalidatePath(HOME)
   return result
 }
+
+/** A notice of a lost path, once shown */
+export async function dismissNotice(noticeId: string): Promise<ActionResult<void>> {
+  return runAction(programs.dismissNotice(noticeId), (t) => ({ PathsUnavailable: t("common.errors.unavailable") }))
+}

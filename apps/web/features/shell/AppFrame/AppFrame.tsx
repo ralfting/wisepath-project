@@ -7,6 +7,7 @@ import { useT } from '@/i18n/I18nProvider';
 import { CaptureLauncher } from '@/features/inbox/capture';
 import { SearchPaletteHost } from '@/features/search';
 import { HelpHost } from '@/features/help';
+import { AccessNotices } from '@/features/paths/path';
 import classes from './AppFrame.module.css';
 import { Sidebar } from './Sidebar';
 import { Rail } from './Rail';
@@ -115,6 +116,7 @@ export function AppFrame({
       </AppShell.Main>
       <SearchPaletteHost />
       <HelpHost />
+      <AccessNotices />
     </AppShell>
   );
 }

@@ -175,6 +175,8 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `PATCH` | `/api/paths/:pathId/visibility` | `{ visibility }`, `private` or `public`; private removes those who took it |
 | `POST` | `/api/paths/:pathId/take` | add a public map to your maps, to study with your own marks; never a copy |
 | `GET` | `/api/public/paths/:pathId` | a public map without a session, with no one's marks; 404 for a private one |
+| `GET` | `/api/notices` | paths you lost without choosing to (made private, no longer shared, deleted), to show once |
+| `DELETE` | `/api/notices/:noticeId` | a notice once shown |
 | `GET` | `/api/link-preview?url=` | title, description, site and icon of a public http(s) page; 422 `LinkNotPreviewable` |
 
 Sending the same create or delete twice changes nothing more, so clients can retry safely. Someone else's map answers 404, as if it didn't exist.

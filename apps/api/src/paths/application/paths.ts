@@ -15,6 +15,8 @@ import {
 import type { NewPage, NewPath, PageEdit, PageId, Path, PathEdit, PathId } from '@wisepath/domain/paths';
 import { ownProject } from '../../projects/application/projects';
 import { CurrentUser } from './CurrentUser';
+import { MemberStore } from './MemberStore';
+import { notifyLost } from './notices';
 import { PathStore } from './PathStore';
 
 /**
@@ -71,11 +73,21 @@ export const createPath = Effect.fn('paths.create')(function* (command: NewPath)
   return yield* Effect.die(new Error(`Path id ${command.id} is already used by another account`));
 });
 
+/** Deleting a path gone or not the user's changes nothing (a retry); its members are told they lost it */
 export const removePath = Effect.fn('paths.remove')(function* (id: PathId) {
   const user = yield* CurrentUser;
   const store = yield* PathStore;
+  const members = yield* MemberStore;
 
-  yield* store.remove(user.id, id);
+  yield* store.transaction(
+    Effect.gen(function* () {
+      const found = yield* store.find(user.id, id, { lock: true });
+      if (Option.isNone(found) || !canManage(found.value.access)) return;
+      const lost = yield* members.memberIds(id);
+      yield* store.remove(user.id, id);
+      yield* notifyLost(lost, found.value, 'deleted');
+    }),
+  );
 });
 
 /** Loads the map, checks the user may do this, applies one command and stores what it changed */

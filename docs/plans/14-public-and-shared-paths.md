@@ -125,4 +125,5 @@ User 1──< PageProgress >── Page                          (studied marks,
   already does (`EmailAlreadyRegistered`).
 - ~~Search over paths from others.~~ Done 2026-10-17: search covers the paths a learner has, their own and those they are a member of.
 - ~~Inviting an email with no account yet.~~ Done 2026-10-17: kept as an invite (`path_invites`) and claimed at sign up or log in; WisePath sends no email.
-- Telling a taker that the path went private or was deleted (today it just leaves their list).
+- ~~Telling a taker that the path went private or was deleted.~~ Done 2026-10-17: a notice (`access_notices`) for
+  whoever loses a path without choosing to (made private, removed by the owner, deleted), shown once as a toast.

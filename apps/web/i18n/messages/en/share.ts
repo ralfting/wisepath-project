@@ -57,6 +57,13 @@ export const share = {
     home: 'Go to WisePath',
     loading: 'Loading the path',
   },
+  /** A path the learner lost without choosing to, told once */
+  notice: {
+    private: '“{title}” is no longer available: {owner} made it private.',
+    removed: '{owner} stopped sharing “{title}” with you.',
+    deleted: '{owner} deleted “{title}”.',
+    owner: 'Its owner',
+  },
   errors: {
     self: 'This is your own path.',
     gone: 'This path no longer exists, or is no longer shared with you.',

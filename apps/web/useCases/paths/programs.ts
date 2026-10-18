@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { LinkPreviews, NewPath, PageId, PathId, PathKind, PathRepository, PathSharing, PathVisibility, ShareEdit } from "@wisepath/domain/paths"
+import { AccessNotices, LinkPreviews, NewPath, NoticeId, PageId, PathId, PathKind, PathRepository, PathSharing, PathVisibility, ShareEdit } from "@wisepath/domain/paths"
 import { UserId } from "@wisepath/domain/auth"
 import { ProjectId } from "@wisepath/domain/projects"
 
@@ -112,4 +112,13 @@ export const leavePath = Effect.fn("useCases.paths.leave")(function*(pathId: str
 export const readPublicPath = Effect.fn("useCases.paths.readPublic")(function*(pathId: string) {
   const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
   return yield* PathSharing.use((sharing) => sharing.readPublic(id))
+})
+
+/** The learner's notices of paths they lost */
+export const listNotices = AccessNotices.use((notices) => notices.list).pipe(Effect.withSpan("useCases.paths.notices"))
+
+/** A notice once shown */
+export const dismissNotice = Effect.fn("useCases.paths.dismissNotice")(function*(noticeId: string) {
+  const id = yield* Schema.decodeUnknownEffect(NoticeId)(noticeId)
+  yield* AccessNotices.use((notices) => notices.dismiss(id))
 })

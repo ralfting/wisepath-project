@@ -6,6 +6,7 @@ import { UserStore } from '../../auth/application/UserStore';
 import { CurrentUser } from './CurrentUser';
 import { MemberStore } from './MemberStore';
 import { PathStore } from './PathStore';
+import { notifyLost } from './notices';
 import { findFor, manages, reads } from './paths';
 
 /**
@@ -56,7 +57,9 @@ export const unsharePath = Effect.fn('paths.unshare')(function* (id: PathId, use
       const path = yield* findFor(id, reads, { lock: true });
       if (path.access !== 'owner' && userId !== user.id) return yield* new PathNotFound({ pathId: id });
       if (path.access === 'owner' && userId === user.id) return;
-      yield* members.remove(id, userId);
+      const wasMember = yield* members.remove(id, userId);
+      // The owner took it from them; someone leaving chose to
+      if (wasMember && userId !== user.id) yield* notifyLost([userId], path, 'removed');
     }),
   );
 });
@@ -72,10 +75,10 @@ export const setVisibility = Effect.fn('paths.setVisibility')(function* (id: Pat
 
   yield* store.transaction(
     Effect.gen(function* () {
-      yield* findFor(id, manages, { lock: true });
+      const path = yield* findFor(id, manages, { lock: true });
       yield* store.setVisibility(id, edit.visibility);
       // A private path is no one's to study but its owner's and the people they invited
-      if (edit.visibility === 'private') yield* members.removeTaken(id);
+      if (edit.visibility === 'private') yield* notifyLost(yield* members.removeTaken(id), path, 'private');
     }),
   );
 });

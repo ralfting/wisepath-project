@@ -59,6 +59,12 @@ export const share = {
     home: 'Ir para o WisePath',
     loading: 'Carregando a trilha',
   },
+  notice: {
+    private: '“{title}” não está mais disponível: {owner} tornou a trilha privada.',
+    removed: '{owner} parou de compartilhar “{title}” com você.',
+    deleted: '{owner} apagou “{title}”.',
+    owner: 'Quem criou a trilha',
+  },
   errors: {
     self: 'Esta trilha é sua.',
     gone: 'Esta trilha não existe mais ou não está mais compartilhada com você.',

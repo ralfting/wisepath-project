@@ -71,6 +71,13 @@
       "when": 1792285676141,
       "tag": "0009_path_invites",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1792288106488,
+      "tag": "0010_access_notices",
+      "breakpoints": true
     }
   ]
 }

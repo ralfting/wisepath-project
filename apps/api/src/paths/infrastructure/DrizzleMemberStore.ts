@@ -1,7 +1,7 @@
 import { Effect, Layer, Schema } from 'effect';
 import { and, asc, eq, notInArray } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
-import type { UserId } from '@wisepath/domain/auth';
+import { UserId } from '@wisepath/domain/auth';
 import { PathInvite, PathShare } from '@wisepath/domain/paths';
 import type { MemberRole, PathId } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
@@ -14,12 +14,21 @@ export const DrizzleMemberStore = Layer.effect(
   Effect.gen(function* () {
     const { db, run, transaction } = yield* Database;
 
-    /** Removes members of a path, then the marks on it of everyone who may no longer study it, in one transaction */
+    /**
+     * Removes members of a path, then the marks on it of everyone who may no longer study it, in one transaction;
+     * the members removed
+     */
     const removeWhere = (pathId: PathId, which: SQL, marksOf: SQL) =>
       transaction(
         Effect.gen(function* () {
-          yield* run(db.delete(pathMembers).where(and(eq(pathMembers.pathId, pathId), which)));
+          const gone = yield* run(
+            db
+              .delete(pathMembers)
+              .where(and(eq(pathMembers.pathId, pathId), which))
+              .returning({ userId: pathMembers.userId }),
+          );
           yield* run(db.delete(pageProgress).where(and(eq(pageProgress.pathId, pathId), marksOf)));
+          return gone.map((m) => UserId.make(m.userId));
         }),
       );
 
@@ -50,7 +59,12 @@ export const DrizzleMemberStore = Layer.effect(
 
     // Their marks go even when they were never a member: a public path can be marked without taking it
     const remove = Effect.fn('MemberStore.remove')(function* (pathId: PathId, userId: UserId) {
-      yield* removeWhere(pathId, eq(pathMembers.userId, userId), eq(pageProgress.userId, userId));
+      return (yield* removeWhere(pathId, eq(pathMembers.userId, userId), eq(pageProgress.userId, userId))).length > 0;
+    });
+
+    const memberIds = Effect.fn('MemberStore.memberIds')(function* (pathId: PathId) {
+      const rows = yield* run(db.select({ userId: pathMembers.userId }).from(pathMembers).where(eq(pathMembers.pathId, pathId)));
+      return rows.map((row) => UserId.make(row.userId));
     });
 
     /** Everyone but the owner and the people invited loses the path and their marks on it */
@@ -60,7 +74,7 @@ export const DrizzleMemberStore = Layer.effect(
         .select({ id: pathMembers.userId })
         .from(pathMembers)
         .where(and(eq(pathMembers.pathId, pathId), eq(pathMembers.source, 'invited')));
-      yield* removeWhere(
+      return yield* removeWhere(
         pathId,
         eq(pathMembers.source, 'taken'),
         and(notInArray(pageProgress.userId, owner), notInArray(pageProgress.userId, invited))!,
@@ -109,6 +123,6 @@ export const DrizzleMemberStore = Layer.effect(
       );
     });
 
-    return MemberStore.of({ listInvited, invite, take, remove, listInvites, keepInvite, cancelInvite, claimInvites, removeTaken });
+    return MemberStore.of({ listInvited, invite, take, remove, memberIds, listInvites, keepInvite, cancelInvite, claimInvites, removeTaken });
   }),
 );

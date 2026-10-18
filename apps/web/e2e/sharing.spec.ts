@@ -161,3 +161,23 @@ test('a path shared with an email that has no account waits, and is theirs once 
   await expect(shareDialog(ada.page).getByText('Gil', { exact: true })).toBeVisible();
   await expect(shareDialog(ada.page).getByText('Waiting for them to sign up with this email')).toHaveCount(0);
 });
+
+test('whoever took a path is told once, on their next visit, that it went private', async ({ browser }) => {
+  const ada = await someone(browser, 'Ada');
+  const gil = await someone(browser, 'Gil');
+  const map = await learningPath(ada.page);
+  const paths = `${API}/paths/${map.pathId}`;
+  expect((await ada.page.request.patch(`${paths}/visibility`, { data: { visibility: 'public' } })).ok()).toBe(true);
+  expect((await gil.page.request.post(`${paths}/take`)).ok()).toBe(true);
+  expect((await ada.page.request.patch(`${paths}/visibility`, { data: { visibility: 'private' } })).ok()).toBe(true);
+
+  await gil.page.goto('/paths');
+  await expect(gil.page.getByText('“Rust” is no longer available: Ada made it private.')).toBeVisible();
+  await expect(gil.page.getByRole('region', { name: 'From others' })).toHaveCount(0);
+
+  // Shown once: the next visit says nothing
+  await expect.poll(async () => ((await (await gil.page.request.get(`${API}/notices`)).json()) as unknown[]).length).toBe(0);
+  await gil.page.reload();
+  await expect(gil.page.getByRole('heading', { name: 'My paths' })).toBeVisible();
+  await expect(gil.page.getByText('“Rust” is no longer available: Ada made it private.')).toHaveCount(0);
+});
