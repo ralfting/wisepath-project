@@ -42,5 +42,6 @@ reads are still client-only; what is left to move is in [architecture.md](.claud
 | [docs/FEATURES.md](docs/FEATURES.md) | What each feature does and its shortcuts. Update when a feature changes |
 | [docs/plans/](docs/plans/README.md) | Feature plans; [AGENTS.md](docs/plans/AGENTS.md) for parallel agents in Orca worktrees |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Vercel and Neon deploy |
+| [docs/strategy/](docs/strategy/README.md) | The public catalog direction: current state, backlog, stages, decisions taken |
 
 Talk to the user in pt-BR. Write code, comments, commits and these context files in English.

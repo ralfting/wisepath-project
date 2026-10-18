@@ -1,0 +1,19 @@
+# G. Open decisions
+
+Decisions for the product owner. Each lists the options and their consequences; the recommendation is a
+suggestion, not a choice made.
+
+| # | Decision | Options and consequences | Recommendation |
+|---|---|---|---|
+| G1 | How "published" relates to today's public link | **Decided 2026-10-18:** a third state `published`. A path in the catalog is published, and anyone reads it without an account. Today's public paths stay "anyone with the link", unlisted and `noindex`, as promised | Done |
+| G2 | Who can publish to the catalog, and the quality bar | **Decided 2026-10-18:** anyone can ask to publish; the WisePath owner approves each path while the catalog is small. Until approved, the path keeps its current visibility. Moving to an automatic quality bar is decided again once the rules are clear | Done |
+| G3 | First niche and language | **Decided 2026-10-18:** ReactJS frontend, starting with testing by behaviour with React Testing Library and MSW (no implementation details), in pt-BR. A developer niche, against the earlier advice: big English sources and roadmap.sh exist, so the bet is the narrow pt-BR long tail (one question per page) and paths written as notes, not topic lists. It also changes revenue fit later: developer ad networks (EthicalAds, Carbon) and Alura's affiliate program fit this audience | Done |
+| G4 | Domain and hosting | **Decided 2026-10-18:** no monetization yet, so WisePath stays on Vercel Hobby; moving to Pro is decided again with P2 revenue. Still open: a custom domain, needed before submitting a sitemap | Buy the domain before stage 5 |
+| G5 | Email for password reset | **Decided 2026-10-18:** the Nest API sends it over SMTP with `nodemailer`; the relay is configuration only (host, user, password). Gmail with an app password first (free, ~500/day, no domain needed, sends from the owner's @gmail.com); Resend once the domain exists, by changing the variables, not the code. A mail server of our own is ruled out: no reputation, no SPF/DKIM, port 25 usually blocked on serverless hosts | Done |
+| G6 | Licence of published content | **Decided 2026-10-18:** all rights reserved to the author, with WisePath licensed to display it. The licence covers what the author writes, not what they cite: links, embedded videos and short quotes with their source stay under their own terms (Brazilian law allows quoting passages for study with the source named, Lei 9.610/98 art. 46, III; not legal advice). The terms say the author answers for what they publish and credits their sources; copying long passages needs the source's licence to allow it | Done |
+| G7 | Page analytics | Vercel Web Analytics (check Hobby limits), Plausible (paid), Umami Cloud (free tier), or only Search Console plus database counts | Search Console and database counts first; one cookie-less tool on public pages only if needed |
+| G8 | Server markdown renderer | Depend directly on `markdown-it` (already installed through `tiptap-markdown`) or on `remark`/`unified`. A new direct dependency either way | `markdown-it`: same parser the editor saves with |
+| G9 | Where the export zip is built | API (one endpoint, works for "all paths") or browser (no server work, a zip library in the client) | API |
+| G10 | Session length | 24 h today; a sliding 30-day session is the usual for notebooks. A security trade-off on shared computers | Sliding 30 days, with logout everywhere |
+| G11 | A learner's marks when a path they took goes private or is deleted | Today they lose access and marks at once (by design). For published paths learners invest more: options are a notice period, keeping their marks hidden in case it returns, or keeping today's rule | Keep the rule; revisit with data |
+| G12 | Tax setup before any revenue | Individual with carnê-leão, or MEI if the activity fits. Not legal advice | One consultation with an accountant before P2 |
