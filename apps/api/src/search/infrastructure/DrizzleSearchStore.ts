@@ -1,10 +1,10 @@
 import { Effect, Layer } from 'effect';
-import { and, desc, eq, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { UserId } from '@wisepath/domain/auth';
 import { PageId, PathId } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pages, paths, projects } from '../../shared/infrastructure/database/schema';
+import { pages, pathMembers, paths, projects } from '../../shared/infrastructure/database/schema';
 import { SearchStore } from '../application/SearchStore';
 
 /**
@@ -27,7 +27,7 @@ export const DrizzleSearchStore = Layer.effect(
   Effect.gen(function* () {
     const { db, run } = yield* Database;
 
-    const findPages = Effect.fn('SearchStore.findPages')(function* (ownerId: UserId, words: ReadonlyArray<string>, limit: number) {
+    const findPages = Effect.fn('SearchStore.findPages')(function* (learnerId: UserId, words: ReadonlyArray<string>, limit: number) {
       const titleHasAll = allIn(pages.title, words);
       const eachWord = words.map((word) => or(sql`${folded(pages.title)} like ${anywhere(word)}`, sql`${folded(pages.content)} like ${anywhere(word)}`));
 
@@ -44,7 +44,16 @@ export const DrizzleSearchStore = Layer.effect(
           .from(pages)
           .innerJoin(paths, eq(paths.id, pages.pathId))
           .innerJoin(projects, eq(projects.id, paths.projectId))
-          .where(and(eq(projects.ownerId, ownerId), ...eachWord))
+          // Their own paths and those they are a member of: the same paths their list shows
+          .where(
+            and(
+              or(
+                eq(projects.ownerId, learnerId),
+                inArray(paths.id, db.select({ id: pathMembers.pathId }).from(pathMembers).where(eq(pathMembers.userId, learnerId))),
+              ),
+              ...eachWord,
+            ),
+          )
           .orderBy(desc(titleHasAll), desc(pages.updatedAt))
           .limit(limit),
       );

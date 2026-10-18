@@ -18,7 +18,6 @@ const { signedIn: signUp, baseUrl } = useApp();
 /** A new account, signed in */
 const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
-
 const prid = () => ProjectId.make(randomUUID());
 
 describe('projects API', () => {

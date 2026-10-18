@@ -13,8 +13,6 @@ const { makeClient, signedIn: signUp, baseUrl } = useApp();
 /** A new account, signed in */
 const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
-
-
 describe('paths API', () => {
   it.effect('needs a session', () =>
     Effect.gen(function* () {

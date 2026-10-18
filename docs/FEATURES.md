@@ -126,7 +126,7 @@ Write it down now, sort it later: capturing never asks where something goes.
 
 ## Known limits
 
-- Sharing needs an account: an email with none can't be added yet. Search everywhere and review cover your own paths only, not those from others.
+- Sharing needs an account: an email with none can't be added yet. Review covers your own paths only; search everywhere covers those from others too (shared with you or taken), not public paths you only opened.
 
 - No capturing from other sites yet: a browser extension is planned for later ([plan 8](plans/08-browser-extension.md)).
 - Search everywhere looks at titles and text only: not inside videos, and without filters (by path, by kind) or operators.

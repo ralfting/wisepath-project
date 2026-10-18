@@ -14,8 +14,6 @@ const { makeClient, signedIn: signUp, baseUrl } = useApp();
 /** A new account, signed in */
 const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
-
-
 /** The session cookie of a new account, for requests made without the generated client */
 const signupCookie = Effect.promise(async () => {
   const response = await fetch(`${baseUrl()}/auth/signup`, {
@@ -123,6 +121,29 @@ describe('search API', () => {
       const stranger = yield* signedIn;
       assert.deepStrictEqual(yield* stranger.search.search({ query: { q: word } }), []);
       assert.strictEqual((yield* owner.search.search({ query: { q: word } })).length, 1);
+    }),
+  );
+
+  it.effect('finds the pages of paths shared with you or taken, never those of a public path you only read', () =>
+    Effect.gen(function* () {
+      const { client: owner } = yield* signUp('Ada');
+      const { client: member, email } = yield* signUp('Bob');
+      const { client: taker } = yield* signUp('Cy');
+      const { client: reader } = yield* signUp('Dee');
+      const word = `shared${randomUUID().slice(0, 8)}`;
+      const { pathId } = yield* makeMap(owner, 'Rust', [{ title: 'Borrowing', content: `The ${word} rule.` }], 'See [[Borrowing]]');
+      yield* owner.paths.share({ params: { pathId }, payload: { email, role: 'viewer' } });
+      yield* owner.paths.setVisibility({ params: { pathId }, payload: { visibility: 'public' } });
+      yield* taker.paths.take({ params: { pathId } });
+
+      const found = (client: Client) => client.search.search({ query: { q: word } }).pipe(Effect.map((hits) => hits.map((h) => [h.title, h.pathTitle])));
+      assert.deepStrictEqual(
+        [yield* found(member), yield* found(taker), yield* found(reader)],
+        [[['Borrowing', 'Rust']], [['Borrowing', 'Rust']], []],
+      );
+      // Once it is private, the taker's search loses it with the path
+      yield* owner.paths.setVisibility({ params: { pathId }, payload: { visibility: 'private' } });
+      assert.deepStrictEqual(yield* found(taker), []);
     }),
   );
 

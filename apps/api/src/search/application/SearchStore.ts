@@ -14,14 +14,14 @@ export interface PageMatch {
   readonly updatedAt: string;
 }
 
-/** Looks through the owner's pages; storage failures are defects, as in PathStore */
+/** Looks through the pages a learner has; storage failures are defects, as in PathStore */
 export class SearchStore extends Context.Service<
   SearchStore,
   {
     /**
-     * The owner's pages whose title or text contains each word (folded: lower
-     * case, no accents), at most `limit`, those whose title has every word first
+     * The pages of the learner's paths, their own and those shared with them or taken, whose title or text
+     * contains each word (folded: lower case, no accents), at most `limit`, those whose title has every word first
      */
-    readonly findPages: (ownerId: UserId, words: ReadonlyArray<string>, limit: number) => Effect.Effect<ReadonlyArray<PageMatch>>;
+    readonly findPages: (learnerId: UserId, words: ReadonlyArray<string>, limit: number) => Effect.Effect<ReadonlyArray<PageMatch>>;
   }
 >()('@wisepath/api/search/application/SearchStore') {}

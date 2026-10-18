@@ -123,6 +123,6 @@ User 1──< PageProgress >── Page                          (studied marks,
 
 - Sharing by email answers `ShareTargetNotFound` for an email with no account, so it tells whether one is registered.
   Accepted: signup already does (`EmailAlreadyRegistered`).
-- Search over paths from others.
+- ~~Search over paths from others.~~ Done 2026-10-17: search covers the paths a learner has, their own and those they are a member of.
 - Inviting an email with no account yet (today: it must exist).
 - Telling a taker that the path went private or was deleted (today it just leaves their list).
