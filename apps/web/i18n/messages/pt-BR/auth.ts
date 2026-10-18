@@ -37,8 +37,8 @@ export const auth = {
   },
   deleteAccount: {
     title: 'Excluir sua conta?',
-    body: 'Todos os caminhos que você criou são excluídos, com as páginas, junto com seus projetos, sua Caixa de entrada e seu progresso nos caminhos de outras pessoas. Quem estuda os seus caminhos deixa de ter acesso. Não dá para desfazer.',
-    downloadFirst: 'Baixar meus caminhos antes',
+    body: 'Todas as trilhas que você criou são excluídas, com as páginas, junto com seus projetos, sua Caixa de entrada e seu progresso nas trilhas de outras pessoas. Quem estuda as suas trilhas deixa de ter acesso. Não dá para desfazer.',
+    downloadFirst: 'Baixar minhas trilhas antes',
     confirmHint: 'Digite sua senha para confirmar.',
     keep: 'Manter minha conta',
     confirm: 'Excluir conta',
