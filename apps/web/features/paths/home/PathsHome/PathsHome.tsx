@@ -8,6 +8,7 @@ import { useT } from '@/i18n/I18nProvider';
 import { FirstVisit } from './FirstVisit';
 import { NewMapModal } from './NewMapModal/NewMapModal';
 import { OthersGroup } from './OthersGroup';
+import { PathsHomeSkeleton } from './PathsHomeSkeleton';
 import { ProjectGroup } from './ProjectGroup/ProjectGroup';
 import { usePathsHome } from './usePathsHome';
 
@@ -60,7 +61,9 @@ export function PathsHome() {
           </Group>
         </Group>
 
-        {!state.loaded ? null : state.firstVisit ? (
+        {!state.loaded ? (
+          <PathsHomeSkeleton />
+        ) : state.firstVisit ? (
           <FirstVisit onNewPath={() => state.fallback && operations.newPathIn(state.fallback.id)} />
         ) : state.searching && state.groups.length === 0 && state.others.length === 0 ? (
           <Text c="dimmed">{t('home.noMatch', { query: state.query.trim() })}</Text>

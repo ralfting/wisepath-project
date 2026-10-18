@@ -45,6 +45,8 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 
 The map is a reading of the links, never stored on its own.
 
+- **Opening a path** that takes more than half a second shows a small reader turning the pages of a book ("Opening the path…"); a quicker one shows nothing, and with reduced motion the reader stays still.
+
 - **Layout.** A horizontal mind map: the centre page in the middle, its branches split left and right, each level a column further out. The first link that reaches a page makes it a branch of the linking page; any other link is drawn as a faint arrow, which brightens for the open page or the one under the pointer. Pages no link reaches are **unlinked pages** (orphans, in the code), listed apart.
 - **Pages named but not made.** A `[[link]]` to a page that doesn't exist yet shows at once as a ghost page, dashed and faint, after the real pages branching from the same page, on the map and in the list. Opening it (click or Enter) makes the page and opens it. Someone who may only read the path sees none.
 - **Modules.** Any page can be shown as a module: drawn larger, with a colour and an icon (set on the page's icon). Pages below a module take its colour.

@@ -7,11 +7,12 @@ import type { Path } from '@wisepath/domain/paths';
 import { usePath } from '@/useCases/paths';
 import type { PathActions, SaveState } from '@/useCases/paths';
 import { useT } from '@/i18n/I18nProvider';
+import { ReadingLoader } from '@/ui/ReadingLoader/ReadingLoader';
 
 /**
  * PathGate
  * Loads a path and renders its children only once it is ready:
- * nothing while loading, the not-found page for an unknown id (or someone
+ * a small reader while loading (past half a second), the not-found page for an unknown id (or someone
  * else's map), a short message when the API can't be reached.
  */
 export function PathGate({
@@ -24,7 +25,7 @@ export function PathGate({
   const { state, save, actions } = usePath(pathId);
   const t = useT();
 
-  if (state.status === 'loading') return null;
+  if (state.status === 'loading') return <ReadingLoader label={t('home.gate.loading')} />;
   if (state.status === 'notFound') notFound();
   if (state.status === 'unavailable') {
     return (

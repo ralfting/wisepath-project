@@ -13,6 +13,8 @@ export const home = {
   newProject: 'New project',
   empty: 'No paths yet. Start one with New path.',
   noMatch: 'No paths match “{query}”.',
+  /** Read by screen readers while the paths load */
+  loading: 'Loading your paths',
   /** What a learner with no path sees, once */
   first: {
     title: 'Start here',
@@ -114,6 +116,7 @@ export const home = {
     },
   },
   gate: {
+    loading: 'Opening the path…',
     title: "Can't open this path",
     body: "WisePath can't be reached right now. Reload the page to try again.",
   },

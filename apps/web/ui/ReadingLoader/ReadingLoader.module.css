@@ -1,0 +1,110 @@
+/* The reader's size on the page; the drawing scales with it */
+.reader {
+  width: 160px;
+  height: 160px;
+}
+
+.body {
+  animation: breathe 3.2s ease-in-out infinite;
+  transform-origin: 100px 190px;
+}
+
+/* The eyes close for a moment now and then */
+.eyes {
+  animation: blink 4.6s infinite;
+  transform-origin: 100px 95px;
+}
+
+/* The eyes follow a line across the page, then go back for the next */
+.pupils {
+  animation: read 2.4s ease-in-out infinite;
+}
+
+.strand {
+  animation: sway 3.2s ease-in-out infinite;
+  transform-origin: 102px 46px;
+}
+
+/* A page turns from right to left, in step with the eyes reaching the end of a line */
+.flip {
+  animation: flip 2.4s ease-in-out infinite;
+  transform-origin: 100px 150px;
+}
+
+.flipShade {
+  animation: shade 2.4s ease-in-out infinite;
+  transform-origin: 100px 150px;
+  opacity: 0;
+}
+
+@keyframes breathe {
+  50% {
+    transform: translateY(1.5px) scaleY(0.99);
+  }
+}
+
+@keyframes blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes read {
+  0% {
+    transform: translateX(-2px);
+  }
+  70% {
+    transform: translateX(2.5px);
+  }
+  85%,
+  100% {
+    transform: translateX(-2px);
+  }
+}
+
+@keyframes sway {
+  50% {
+    transform: rotate(-8deg);
+  }
+}
+
+@keyframes flip {
+  0%,
+  60% {
+    transform: scaleX(1);
+  }
+  85%,
+  100% {
+    transform: scaleX(-1);
+  }
+}
+
+@keyframes shade {
+  0%,
+  60% {
+    opacity: 0;
+  }
+  72% {
+    opacity: 0.25;
+  }
+  85%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .body,
+  .eyes,
+  .pupils,
+  .strand,
+  .flip,
+  .flipShade {
+    animation: none;
+  }
+}

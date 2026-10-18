@@ -15,6 +15,7 @@ export const home = {
   newProject: 'Novo projeto',
   empty: 'Nenhuma trilha ainda. Comece uma em Nova trilha.',
   noMatch: 'Nenhuma trilha corresponde a “{query}”.',
+  loading: 'Carregando suas trilhas',
   first: {
     title: 'Comece por aqui',
     make: 'Crie uma trilha para algo que você está aprendendo: a página principal dá o nome a ela.',
@@ -115,6 +116,7 @@ export const home = {
     },
   },
   gate: {
+    loading: 'Abrindo a trilha…',
     title: 'Não foi possível abrir esta trilha',
     body: 'Não foi possível falar com o WisePath agora. Recarregue a página para tentar de novo.',
   },
