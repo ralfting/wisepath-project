@@ -36,7 +36,8 @@ interface MindMapProps {
   focusRequest: FocusRequest | null;
   /** Width covered on the right (by the page drawer); focusing centres pages in what is left */
   coveredRight?: number;
-  onSelect: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, as a full page */
+  onSelect: (pageId: string, alternate?: boolean) => void;
   /** The pointer or focus rests on a page: a good moment to load it ahead of the click */
   onIntent?: (pageId: string) => void;
   /** Shown in the map's top-left corner (the search) */

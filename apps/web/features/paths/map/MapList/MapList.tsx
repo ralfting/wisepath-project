@@ -31,7 +31,8 @@ interface MapListProps {
   /** A learning path shows what was studied; a study doesn't */
   progress: boolean;
   matchIds: ReadonlySet<string> | null;
-  onSelect: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, as a full page */
+  onSelect: (pageId: string, alternate?: boolean) => void;
   /** The + on a row, and N: start adding a page branching from it */
   onAddBranch?: (pageId: string) => void;
   /** The page a branch is being added to, and the name field shown under its row */
@@ -51,7 +52,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
       <UnstyledButton
         className={classes.row}
         data-ghost
-        onClick={() => onSelect(node.page.id)}
+        onClick={(event) => onSelect(node.page.id, event.metaKey || event.ctrlKey)}
         aria-label={t('map.ghost.label', { title: node.page.title })}
         style={{ '--depth': node.depth - 1 } as CSSProperties}
       >
@@ -75,7 +76,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
           className={classes.row}
           data-module={node.page.module || undefined}
           data-selected={selectedId === node.page.id || undefined}
-          onClick={() => onSelect(node.page.id)}
+          onClick={(event) => onSelect(node.page.id, event.metaKey || event.ctrlKey)}
           onKeyDown={(event) => {
             if (!onAddBranch || event.key.toLowerCase() !== 'n' || event.metaKey || event.ctrlKey || event.altKey) return;
             event.preventDefault();
@@ -169,7 +170,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
                   <UnstyledButton
                     className={classes.row}
                     data-selected={selectedId === p.id || undefined}
-                    onClick={() => onSelect(p.id)}
+                    onClick={(event) => onSelect(p.id, event.metaKey || event.ctrlKey)}
                     style={{ '--depth': 0 } as CSSProperties}
                   >
                     {progress ? <StatusIcon status={p.studied ? 'done' : 'todo'} /> : <PageIcon />}

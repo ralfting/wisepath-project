@@ -25,7 +25,8 @@ export interface PageSheetProps {
   /** Whether the latest edits reached WisePath */
   save: SaveState;
   isFresh?: boolean;
-  onOpenPage: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, in the other way */
+  onOpenPage: (pageId: string, alternate?: boolean) => void;
   /** The graph button: a link to the map, or (in the expanded drawer) going back to it */
   showOnMap: { href: string } | { onClick: () => void };
   /** After deleting, with the page it branched from */

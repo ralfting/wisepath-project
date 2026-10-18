@@ -22,7 +22,8 @@ export interface MarkdownEditorProps {
   onChange: (markdown: string) => void;
   pages: ReadonlyArray<PreviewPage>;
   currentPageId: string;
-  onOpenPage: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, in the screen's other way (the full page, or the drawer) */
+  onOpenPage: (pageId: string, alternate?: boolean) => void;
   /** Called when a link to an existing page is inserted */
   onLinkPage: (pageId: string) => void;
   /** Creates a page with this title, linked from the current one, and opens it */

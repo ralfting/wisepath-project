@@ -25,7 +25,8 @@ interface RootNodeProps {
   mark: Record<string, true | undefined>;
   /** Its place in the map as a tree, for the keyboard and screen readers */
   item: Record<string, unknown>;
-  onSelect: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, as a full page */
+  onSelect: (pageId: string, alternate?: boolean) => void;
   onIntent?: (pageId: string) => void;
 }
 
@@ -45,7 +46,7 @@ export function RootNode({ shape, page, color, icon, studied, total, progress, s
       data-dimmed={dimmed || undefined}
       {...mark}
       {...item}
-      onClick={() => onSelect(page.id)}
+      onClick={(event) => onSelect(page.id, event.metaKey || event.ctrlKey)}
       onPointerEnter={() => onIntent?.(page.id)}
       onFocus={() => onIntent?.(page.id)}
       // Its name is what it shows (the title and the count), so speech input can call it by what is on screen

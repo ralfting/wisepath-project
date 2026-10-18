@@ -17,7 +17,7 @@ export type PanelTab = 'content' | 'related';
  * related to it, the open tab, its delete dialog, and Enter in the title moving to the text. Opening it puts the
  * page among the recent ones the search palette offers.
  */
-export function usePagePanel({ path, page, store, onSelect }: { path: Path; page: Page; store: PathActions; onSelect: (pageId: string) => void }) {
+export function usePagePanel({ path, page, store, onSelect }: { path: Path; page: Page; store: PathActions; onSelect: (pageId: string, alternate?: boolean) => void }) {
   const t = useT();
   const [tab, setTab] = useState<PanelTab>('content');
   // Offered again by the search palette (⌘P), across paths

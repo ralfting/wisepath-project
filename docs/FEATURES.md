@@ -59,7 +59,8 @@ The map is a reading of the links, never stored on its own.
 ## Pages
 
 - **Drawer.** A page opens in a drawer beside the map; its URL is the page's own, so Back closes it and a reload opens the full page. Another page (from the map, search or Related) replaces it at once. Expand grows it into the full page in place. Esc closes it (a menu or popup open in it closes first); the focus goes back to the page on the map.
-- **Opened from the keyboard,** the focus is on the title (so the page is announced and keys don't land in its text); opened with a click, the cursor waits at the end of the text, ready to write. Tab past the drawer's end goes back to the map.
+- **Opened from the map,** by a click or the keyboard, the focus is on the title, so the page is read from its top and announced; Tab moves on to the text. A page just made opens with the cursor in its text, and one reached from another page in the drawer puts the cursor back where it was. Tab past the drawer's end goes back to the map.
+- **Where a page opens.** From the map or the drawer, another page opens in the drawer; from a full page, as a full page, in place (Back returns). **⌘-click** (Ctrl-click) on a page on the map or a `[[link]]` opens it the other way: as a full page from the map or the drawer, in the drawer over the map from a full page.
 - **Related tab:** where the page branches from, its branches, the pages it links to and those linking to it. Pointing at one rings it on the map and singles out its link.
 - **Title.** Edited in place; links to the page follow the new name when editing ends, and the page never shows as unlinked meanwhile. A title another page has is refused (links would be ambiguous). Enter moves on to the text.
 - **Outline.** With two headings or more, a rail of dashes on the right edge; hovering it lists the headings ("On this page"), and it works from the keyboard.
@@ -115,6 +116,7 @@ Write it down now, sort it later: capturing never asks where something goes.
 | Map | ⌘K / Ctrl K | Search the path's pages |
 | Map | Tab, then ← → ↑ ↓, Home | Move through the map's pages |
 | Map | Enter / Space | Open the page |
+| Map, text | ⌘-click / Ctrl-click a page or a `[[link]]` | Open it the other way: as a full page, or in the drawer from a full page |
 | Map, list | N | Add a page branching from the focused one |
 | Drawer | Esc | Close a popup, shrink the expanded drawer, or close it |
 | Text | `[[` | Pick or create a page to link |

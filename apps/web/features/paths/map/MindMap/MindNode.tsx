@@ -1,6 +1,6 @@
 'use client';
 
-import type { HTMLAttributes } from 'react';
+import type { HTMLAttributes, MouseEvent } from 'react';
 import { ThemeIcon, UnstyledButton } from '@mantine/core';
 import { IconCircleCheckFilled } from '@tabler/icons-react';
 import type { PageColor, PageIcon as PageIconName } from '@wisepath/domain/paths';
@@ -46,7 +46,8 @@ export function MindNode({
   dimmed: boolean;
   mark: Record<string, boolean | undefined>;
   item: HTMLAttributes<HTMLElement> & Record<string, unknown>;
-  onSelect: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, as a full page */
+  onSelect: (pageId: string, alternate?: boolean) => void;
   onPoint: (pageId: string) => void;
   onLeave: () => void;
   onIntent?: (pageId: string) => void;
@@ -62,7 +63,7 @@ export function MindNode({
     'data-dimmed': dimmed || undefined,
     ...mark,
     ...item,
-    onClick: () => onSelect(id),
+    onClick: (event: MouseEvent<HTMLElement>) => onSelect(id, event.metaKey || event.ctrlKey),
     onPointerEnter: () => onPoint(id),
     onPointerLeave: onLeave,
     onFocus: () => onIntent?.(id),

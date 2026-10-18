@@ -70,7 +70,12 @@ export function useMapView({ path, actions }: { path: Path; actions: PathActions
     operations: {
       setView,
       // A ghost page is made as it is opened: its [[link]] is already written, so it joins the map in its place
-      select: (pageId: string) => (isGhost(pageId) ? select(actions.createPage(ghostTitle(pageId)).id, true) : select(pageId)),
+      select: (pageId: string, alternate = false) => {
+        if (isGhost(pageId)) return select(actions.createPage(ghostTitle(pageId)).id, true);
+        // With Cmd/Ctrl, as a full page: loaded whole, since moving there within the app would open the drawer
+        if (alternate) return window.location.assign(pageHref(path.id, pageId));
+        select(pageId);
+      },
       continueStudying: () => next && select(next.id),
       prefetch: (pageId: string) => router.prefetch(pageHref(path.id, pageId)),
     },

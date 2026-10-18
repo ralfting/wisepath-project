@@ -27,6 +27,15 @@ export function swapOpenPage(href: string): void {
   window.history.replaceState(null, '', href);
 }
 
+/**
+ * Shows another full page in place: a navigation within the app would be caught by the drawer's route and open the
+ * page over the map instead. A new history entry, so Back returns to the page before
+ */
+export function showFullPage(href: string): void {
+  window.history.pushState(null, '', href);
+  window.scrollTo(0, 0);
+}
+
 export function openPageId(pathname: string, pathId: string): string | null {
   const prefix = `${pageHref(pathId, '')}`;
   return pathname.startsWith(prefix) ? decodeURIComponent(pathname.slice(prefix.length).split('/')[0]) || null : null;

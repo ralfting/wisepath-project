@@ -20,7 +20,8 @@ export function useLinkCard({
 }: {
   wrapper: RefObject<HTMLDivElement | null>;
   pages: () => ReadonlyArray<PreviewPage>;
-  onOpenPage: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, in the screen's other way (the full page, or the drawer) */
+  onOpenPage: (pageId: string, alternate?: boolean) => void;
   onCreatePage: (title: string) => void;
   /** Whether a link to a missing page may offer to make it (not for a reader) */
   canCreate: () => boolean;
@@ -37,11 +38,11 @@ export function useLinkCard({
   };
 
   /** Follows a [[link]]: to its page, or (none has the name yet) to the card that offers to make it */
-  const openWikiLink = (title: string, el: Element) => {
+  const openWikiLink = (title: string, el: Element, alternate = false) => {
     const page = findPageByTitle(pages(), title);
     if (page) {
       setCard(null);
-      onOpenPage(page.id);
+      onOpenPage(page.id, alternate);
       return;
     }
     if (!canCreate()) return;

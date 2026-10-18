@@ -7,7 +7,7 @@ import type { Path } from '@wisepath/domain/paths';
 import type { PathActions, SaveState } from '@/useCases/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { AppFrame } from '@/features/shell';
-import { mapHref, mapWithPageHref, pageHref as pageHrefOf } from '@/shared/routes';
+import { mapHref, mapWithPageHref, pageHref as pageHrefOf, showFullPage } from '@/shared/routes';
 import { pageCrumbs } from './PageEditor.helpers';
 import { PageSheet } from './PageSheet';
 import { RememberOpened } from './RememberOpened';
@@ -47,7 +47,8 @@ export function EditorView({ path, store, save, pageId }: { path: Path; store: P
         store={store}
         save={save}
         isFresh={isFresh}
-        onOpenPage={(id) => router.push(pageHref(id))}
+        // Another page opens as a full page too; with Cmd/Ctrl, on the map in its drawer
+        onOpenPage={(id, alternate) => (alternate ? router.push(mapWithPageHref(path.id, id)) : showFullPage(pageHref(id)))}
         showOnMap={{ href: mapWithPageHref(path.id, page.id) }}
         onDeleted={(back) => router.push(mapWithPageHref(path.id, back))}
       />

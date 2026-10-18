@@ -44,7 +44,7 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
   const card = useLinkCard({
     wrapper,
     pages: () => latest.current.props.pages,
-    onOpenPage: (pageId) => latest.current.props.onOpenPage(pageId),
+    onOpenPage: (pageId, alternate) => latest.current.props.onOpenPage(pageId, alternate),
     onCreatePage: (title) => latest.current.props.onCreatePage(title),
     canCreate: () => !latest.current.props.readOnly,
   });
@@ -80,10 +80,10 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
       handleDOMEvents: {
         click: (_view, event) => {
           const target = event.target as HTMLElement;
-          // [[Page]] links open on click (or offer to create the page)
+          // [[Page]] links open on click (or offer to create the page); with Cmd/Ctrl, in the other way
           const wiki = target.closest('span[data-wikilink]');
           if (wiki) {
-            card.openWikiLink(wiki.getAttribute('data-wikilink') ?? '', wiki);
+            card.openWikiLink(wiki.getAttribute('data-wikilink') ?? '', wiki, event.metaKey || event.ctrlKey);
             event.preventDefault();
             return true;
           }

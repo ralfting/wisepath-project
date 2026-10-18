@@ -108,7 +108,19 @@ test('a [[link]] and the / command make pages from the text, and the map grows w
   if (!(await fibers.evaluate((el) => el === document.activeElement))) await page.keyboard.press('ArrowLeft');
   await expect(fibers).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('dialog', { name: 'Page beside the map' }).getByRole('textbox', { name: 'Page title' })).toHaveValue('Fibers');
+  const opened = page.getByRole('dialog', { name: 'Page beside the map' }).getByRole('textbox', { name: 'Page title' });
+  await expect(opened).toHaveValue('Fibers');
+  // Opened from the map, the page is read from its title
+  await expect(opened).toBeFocused();
+
+  // As a full page, a [[link]] opens the next page as a full page too, in place, and Back returns
+  const { rootPageId } = (await (await page.request.get(`${API}/paths/${pathId}`)).json()) as { rootPageId: string };
+  await page.goto(`/paths/${pathId}/pages/${rootPageId}`);
+  await page.locator('span[data-wikilink]', { hasText: 'Fibers' }).click();
+  await expect(page.getByRole('textbox', { name: 'Page title' })).toHaveValue('Fibers');
+  await expect(page.getByRole('dialog', { name: 'Page beside the map' })).toHaveCount(0);
+  await page.goBack();
+  await expect(page.getByRole('textbox', { name: 'Page title' })).toHaveValue('Learn Effect');
 });
 
 test('a thought captured from the Inbox is filed into a page from the keyboard', async ({ page }) => {

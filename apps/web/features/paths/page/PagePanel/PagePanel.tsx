@@ -29,7 +29,8 @@ interface PagePanelProps {
   path: Path;
   page: Page;
   store: PathActions;
-  onSelect: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, as a full page */
+  onSelect: (pageId: string, alternate?: boolean) => void;
   /** Grows the drawer into the full page, in place */
   onExpand?: () => void;
   onClose?: () => void;

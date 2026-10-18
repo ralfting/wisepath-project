@@ -74,7 +74,7 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
               matchIds={search.state.matchIds}
               searchActiveId={search.state.activeId}
               focusRequest={state.focusRequest}
-              onSelect={(pageId) => operations.select(pageId)}
+              onSelect={(pageId, alternate) => operations.select(pageId, alternate)}
               onIntent={operations.prefetch}
               topLeft={canvasTools}
               onAddBranch={editable ? branch.operations.start : undefined}
@@ -88,7 +88,7 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
               currentId={currentId}
               progress={state.progress}
               matchIds={search.state.matchIds}
-              onSelect={(pageId) => operations.select(pageId)}
+              onSelect={(pageId, alternate) => operations.select(pageId, alternate)}
               onAddBranch={editable ? branch.operations.start : undefined}
               branch={branchSlot}
             />

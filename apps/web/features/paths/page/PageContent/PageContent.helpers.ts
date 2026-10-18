@@ -8,7 +8,8 @@ export interface PageActions {
   beginRename: (pageId: string) => void;
   /** Rewrites [[Old]] links across the path after a rename, ending it */
   renameLinks: (oldTitle: string, newTitle: string) => void;
-  openPage: (pageId: string) => void;
+  /** `alternate`: opened with Cmd/Ctrl, in the screen's other way (the full page, or the drawer) */
+  openPage: (pageId: string, alternate?: boolean) => void;
   /** Creates the page a [[link]] already points to, and opens it */
   createLinkedPage: (title: string) => void;
   /** Creates the page a [[link]] already points to, and stays here */
@@ -16,7 +17,7 @@ export interface PageActions {
 }
 
 /** What the page's title and text can do, over the path's store; `open` is how this screen opens another page */
-export const pageActionsFor = (store: PathActions, open: (pageId: string) => void): PageActions => ({
+export const pageActionsFor = (store: PathActions, open: (pageId: string, alternate?: boolean) => void): PageActions => ({
   updatePage: store.updatePage,
   beginRename: store.beginRename,
   renameLinks: store.renameLinks,
