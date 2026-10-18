@@ -16,6 +16,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 12 | [Projects group paths](12-projects-group-paths.md) | Every path belongs to a project (General by default); My paths shows one group per project |
 | 13 | [Help: what can I do here](13-help-panel.md) | Help in the sidebar opens tips for the current screen, with short clips (Add a page, Video notes) in en and pt-BR |
 | 14 | [Public and shared paths](14-public-and-shared-paths.md) | A path can be public by its link or shared to read or edit; anyone can take one to study with their own progress, never copy it |
+| 15 | [Reads on the server, mutations as actions](15-server-reads-and-actions.md) | A missing map answers 404 and path mutations become Server Actions now; shared lists wait for Effect #8398 |
 
 AI (10) comes last, once these exist to build on.
 
