@@ -21,10 +21,12 @@ import { JwtAuthGuard } from '../../auth/infrastructure/jwt.guard';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import { CurrentUser } from '../application/CurrentUser';
+import * as downloads from '../application/downloads';
 import * as paths from '../application/paths';
 import * as sample from '../application/sample';
 import * as sharing from '../application/sharing';
 import { requestLocale } from '../../projects/infrastructure/requestLocale';
+import { markdownZip } from './markdownZip';
 
 /**
  * PathsController
@@ -58,6 +60,18 @@ export class PathsController {
   @Post('sample')
   takeSample(@Req() req: Request) {
     return this.effect.respond(sample.takeSample(requestLocale(req)).pipe(asUser(req)), Path);
+  }
+
+  // Before ':pathId', so "export" is never read as a path id
+  @Get('export')
+  async exportAll(@Req() req: Request) {
+    return markdownZip(await this.effect.run(downloads.exportAll().pipe(asUser(req))), 'WisePath');
+  }
+
+  @Get(':pathId/export')
+  async export(@Req() req: Request, @Param('pathId', pathId) id: PathId) {
+    const { name, files } = await this.effect.run(downloads.exportPath(id).pipe(asUser(req)));
+    return markdownZip(files, name);
   }
 
   @Get(':pathId')

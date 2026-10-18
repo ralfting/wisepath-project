@@ -44,10 +44,18 @@ const path = { pathId: PathId }
 const page = { pathId: PathId, pageId: PageId }
 const member = { pathId: PathId, userId: UserId }
 
+/** A download of Markdown files, zipped */
+const MarkdownZip = Schema.Uint8Array.pipe(HttpApiSchema.asUint8Array({ contentType: "application/zip" }))
+
 export class PathsApiGroup extends HttpApiGroup.make("paths")
   .add(
     HttpApiEndpoint.get("list", "/", {
       success: Schema.Array(PathSummary),
+      error: [SessionRequired]
+    }),
+    /** The paths the learner owns as Markdown, one folder each, in a zip; others' paths are never copied out */
+    HttpApiEndpoint.get("exportAll", "/export", {
+      success: MarkdownZip,
       error: [SessionRequired]
     }),
     HttpApiEndpoint.post("create", "/", {
@@ -63,6 +71,12 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
     HttpApiEndpoint.get("get", "/:pathId", {
       params: path,
       success: Path,
+      error: [SessionRequired, PathNotFound]
+    }),
+    /** One path the learner owns as Markdown, one file per page, in a zip */
+    HttpApiEndpoint.get("export", "/:pathId/export", {
+      params: path,
+      success: MarkdownZip,
       error: [SessionRequired, PathNotFound]
     }),
     HttpApiEndpoint.patch("update", "/:pathId", {

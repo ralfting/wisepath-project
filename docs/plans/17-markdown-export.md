@@ -24,7 +24,7 @@ cheap: a zip with one `.md` file per page, which opens in Obsidian or any editor
   Unit tested.
 - **Contract** (`PathsApi`): `GET /paths/export` (`exportAll`) and `GET /paths/:pathId/export` (`export`), success a
   `Uint8Array` as `application/zip`; `export` answers `PathNotFound` without the owner's access.
-- **API**: use cases in `apps/api/src/paths/application/exports.ts` (`manages` for one path; the owned paths of
+- **API**: use cases in `apps/api/src/paths/application/downloads.ts` (`manages` for one path; the owned paths of
   `listFor` for all); the controller zips the files with `fflate` (a direct dependency of the API: small, no
   dependencies, MIT) and sends them as an attachment.
 - **Web**: the two links are plain downloads to the API (`useCases/paths/exports.ts` builds their addresses), so the
