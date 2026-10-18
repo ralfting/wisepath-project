@@ -25,7 +25,7 @@ describe("path use cases behind the Server Actions", () => {
   it.effect("decodes what they are sent and passes on only valid commands", () =>
     Effect.gen(function*() {
       const { sent, layer } = yield* recording
-      const run = <A, E>(effect: Effect.Effect<A, E, PathRepository>) => effect.pipe(Effect.provide(layer), Effect.flip, Effect.map((e) => e._tag), Effect.orElseSucceed(() => "ok"))
+      const run = <A, E extends { readonly _tag: string }>(effect: Effect.Effect<A, E, PathRepository>) => effect.pipe(Effect.provide(layer), Effect.flip, Effect.map((e) => e._tag), Effect.orElseSucceed(() => "ok"))
 
       const outcomes = [
         yield* run(programs.createPath({ title: "  Rust ", kind: "learningPath", projectId: "general" })),
