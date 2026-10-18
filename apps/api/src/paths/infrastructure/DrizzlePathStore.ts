@@ -19,6 +19,7 @@ type PathRow = typeof paths.$inferSelect & {
   readonly project: { readonly ownerId: string; readonly owner: { readonly name: string | null } };
   /** Only the reader's membership, if they have one */
   readonly members: ReadonlyArray<typeof pathMembers.$inferSelect>;
+  readonly publication: { readonly status: 'pending' | 'declined' } | null;
 };
 
 /** What the reader may do with the map, by the domain's one rule */
@@ -33,15 +34,20 @@ const accessFor = (row: PathRow, reader: UserId | null) =>
   );
 
 /** The map as the domain sees it, as its reader may use it and with their marks: no nulls, ISO dates */
-const toDomain = (row: PathRow, reader: UserId | null) =>
-  Schema.decodeUnknownEffect(Path)({
+const toDomain = (row: PathRow, reader: UserId | null) => {
+  const access = accessFor(row, reader);
+  return Schema.decodeUnknownEffect(Path)({
     id: row.id,
     title: row.title,
     ...(row.description !== null ? { description: row.description } : {}),
     kind: row.kind,
     rootPageId: row.rootPageId,
     visibility: row.visibility,
-    access: accessFor(row, reader),
+    access,
+    ...(row.audience !== null ? { audience: row.audience } : {}),
+    ...(row.language !== null ? { language: row.language } : {}),
+    // Whether its owner asked to publish it, and what came of it, is theirs to know
+    ...(access === 'owner' && row.publication ? { publication: row.publication.status } : {}),
     pages: row.pages.map((page) => ({
       id: page.id,
       title: page.title,
@@ -53,6 +59,7 @@ const toDomain = (row: PathRow, reader: UserId | null) =>
       ...(page.icon !== null ? { icon: page.icon } : {}),
     })),
   }).pipe(Effect.orDie);
+};
 
 /** Keeps titles unique per map in the database too; untitled pages don't count */
 const titleKey = (title: string) => title.trim().toLowerCase() || null;
@@ -91,6 +98,7 @@ const readFor = (reader: UserId | null) => {
     },
     project: { columns: { ownerId: true as const }, with: { owner: { columns: { name: true as const } } } },
     members: { where: theirs(pathMembers.userId) },
+    publication: { columns: { status: true as const } },
   };
 };
 

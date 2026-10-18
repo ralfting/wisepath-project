@@ -73,10 +73,13 @@ export const paths = pgTable(
       .notNull()
       .default('study'),
     rootPageId: text('root_page_id').notNull(),
-    /** 'private' (its owner and members) or 'public' (anyone with the link reads it) */
-    visibility: text({ enum: ['private', 'public'] })
+    /** 'private' (its owner and members), 'public' (anyone with the link reads it) or 'published' (in the catalog) */
+    visibility: text({ enum: ['private', 'public', 'published'] })
       .notNull()
       .default('private'),
+    /** Who the path is for, in one line, and its language: told when asking to publish it */
+    audience: text(),
+    language: text({ enum: ['en', 'pt-BR'] }),
     createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -84,6 +87,30 @@ export const paths = pgTable(
   (t) => [
     index('paths_project_id_idx').on(t.projectId),
     foreignKey({ name: 'paths_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
+ * A request to publish a path to the catalog, waiting for an administrator or declined by one
+ * (docs/plans/19-publish-to-the-catalog.md). An approved one becomes the path's 'published' and goes.
+ */
+export const publicationRequests = pgTable(
+  'publication_requests',
+  {
+    pathId: text('path_id').primaryKey(),
+    status: text({ enum: ['pending', 'declined'] })
+      .notNull()
+      .default('pending'),
+    requestedAt: timestamp('requested_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    decidedAt: timestamp('decided_at', { precision: 3, withTimezone: true }),
+  },
+  (t) => [
+    index('publication_requests_status_idx').on(t.status),
+    foreignKey({ name: 'publication_requests_path_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),
   ],
@@ -289,6 +316,11 @@ export const pathsRelations = relations(paths, ({ one, many }) => ({
   project: one(projects, { fields: [paths.projectId], references: [projects.id] }),
   pages: many(pages),
   members: many(pathMembers),
+  publication: one(publicationRequests, { fields: [paths.id], references: [publicationRequests.pathId] }),
+}));
+
+export const publicationRequestsRelations = relations(publicationRequests, ({ one }) => ({
+  path: one(paths, { fields: [publicationRequests.pathId], references: [paths.id] }),
 }));
 
 export const pathMembersRelations = relations(pathMembers, ({ one }) => ({

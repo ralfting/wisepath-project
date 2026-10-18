@@ -12,9 +12,11 @@ import { SafePageFetcher } from '../../links/infrastructure/SafePageFetcher';
 import type { MemberStore } from '../../paths/application/MemberStore';
 import type { NoticeStore } from '../../paths/application/NoticeStore';
 import type { PathStore } from '../../paths/application/PathStore';
+import type { PublicationStore } from '../../paths/application/PublicationStore';
 import { DrizzleMemberStore } from '../../paths/infrastructure/DrizzleMemberStore';
 import { DrizzleNoticeStore } from '../../paths/infrastructure/DrizzleNoticeStore';
 import { DrizzlePathStore } from '../../paths/infrastructure/DrizzlePathStore';
+import { DrizzlePublicationStore } from '../../paths/infrastructure/DrizzlePublicationStore';
 import type { ProjectStore } from '../../projects/application/ProjectStore';
 import { DrizzleProjectStore } from '../../projects/infrastructure/DrizzleProjectStore';
 import type { ReviewStore } from '../../review/application/ReviewStore';
@@ -30,6 +32,7 @@ const AppLive = Layer.mergeAll(
   DrizzlePathStore,
   DrizzleMemberStore,
   DrizzleNoticeStore,
+  DrizzlePublicationStore,
   DrizzleReviewStore,
   DrizzleSearchStore,
   DrizzleUserStore,
@@ -42,7 +45,7 @@ const AppLive = Layer.mergeAll(
 );
 
 /** The services a use case may ask for; anything per request (like the current user) is provided by its caller */
-export type AppServices = ProjectStore | PathStore | MemberStore | NoticeStore | ReviewStore | SearchStore | UserStore | InboxStore | PasswordHasher | PageFetcher;
+export type AppServices = ProjectStore | PathStore | MemberStore | NoticeStore | PublicationStore | ReviewStore | SearchStore | UserStore | InboxStore | PasswordHasher | PageFetcher;
 
 /**
  * EffectRuntime
