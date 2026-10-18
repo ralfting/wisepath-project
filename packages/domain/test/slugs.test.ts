@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
-import { PageId, PathId, freeSlug, pageSlugs, slugOf } from "../src/paths/index"
+import { PageId, PathId, freeSlug, pageAt, pageSlugs, slugOf } from "../src/paths/index"
 import type { Path } from "../src/paths/index"
 
 const path = (titles: ReadonlyArray<string>): Path => ({
@@ -35,5 +35,12 @@ describe("addresses of published paths", () => {
       [PageId.make("page-3"), "page"],
       [PageId.make("page-4"), "testes"]
     ])
+  })
+
+  it("finds the page at an address: the root without one, none for an unknown one", () => {
+    const p = path(["React", "Hooks"])
+    assert.strictEqual(pageAt(p, null)?.title, "React")
+    assert.strictEqual(pageAt(p, "hooks")?.title, "Hooks")
+    assert.isUndefined(pageAt(p, "react"))
   })
 })

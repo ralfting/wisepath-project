@@ -1,4 +1,4 @@
-import type { Path, PageId } from "./Path"
+import type { Page, Path, PageId } from "./Path"
 
 /**
  * Readable addresses for published paths (docs/plans/20-published-pages.md): made from titles, so a page's address
@@ -38,4 +38,11 @@ export function pageSlugs(path: Path): ReadonlyMap<PageId, string> {
     slugs.set(page.id, slug)
   }
   return slugs
+}
+
+/** The page at an address within the path: the root without one, a page by its slug, none when nothing is there */
+export function pageAt(path: Path, slug: string | null): Page | undefined {
+  if (slug === null) return path.pages.find((page) => page.id === path.rootPageId)
+  for (const [id, pageSlug] of pageSlugs(path)) if (pageSlug === slug) return path.pages.find((page) => page.id === id)
+  return undefined
 }
