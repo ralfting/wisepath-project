@@ -17,6 +17,7 @@ const make = (reads: typeof inBrowser) =>
         create: (command) => classify(api.create({ payload: command })).pipe(Effect.withSpan("PathRepository.create")),
         update: (pathId, edit) =>
           classify(api.update({ params: { pathId }, payload: edit })).pipe(Effect.withSpan("PathRepository.update")),
+        takeSample: classify(api.takeSample()).pipe(Effect.withSpan("PathRepository.takeSample")),
         remove: (pathId) => classify(api.remove({ params: { pathId } })).pipe(Effect.withSpan("PathRepository.remove")),
         createPage: (pathId, command) =>
           classify(api.createPage({ params: { pathId }, payload: command })).pipe(Effect.withSpan("PathRepository.createPage")),

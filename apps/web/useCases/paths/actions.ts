@@ -26,6 +26,13 @@ export async function createPath(title: string, kind: string, projectId: string)
   return result
 }
 
+/** The sample path, copied into the learner's default project */
+export async function takeSamplePath(): Promise<ActionResult<Path>> {
+  const result = await runAction(programs.takeSample, (t) => ({ PathsUnavailable: t("common.errors.unavailable") }))
+  if (result.ok) revalidatePath(HOME)
+  return result
+}
+
 export async function movePath(pathId: string, projectId: string): Promise<ActionResult<void>> {
   const result = await runAction(programs.movePath(pathId, projectId), (t) => ({
     PathsUnavailable: t("common.errors.unavailable"),

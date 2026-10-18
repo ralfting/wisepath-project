@@ -238,3 +238,27 @@ test('pages named with [[ ]] show on the map before they are made, and opening o
   await expect(borrowing).toBeVisible();
   await expect(page.getByRole('treeitem', { name: 'Ownership, not made yet. Make it' })).toHaveCount(0);
 });
+
+test('a first visit says how to start, offers a sample path once, and shows no project header for one project', async ({ page }) => {
+  await signUp(page);
+  await expect(page.getByRole('heading', { name: 'Start here' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'General' })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Try a sample path' }).click();
+  await expect(page).toHaveURL(/\/paths\/sample-/);
+  await expect(page.getByRole('heading', { name: 'Literature (sample)', level: 1 })).toBeVisible();
+  await expect(page.getByRole('treeitem', { name: /^Reading closely/ })).toBeVisible();
+
+  // Back home: the card is gone, the sample is a path like any other, and one project needs no header
+  await page.goto('/paths');
+  await expect(page.getByRole('link', { name: 'Literature (sample)' }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Start here' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'General' })).toHaveCount(0);
+
+  // A second project brings the groups back
+  await page.getByRole('button', { name: 'New project' }).click();
+  await page.getByLabel(/^name/i).fill('Work');
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('heading', { name: 'General' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
+});

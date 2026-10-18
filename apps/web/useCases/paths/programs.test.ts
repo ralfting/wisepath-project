@@ -14,6 +14,7 @@ const recording = Effect.gen(function*() {
     create: (command: NewPath) => record(`create ${command.title} ${command.kind}`).pipe(Effect.as(samplePath)),
     update: (id, edit: PathEdit) => record(`update ${id} ${JSON.stringify(edit)}`),
     remove: (id) => record(`remove ${id}`),
+    takeSample: Effect.die("not used"),
     createPage: () => Effect.die("not used"),
     updatePage: () => Effect.die("not used"),
     removePage: () => Effect.die("not used")

@@ -53,6 +53,11 @@ export function useCreatePath(): (title: string, kind: PathKind, projectId: stri
   return useAction(actions.createPath, [ReactivityKeys.paths])
 }
 
+/** Copies the sample path for the learner; resolves to it, or to the message to show */
+export function useTakeSample(): () => Promise<ActionResult<Path>> {
+  return useAction(actions.takeSamplePath, [ReactivityKeys.paths])
+}
+
 /**
  * Files a map in another project. The list shows it there at once; if the API
  * refuses, it goes back to where it was. Resolves to null, or to the message to show

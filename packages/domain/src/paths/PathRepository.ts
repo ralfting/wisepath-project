@@ -18,6 +18,8 @@ export class PathRepository extends Context.Service<PathRepository, {
   /** ProjectNotFound when moving it to a project that isn't the learner's */
   readonly update: (id: PathId, edit: PathEdit) => Effect.Effect<void, PathNotFound | ProjectNotFound | PathsUnavailable>
   readonly remove: (id: PathId) => Effect.Effect<void, PathsUnavailable>
+  /** The learner's copy of the sample path; asking again returns the same copy */
+  readonly takeSample: Effect.Effect<Path, PathsUnavailable>
   readonly createPage: (
     id: PathId,
     command: NewPage

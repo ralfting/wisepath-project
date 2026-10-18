@@ -5,6 +5,7 @@ import { IconFolderPlus, IconPlus, IconSearch } from '@tabler/icons-react';
 import { ProjectNameModal } from './ProjectNameModal/ProjectNameModal';
 import { AppFrame } from '@/features/shell';
 import { useT } from '@/i18n/I18nProvider';
+import { FirstVisit } from './FirstVisit';
 import { NewMapModal } from './NewMapModal/NewMapModal';
 import { OthersGroup } from './OthersGroup';
 import { ProjectGroup } from './ProjectGroup/ProjectGroup';
@@ -58,7 +59,9 @@ export function PathsHome() {
           </Group>
         </Group>
 
-        {!state.loaded ? null : state.searching && state.groups.length === 0 && state.others.length === 0 ? (
+        {!state.loaded ? null : state.firstVisit ? (
+          <FirstVisit onNewPath={() => state.fallback && operations.newPathIn(state.fallback.id)} />
+        ) : state.searching && state.groups.length === 0 && state.others.length === 0 ? (
           <Text c="dimmed">{t('home.noMatch', { query: state.query.trim() })}</Text>
         ) : (
           state.groups.map(({ project, paths: inThis }) => (
@@ -68,6 +71,7 @@ export function PathsHome() {
               paths={inThis}
               projects={state.projects ?? []}
               fallback={state.fallback?.name ?? ''}
+              bare={(state.projects?.length ?? 0) === 1}
               onNewPath={() => operations.newPathIn(project.id)}
               dragging={state.dragging}
               onDrag={operations.setDragging}

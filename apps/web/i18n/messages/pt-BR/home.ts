@@ -15,6 +15,13 @@ export const home = {
   newProject: 'Novo projeto',
   empty: 'Nenhuma trilha ainda. Comece uma em Nova trilha.',
   noMatch: 'Nenhuma trilha corresponde a “{query}”.',
+  first: {
+    title: 'Comece por aqui',
+    make: 'Crie uma trilha para algo que você está aprendendo: a página principal dá o nome a ela.',
+    link: 'Escreva [[ e um nome para ligar uma página nova; o mapa cresce a partir dos seus links.',
+    study: 'Numa trilha guiada, marque cada página como estudada e Continuar leva à próxima.',
+    sample: 'Experimentar uma trilha de exemplo',
+  },
   card: {
     pages: { one: '{count} página', other: '{count} páginas' },
     modules: { one: '{count} módulo', other: '{count} módulos' },

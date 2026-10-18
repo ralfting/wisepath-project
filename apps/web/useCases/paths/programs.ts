@@ -57,6 +57,9 @@ export const setPathKind = Effect.fn("useCases.paths.setKind")(function*(pathId:
   yield* PathRepository.use((repo) => repo.update(id, { kind: to }))
 })
 
+/** The learner's copy of the sample path, offered on a first visit */
+export const takeSample = PathRepository.use((repo) => repo.takeSample).pipe(Effect.withSpan("useCases.paths.takeSample"))
+
 export const removePath = Effect.fn("useCases.paths.remove")(function*(pathId: string) {
   const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
   yield* PathRepository.use((repo) => repo.remove(id))

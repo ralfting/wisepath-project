@@ -55,6 +55,7 @@ const memoryApi = (start: Path) => Effect.gen(function*() {
     create: () => Effect.die("not used"),
     update: (_id, edit) => call("update", (p) => Effect.succeed([undefined, editPath(p, edit)] as const)),
     remove: () => Effect.die("not used"),
+    takeSample: Effect.die("not used"),
     createPage: (_id, page) =>
       call("createPage", (p) => addPage(p, page).pipe(Effect.map((r) => [r.page, r.path] as const))),
     updatePage: (_id, pageId, edit) =>

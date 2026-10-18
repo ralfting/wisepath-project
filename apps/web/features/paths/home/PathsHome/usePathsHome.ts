@@ -42,6 +42,8 @@ export function usePathsHome() {
     state: {
       loaded: paths !== null && projects !== null,
       hasPaths: (paths?.length ?? 0) > 0,
+      // No path and no project of their own yet: how to start says more than an empty group
+      firstVisit: paths !== null && projects !== null && paths.length === 0 && projects.length === 1,
       projects,
       fallback,
       query,

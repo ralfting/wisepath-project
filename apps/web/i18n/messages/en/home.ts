@@ -13,6 +13,14 @@ export const home = {
   newProject: 'New project',
   empty: 'No paths yet. Start one with New path.',
   noMatch: 'No paths match “{query}”.',
+  /** What a learner with no path sees, once */
+  first: {
+    title: 'Start here',
+    make: 'Make a path for something you are learning: its main page names it.',
+    link: 'Write [[ and a name to link a new page; the map grows from your links.',
+    study: 'In a learning path, mark each page studied and Continue takes you to the next.',
+    sample: 'Try a sample path',
+  },
   card: {
     pages: { one: '{count} page', other: '{count} pages' },
     modules: { one: '{count} module', other: '{count} modules' },
