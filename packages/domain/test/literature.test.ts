@@ -15,7 +15,7 @@ describe("the literature sample", () => {
         studied: path.pages.filter((p) => p.studied).length
       }
     })
-    const expected = { kind: "learningPath", pages: 13, modules: 3, pending: [], orphans: 0, studied: 0 }
+    const expected = { kind: "learningPath" as const, pages: 13, modules: 3, pending: [] as Array<string>, orphans: 0, studied: 0 }
     assert.deepStrictEqual(shapes, [expected, expected])
   })
 
