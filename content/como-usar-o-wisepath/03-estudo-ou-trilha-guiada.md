@@ -4,7 +4,7 @@ Nem todo assunto se estuda do mesmo jeito. Às vezes você está explorando, jun
 
 ## Os dois tipos
 
-- **Estudo**: anotações abertas, organizadas como um mapa. Não há progresso nem nada para terminar. É o tipo padrão, bom para um caderno de referência que só cresce.
+- **Estudo**: anotações abertas, organizadas como um mapa. Não há progresso nem nada para terminar. Toda trilha nova começa assim, e é um bom tipo para um caderno de referência que só cresce.
 - **Trilha guiada**: feita para ser seguida página por página. Cada página tem **Já estudei**, a trilha mostra quanto já foi estudado, e **Começar a estudar** ou **Continuar estudando** abre a próxima página que falta.
 
 ## Um exemplo
@@ -13,7 +13,7 @@ No começo, "Testes em React" é um **Estudo**: a pessoa ainda está descobrindo
 
 ## Como trocar
 
-No menu ⋯ da trilha (no cartão em **Minhas trilhas** ou ao lado do título, no mapa), escolha o outro tipo. As marcas de estudo não se perdem: num Estudo elas só ficam escondidas e voltam se a trilha virar guiada de novo.
+Quando a trilha já tem páginas suficientes para ser seguida em ordem, abra o menu ⋯ da trilha (no cartão em **Minhas trilhas** ou ao lado do título, no mapa) e escolha o outro tipo. As marcas de estudo não se perdem: num Estudo elas só ficam escondidas e voltam se a trilha virar guiada de novo.
 
 ## Experimente
 

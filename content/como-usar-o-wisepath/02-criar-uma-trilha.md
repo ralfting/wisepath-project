@@ -6,8 +6,9 @@ Uma trilha é um assunto. "Testes em React", "Japonês básico" ou "Harmonia no 
 
 1. Em **Minhas trilhas**, clique em **Nova trilha**.
 2. Em **O que você está aprendendo?**, escreva o nome do assunto. Esse nome vira a **página principal**, o centro do mapa.
-3. Em **Que tipo de trilha?**, escolha **Estudo** ou **Trilha guiada** (veja [[Estudo ou trilha guiada]]).
-4. Confira o **Projeto** e clique em **Criar trilha**. A página principal abre, pronta para você escrever.
+3. Confira o **Projeto** e clique em **Criar trilha**. A página principal abre, pronta para você escrever.
+
+Toda trilha começa como **Estudo**: com uma página só, ainda não há o que seguir. Quando ela tiver páginas, você pode transformá-la em trilha guiada (veja [[Estudo ou trilha guiada]]).
 
 ## Um exemplo
 
