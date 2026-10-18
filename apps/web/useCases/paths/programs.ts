@@ -1,8 +1,7 @@
 import { Effect, Schema } from "effect"
-import { LinkPreviews, PageId, PathId, PathRepository, PathSharing, PathVisibility, ShareEdit } from "@wisepath/domain/paths"
+import { LinkPreviews, NewPath, PageId, PathId, PathKind, PathRepository, PathSharing, PathVisibility, ShareEdit } from "@wisepath/domain/paths"
 import { UserId } from "@wisepath/domain/auth"
-import type { PathKind } from "@wisepath/domain/paths"
-import type { ProjectId } from "@wisepath/domain/projects"
+import { ProjectId } from "@wisepath/domain/projects"
 
 /**
  * Path use cases as Effect programs, for what isn't an edit of an open map
@@ -25,37 +24,42 @@ export const readPath = Effect.fn("useCases.paths.read")(function*(pathId: strin
   return yield* PathRepository.use((repo) => repo.get(id))
 })
 
-/** A new map named after its root page, in one of the learner's projects: a study, or a learning path */
+/**
+ * A new map named after its root page, in one of the learner's projects: a study, or a learning path. What is sent
+ * is decoded with the domain's NewPath, so the form and the Server Action get the same answer
+ */
 export const createPath = Effect.fn("useCases.paths.create")(function*(input: {
   readonly title: string
-  readonly kind: PathKind
-  readonly projectId: ProjectId
+  readonly kind: string
+  readonly projectId: string
 }) {
-  const repo = yield* PathRepository
-  return yield* repo.create({
-    id: PathId.make(newId()),
+  const command = yield* Schema.decodeUnknownEffect(NewPath)({
+    id: newId(),
     projectId: input.projectId,
-    rootPageId: newPageId(),
+    rootPageId: newId(),
     title: input.title.trim(),
     kind: input.kind
   })
+  return yield* PathRepository.use((repo) => repo.create(command))
 })
 
 /** Files a map in another project; the map itself doesn't change */
-export const movePath = Effect.fn("useCases.paths.move")(function*(input: { readonly id: PathId; readonly projectId: ProjectId }) {
-  const repo = yield* PathRepository
-  yield* repo.update(input.id, { projectId: input.projectId })
+export const movePath = Effect.fn("useCases.paths.move")(function*(pathId: string, projectId: string) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  const to = yield* Schema.decodeUnknownEffect(ProjectId)(projectId)
+  yield* PathRepository.use((repo) => repo.update(id, { projectId: to }))
 })
 
 /** Turns a map that isn't open into a study or a learning path */
-export const setPathKind = Effect.fn("useCases.paths.setKind")(function*(input: { readonly id: PathId; readonly kind: PathKind }) {
-  const repo = yield* PathRepository
-  yield* repo.update(input.id, { kind: input.kind })
+export const setPathKind = Effect.fn("useCases.paths.setKind")(function*(pathId: string, kind: string) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  const to = yield* Schema.decodeUnknownEffect(PathKind)(kind)
+  yield* PathRepository.use((repo) => repo.update(id, { kind: to }))
 })
 
-export const removePath = Effect.fn("useCases.paths.remove")(function*(id: PathId) {
-  const repo = yield* PathRepository
-  yield* repo.remove(id)
+export const removePath = Effect.fn("useCases.paths.remove")(function*(pathId: string) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  yield* PathRepository.use((repo) => repo.remove(id))
 })
 
 /** What an external link says about itself */

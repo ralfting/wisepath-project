@@ -1,7 +1,6 @@
 export { usePath } from "./path"
 export type { PathActions, PathState, SaveState } from "./path"
 export { useCreatePath, useMovePath, usePaths, useRemovePath, useSetPathKind } from "./list"
-export type { PathActionResult } from "./list"
 export { useLinkPreview, useLinkPreviewLoader } from "./links"
 export type { LinkPreviewState } from "./links"
 export { useOpenPath } from "./openPath"

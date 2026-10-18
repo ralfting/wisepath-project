@@ -170,3 +170,34 @@ test('a map asks for a login without a session', async ({ page }) => {
   await page.goto('/paths/anything');
   await expect(page).toHaveURL(/\/login/);
 });
+
+test('a path is made, moved to another project and deleted, each change surviving a reload', async ({ page }) => {
+  await signUp(page);
+  await page.getByRole('button', { name: 'New project' }).click();
+  await page.getByLabel(/^name/i).fill('Work');
+  await page.getByRole('button', { name: 'Create project' }).click();
+  await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'New path' }).first().click();
+  await page.getByLabel(/^what are you learning/i).fill('Learn Rust');
+  await page.getByRole('button', { name: 'Create path' }).click();
+  await expect(page).toHaveURL(/\/pages\//);
+
+  // Moved from its card's menu: it shows under Work at once, and still does after a full load
+  await page.goto('/paths');
+  await page.getByRole('button', { name: 'More for Learn Rust' }).click();
+  await page.getByRole('menuitem', { name: 'Move to' }).click();
+  await page.getByRole('menuitem', { name: 'Work' }).click();
+  const work = page.getByRole('region', { name: 'Work' });
+  await expect(work.getByRole('link', { name: 'Learn Rust' })).toBeVisible();
+  await page.reload();
+  await expect(work.getByRole('link', { name: 'Learn Rust' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'More for Learn Rust' }).click();
+  await page.getByRole('menuitem', { name: 'Delete path' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete path' }).click();
+  await expect(page.getByRole('link', { name: 'Learn Rust' })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Learn Rust' })).toHaveCount(0);
+});

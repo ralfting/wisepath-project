@@ -2,19 +2,19 @@
 
 import { useContext } from "react"
 import { AsyncResult, Atom } from "effect/reactivity"
-import { RegistryContext, useAtomSet, useAtomValue } from "@effect/atom-react"
+import { RegistryContext, useAtomValue } from "@effect/atom-react"
 import { PathId, summarize } from "@wisepath/domain/paths"
 import type { Path, PathKind, PathSummary } from "@wisepath/domain/paths"
 import { ProjectId } from "@wisepath/domain/projects"
-import { useT } from "@/i18n/I18nProvider"
+import type { ActionResult } from "../actionResult"
 import { ReactivityKeys, appRuntime } from "../runtime"
-import { messageFor } from "../messages"
+import { useAction } from "../useAction"
 import { useHydrated } from "../useHydrated"
-import { useDomainMessage } from "../validation"
+import * as actions from "./actions"
 import * as programs from "./programs"
 import { openedAtom, sessionAtom, stateAtomOf } from "./sessions"
 
-/** The list of maps (the paths page, the sidebar) and what is done to a map from it: make, move, delete, switch kind */
+/** The list of maps (the paths page, the sidebar) and what is done to a map from it: make, move, delete, switch kind, through Server Actions */
 
 const pathsAtom = appRuntime
   .atom(programs.listPaths)
@@ -41,11 +41,6 @@ const pathsViewAtom = Atom.make((get): ReadonlyArray<PathSummary> | null => {
   })
 })
 
-const createPathAtom = appRuntime.fn(programs.createPath, { reactivityKeys: [ReactivityKeys.paths] })
-const removePathAtom = appRuntime.fn(programs.removePath, { reactivityKeys: [ReactivityKeys.paths] })
-const setPathKindAtom = appRuntime.fn(programs.setPathKind, { reactivityKeys: [ReactivityKeys.paths] })
-const movePathAtom = appRuntime.fn(programs.movePath, { reactivityKeys: [ReactivityKeys.paths] })
-
 /** Every map, for the list of maps and the sidebar; null until loaded */
 export function usePaths(): ReadonlyArray<PathSummary> | null {
   const hydrated = useHydrated()
@@ -53,21 +48,9 @@ export function usePaths(): ReadonlyArray<PathSummary> | null {
   return hydrated ? paths : null
 }
 
-/** Result of a map action: the message to show when it failed */
-export type PathActionResult<A> = { readonly ok: true; readonly value: A } | { readonly ok: false; readonly message: string }
-
 /** Makes a new map in a project, a study unless said otherwise; resolves to it, or to the message to show */
-export function useCreatePath(): (title: string, kind: PathKind, projectId: string) => Promise<PathActionResult<Path>> {
-  const run = useAtomSet(createPathAtom, { mode: "promiseExit" })
-  const t = useT()
-  const domain = useDomainMessage()
-  return async (title, kind, projectId) => {
-    const exit = await run({ title, kind, projectId: ProjectId.make(projectId) })
-    if (exit._tag === "Success") return { ok: true, value: exit.value }
-    const unavailable = t("common.errors.unavailable")
-    const messages = { PathsUnavailable: unavailable, ProjectNotFound: t("home.errors.projectGone") }
-    return { ok: false, message: domain(messageFor(exit, messages, t("common.errors.generic"))) ?? unavailable }
-  }
+export function useCreatePath(): (title: string, kind: PathKind, projectId: string) => Promise<ActionResult<Path>> {
+  return useAction(actions.createPath, [ReactivityKeys.paths])
 }
 
 /**
@@ -76,39 +59,30 @@ export function useCreatePath(): (title: string, kind: PathKind, projectId: stri
  */
 export function useMovePath(): (pathId: string, projectId: string) => Promise<string | null> {
   const registry = useContext(RegistryContext)
-  const run = useAtomSet(movePathAtom, { mode: "promiseExit" })
-  const t = useT()
+  const move = useAction(actions.movePath, [ReactivityKeys.paths])
   return async (pathId, projectId) => {
     const id = PathId.make(pathId)
     const before = registry.get(movesAtom)
     registry.set(movesAtom, new Map(before).set(id, ProjectId.make(projectId)))
-    const message = messageFor(
-      await run({ id, projectId: ProjectId.make(projectId) }),
-      {
-        PathsUnavailable: t("common.errors.unavailable"),
-        PathNotFound: t("home.errors.pathGone"),
-        ProjectNotFound: t("home.errors.projectGone")
-      },
-      t("common.errors.generic")
-    )
-    if (message) {
-      // Back to where it was: an earlier move still waiting, or what the API listed
-      const now = new Map(registry.get(movesAtom))
-      const earlier = before.get(id)
-      if (earlier) now.set(id, earlier)
-      else now.delete(id)
-      registry.set(movesAtom, now)
-    }
-    return message
+    const result = await move(pathId, projectId)
+    if (result.ok) return null
+    // Back to where it was: an earlier move still waiting, or what the API listed
+    const now = new Map(registry.get(movesAtom))
+    const earlier = before.get(id)
+    if (earlier) now.set(id, earlier)
+    else now.delete(id)
+    registry.set(movesAtom, now)
+    return result.message
   }
 }
 
 /** Deletes a map with all its pages; resolves to null, or to the message to show */
 export function useRemovePath(): (pathId: string) => Promise<string | null> {
-  const run = useAtomSet(removePathAtom, { mode: "promiseExit" })
-  const t = useT()
-  return async (pathId) =>
-    messageFor(await run(PathId.make(pathId)), { PathsUnavailable: t("common.errors.unavailable") }, t("common.errors.generic"))
+  const remove = useAction(actions.removePath, [ReactivityKeys.paths])
+  return async (pathId) => {
+    const result = await remove(pathId)
+    return result.ok ? null : result.message
+  }
 }
 
 /**
@@ -118,18 +92,14 @@ export function useRemovePath(): (pathId: string) => Promise<string | null> {
  */
 export function useSetPathKind(): (pathId: string, kind: PathKind) => Promise<string | null> {
   const registry = useContext(RegistryContext)
-  const run = useAtomSet(setPathKindAtom, { mode: "promiseExit" })
-  const t = useT()
+  const setKind = useAction(actions.setPathKind, [ReactivityKeys.paths])
   return async (pathId, kind) => {
     const id = PathId.make(pathId)
     if (registry.get(openedAtom).has(id)) {
       const session = registry.get(sessionAtom(id))
       if (AsyncResult.isSuccess(session) && session.value.dispatch({ _tag: "UpdatePath", edit: { kind } })) return null
     }
-    return messageFor(
-      await run({ id, kind }),
-      { PathsUnavailable: t("common.errors.unavailable"), PathNotFound: t("home.errors.pathGone") },
-      t("common.errors.generic")
-    )
+    const result = await setKind(pathId, kind)
+    return result.ok ? null : result.message
   }
 }
