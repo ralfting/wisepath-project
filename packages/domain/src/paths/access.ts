@@ -1,5 +1,5 @@
 import { Schema } from "effect"
-import { Email, UserId } from "../auth/User"
+import { Email, Locale, UserId } from "../auth/User"
 import type { PageEdit } from "./commands"
 import type { PageId, Path } from "./Path"
 
@@ -9,9 +9,25 @@ import type { PageId, Path } from "./Path"
  * public path to study it. Progress is never part of access: every learner marks their own pages studied.
  */
 
-/** Private: only its owner and the people they invited. Public: anyone with the link can read it */
-export const PathVisibility = Schema.Literals(["private", "public"])
+/**
+ * Private: only its owner and the people they invited. Public: anyone with the link can read it, never listed.
+ * Published: anyone can read it, and it is listed in the catalog; only an approval sets it
+ * (docs/plans/19-publish-to-the-catalog.md).
+ */
+export const PathVisibility = Schema.Literals(["private", "public", "published"])
 export type PathVisibility = typeof PathVisibility.Type
+
+/** What the owner may set themselves; publishing goes through a request */
+export const LinkVisibility = Schema.Literals(["private", "public"])
+export type LinkVisibility = typeof LinkVisibility.Type
+
+/** The language a path is written in, so the catalog can show it to those who read it */
+export const PathLanguage = Locale
+export type PathLanguage = typeof PathLanguage.Type
+
+/** A request to publish waiting for an administrator, or one they declined; an approved one is `published` */
+export const PublicationStatus = Schema.Literals(["pending", "declined"])
+export type PublicationStatus = typeof PublicationStatus.Type
 
 /** What a member may do: read (and study), or edit the pages too */
 export const MemberRole = Schema.Literals(["viewer", "editor"])
@@ -71,14 +87,14 @@ export interface AccessFacts {
 }
 
 /**
- * The one rule for access: the owner is the owner, a member has their role, a public path can be read by anyone
+ * The one rule for access: the owner is the owner, a member has their role, a public or published path can be read by anyone
  * (signed in or not), and nobody else sees it. The API decides with it too, over what it reads with the path.
  */
 export function accessOf(path: AccessFacts, viewer: UserId | null): PathAccess {
   if (viewer !== null && viewer === path.ownerId) return "owner"
   const member = viewer === null ? undefined : path.members.find((m) => m.userId === viewer)
   if (member !== undefined) return member.role
-  return path.visibility === "public" ? "viewer" : "none"
+  return path.visibility === "private" ? "none" : "viewer"
 }
 
 /** Reading a path includes studying it: marking its pages, which are the reader's own marks */
@@ -108,6 +124,6 @@ export const ShareEdit = Schema.Struct({
 export type ShareEdit = typeof ShareEdit.Type
 
 export const VisibilityEdit = Schema.Struct({
-  visibility: PathVisibility
+  visibility: LinkVisibility
 })
 export type VisibilityEdit = typeof VisibilityEdit.Type

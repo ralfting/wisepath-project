@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest"
 import { UserId } from "../src/auth"
-import { PageId, accessOf, canEdit, canManage, canRead, mayEditPage } from "../src/paths/index"
+import { Schema } from "effect"
+import { PageId, PublicationRequest, VisibilityEdit, accessOf, canEdit, canManage, canRead, mayEditPage } from "../src/paths/index"
 import type { AccessFacts, MemberRole, MemberSource, PathAccess, PathVisibility } from "../src/paths/index"
 
 const owner = UserId.make("owner")
@@ -29,7 +30,10 @@ describe("accessOf", () => {
     ["a stranger, public", facts("public"), stranger, "viewer"],
     ["a stranger, private and shared with someone else", facts("private", { role: "editor", source: "invited" }), stranger, "none"],
     ["no account, private", facts("private"), null, "none"],
-    ["no account, public", facts("public"), null, "viewer"]
+    ["no account, public", facts("public"), null, "viewer"],
+    ["a stranger, published", facts("published"), stranger, "viewer"],
+    ["no account, published", facts("published"), null, "viewer"],
+    ["an invited editor, published", facts("published", { role: "editor", source: "invited" }), member, "editor"]
   ]
 
   for (const [name, path, viewer, expected] of cases) {
@@ -76,5 +80,21 @@ describe("mayEditPage", () => {
       [true, true, true, false, true, true],
       [true, false, false, false, false, false]
     ])
+  })
+})
+
+describe("publishing", () => {
+  it("is never a visibility the owner sets: only an approval publishes", () => {
+    const decode = Schema.decodeUnknownExit(VisibilityEdit)
+    assert.isTrue(decode({ visibility: "public" })._tag === "Success")
+    assert.isTrue(decode({ visibility: "published" })._tag === "Failure")
+  })
+
+  it("asks what the path teaches, who it is for and its language", () => {
+    const decode = Schema.decodeUnknownExit(PublicationRequest)
+    assert.isTrue(decode({ description: " React tests ", audience: "Frontend devs", language: "pt-BR" })._tag === "Success")
+    assert.isTrue(decode({ description: " ", audience: "Frontend devs", language: "pt-BR" })._tag === "Failure")
+    assert.isTrue(decode({ description: "React tests", audience: "", language: "pt-BR" })._tag === "Failure")
+    assert.isTrue(decode({ description: "React tests", audience: "Frontend devs", language: "fr" })._tag === "Failure")
   })
 })

@@ -34,3 +34,6 @@ export class CannotShareWithSelf extends Schema.TaggedError<CannotShareWithSelf>
 export class PathsUnavailable extends Schema.TaggedError<PathsUnavailable>()("PathsUnavailable", {
   cause: Schema.Defect()
 }) {}
+
+/** Only WisePath's administrators review publications; anyone else is answered as if there were nothing there */
+export class NotAdmin extends Schema.TaggedError<NotAdmin>()("NotAdmin", {}, { httpApiStatus: 404 }) {}
