@@ -117,6 +117,12 @@ export const readPublicPath = Effect.fn("useCases.paths.readPublic")(function*(p
   return yield* PathSharing.use((sharing) => sharing.readPublic(id))
 })
 
+/** A published map by its catalog address, which came from the URL */
+export const readPublishedPath = Effect.fn("useCases.paths.readPublished")(function*(slug: string) {
+  const address = yield* Schema.decodeUnknownEffect(Schema.String)(slug)
+  return yield* PathSharing.use((sharing) => sharing.readPublished(address))
+})
+
 /** The learner's notices of paths they lost */
 export const listNotices = AccessNotices.use((notices) => notices.list).pipe(Effect.withSpan("useCases.paths.notices"))
 

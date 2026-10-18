@@ -40,6 +40,18 @@ export const publicPath = cache(async (pathId: string): Promise<Path | null> => 
 })
 
 /**
+ * A published map by its catalog address, read without anyone's session: null when there is none. The API being
+ * down is thrown, for the segment's error page.
+ */
+export const publishedPath = cache(async (slug: string): Promise<Path | null> => {
+  const exit = await runServer(programs.readPublishedPath(slug))
+  if (Exit.isSuccess(exit)) return exit.value
+  const error = Cause.findErrorOption(exit.cause)
+  if (Option.isSome(error) && error.value._tag !== "PathsUnavailable") return null
+  throw new Error("The published map could not be read")
+})
+
+/**
  * The requests to publish waiting for review, for an administrator: null for anyone else (not an administrator, or
  * logged out), so the page answers 404. The API being down is thrown, for the segment's error page.
  */

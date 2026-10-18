@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { PublicPath } from '@/features/paths/public';
 import { serverT } from '@/i18n/server';
+import { catalogHref } from '@/shared/routes';
 import { publicPath } from '@/useCases/paths/queries';
 
 interface PublicPathPageProps {
@@ -21,5 +22,7 @@ export default async function PublicPathPage({ params }: PublicPathPageProps) {
   const { pathId } = await params;
   const path = await publicPath(pathId);
   if (!path) notFound();
+  // A published path has its own address in the catalog
+  if (path.visibility === 'published' && path.slug) permanentRedirect(catalogHref(path.slug));
   return <PublicPath path={path} />;
 }

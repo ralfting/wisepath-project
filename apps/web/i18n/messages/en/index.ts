@@ -1,5 +1,6 @@
 import { admin } from '@/i18n/messages/en/admin';
 import { auth } from '@/i18n/messages/en/auth';
+import { catalog } from '@/i18n/messages/en/catalog';
 import { common } from '@/i18n/messages/en/common';
 import { editor } from '@/i18n/messages/en/editor';
 import { help } from '@/i18n/messages/en/help';
@@ -13,5 +14,5 @@ import { shell } from '@/i18n/messages/en/shell';
 import { video } from '@/i18n/messages/en/video';
 
 /** Every message in English, by area. The keys here are the ones every language has */
-export const en = { common, auth, shell, home, map, page, editor, video, search, inbox, help, share, admin } as const;
+export const en = { common, auth, shell, home, map, page, editor, video, search, inbox, help, share, admin, catalog } as const;
 export type Messages = typeof en;

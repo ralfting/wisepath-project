@@ -5,7 +5,7 @@ import { Button, CopyButton, Group, Stack, Switch, Text } from '@mantine/core';
 import { IconCheck, IconLink } from '@tabler/icons-react';
 import type { Path } from '@wisepath/domain/paths';
 import { useSetVisibility, useVisibility } from '@/useCases/paths';
-import { publicMapHref } from '@/shared/routes';
+import { catalogHref, publicMapHref } from '@/shared/routes';
 import { useT } from '@/i18n/I18nProvider';
 
 /** Private or readable by anyone with the link, and the link to copy once it is public */
@@ -17,6 +17,8 @@ export function LinkSection({ path }: { path: Path }) {
   const [busy, setBusy] = useState(false);
   // A published path is readable by its link too
   const isPublic = visibility !== 'private';
+  // A published path is shared by its catalog address once it has one
+  const href = visibility === 'published' && path.slug ? catalogHref(path.slug) : publicMapHref(path.id);
 
   const handleChange = async (makePublic: boolean) => {
     setBusy(true);
@@ -38,7 +40,7 @@ export function LinkSection({ path }: { path: Path }) {
       />
       {isPublic && (
         <Group>
-          <CopyButton value={typeof window === 'undefined' ? '' : new URL(publicMapHref(path.id), window.location.origin).toString()}>
+          <CopyButton value={typeof window === 'undefined' ? '' : new URL(href, window.location.origin).toString()}>
             {({ copied, copy }) => (
               <Button variant="default" size="xs" leftSection={copied ? <IconCheck size={14} /> : <IconLink size={14} />} onClick={copy}>
                 {t(copied ? 'share.link.copied' : 'share.link.copy')}

@@ -2,6 +2,7 @@ import type { Shape } from '@/i18n/format';
 import type { Messages } from '@/i18n/messages/en';
 import { admin } from '@/i18n/messages/pt-BR/admin';
 import { auth } from '@/i18n/messages/pt-BR/auth';
+import { catalog } from '@/i18n/messages/pt-BR/catalog';
 import { common } from '@/i18n/messages/pt-BR/common';
 import { editor } from '@/i18n/messages/pt-BR/editor';
 import { help } from '@/i18n/messages/pt-BR/help';
@@ -15,4 +16,4 @@ import { shell } from '@/i18n/messages/pt-BR/shell';
 import { video } from '@/i18n/messages/pt-BR/video';
 
 /** Todas as mensagens em português do Brasil: as mesmas chaves do inglês, nem uma a mais, nem uma a menos */
-export const ptBR = { common, auth, shell, home, map, page, editor, video, search, inbox, help, share, admin } as const satisfies Shape<Messages>;
+export const ptBR = { common, auth, shell, home, map, page, editor, video, search, inbox, help, share, admin, catalog } as const satisfies Shape<Messages>;

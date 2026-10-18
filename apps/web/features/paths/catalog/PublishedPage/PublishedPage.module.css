@@ -1,0 +1,12 @@
+/* The page's text takes the room the side column leaves */
+.article {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Lists of links, read as navigation rather than bullet points */
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}

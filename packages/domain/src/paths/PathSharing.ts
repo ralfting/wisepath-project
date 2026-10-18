@@ -28,4 +28,6 @@ export class PathSharing extends Context.Service<PathSharing, {
   readonly withdrawPublication: (id: PathId) => Effect.Effect<void, PathNotFound | PathsUnavailable>
   /** A public path as someone with no account reads it */
   readonly readPublic: (id: PathId) => Effect.Effect<Path, PathNotFound | PathsUnavailable>
+  /** A published path by its catalog address, as someone with no account reads it */
+  readonly readPublished: (slug: string) => Effect.Effect<Path, PathNotFound | PathsUnavailable>
 }>()("@wisepath/domain/paths/PathSharing") {}

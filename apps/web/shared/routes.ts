@@ -36,6 +36,9 @@ export function openPageId(pathname: string, pathId: string): string | null {
 /** A public map, read without an account (the Share dialog's link) */
 export const publicMapHref = (pathId: string) => `/public/paths/${pathId}`;
 
+/** A published map in the catalog, at its root page or at one of its pages */
+export const catalogHref = (pathSlug: string, pageSlug?: string) => (pageSlug ? `/p/${pathSlug}/${pageSlug}` : `/p/${pathSlug}`);
+
 export const HOME = '/paths';
 
 /** Where WisePath's administrators review requests to publish paths to the catalog */

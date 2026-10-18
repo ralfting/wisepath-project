@@ -1,5 +1,6 @@
+import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { learningPath, shareDialog, signUp, someone } from './helpers';
+import { API, learningPath, shareDialog, signUp, someone } from './helpers';
 
 /**
  * Publishing a path to the catalog (docs/plans/19-publish-to-the-catalog.md): the owner asks from the Share dialog,
@@ -34,4 +35,25 @@ test('an owner asks to publish a path, and an administrator approves it', async 
   await ada.page.reload();
   await ada.page.getByRole('button', { name: 'Share Rust' }).click();
   await expect(shareDialog(ada.page).getByText('In the catalog')).toBeVisible();
+
+  // A visitor with JavaScript off reads it at its catalog address, and follows a [[link]] to the next page
+  const { slug } = (await (await ada.page.request.get(`${API}/paths/${map.pathId}`)).json()) as { slug: string };
+  const reader = await (await browser.newContext({ javaScriptEnabled: false })).newPage();
+  await reader.goto(`/p/${slug}`);
+  await expect(reader.getByRole('heading', { name: 'Rust', level: 1 })).toBeVisible();
+  await expect(reader.getByText('Ownership and borrowing in Rust')).toBeVisible();
+  await reader.getByRole('article').getByRole('link', { name: 'Borrowing' }).click();
+  await expect(reader).toHaveURL(new RegExp(`/p/${slug}/borrowing$`));
+  await expect(reader.getByRole('heading', { name: 'Borrowing', level: 1 })).toBeVisible();
+
+  // Its old public link leads to the catalog address
+  await reader.goto(`/public/paths/${map.pathId}`);
+  await expect(reader).toHaveURL(new RegExp(`/p/${slug}$`));
+
+  // Nothing on it that axe can find, with the page running as a visitor sees it
+  const visitor = await (await browser.newContext()).newPage();
+  await visitor.goto(`/p/${slug}/borrowing`);
+  await expect(visitor.getByRole('heading', { name: 'Borrowing', level: 1 })).toBeVisible();
+  const { violations } = await new AxeBuilder({ page: visitor }).analyze();
+  expect(violations.map((violation) => violation.id)).toEqual([]);
 });
