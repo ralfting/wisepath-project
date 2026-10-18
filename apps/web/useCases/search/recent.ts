@@ -1,10 +1,11 @@
 "use client"
 
 import { useCallback, useEffect, useSyncExternalStore } from "react"
+import { useSession } from "../auth/session"
 
 /**
  * Pages opened recently, across paths: kept in this browser (local storage),
- * per viewer, for the search palette to offer before anything is typed. Each
+ * one list per account, for the search palette to offer before anything is typed. Each
  * keeps the titles it was last seen with, so the list shows without asking
  * the API.
  */
@@ -21,7 +22,11 @@ export interface RecentPage {
 /** How many are kept */
 export const RECENT_MAX = 8
 
-const STORAGE_KEY = "wisepath:recent-pages"
+/** Where one account's list is kept: a browser shared by two learners never shows one the other's pages */
+export const storageKey = (userId: string) => `wisepath:recent-pages:${userId}`
+
+// The single list every account on a browser once shared: removed on first read, it showed one learner's pages to the next
+const SHARED_KEY = "wisepath:recent-pages"
 
 /** The list with this page opened now: at the top, once, the oldest dropped past the limit */
 export function rememberOpened(
@@ -56,37 +61,39 @@ export function parseRecent(raw: string | null): ReadonlyArray<RecentPage> {
   }
 }
 
-// The list in memory, read once; written through, and told about writes from other tabs
-let current: ReadonlyArray<RecentPage> | null = null
+// The signed-in account's list in memory, read once; written through, and told about writes from other tabs
+let current: { readonly key: string; readonly list: ReadonlyArray<RecentPage> } | null = null
 const listeners = new Set<() => void>()
 const EMPTY: ReadonlyArray<RecentPage> = []
 
-function read(): ReadonlyArray<RecentPage> {
-  if (current) return current
+function read(key: string): ReadonlyArray<RecentPage> {
+  if (current?.key === key) return current.list
+  let list: ReadonlyArray<RecentPage> = []
   try {
-    current = parseRecent(localStorage.getItem(STORAGE_KEY))
+    localStorage.removeItem(SHARED_KEY)
+    list = parseRecent(localStorage.getItem(key))
   } catch {
     // Storage can be unavailable (private windows, blocked site data): the list lasts until reload
-    current = []
   }
-  return current
+  current = { key, list }
+  return list
 }
 
-function write(list: ReadonlyArray<RecentPage>) {
-  current = list
+function write(key: string, list: ReadonlyArray<RecentPage>) {
+  current = { key, list }
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list))
+    localStorage.setItem(key, JSON.stringify(list))
   } catch {
     // Kept in memory only
   }
   listeners.forEach((listener) => listener())
 }
 
-function subscribe(listener: () => void) {
+function subscribe(key: string, listener: () => void) {
   listeners.add(listener)
   const onStorage = (event: StorageEvent) => {
-    if (event.key !== STORAGE_KEY) return
-    current = parseRecent(event.newValue)
+    if (event.key !== key) return
+    current = { key, list: parseRecent(event.newValue) }
     listener()
   }
   window.addEventListener("storage", onStorage)
@@ -96,17 +103,26 @@ function subscribe(listener: () => void) {
   }
 }
 
-/** The pages opened most recently, newest first */
-export function useRecentPages(): ReadonlyArray<RecentPage> {
-  return useSyncExternalStore(subscribe, read, () => EMPTY)
+/** The signed-in account's storage key, none while nobody is */
+function useStorageKey(): string | null {
+  const session = useSession()
+  return session.status === "signedIn" ? storageKey(session.user.id) : null
 }
 
-/** Remembers the page as opened, and again whenever its titles change while it is open */
+/** The pages the signed-in account opened most recently, newest first */
+export function useRecentPages(): ReadonlyArray<RecentPage> {
+  const key = useStorageKey()
+  const subscribeToKey = useCallback((listener: () => void) => (key ? subscribe(key, listener) : () => {}), [key])
+  const snapshot = useCallback(() => (key ? read(key) : EMPTY), [key])
+  return useSyncExternalStore(subscribeToKey, snapshot, () => EMPTY)
+}
+
+/** Remembers the page as opened for the signed-in account, and again whenever its titles change while it is open */
 export function useRememberOpened(page: Omit<RecentPage, "openedAt">): void {
+  const key = useStorageKey()
   const { pathId, pageId, title, pathTitle } = page
-  const remember = useCallback(
-    () => write(rememberOpened(read(), { pathId, pageId, title, pathTitle }, Date.now())),
-    [pathId, pageId, title, pathTitle]
-  )
+  const remember = useCallback(() => {
+    if (key) write(key, rememberOpened(read(key), { pathId, pageId, title, pathTitle }, Date.now()))
+  }, [key, pathId, pageId, title, pathTitle])
   useEffect(remember, [remember])
 }

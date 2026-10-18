@@ -31,7 +31,7 @@ context and confirmed against the code. Status: **Done**, **Partial**, **Missing
   text on purpose (`useCases/paths/path.ts:140-149`, `docs/FEATURES.md:59`). Fixed 2026-10-18: the copy now says so.
 - Spaced review was removed from the app on 2026-10-16, but `ReviewModule` and its table still run
   (`apps/api/src/app.module.ts:10,26`), and `docs/FEATURES.md:131` still lists Review.
-- Recent pages in ⌘P are shared across accounts on one browser (`recent.ts:24`): a privacy leak on shared computers.
+- Recent pages in ⌘P were shared across accounts on one browser: a privacy leak on shared computers. Fixed 2026-10-18: one list per account.
 
 ## Public side
 

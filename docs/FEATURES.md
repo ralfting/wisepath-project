@@ -32,7 +32,7 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 ## Search everywhere
 
 - **⌘P (Ctrl P)** anywhere in the app — the home, a map, a page, even while writing — opens a search palette in the middle of the screen. So does **Search pages** in the sidebar (a magnifier on the rail).
-- **Empty,** it lists the pages opened most recently, across paths (kept in this browser, per viewer).
+- **Empty,** it lists the pages opened most recently, across paths (kept in this browser, one list per account).
 - **Typing** searches every path, ignoring case and accents ("revisao" finds "Revisão"), for pages whose title or text holds every word: exact titles first, then titles that start with it, titles with all the words, then text matches; the most recently edited first within each. Each result says where it sits ("NestJS › Providers") and, for a text match, shows the line around it with the words marked.
 - **↑ ↓** move, **Enter** opens the page on its path's map, in the drawer, **⌘Enter** (Ctrl+Enter) as a full page, **Esc** closes the palette (a drawer behind it stays open).
 
