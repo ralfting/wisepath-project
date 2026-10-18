@@ -5,7 +5,7 @@ import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomValue } from "@effect/atom-react"
 import { Schema } from "effect"
 import { PathId, ShareEdit } from "@wisepath/domain/paths"
-import type { MemberRole, Path, PathShare, PathVisibility } from "@wisepath/domain/paths"
+import type { MemberRole, Path, PathVisibility, SharedWith, ShareResult } from "@wisepath/domain/paths"
 import type { ActionResult } from "../actionResult"
 import { ReactivityKeys, appRuntime } from "../runtime"
 import { useHydrated } from "../useHydrated"
@@ -34,9 +34,9 @@ const visibilityAtom = Atom.family((_: PathId) => Atom.keepAlive(Atom.make<PathV
 export type SharesState =
   | { readonly status: "loading" }
   | { readonly status: "failed" }
-  | { readonly status: "ready"; readonly shares: ReadonlyArray<PathShare> }
+  | { readonly status: "ready"; readonly shared: SharedWith }
 
-/** The people the owner invited to a map */
+/** The people the owner invited to a map, and the emails waiting for a sign up */
 export function useShares(pathId: string): SharesState {
   const hydrated = useHydrated()
   const result = useAtomValue(sharesAtom(PathId.make(pathId)))
@@ -44,13 +44,22 @@ export function useShares(pathId: string): SharesState {
   return AsyncResult.match(result, {
     onInitial: (): SharesState => ({ status: "loading" }),
     onFailure: (): SharesState => ({ status: "failed" }),
-    onSuccess: ({ value }): SharesState => ({ status: "ready", shares: value })
+    onSuccess: ({ value }): SharesState => ({ status: "ready", shared: value })
   })
 }
 
-/** Invites an account by email, or changes their role; resolves to them, or to the message to show */
-export function useSharePath(): (pathId: string, email: string, role: MemberRole) => Promise<ActionResult<PathShare>> {
+/** Shares by email or changes the role: with the account, or as an invite; resolves to it, or to the message to show */
+export function useSharePath(): (pathId: string, email: string, role: MemberRole) => Promise<ActionResult<ShareResult>> {
   return useAction(actions.sharePath, [ReactivityKeys.shares])
+}
+
+/** Drops an invite still waiting for a sign up; resolves to null, or to the message to show */
+export function useCancelInvite(): (pathId: string, email: string) => Promise<string | null> {
+  const cancel = useAction(actions.cancelInvite, [ReactivityKeys.shares])
+  return async (pathId, email) => {
+    const result = await cancel(pathId, email)
+    return result.ok ? null : result.message
+  }
 }
 
 /** Takes someone off a map; resolves to null, or to the message to show */

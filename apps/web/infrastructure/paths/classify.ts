@@ -1,7 +1,7 @@
 import { Effect, Predicate } from "effect"
 import { HttpClientError } from "effect/http"
 import { PathsUnavailable } from "@wisepath/domain/paths"
-import type { CannotShareWithSelf, PageNotFound, PathNotFound, RootPageProtected, ShareTargetNotFound, TitleTaken } from "@wisepath/domain/paths"
+import type { CannotShareWithSelf, PageNotFound, PathNotFound, RootPageProtected, TitleTaken } from "@wisepath/domain/paths"
 import type { ProjectNotFound } from "@wisepath/domain/projects"
 
 /**
@@ -12,14 +12,13 @@ import type { ProjectNotFound } from "@wisepath/domain/projects"
  * malformed, is a bug and becomes a defect.
  */
 
-type DomainError = PathNotFound | PageNotFound | TitleTaken | RootPageProtected | ProjectNotFound | ShareTargetNotFound | CannotShareWithSelf
+type DomainError = PathNotFound | PageNotFound | TitleTaken | RootPageProtected | ProjectNotFound | CannotShareWithSelf
 const domainTags: ReadonlyArray<string> = [
   "PathNotFound",
   "PageNotFound",
   "TitleTaken",
   "RootPageProtected",
   "ProjectNotFound",
-  "ShareTargetNotFound",
   "CannotShareWithSelf"
 ]
 const isDomainError = (error: unknown): error is DomainError =>

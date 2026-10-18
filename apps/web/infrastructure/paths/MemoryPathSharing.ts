@@ -1,29 +1,40 @@
 import { Effect, Layer, Ref } from "effect"
 import { PathNotFound, PathSharing } from "@wisepath/domain/paths"
-import type { Path, PathId, PathShare } from "@wisepath/domain/paths"
+import type { Path, PathId, PathInvite, PathShare, SharedWith } from "@wisepath/domain/paths"
 import { UserId } from "@wisepath/domain/auth"
 
 /**
- * Sharing kept in memory, for tests: the people each path is shared with, and the public paths anyone may read.
- * Follows the API's answers (sharing again changes the role, a private path is not found), except that it knows no
- * accounts: any email is someone, named after it.
+ * Sharing kept in memory, for tests: who each path is shared with, and the public paths anyone may read. Follows
+ * the API's answers (sharing again changes the role, an email with no account is kept as an invite, a private path
+ * is not found); the accounts it knows are the people it starts with.
  */
-export const MemoryPathSharing = (seed: { readonly shares?: Record<string, ReadonlyArray<PathShare>>; readonly publicPaths?: ReadonlyArray<Path> } = {}) =>
+export const MemoryPathSharing = (
+  seed: { readonly shared?: Record<string, SharedWith>; readonly publicPaths?: ReadonlyArray<Path> } = {}
+) =>
   Layer.effect(
     PathSharing,
     Effect.gen(function*() {
-      const store = yield* Ref.make<Record<string, ReadonlyArray<PathShare>>>(seed.shares ?? {})
-      const of = (id: PathId) => Effect.map(Ref.get(store), (all) => all[id] ?? [])
+      const store = yield* Ref.make<Record<string, SharedWith>>(seed.shared ?? {})
+      const known = new Map(Object.values(seed.shared ?? {}).flatMap((s) => s.people).map((p) => [p.email, p]))
+      const of = (id: PathId) => Effect.map(Ref.get(store), (all) => all[id] ?? { people: [], invites: [] })
+      const save = (id: PathId, shared: SharedWith) => Ref.update(store, (all) => ({ ...all, [id]: shared }))
 
       return PathSharing.of({
         shares: of,
         share: Effect.fn("MemoryPathSharing.share")(function*(id, edit) {
-          const others = (yield* of(id)).filter((s) => s.email !== edit.email)
-          const share: PathShare = { userId: UserId.make(edit.email), name: edit.email.split("@")[0], email: edit.email, role: edit.role }
-          yield* Ref.update(store, (all) => ({ ...all, [id]: [...others, share] }))
+          const { people, invites } = yield* of(id)
+          const person = known.get(edit.email)
+          if (!person) {
+            const invite: PathInvite = { email: edit.email.toLowerCase(), role: edit.role }
+            yield* save(id, { people, invites: [...invites.filter((i) => i.email !== invite.email), invite] })
+            return invite
+          }
+          const share: PathShare = { ...person, role: edit.role }
+          yield* save(id, { people: [...people.filter((p) => p.email !== edit.email), share], invites })
           return share
         }),
-        unshare: (id, userId) => Ref.update(store, (all) => ({ ...all, [id]: (all[id] ?? []).filter((s) => s.userId !== userId) })),
+        unshare: (id, userId) => Effect.flatMap(of(id), (s) => save(id, { ...s, people: s.people.filter((p) => p.userId !== userId) })),
+        cancelInvite: (id, email) => Effect.flatMap(of(id), (s) => save(id, { ...s, invites: s.invites.filter((i) => i.email !== email) })),
         setVisibility: () => Effect.void,
         take: () => Effect.void,
         leave: () => Effect.void,

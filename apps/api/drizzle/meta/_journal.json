@@ -64,6 +64,13 @@
       "when": 1792265775473,
       "tag": "0008_path_members",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792285676141,
+      "tag": "0009_path_invites",
+      "breakpoints": true
     }
   ]
 }

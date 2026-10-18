@@ -1,6 +1,6 @@
 import { Effect, Option } from 'effect';
-import { CannotShareWithSelf, PathNotFound, ShareTargetNotFound } from '@wisepath/domain/paths';
-import type { PathId, PathShare, ShareEdit, VisibilityEdit } from '@wisepath/domain/paths';
+import { CannotShareWithSelf, PathNotFound } from '@wisepath/domain/paths';
+import type { PathId, PathShare, ShareEdit, SharedWith, VisibilityEdit } from '@wisepath/domain/paths';
 import type { UserId } from '@wisepath/domain/auth';
 import { UserStore } from '../../auth/application/UserStore';
 import { CurrentUser } from './CurrentUser';
@@ -15,22 +15,31 @@ import { findFor, manages, reads } from './paths';
  */
 
 export const listShares = Effect.fn('paths.shares')(function* (id: PathId) {
+  const members = yield* MemberStore;
   yield* findFor(id, manages);
-  return yield* (yield* MemberStore).listInvited(id);
+  const shared: SharedWith = { people: yield* members.listInvited(id), invites: yield* members.listInvites(id) };
+  return shared;
 });
 
+/** Shares with the account that has this email, or keeps an invite for it until someone signs up with it */
 export const sharePath = Effect.fn('paths.share')(function* (id: PathId, edit: ShareEdit) {
   const user = yield* CurrentUser;
+  const members = yield* MemberStore;
   yield* findFor(id, manages);
 
   const account = yield* (yield* UserStore).findByEmail(edit.email);
-  if (Option.isNone(account)) return yield* new ShareTargetNotFound({ email: edit.email });
+  if (Option.isNone(account)) return yield* members.keepInvite(id, edit.email, edit.role);
   const { user: invited } = account.value;
   if (invited.id === user.id) return yield* new CannotShareWithSelf();
 
-  yield* (yield* MemberStore).invite(id, invited.id, edit.role);
+  yield* members.invite(id, invited.id, edit.role);
   const share: PathShare = { userId: invited.id, name: invited.name, email: invited.email, role: edit.role };
   return share;
+});
+
+export const cancelInvite = Effect.fn('paths.cancelInvite')(function* (id: PathId, email: string) {
+  yield* findFor(id, manages);
+  yield* (yield* MemberStore).cancelInvite(id, email);
 });
 
 /**

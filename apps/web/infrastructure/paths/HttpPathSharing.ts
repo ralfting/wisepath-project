@@ -16,6 +16,8 @@ const make = (reads: typeof inBrowser) =>
         share: (pathId, edit) => classify(api.share({ params: { pathId }, payload: edit })).pipe(Effect.withSpan("PathSharing.share")),
         unshare: (pathId, userId) =>
           classify(api.unshare({ params: { pathId, userId } })).pipe(Effect.withSpan("PathSharing.unshare")),
+        cancelInvite: (pathId, email) =>
+          classify(api.cancelInvite({ params: { pathId }, query: { email } })).pipe(Effect.withSpan("PathSharing.cancelInvite")),
         setVisibility: (pathId, edit) =>
           classify(api.setVisibility({ params: { pathId }, payload: edit })).pipe(Effect.withSpan("PathSharing.setVisibility")),
         take: (pathId) => classify(api.take({ params: { pathId } })).pipe(Effect.withSpan("PathSharing.take")),

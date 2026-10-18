@@ -10,6 +10,7 @@ import { ShareDialog } from './ShareDialog';
 // The Server Actions behind the sharing hooks are not under test here: the dialog is
 vi.mock('@/useCases/paths/actions', () => ({
   sharePath: vi.fn(),
+  cancelInvite: vi.fn(async () => ({ ok: true, value: undefined })),
   unsharePath: vi.fn(async () => ({ ok: true, value: undefined })),
   setPathVisibility: vi.fn(async () => ({ ok: true, value: undefined })),
   takePath: vi.fn(),
@@ -18,20 +19,26 @@ vi.mock('@/useCases/paths/actions', () => ({
 
 const path = samplePath;
 const bob = aShare({ name: 'Bob', role: 'editor' });
-const layers = MemoryPathSharing({ shares: { [path.id]: [bob] } });
+const waiting = { email: 'dee@wisepath.test', role: 'editor' as const };
+const layers = MemoryPathSharing({ shared: { [path.id]: { people: [bob], invites: [waiting] } } });
 
 beforeEach(() => vi.mocked(actions.sharePath).mockReset());
 
 describe('ShareDialog', () => {
-  it('lists who has access, adds someone by email, and says why one could not be added', async () => {
+  it('lists who has access and who it waits for, adds someone by email, and says why one could not be added', async () => {
     const user = userEvent.setup();
     vi.mocked(actions.sharePath)
       .mockResolvedValueOnce({ ok: true, value: aShare({ name: 'Cy' }) })
-      .mockResolvedValueOnce({ ok: false, _tag: 'ShareTargetNotFound', message: 'No account has this email. Ask them to sign up first.' });
+      .mockResolvedValueOnce({ ok: false, _tag: 'CannotShareWithSelf', message: 'This is your own path.' });
     renderWithLayers(<ShareDialog path={path} opened onClose={() => {}} />, layers);
 
     expect(await screen.findByText('Bob')).toBeTruthy();
     expect((screen.getByRole('textbox', { name: 'Access for Bob' }) as HTMLInputElement).value).toBe('Can edit');
+    // An email with no account yet waits, with its access, and can be cancelled
+    expect(screen.getByText('Waiting for them to sign up with this email')).toBeTruthy();
+    expect((screen.getByRole('textbox', { name: `Access for ${waiting.email}` }) as HTMLInputElement).value).toBe('Can edit');
+    await user.click(screen.getByRole('button', { name: `Cancel the invite for ${waiting.email}` }));
+    await waitFor(() => expect(actions.cancelInvite).toHaveBeenCalledWith(path.id, waiting.email));
 
     const email = screen.getByLabelText(/^email/i);
     await user.type(email, 'cy@wisepath.test');
@@ -39,10 +46,10 @@ describe('ShareDialog', () => {
     await waitFor(() => expect(actions.sharePath).toHaveBeenCalledWith(path.id, 'cy@wisepath.test', 'viewer'));
     await waitFor(() => expect((email as HTMLInputElement).value).toBe(''));
 
-    await user.type(email, 'nobody@wisepath.test');
+    await user.type(email, 'me@wisepath.test');
     await user.click(screen.getByRole('button', { name: 'Add' }));
-    expect(await screen.findByText('No account has this email. Ask them to sign up first.')).toBeTruthy();
-    expect((email as HTMLInputElement).value).toBe('nobody@wisepath.test');
+    expect(await screen.findByText('This is your own path.')).toBeTruthy();
+    expect((email as HTMLInputElement).value).toBe('me@wisepath.test');
   });
 
   it('asks for a valid email before sending anything', async () => {

@@ -25,6 +25,8 @@ export const share = {
     none: 'Not shared with anyone yet.',
     unnamed: 'No name',
     loading: 'Loading the people this path is shared with',
+    waiting: 'Waiting for them to sign up with this email',
+    cancel: 'Cancel the invite for {email}',
     progressHint: 'Each person keeps their own progress; nobody sees anyone else’s.',
   },
   from: {
@@ -56,7 +58,6 @@ export const share = {
     loading: 'Loading the path',
   },
   errors: {
-    noAccount: 'No account has this email. Ask them to sign up first.',
     self: 'This is your own path.',
     gone: 'This path no longer exists, or is no longer shared with you.',
   },

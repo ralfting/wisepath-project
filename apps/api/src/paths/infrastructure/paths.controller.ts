@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { Effect, Schema } from 'effect';
 import {
@@ -10,7 +10,8 @@ import {
   Path,
   PathEdit,
   PathId,
-  PathShare,
+  ShareResult,
+  SharedWith,
   PathSummary,
   ShareEdit,
   VisibilityEdit,
@@ -105,12 +106,18 @@ export class PathsController {
 
   @Get(':pathId/shares')
   shares(@Req() req: Request, @Param('pathId', pathId) id: PathId) {
-    return this.effect.respond(sharing.listShares(id).pipe(asUser(req)), Schema.Array(PathShare));
+    return this.effect.respond(sharing.listShares(id).pipe(asUser(req)), SharedWith);
   }
 
   @Put(':pathId/shares')
   share(@Req() req: Request, @Param('pathId', pathId) id: PathId, @Body(new SchemaPipe(ShareEdit)) edit: ShareEdit) {
-    return this.effect.respond(sharing.sharePath(id, edit).pipe(asUser(req)), PathShare);
+    return this.effect.respond(sharing.sharePath(id, edit).pipe(asUser(req)), ShareResult);
+  }
+
+  @Delete(':pathId/invites')
+  @HttpCode(204)
+  async cancelInvite(@Req() req: Request, @Param('pathId', pathId) id: PathId, @Query('email', new SchemaPipe(Schema.String)) email: string) {
+    await this.effect.run(sharing.cancelInvite(id, email).pipe(asUser(req)));
   }
 
   @Delete(':pathId/shares/:userId')

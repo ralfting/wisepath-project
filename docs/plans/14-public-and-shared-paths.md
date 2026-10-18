@@ -58,7 +58,7 @@ User 1──< PageProgress >── Page                          (studied marks,
   - `PathSummary` and `Path` carry `access` and the owner's name; `PathShare` (user name, email, role), invited only;
   - `Page.studied` keeps its name and now means "studied by whoever reads it"; the domain rules over it
     (`progressOf`, `nextToStudy`) do not change;
-  - commands `ShareEdit` (email, role), `VisibilityEdit`; errors `ShareTargetNotFound`, `CannotShareWithSelf`.
+  - commands `ShareEdit` (email, role), `VisibilityEdit`; error `CannotShareWithSelf`.
 - **Contract** (`PathsApi`):
   - `get` and `list` answer for any path the viewer can read; `list` adds the shared ones.
   - The page commands (`createPage`, `updatePage`, `removePage`) need `editor`, except an `updatePage` that only
@@ -74,7 +74,7 @@ User 1──< PageProgress >── Page                          (studied marks,
     and sets `access` with `accessOf`: one implementation of the rule, no SQL twin to keep in agreement.
     `listOwned` becomes `listFor` (own paths and those the reader is a member of). Each use case states what it
     needs (`reads`, `edits`, `manages`).
-  - Sharing by email looks the user up; an unknown email answers `ShareTargetNotFound` to the owner only.
+  - Sharing by email looks the user up; an unknown email is kept as an invite until someone signs up with it.
   - Search (`DrizzleSearchStore`) stays on the viewer's own paths in this plan.
 - **Web**:
   - `useCases/paths`: `share`, `unshare`, `setVisibility` as Server Actions (`actions.ts`); `shares` read in the dialog.
@@ -121,8 +121,8 @@ User 1──< PageProgress >── Page                          (studied marks,
 
 ## Open
 
-- Sharing by email answers `ShareTargetNotFound` for an email with no account, so it tells whether one is registered.
-  Accepted: signup already does (`EmailAlreadyRegistered`).
+- Sharing by email answers a person or an invite, so it tells whether an email has an account. Accepted: signup
+  already does (`EmailAlreadyRegistered`).
 - ~~Search over paths from others.~~ Done 2026-10-17: search covers the paths a learner has, their own and those they are a member of.
-- Inviting an email with no account yet (today: it must exist).
+- ~~Inviting an email with no account yet.~~ Done 2026-10-17: kept as an invite (`path_invites`) and claimed at sign up or log in; WisePath sends no email.
 - Telling a taker that the path went private or was deleted (today it just leaves their list).

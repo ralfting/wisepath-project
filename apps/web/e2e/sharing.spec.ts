@@ -138,3 +138,26 @@ test("someone else's private map, or one that doesn't exist, answers 404 from th
   expect((await eve.page.goto(`/paths/${map.pathId}/pages/${map.pageId}`))?.status()).toBe(404);
   expect((await ada.page.goto(`/paths/${map.pathId}`))?.status()).toBe(200);
 });
+
+test('a path shared with an email that has no account waits, and is theirs once they sign up', async ({ browser }) => {
+  const ada = await someone(browser, 'Ada');
+  const map = await learningPath(ada.page);
+  const email = `later-${crypto.randomUUID()}@wisepath.test`;
+
+  await ada.page.goto(`/paths/${map.pathId}`);
+  await ada.page.getByRole('button', { name: 'Share Rust' }).click();
+  await shareDialog(ada.page).getByLabel(/^email/i).fill(email);
+  await shareDialog(ada.page).getByRole('button', { name: 'Add' }).click();
+  await expect(shareDialog(ada.page).getByText('Waiting for them to sign up with this email')).toBeVisible();
+
+  // Ada tells them herself; they sign up with that email and find it among the paths from others
+  const newcomer = await (await browser.newContext()).newPage();
+  await signUp(newcomer, 'Gil', email);
+  await expect(newcomer.getByRole('region', { name: 'From others' }).getByText('By Ada')).toBeVisible();
+
+  // The invite became a person in Ada's list
+  await ada.page.reload();
+  await ada.page.getByRole('button', { name: 'Share Rust' }).click();
+  await expect(shareDialog(ada.page).getByText('Gil', { exact: true })).toBeVisible();
+  await expect(shareDialog(ada.page).getByText('Waiting for them to sign up with this email')).toHaveCount(0);
+});

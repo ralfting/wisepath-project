@@ -2,10 +2,10 @@ import { Effect, Layer, Schema } from 'effect';
 import { and, asc, eq, notInArray } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import type { UserId } from '@wisepath/domain/auth';
-import { PathShare } from '@wisepath/domain/paths';
+import { PathInvite, PathShare } from '@wisepath/domain/paths';
 import type { MemberRole, PathId } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pageProgress, pathMembers, paths, projects, users } from '../../shared/infrastructure/database/schema';
+import { pageProgress, pathInvites, pathMembers, paths, projects, users } from '../../shared/infrastructure/database/schema';
 import { MemberStore } from '../application/MemberStore';
 
 /** Path members in Postgres through Drizzle; what the Share dialog lists is decoded with the domain's schema */
@@ -67,6 +67,48 @@ export const DrizzleMemberStore = Layer.effect(
       );
     });
 
-    return MemberStore.of({ listInvited, invite, take, remove, removeTaken });
+    // Kept in lower case, so a sign up matches whatever case the owner typed
+    const folded = (email: string) => email.trim().toLowerCase();
+
+    const listInvites = Effect.fn('MemberStore.listInvites')(function* (pathId: PathId) {
+      const rows = yield* run(
+        db
+          .select({ email: pathInvites.email, role: pathInvites.role })
+          .from(pathInvites)
+          .where(eq(pathInvites.pathId, pathId))
+          .orderBy(asc(pathInvites.createdAt), asc(pathInvites.email)),
+      );
+      return yield* Schema.decodeUnknownEffect(Schema.Array(PathInvite))(rows).pipe(Effect.orDie);
+    });
+
+    const keepInvite = Effect.fn('MemberStore.keepInvite')(function* (pathId: PathId, email: string, role: MemberRole) {
+      const invite = { email: folded(email), role };
+      yield* run(
+        db
+          .insert(pathInvites)
+          .values({ pathId, ...invite })
+          .onConflictDoUpdate({ target: [pathInvites.pathId, pathInvites.email], set: { role } }),
+      );
+      return invite;
+    });
+
+    const cancelInvite = Effect.fn('MemberStore.cancelInvite')(function* (pathId: PathId, email: string) {
+      yield* run(db.delete(pathInvites).where(and(eq(pathInvites.pathId, pathId), eq(pathInvites.email, folded(email)))));
+    });
+
+    const claimInvites = Effect.fn('MemberStore.claimInvites')(function* (userId: UserId, email: string) {
+      yield* transaction(
+        Effect.gen(function* () {
+          const claimed = yield* run(
+            db.delete(pathInvites).where(eq(pathInvites.email, folded(email))).returning({ pathId: pathInvites.pathId, role: pathInvites.role }),
+          );
+          if (claimed.length === 0) return;
+          const rows = claimed.map(({ pathId, role }) => ({ pathId, userId, role, source: 'invited' as const }));
+          yield* run(db.insert(pathMembers).values(rows).onConflictDoNothing());
+        }),
+      );
+    });
+
+    return MemberStore.of({ listInvited, invite, take, remove, listInvites, keepInvite, cancelInvite, claimInvites, removeTaken });
   }),
 );

@@ -13,11 +13,11 @@ import {
   PathEdit,
   PathId,
   PathNotFound,
-  PathShare,
   PathSummary,
   RootPageProtected,
   ShareEdit,
-  ShareTargetNotFound,
+  ShareResult,
+  SharedWith,
   TitleTaken,
   VisibilityEdit
 } from "@wisepath/domain/paths"
@@ -84,18 +84,27 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
       params: page,
       error: [SessionRequired, PathNotFound, RootPageProtected]
     }),
-    /** The people the owner invited, for the owner only; who took a public map is never listed */
+    /** The people the owner invited and the emails waiting for a sign up, for the owner only; takers are never listed */
     HttpApiEndpoint.get("shares", "/:pathId/shares", {
       params: path,
-      success: Schema.Array(PathShare),
+      success: SharedWith,
       error: [SessionRequired, PathNotFound]
     }),
-    /** Invites an account by email, or changes the role of someone invited */
+    /**
+     * Shares by email, or changes the role: with the account that has it, or as an invite that becomes a membership
+     * when someone signs up with it (WisePath sends no email)
+     */
     HttpApiEndpoint.put("share", "/:pathId/shares", {
       params: path,
       payload: ShareEdit,
-      success: PathShare,
-      error: [SessionRequired, InvalidRequest, PathNotFound, ShareTargetNotFound, CannotShareWithSelf]
+      success: ShareResult,
+      error: [SessionRequired, InvalidRequest, PathNotFound, CannotShareWithSelf]
+    }),
+    /** Drops an invite still waiting for a sign up */
+    HttpApiEndpoint.delete("cancelInvite", "/:pathId/invites", {
+      params: path,
+      query: { email: Schema.String },
+      error: [SessionRequired, PathNotFound]
     }),
     /** The owner removes someone, or a member leaves (their own id); their marks on the map go too */
     HttpApiEndpoint.delete("unshare", "/:pathId/shares/:userId", {

@@ -149,6 +149,29 @@ export const pathMembers = pgTable(
 );
 
 /**
+ * Emails a path was shared with before they had an account: each becomes a member of the path, with its role, when
+ * someone signs up with it. The email is kept in lower case.
+ */
+export const pathInvites = pgTable(
+  'path_invites',
+  {
+    pathId: text('path_id').notNull(),
+    email: text().notNull(),
+    role: text({ enum: ['viewer', 'editor'] }).notNull(),
+    createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    primaryKey({ name: 'path_invites_pkey', columns: [t.pathId, t.email] }),
+    index('path_invites_email_idx').on(t.email),
+    foreignKey({ name: 'path_invites_path_id_fkey', columns: [t.pathId], foreignColumns: [paths.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
  * The pages a learner marked studied. Progress is each learner's own, on their paths and on anyone else's,
  * and never shown to another (docs/plans/14-public-and-shared-paths.md).
  */

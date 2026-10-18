@@ -82,6 +82,13 @@ export const unsharePath = Effect.fn("useCases.paths.unshare")(function*(pathId:
   yield* PathSharing.use((sharing) => sharing.unshare(id, member))
 })
 
+/** Drops an invite still waiting for someone to sign up with its email */
+export const cancelInvite = Effect.fn("useCases.paths.cancelInvite")(function*(pathId: string, email: string) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  const address = yield* Schema.decodeUnknownEffect(Schema.String)(email)
+  yield* PathSharing.use((sharing) => sharing.cancelInvite(id, address))
+})
+
 /** Makes a map public, readable by anyone with its link, or private again */
 export const setVisibility = Effect.fn("useCases.paths.setVisibility")(function*(pathId: string, visibility: string) {
   const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)

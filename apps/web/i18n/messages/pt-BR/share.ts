@@ -28,6 +28,8 @@ export const share = {
     none: 'Ainda não compartilhada com ninguém.',
     unnamed: 'Sem nome',
     loading: 'Carregando as pessoas com quem esta trilha está compartilhada',
+    waiting: 'Aguardando a pessoa criar conta com este email',
+    cancel: 'Cancelar o convite de {email}',
     progressHint: 'Cada pessoa tem o próprio progresso; ninguém vê o de outra.',
   },
   from: {
@@ -58,7 +60,6 @@ export const share = {
     loading: 'Carregando a trilha',
   },
   errors: {
-    noAccount: 'Nenhuma conta tem esse email. Peça para a pessoa criar uma conta antes.',
     self: 'Esta trilha é sua.',
     gone: 'Esta trilha não existe mais ou não está mais compartilhada com você.',
   },

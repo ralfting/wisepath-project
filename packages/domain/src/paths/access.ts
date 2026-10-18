@@ -42,6 +42,27 @@ export const PathShare = Schema.Struct({
 })
 export type PathShare = typeof PathShare.Type
 
+/**
+ * An email the owner shared the path with before it had an account: it gives nothing yet, and becomes a membership
+ * with this role when someone signs up with that email. WisePath sends nothing; the owner tells them
+ */
+export const PathInvite = Schema.Struct({
+  email: Schema.String,
+  role: MemberRole
+})
+export type PathInvite = typeof PathInvite.Type
+
+/** Who the owner shared a path with: the people who have it, and the emails still waiting for a sign up */
+export const SharedWith = Schema.Struct({
+  people: Schema.Array(PathShare),
+  invites: Schema.Array(PathInvite)
+})
+export type SharedWith = typeof SharedWith.Type
+
+/** What sharing with an email gives: the person, or an invite while the email has no account */
+export const ShareResult = Schema.Union([PathShare, PathInvite])
+export type ShareResult = typeof ShareResult.Type
+
 /** What deciding access needs to know about a path */
 export interface AccessFacts {
   readonly ownerId: UserId

@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import type { Path, PathShare } from "@wisepath/domain/paths"
+import type { Path, ShareResult } from "@wisepath/domain/paths"
 import type { Translate } from "@/i18n/I18nProvider"
 import { HOME } from "@/shared/routes"
 import type { ActionResult } from "../actionResult"
@@ -51,12 +51,13 @@ export async function removePath(pathId: string): Promise<ActionResult<void>> {
   return result
 }
 
-export async function sharePath(pathId: string, email: string, role: string): Promise<ActionResult<PathShare>> {
-  return runAction(programs.sharePath(pathId, { email, role }), (t) => ({
-    ...gone(t),
-    ShareTargetNotFound: t("share.errors.noAccount"),
-    CannotShareWithSelf: t("share.errors.self")
-  }))
+/** With the account that has the email, or an invite kept until someone signs up with it */
+export async function sharePath(pathId: string, email: string, role: string): Promise<ActionResult<ShareResult>> {
+  return runAction(programs.sharePath(pathId, { email, role }), (t) => ({ ...gone(t), CannotShareWithSelf: t("share.errors.self") }))
+}
+
+export async function cancelInvite(pathId: string, email: string): Promise<ActionResult<void>> {
+  return runAction(programs.cancelInvite(pathId, email), gone)
 }
 
 export async function unsharePath(pathId: string, userId: string): Promise<ActionResult<void>> {

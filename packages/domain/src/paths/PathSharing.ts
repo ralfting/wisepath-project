@@ -1,8 +1,8 @@
 import type { Effect } from "effect"
 import { Context } from "effect"
 import type { UserId } from "../auth/User"
-import type { PathShare, ShareEdit, VisibilityEdit } from "./access"
-import type { CannotShareWithSelf, PathNotFound, PathsUnavailable, ShareTargetNotFound } from "./errors"
+import type { SharedWith, ShareEdit, ShareResult, VisibilityEdit } from "./access"
+import type { CannotShareWithSelf, PathNotFound, PathsUnavailable } from "./errors"
 import type { Path, PathId } from "./Path"
 
 /**
@@ -11,13 +11,13 @@ import type { Path, PathId } from "./Path"
  * means it could not be reached and the call can be made again.
  */
 export class PathSharing extends Context.Service<PathSharing, {
-  /** The people the owner invited; PathNotFound for anyone but the owner */
-  readonly shares: (id: PathId) => Effect.Effect<ReadonlyArray<PathShare>, PathNotFound | PathsUnavailable>
-  readonly share: (
-    id: PathId,
-    edit: ShareEdit
-  ) => Effect.Effect<PathShare, PathNotFound | ShareTargetNotFound | CannotShareWithSelf | PathsUnavailable>
+  /** The people the owner invited and the emails waiting for a sign up; PathNotFound for anyone but the owner */
+  readonly shares: (id: PathId) => Effect.Effect<SharedWith, PathNotFound | PathsUnavailable>
+  /** Shares with an account, or keeps an invite for an email with none yet */
+  readonly share: (id: PathId, edit: ShareEdit) => Effect.Effect<ShareResult, PathNotFound | CannotShareWithSelf | PathsUnavailable>
   readonly unshare: (id: PathId, userId: UserId) => Effect.Effect<void, PathNotFound | PathsUnavailable>
+  /** Drops an invite that is still waiting */
+  readonly cancelInvite: (id: PathId, email: string) => Effect.Effect<void, PathNotFound | PathsUnavailable>
   readonly setVisibility: (id: PathId, edit: VisibilityEdit) => Effect.Effect<void, PathNotFound | PathsUnavailable>
   readonly take: (id: PathId) => Effect.Effect<void, PathNotFound | PathsUnavailable>
   readonly leave: (id: PathId) => Effect.Effect<void, PathNotFound | PathsUnavailable>

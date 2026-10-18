@@ -25,11 +25,6 @@ export class RootPageProtected extends Schema.TaggedError<RootPageProtected>()("
   pageId: Schema.String
 }, { httpApiStatus: 422 }) {}
 
-/** No account has this email, so the path can't be shared with it */
-export class ShareTargetNotFound extends Schema.TaggedError<ShareTargetNotFound>()("ShareTargetNotFound", {
-  email: Schema.String
-}, { httpApiStatus: 404 }) {}
-
 /** The owner tried to share a path with themselves */
 export class CannotShareWithSelf extends Schema.TaggedError<CannotShareWithSelf>()("CannotShareWithSelf", {}, {
   httpApiStatus: 422

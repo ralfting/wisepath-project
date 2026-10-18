@@ -13,7 +13,7 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 - **Projects** group paths. Every path is in one. Each account has a default project (General, or Geral in Portuguese) with a Default badge: it can be renamed but not deleted. **New project** beside New path; a project's ⋯ menu renames or deletes it, and a deleted project's paths move to the default one.
 - **Home (My paths):** one group per project, the default first and the rest by name; an empty project still shows. One card per path. A Learning path shows its progress bar, the next page and the Continue button; a Study shows its size ("57 pages · 10 modules"). Searchable by title or description, hiding the projects with nothing matching. **Drag a card** onto another project's group to move it there, or use **Move to** in the card's menu: it shows there at once, goes back if the move can't be saved, and a toast offers Undo. Delete from the same menu.
 - **New path** opens with the default project chosen; a project's **+** opens it with that project. Either can be changed in the dialog.
-- **Sharing** (the owner's **Share** button beside the map's title): add people by email, who **Can read** or **Can edit**; change or remove them in the same dialog. A path can also be **public**: anyone with its link reads it at `/public/paths/…`, logged in or not, and it is never listed or indexed by search engines. Making it private again takes it away from everyone but its owner and the people added.
+- **Sharing** (the owner's **Share** button beside the map's title): add people by email, who **Can read** or **Can edit**; change or remove them in the same dialog. An email with no account yet waits in the list ("Waiting for them to sign up with this email") and becomes theirs when someone signs up with it; WisePath sends no email, the owner tells them. It can be cancelled while it waits. A path can also be **public**: anyone with its link reads it at `/public/paths/…`, logged in or not, and it is never listed or indexed by search engines. Making it private again takes it away from everyone but its owner and the people added.
 - **Progress is each learner's own**, on their paths and on anyone else's: studied marks, the progress bar and Continue follow the person reading, and nobody sees another's, the owner included.
 - **Reading and editing someone else's path.** A reader sees the map and pages without the editor (no +, no N, no menus, no toolbar) and still marks pages studied. An editor edits pages like the owner, but only the owner renames the path, changes its kind or its look's description, shares it, moves it or deletes it.
 - **From others** on My paths, after the projects: the paths shared with you and the public ones you took, each with its owner's name. Their menu has **Leave** only, which takes your marks on it too.
@@ -126,7 +126,7 @@ Write it down now, sort it later: capturing never asks where something goes.
 
 ## Known limits
 
-- Sharing needs an account: an email with none can't be added yet. Review covers your own paths only; search everywhere covers those from others too (shared with you or taken), not public paths you only opened.
+- Review covers your own paths only; search everywhere covers those from others too (shared with you or taken), not public paths you only opened.
 
 - No capturing from other sites yet: a browser extension is planned for later ([plan 8](plans/08-browser-extension.md)).
 - Search everywhere looks at titles and text only: not inside videos, and without filters (by path, by kind) or operators.

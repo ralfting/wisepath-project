@@ -167,8 +167,9 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `POST` | `/api/paths/:pathId/pages` | `{ id, title }`: a new page; 409 `TitleTaken` |
 | `PATCH` | `/api/paths/:pathId/pages/:pageId` | title, content, studied, module, colour, icon; a rename passes `previousTitle` to move the `[[links]]`. `studied` alone is the reader's own mark and needs only reading; the rest needs an editor; renaming the root needs the owner |
 | `DELETE` | `/api/paths/:pathId/pages/:pageId` | pages only it reached become orphans; the root can't be deleted (422) |
-| `GET` | `/api/paths/:pathId/shares` | the people the owner invited (owner only) |
-| `PUT` | `/api/paths/:pathId/shares` | `{ email, role }` with `role` `viewer` or `editor`: invites an account or changes its role; 404 `ShareTargetNotFound`, 422 `CannotShareWithSelf` |
+| `GET` | `/api/paths/:pathId/shares` | `{ people, invites }`: the people the owner invited and the emails waiting for a sign up (owner only) |
+| `PUT` | `/api/paths/:pathId/shares` | `{ email, role }` with `role` `viewer` or `editor`: shares with the account or changes its role; an email with no account is kept as an invite, which becomes a membership when someone signs up (or logs in) with it; 422 `CannotShareWithSelf` |
+| `DELETE` | `/api/paths/:pathId/invites?email=` | drops an invite still waiting (owner only) |
 | `DELETE` | `/api/paths/:pathId/shares/:userId` | the owner removes someone (their marks on it go too) |
 | `DELETE` | `/api/paths/:pathId/membership` | leave a map from others (your marks on it go too) |
 | `PATCH` | `/api/paths/:pathId/visibility` | `{ visibility }`, `private` or `public`; private removes those who took it |
