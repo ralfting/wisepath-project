@@ -32,6 +32,21 @@ export function linksOf(path: Path, pageId: PageId): PageId[] {
   return out;
 }
 
+/**
+ * Titles a page links to that no page has yet, in reading order, once each (folded like titles are compared): the
+ * pages the learner has named but not made. The map shows them so writing [[Title]] visibly adds something
+ */
+export function pendingTitles(path: Path, pageId: PageId): string[] {
+  const page = path.pages.find((p) => p.id === pageId);
+  if (!page) return [];
+  const out: string[] = [];
+  for (const title of referencedTitles(page.content)) {
+    if (!title || findPageByTitle(path.pages, title)) continue;
+    if (!out.some((t) => t.toLowerCase() === title.toLowerCase())) out.push(title);
+  }
+  return out;
+}
+
 /** A page's text with a [[Title]] line added at its end, a blank line after what was there */
 export function withLinkTo(markdown: string, title: string): string {
   const before = markdown.trimEnd();

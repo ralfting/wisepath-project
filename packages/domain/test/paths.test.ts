@@ -16,6 +16,7 @@ import {
   mapTree,
   newPath,
   nextPage,
+  pendingTitles,
   trailTo,
   pathProgress,
   relatedPages,
@@ -89,6 +90,17 @@ describe("map tree", () => {
       "linksTo:Dependency Injection"
     ])
     assert.deepStrictEqual(trailTo(samplePath, id("refresh-tokens")).map((p) => p.title), ["NestJS", "Authentication", "JWT", "Refresh tokens"])
+  })
+})
+
+describe("pending links", () => {
+  it("lists the titles a page names that no page has, once each, in reading order, never code or itself", () => {
+    const p = path({
+      Rust: "Start with [[Ownership]], then [[Borrowing]], [[ownership]] again, and [[Lifetimes]]. `[[Not a link]]`",
+      Borrowing: "Back to [[Rust]] and [[Borrowing]]"
+    })
+    assert.deepStrictEqual(pendingTitles(p, id("rust")), ["Ownership", "Lifetimes"])
+    assert.deepStrictEqual(pendingTitles(p, id("borrowing")), [])
   })
 })
 

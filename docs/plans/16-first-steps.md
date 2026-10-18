@@ -29,11 +29,13 @@ Already fine, so not in the plan: the New path dialog explains Study and Learnin
    - Web: `MindMap` and `MapList` draw them; `mindLayout` places them like leaves.
 2. **The first visit says what to do, once.** While the learner has no path, the paths page shows one compact card
    in place of the empty group: three lines (make a path, link pages with `[[ ]]`, mark what you studied in a
-   learning path) and two actions, New path and Try a sample path. The sample is the NestJS map, copied into the
-   default project with "(sample)" in its title, so it reads as sample content (PRODUCT.md, "Evidence on Hand").
+   learning path) and two actions, New path and Try a sample path. The sample is about something anyone can follow,
+   literature (decided 2026-10-17, not the NestJS map the tests use), written in the account's language, copied into
+   the default project with "(sample)" in its title, so it reads as sample content (PRODUCT.md, "Evidence on Hand").
    The card goes away with the first path and never comes back.
-   - API: `POST /api/paths/sample` copies `samplePath` with `copyPath` into the default project; retry-safe (a
-     second call returns the copy already made).
+   - Domain: `literatureSample(locale)` in English and Portuguese, built like the test map.
+   - API: `POST /api/paths/sample` copies it with `copyPath` into the default project; retry-safe (a second call
+     returns the copy already made).
 3. **One project shows no project header.** With a single project the paths page shows its cards without the group
    header and the Default badge; "New project" stays. Two projects bring the groups back.
 4. **The landing says what WisePath is**: three short lines under the tagline (pages in markdown, linked with
