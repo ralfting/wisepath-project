@@ -12,6 +12,8 @@ import { MapTools } from './MapTools';
 import { MindLines } from './MindLines';
 import { MindNode } from './MindNode';
 import { RootNode } from './RootNode';
+import { isGhost } from '../ghosts';
+import { GhostNode } from './GhostNode';
 import { useMindMap } from './useMindMap';
 
 export interface FocusRequest {
@@ -136,8 +138,19 @@ export function MindMap({
             />
             {plus(rootId, displayTitle(tree.root.page), (rootSide * root.w) / 2, 0)}
             {layout.nodes.map((n) => {
+              if (isGhost(n.page.id)) {
+                return (
+                  <GhostNode
+                    key={n.page.id}
+                    node={n}
+                    selected={selectedId === n.page.id}
+                    item={keys.itemOf(n.page.id, n.depth + 1, false)}
+                    onSelect={onSelect}
+                  />
+                );
+              }
               const status = mind.statusOf(n.page);
-              const counter = n.branches > 0 ? mind.counterOf(n.page.id) : null;
+              const counter = mind.counterOf(n.page.id);
               const node = (
                 <MindNode
                   key={n.page.id}

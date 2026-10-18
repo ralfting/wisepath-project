@@ -58,3 +58,8 @@
 .prompt {
   padding: 4px 0 6px calc(10px + var(--depth, 0) * 26px);
 }
+
+/* A page named but not made yet: dashed, inviting a click (plan 16) */
+.row[data-ghost] {
+  border: 1px dashed var(--mantine-color-default-border);
+}

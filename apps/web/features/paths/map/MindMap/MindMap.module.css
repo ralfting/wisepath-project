@@ -398,3 +398,17 @@
     transition: none;
   }
 }
+
+/* A page named but not made yet: an outline of a page, inviting a click (plan 16) */
+.topic[data-ghost] {
+  border-style: dashed;
+  border-color: var(--mantine-color-default-border);
+  background: transparent;
+  color: var(--mantine-color-dimmed);
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--mantine-color-blue-6);
+    color: var(--mantine-color-blue-light-color);
+  }
+}

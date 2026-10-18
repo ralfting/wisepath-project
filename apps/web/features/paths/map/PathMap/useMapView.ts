@@ -8,6 +8,7 @@ import type { PathActions } from '@/useCases/paths';
 import { openPageId, pageHref, swapOpenPage } from '@/shared/routes';
 import type { FocusRequest } from '../MindMap/MindMap';
 import type { View } from './PathMap.helpers';
+import { ghostTitle, isGhost } from '../ghosts';
 import { useBranch } from './useBranch';
 import { useMapSearch } from './useMapSearch';
 
@@ -68,7 +69,8 @@ export function useMapView({ path, actions }: { path: Path; actions: PathActions
     state: { view, selectedId, focusRequest, progress, next, ...pathProgress(path), look: lookOf(path, path.rootPageId) },
     operations: {
       setView,
-      select,
+      // A ghost page is made as it is opened: its [[link]] is already written, so it joins the map in its place
+      select: (pageId: string) => (isGhost(pageId) ? select(actions.createPage(ghostTitle(pageId)).id, true) : select(pageId)),
       continueStudying: () => next && select(next.id),
       prefetch: (pageId: string) => router.prefetch(pageHref(path.id, pageId)),
     },

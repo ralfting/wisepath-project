@@ -201,3 +201,40 @@ test('a path is made, moved to another project and deleted, each change survivin
   await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Learn Rust' })).toHaveCount(0);
 });
+
+test('pages named with [[ ]] show on the map before they are made, and opening one makes it', async ({ page }) => {
+  await signUp(page);
+  await page.getByRole('button', { name: 'New path' }).first().click();
+  await page.getByLabel(/^what are you learning/i).fill('Learn Rust');
+  await page.getByRole('button', { name: 'Create path' }).click();
+  await expect(page).toHaveURL(/\/pages\//);
+  const pathId = new URL(page.url()).pathname.split('/')[2];
+
+  await page.getByLabel('Page content').click();
+  await page.keyboard.type('Start with [[Ownership]] and [[Borrowing]]. ');
+  // Both show on the map at once, as pages not made yet
+  const ownership = page.getByRole('treeitem', { name: 'Ownership, not made yet. Make it' });
+  const borrowing = page.getByRole('treeitem', { name: 'Borrowing, not made yet. Make it' });
+  await expect(ownership).toBeVisible();
+  await expect(borrowing).toBeVisible();
+
+  // Opening one makes it and opens it; the other stays a ghost
+  await page.keyboard.press('Escape');
+  await expect(page).toHaveURL(new RegExp(`/paths/${pathId}$`));
+  await ownership.click();
+  await expect(page.getByRole('dialog', { name: 'Page beside the map' }).getByRole('textbox', { name: 'Page title' })).toHaveValue('Ownership');
+  await expect(page.getByRole('treeitem', { name: /^Ownership/ })).toBeVisible();
+  await expect(borrowing).toBeVisible();
+
+  // Once the API has the text and the new page, a full load of the map shows the same
+  await expect
+    .poll(async () => {
+      const saved = (await (await page.request.get(`${API}/paths/${pathId}`)).json()) as { pages: Array<{ content: string }> };
+      return [saved.pages.length, saved.pages.some((p) => p.content.includes('[[Borrowing]]'))];
+    })
+    .toEqual([2, true]);
+  await page.goto(`/paths/${pathId}`);
+  await expect(page.getByRole('treeitem', { name: /^Ownership/ })).toBeVisible();
+  await expect(borrowing).toBeVisible();
+  await expect(page.getByRole('treeitem', { name: 'Ownership, not made yet. Make it' })).toHaveCount(0);
+});

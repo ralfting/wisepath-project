@@ -1,6 +1,7 @@
 import type { MapTree, Path } from '@wisepath/domain/paths';
 import { lookOf } from '@wisepath/domain/paths';
 import { shade } from '@/features/paths/path';
+import { isGhost } from '../ghosts';
 import type { MindLayout } from '../mindLayout';
 import classes from './MindMap.module.css';
 
@@ -49,7 +50,9 @@ export function MindLines({
           fill="none"
           stroke={shade(lookOf(path, line.to, tree).color, isPointedLink(line.from, line.to) ? 6 : line.from === rootId ? 4 : 3)}
           strokeWidth={isPointedLink(line.from, line.to) ? 3.4 : line.from === rootId ? 2.4 : 1.6}
-          opacity={dimmed(line.to) ? 0.25 : 0.9}
+          // A line to a page not made yet is dashed and faint, like the page
+          strokeDasharray={isGhost(line.to) ? '4 4' : undefined}
+          opacity={dimmed(line.to) ? 0.25 : isGhost(line.to) ? 0.5 : 0.9}
         />
       ))}
       {layout.arrows.map((line) => (

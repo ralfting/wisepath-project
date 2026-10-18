@@ -5,6 +5,7 @@ import type { Page, Path } from '@wisepath/domain/paths';
 import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
+import { withGhosts } from '../ghosts';
 import { layoutMind, rootShape } from '../mindLayout';
 import type { PlacedNode } from '../mindLayout';
 import { STATUS_KEY } from '../StatusIcon';
@@ -45,19 +46,22 @@ export function useMindMap({
 }) {
   const t = useT();
   const tree = useMemo(() => mapTree(path), [path]);
+  // What is drawn adds the pages named but not made; counts and progress keep reading the real tree
+  const drawn = useMemo(() => withGhosts(path, tree), [path, tree]);
   const root = useMemo(() => rootShape(displayTitle(tree.root.page)), [tree]);
-  const layout = useMemo(() => layoutMind(tree, root), [tree, root]);
+  const layout = useMemo(() => layoutMind(drawn, root), [drawn, root]);
   const rootId = tree.root.page.id;
 
-  const viewport = useMindViewport({ tree, layout, coveredRight, focusRequest, branchFrom });
+  const viewport = useMindViewport({ tree: drawn, layout, coveredRight, focusRequest, branchFrom });
   const highlights = useMindHighlights({ selectedId, matchIds, searchActiveId, onIntent });
-  const keys = useMindKeys({ tree, layout, selectedId, currentId, onAddBranch, frameOn: viewport.operations.frameOn });
+  const keys = useMindKeys({ tree: drawn, layout, selectedId, currentId, onAddBranch, frameOn: viewport.operations.frameOn });
 
   const placed = useMemo(() => new Map(layout.nodes.map((n) => [n.page.id as string, n])), [layout.nodes]);
   const statusOf = (page: Page): TopicStatus => (page.studied ? 'done' : page.id === currentId ? 'current' : 'todo');
+  /** What branches from a page, from the real tree; null when nothing made does (ghosts aren't counted) */
   const counterOf = (id: Page['id']) => {
     const node = tree.nodes.get(id);
-    return node ? progressOf(descendants(node)) : { studied: 0, total: 0 };
+    return node && node.children.length > 0 ? progressOf(descendants(node)) : null;
   };
   /** What a branch holds: studied of all in a learning path, how many pages in a study */
   const countText = (c: { studied: number; total: number }) => (progress ? `${c.studied}/${c.total}` : t('map.pages', { count: c.total }));

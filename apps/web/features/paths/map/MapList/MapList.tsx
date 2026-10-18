@@ -8,6 +8,7 @@ import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths
 import { displayTitle } from '@/i18n/title';
 import { PageGlyph } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
+import { isGhost, withGhosts } from '../ghosts';
 import { StatusIcon } from '../StatusIcon';
 import { PageIcon } from '../PageIcon';
 import classes from './MapList.module.css';
@@ -40,12 +41,33 @@ interface MapListProps {
 export function MapList({ header, path, selectedId, currentId, progress, matchIds, onSelect, onAddBranch, branch = null }: MapListProps) {
   const t = useT();
   const tree = mapTree(path);
+  // The rows add the pages named but not made; counts and progress keep reading the real tree
+  const drawn = withGhosts(path, tree);
   const visible = (node: MapNode): boolean =>
     matchIds === null || matchIds.has(node.page.id) || node.children.some(visible);
 
+  const ghostRow = (node: MapNode) => (
+    <li key={node.page.id} className={classes.item}>
+      <UnstyledButton
+        className={classes.row}
+        data-ghost
+        onClick={() => onSelect(node.page.id)}
+        aria-label={t('map.ghost.label', { title: node.page.title })}
+        style={{ '--depth': node.depth - 1 } as CSSProperties}
+      >
+        <IconPlus size={16} stroke={1.8} aria-hidden="true" />
+        <Text size="sm" c="dimmed" truncate style={{ flex: 1 }}>
+          {node.page.title}
+        </Text>
+      </UnstyledButton>
+    </li>
+  );
+
   const row = (node: MapNode) => {
+    if (isGhost(node.page.id)) return ghostRow(node);
     const look = lookOf(path, node.page.id, tree);
-    const below = node.children.length ? progressOf(descendants(node)) : null;
+    const real = tree.nodes.get(node.page.id);
+    const below = real && real.children.length ? progressOf(descendants(real)) : null;
     const status = node.page.studied ? 'done' : node.page.id === currentId ? 'current' : 'todo';
     return (
       <li key={node.page.id} className={classes.item}>
@@ -110,10 +132,10 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
       {/* Same inset as the map's tools, so switching views leaves them in place */}
       <Stack gap="lg" p="sm" pb="lg">
         {header && <div>{header}</div>}
-        {tree.root.children.length === 0 ? (
+        {drawn.root.children.length === 0 ? (
           <Text c="dimmed">{t('map.list.empty', { title: displayTitle(tree.root.page) })}</Text>
         ) : (
-          <ul className={classes.list}>{tree.root.children.filter(visible).map(row)}</ul>
+          <ul className={classes.list}>{drawn.root.children.filter(visible).map(row)}</ul>
         )}
         {onAddBranch && (
           <div>

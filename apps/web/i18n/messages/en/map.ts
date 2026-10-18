@@ -41,6 +41,10 @@ export const map = {
     continueStudyingPage: 'Continue studying: {title}',
     opens: 'Opens {title}',
   },
+  ghost: {
+    /** A page named with [[Title]] but not made yet, on the map and in the list */
+    label: '{title}, not made yet. Make it',
+  },
   mind: {
     label: 'Map of {title}. Arrow keys move between pages, Enter opens one.',
     module: 'module',

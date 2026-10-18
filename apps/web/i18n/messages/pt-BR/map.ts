@@ -43,6 +43,9 @@ export const map = {
     continueStudyingPage: 'Continuar estudando: {title}',
     opens: 'Abre {title}',
   },
+  ghost: {
+    label: '{title}, ainda não criada. Criar',
+  },
   mind: {
     label: 'Mapa de {title}. As setas movem entre as páginas, Enter abre uma.',
     module: 'módulo',
