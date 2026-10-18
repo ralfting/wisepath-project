@@ -14,7 +14,7 @@ export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
     globalSetup: ['test/globalSetup.ts'],
-    env: { DATABASE_URL: testDatabaseUrl, JWT_SECRET: 'test-only', NODE_ENV: 'test' },
+    env: { DATABASE_URL: testDatabaseUrl, JWT_SECRET: 'test-only', NODE_ENV: 'test', ADMIN_EMAILS: 'admin@wisepath.test' },
     testTimeout: 20_000,
     hookTimeout: 60_000,
     fileParallelism: false,

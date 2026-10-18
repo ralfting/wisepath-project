@@ -14,6 +14,9 @@ import {
   PathId,
   PathNotFound,
   PathSummary,
+  PendingPublication,
+  PublicationRequest,
+  NotAdmin,
   RootPageProtected,
   ShareEdit,
   ShareResult,
@@ -141,6 +144,20 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
       payload: VisibilityEdit,
       error: [SessionRequired, InvalidRequest, PathNotFound]
     }),
+    /**
+     * The owner tells the catalog what the map teaches, who it is for and its language; a map not yet published
+     * waits for an administrator to approve it, keeping its visibility meanwhile
+     */
+    HttpApiEndpoint.put("requestPublication", "/:pathId/publication", {
+      params: path,
+      payload: PublicationRequest,
+      error: [SessionRequired, InvalidRequest, PathNotFound]
+    }),
+    /** Withdraws the request, or takes a published map out of the catalog, leaving it readable by its link */
+    HttpApiEndpoint.delete("withdrawPublication", "/:pathId/publication", {
+      params: path,
+      error: [SessionRequired, PathNotFound]
+    }),
     /** Adds a public map to the reader's maps, to study it with their own marks; never a copy */
     HttpApiEndpoint.post("take", "/:pathId/take", {
       params: path,
@@ -163,3 +180,24 @@ export class PublicPathsApiGroup extends HttpApiGroup.make("publicPaths")
     })
   )
   .prefix("/public/paths") {}
+
+/**
+ * Requests to publish maps to the catalog (under /api/admin/publications), for WisePath's administrators only;
+ * anyone else gets NotAdmin, answered as not found. A request no longer waiting answers PathNotFound.
+ */
+export class AdminApiGroup extends HttpApiGroup.make("admin")
+  .add(
+    HttpApiEndpoint.get("publications", "/publications", {
+      success: Schema.Array(PendingPublication),
+      error: [SessionRequired, NotAdmin]
+    }),
+    HttpApiEndpoint.post("approve", "/publications/:pathId/approve", {
+      params: path,
+      error: [SessionRequired, NotAdmin, PathNotFound]
+    }),
+    HttpApiEndpoint.post("decline", "/publications/:pathId/decline", {
+      params: path,
+      error: [SessionRequired, NotAdmin, PathNotFound]
+    })
+  )
+  .prefix("/admin") {}

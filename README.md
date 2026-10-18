@@ -135,6 +135,7 @@ Migrations only add: new tables, new columns with a default, new indexes. In pro
 | `DATABASE_URL` | Postgres connection | `postgresql://wisepath:wisepath@localhost:5432/wisepath` |
 | `JWT_SECRET` | Signs the session token. Required in production (32+ characters); elsewhere it falls back to a development key | any long random string |
 | `FRONTEND_URL` | Origin allowed by CORS | `http://localhost:4002` |
+| `ADMIN_EMAILS` | Accounts that review requests to publish to the catalog, comma separated; none when unset | your own email |
 | `HOST`, `PORT` | Where the API listens | `127.0.0.1`, `4001` (Docker uses `0.0.0.0`) |
 
 **Web** (`apps/web/.env.local`, optional)

@@ -13,6 +13,7 @@ import {
   ShareResult,
   SharedWith,
   PathSummary,
+  PublicationRequest,
   ShareEdit,
   VisibilityEdit,
 } from '@wisepath/domain/paths';
@@ -23,6 +24,7 @@ import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import { CurrentUser } from '../application/CurrentUser';
 import * as downloads from '../application/downloads';
 import * as paths from '../application/paths';
+import * as publications from '../application/publications';
 import * as sample from '../application/sample';
 import * as sharing from '../application/sharing';
 import { requestLocale } from '../../projects/infrastructure/requestLocale';
@@ -167,5 +169,21 @@ export class PathsController {
   @HttpCode(204)
   async take(@Req() req: Request, @Param('pathId', pathId) id: PathId) {
     await this.effect.run(sharing.takePath(id).pipe(asUser(req)));
+  }
+
+  @Put(':pathId/publication')
+  @HttpCode(204)
+  async requestPublication(
+    @Req() req: Request,
+    @Param('pathId', pathId) id: PathId,
+    @Body(new SchemaPipe(PublicationRequest)) request: PublicationRequest,
+  ) {
+    await this.effect.run(publications.askToPublish(id, request).pipe(asUser(req)));
+  }
+
+  @Delete(':pathId/publication')
+  @HttpCode(204)
+  async withdrawPublication(@Req() req: Request, @Param('pathId', pathId) id: PathId) {
+    await this.effect.run(publications.withdrawPublication(id).pipe(asUser(req)));
   }
 }

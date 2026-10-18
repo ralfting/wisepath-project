@@ -90,7 +90,7 @@ async rename(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, 
 
 ## Config and secrets
 
-- Env vars: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `HOST`, `PORT`, `NODE_ENV`. `jwtSecret()` refuses to start
+- Env vars: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `ADMIN_EMAILS` (through `Config`), `HOST`, `PORT`, `NODE_ENV`. `jwtSecret()` refuses to start
   in production without a 32+ character secret of its own. Never weaken that check.
 - `process.env` is read in `main.ts`, `setup.ts`, `auth.module.ts` (passed to `jwtSecret`) and `session.ts` only;
   `Sql.ts` reads `DATABASE_URL` through Effect `Config.Redacted`. New config goes through `Config`, not `process.env`.

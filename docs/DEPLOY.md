@@ -33,6 +33,7 @@ where `middleware.ts` can read it. CORS never comes into play.
   - `DATABASE_URL`: the Neon pooled URL
   - `JWT_SECRET`: a new long random string (`openssl rand -base64 48`), not the one in `.env`
   - `FRONTEND_URL`: the web project's URL
+  - `ADMIN_EMAILS`: the emails of the accounts that approve paths for the catalog, comma separated
 - Check: `https://<api-project>.vercel.app/api` answers "Hello from WisePath API!".
 
 ## 3. Web project

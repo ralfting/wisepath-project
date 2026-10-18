@@ -6,6 +6,7 @@ import { UserStore } from '../../auth/application/UserStore';
 import { CurrentUser } from './CurrentUser';
 import { MemberStore } from './MemberStore';
 import { PathStore } from './PathStore';
+import { PublicationStore } from './PublicationStore';
 import { notifyLost } from './notices';
 import { findFor, manages, reads } from './paths';
 
@@ -77,8 +78,11 @@ export const setVisibility = Effect.fn('paths.setVisibility')(function* (id: Pat
     Effect.gen(function* () {
       const path = yield* findFor(id, manages, { lock: true });
       yield* store.setVisibility(id, edit.visibility);
-      // A private path is no one's to study but its owner's and the people they invited
-      if (edit.visibility === 'private') yield* notifyLost(yield* members.removeTaken(id), path, 'private');
+      // A private path is no one's to study but its owner's and the people they invited, nor a candidate for the catalog
+      if (edit.visibility === 'private') {
+        yield* notifyLost(yield* members.removeTaken(id), path, 'private');
+        yield* (yield* PublicationStore).drop(id);
+      }
     }),
   );
 });
