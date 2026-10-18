@@ -56,7 +56,8 @@ export function render(message: MessageValue, locale: Locale, values: Values = {
   let text: string;
   if (isPlural(message)) {
     const count = Number(values.count ?? 0);
-    const form = pluralRules(locale).select(count);
+    // CLDR puts 0 with 1 in Portuguese ("0 página"); Brazilian usage says "0 páginas"
+    const form = count === 0 && locale === 'pt-BR' ? 'other' : pluralRules(locale).select(count);
     text = (count === 0 && message.zero) || (form === 'one' ? message.one : message.other);
   } else {
     text = message;

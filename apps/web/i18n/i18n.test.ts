@@ -17,6 +17,9 @@ describe('messages', () => {
     expect(translate(en, en, 'en', 'home.pages', { count: 3 })).toBe('3 pages');
     expect(translate(pt, en, 'pt-BR', 'home.pages', { count: 0 })).toBe('Nenhuma página');
     expect(translate(pt, en, 'pt-BR', 'home.pages', { count: 2 })).toBe('2 páginas');
+    // Without a zero form, Portuguese says "0 páginas", where CLDR's rules would pick the singular
+    const plain = { one: '{count} página', other: '{count} páginas' };
+    expect([0, 1].map((count) => render(plain, 'pt-BR', { count }))).toEqual(['0 páginas', '1 página']);
   });
 
   it('falls back to English, then to the key', () => {
