@@ -8,13 +8,13 @@ web
 
 ## Users
 
-Primary: technical learners comfortable with markdown — developers, plus people learning data, design tooling and similar technical subjects. They are studying a topic on their own (e.g. "Learn Javascript"), pulling from scattered videos, docs, articles and books, and need one place to keep what they found and how it fits together.
+Primary: anyone studying a subject on their own (decided 2026-10-17): a language, an instrument, literature, history, programming, an exam. They pull from scattered videos, articles, books and courses, and need one place to keep what they found, how it fits together and how far they got. They need not know markdown: the editor formats as they type, and markdown is what it saves, not what they must learn.
 
-Secondary: followers who receive a copy of someone else's path and work through it with their own progress. Authoring comes first; following is a bonus, not the main entry point.
+Secondary: people a path is shared with, or who take a public one to study it with their own progress. Authoring comes first; following is a bonus, not the main entry point.
 
 ## Product Purpose
 
-WisePath lets a learner map what they are learning. Every map has one root page named after the subject ("NestJS"); every other page is a page of free-form markdown (explanations, notes, links, embedded videos), at any depth. Pages connect only through `[[Title]]` links written in their text: linking a title that does not exist yet and clicking it creates the page. The map is read from those links, outward from the root. The core loop is authoring: write a page, link the next ones, click to create them. A path is a **Study** (open notes, no progress) unless it is made a **Learning path**, where learners mark pages studied and pick up where they stopped.
+WisePath lets a learner map what they are learning. Every map has one root page named after the subject ("NestJS"); every other page is a page of free-form markdown (explanations, notes, links, embedded videos), at any depth. Pages connect only through `[[Title]]` links written in their text: linking a title that does not exist yet and clicking it creates the page. The map is read from those links, outward from the root. The core loop is authoring: write a page, link the next ones (they show on the map at once, as pages not made yet), open them to create them. A path is a **Study** (open notes, no progress) unless it is made a **Learning path**, where learners mark pages studied and pick up where they stopped.
 
 Success: a learner can come back months later — or hand the project to someone else — and find what they wrote about each concept, the resources they kept, and how the pieces connect.
 
@@ -32,7 +32,7 @@ Typical workflow:
 5. For each page, write free-form markdown: the concept, notes, links, YouTube embeds.
 6. Reference related pages anywhere in the map with `[[Title]]`.
 7. In a learning path, mark pages studied; "Continue studying" opens the next one. Watching a video, take timestamped notes under it without leaving it.
-8. Share the map; the recipient gets an independent copy.
+8. Share the map with people (to read or to edit) or make it public; each of them studies it with their own progress, and it stays the author's.
 
 Used in a desktop browser alongside the material being studied (video, docs, IDE), often over many sessions.
 
@@ -47,7 +47,7 @@ Used in a desktop browser alongside the material being studied (video, docs, IDE
 - Views: a horizontal mind map (root in the centre, branches split left and right, each level a column further out) and an indented list. The selected page opens in a side panel with its related pages (where it branches from, its branches, links out, links in); a full-screen editor is one click away.
 - Kinds: a map is a Study (the default: no progress anywhere) or a Learning path; switching keeps the studied flags, hidden in a Study.
 - Progress (learning paths): every page but the root has a studied flag. The root shows the whole map's count, every page with branches shows the count of the pages below it, and "Continue studying" goes to the first page not studied yet, in map order.
-- Sharing creates a full independent copy; each user owns their own copy and progress.
+- Sharing never copies (decided 2026-10-17, docs/plans/14-public-and-shared-paths.md): the owner invites people to read or edit, or makes the path public; anyone can take a public path to study it. Each learner's progress is their own and nobody sees another's. The content stays the owner's and follows their edits; nobody can clone or republish someone else's path.
 - Out of scope for v1: real-time collaboration, built-in templates, social features (likes, comments on others' projects), mobile apps.
 - Stack: Turborepo monorepo — Next.js 15 + Mantine 8 (design system, customised only through `apps/web/theme.ts`) + Effect 4 (`apps/web`), NestJS + Effect + Drizzle (`apps/api`), the domain model (`packages/domain`) and API contract (`packages/contract`).
 - Terminology: "map" (code: path) = the subject; "project" = a user's group of paths, one of them the default; "root" = the map's centre page; "page" = any other page; "branch" = a page reached first through a link from another; "arrow" = any other link between pages on the map; "module" = a page shown larger, only a display choice; "orphan" = a page no link reaches.
@@ -60,12 +60,12 @@ Used in a desktop browser alongside the material being studied (video, docs, IDE
 
 ## Evidence on Hand
 
-None. No users, testimonials, metrics, example paths or screenshots exist yet. Do not fabricate them; demo content must read as sample content.
+None. No users, testimonials, metrics or screenshots exist yet. The one example path is the literature sample offered on a first visit, titled as a sample. Do not fabricate the rest; demo content must read as sample content.
 
 ## Product Principles
 
 1. Writing and connecting is the product: pages of free markdown and the links between them; the map is only a reading of those links.
 2. The author owns their journey — a personal notebook first, shareable second.
-3. Respect technical learners: markdown, precise language, no hand-holding.
+3. Respect the learner: plain, precise language, and help that shows the way once (a first visit, a sample path) rather than tutorials that stay in the way.
 4. Progress is honest and simple: one page, one completion state.
-5. Sharing hands over a copy, never a dependency.
+5. Sharing lends a path, never hands it over: others study it with their own progress, and it stays its author's.

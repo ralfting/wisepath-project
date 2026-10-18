@@ -3,7 +3,7 @@
 Done 2026-10-17 (steps 1 to 6), from a usability review (a first visit walked through in the browser, desktop and phone
 widths). The app is quick once understood (search, capture, Inbox and the keyboard rated 8 of 10) but a first
 visit rated 5: the main gesture seems to do nothing, and the first screens explain little. This plan fixes the
-entry without adding hand-holding ([PRODUCT.md](../../PRODUCT.md), principle 3).
+entry with help that shows the way once ([PRODUCT.md](../../PRODUCT.md), principle 3).
 
 ## What the review found
 
