@@ -167,6 +167,7 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `GET` | `/api/paths/:pathId` | one map with its pages |
 | `PUT` | `/api/paths/:pathId/publication` | `{ description, audience, language }`: asks to publish to the catalog (owner only); a published map only saves them |
 | `DELETE` | `/api/paths/:pathId/publication` | withdraws the request, or unpublishes to readable by link (owner only) |
+| `GET` | `/api/public/catalog/:slug` | a published map by its catalog address, no session; 404 for anything else |
 | `GET` | `/api/admin/publications` | the requests waiting, for the accounts in `ADMIN_EMAILS`; 404 `NotAdmin` for anyone else |
 | `POST` | `/api/admin/publications/:pathId/approve`, `/decline` | decides a waiting request; 404 `PathNotFound` once it no longer waits |
 | `GET` | `/api/paths/:pathId/export` | one map you own as Markdown, one file per page, in a zip (owner only) |

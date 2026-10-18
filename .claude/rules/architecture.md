@@ -77,6 +77,7 @@ Dependencies point one way: `app → features → useCases → infrastructure`, 
 | `features/paths/editor` | The markdown editor, its extensions and video notes |
 | `features/paths/path` | Pieces about one path used across the above: gate, save status, kind switch, page glyph, the Share dialog, the related-page hover between drawer and map |
 | `features/paths/public` | A public path read by its link, and Study this path |
+| `features/paths/catalog` | A published path's pages as the catalog shows them, rendered on the server: `PublishedPage`, `MarkdownText` |
 | `features/paths/publications` | The administrators' review of requests to publish paths to the catalog |
 | `features/inbox/list` | The Inbox page and its page picker |
 | `features/inbox/capture` | Quick capture, its shortcut and toasts |
