@@ -1,6 +1,6 @@
 # 15. Reads on the server, mutations as Server Actions
 
-Proposed 2026-10-17. Finishes "Migration still open" in [architecture.md](../../.claude/rules/architecture.md) as far
+Phase A done 2026-10-17; Phase B waits for Effect #8398. Finishes "Migration still open" in [architecture.md](../../.claude/rules/architecture.md) as far
 as Effect allows today, and says what waits.
 
 ## Why

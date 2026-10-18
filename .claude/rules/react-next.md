@@ -17,12 +17,18 @@ and when a change is already rewriting a screen ([architecture.md](architecture.
 
 | Operation | Mechanism |
 |---|---|
-| First render data: paths list, projects, inbox, a map, a page, the session | Server Component calling `useCases/<domain>/queries.ts` |
-| Tab title, `notFound()`, `redirect()` | Server: `generateMetadata` and the page, through the same queries |
-| Discrete mutation: project CRUD, create/delete path, file/discard inbox item | Server Action in `useCases/<domain>/actions.ts` |
+| First render data of a screen's own (a public path) | Server Component calling `useCases/<domain>/queries.ts` |
+| Lists several screens read at once (paths, projects, Inbox) and the map | Client atoms for now: server reads wait for Effect #8398 (plan 15, Phase B) |
+| Tab title, `notFound()`, `redirect()` | Server: `generateMetadata`, the page or the layout, through the same queries (`readablePath`) |
+| Discrete mutation: project CRUD; make, move, delete a path, switch its kind; sharing | Server Action in `useCases/<domain>/actions.ts` |
+| Inbox capture, discard and filing | Client atoms, optimistic and fire and forget (see below) |
 | Session: login, signup, logout, account language | Client atoms in `useCases/auth/session.ts`, straight to the API |
 | Continuous map editing (commands, offline queue, 400 ms debounce) | Client atoms in `useCases/paths/sync.ts`, straight to the API |
 | Pure interaction: palettes, drawer, editor, mind map, keyboard | Client component, as deep in the tree as possible |
+
+**Why the Inbox stays on atoms:** a capture shows at once and is sent in the background, from wherever the learner
+is; the atom lives in a container that stays mounted so a slow request is never dropped (BUG-001). A Server Action per
+capture adds a hop through Next and would need that solved again. Decided 2026-10-17.
 
 **Why the session stays client-side:** the browser reaches the API on the same origin (the `/api` rewrite in
 production, the same host in dev), so the API's `Set-Cookie` lands where the next server read needs it. As Server

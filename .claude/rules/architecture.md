@@ -88,8 +88,7 @@ otherwise leave it and follow the target for new files.
 
 | Today | Target |
 |---|---|
-| Client-only reads (`useProjects`, `usePaths`, map load) | `queries.ts` on the server runtime, data passed as props (first: the map's tab title) |
-| Discrete mutations through atoms (paths, inbox) | `actions.ts` Server Actions, as projects already are; the session (login, signup, logout) stays on atoms |
+| Client-only reads of shared lists (`useProjects`, `usePaths`, `useInbox`) and the map's first load | Read in `queries.ts` and given to the atoms as initial values, once Effect #8398 is fixed ([plan 15](../../docs/plans/15-server-reads-and-actions.md), Phase B). Until then they stay; the map's layout already answers 404 from the server |
 | `inBrowser` guards in `Http*` Layers | stay for the browser's Layer (client components also render on the server, without the session); the server gets a twin without the guard (`ServerPathRepository`) |
 
 ## Where does this file go?
