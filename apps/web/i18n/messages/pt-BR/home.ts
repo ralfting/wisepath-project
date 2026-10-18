@@ -35,6 +35,7 @@ export const home = {
     continue: 'Continuar estudando',
     delete: 'Excluir trilha',
     moveTo: 'Mover para',
+    download: 'Baixar em Markdown',
     moved: '“{title}” movida para {project}',
     moveFailed: 'Não foi possível mover “{title}”.',
     undo: 'Desfazer',

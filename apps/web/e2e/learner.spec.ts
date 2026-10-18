@@ -267,3 +267,17 @@ test('a first visit says how to start, offers a sample path once, and shows no p
   await expect(page.getByRole('heading', { name: 'General' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
 });
+
+test('a path downloads from My paths as a zip of Markdown named after it', async ({ page }) => {
+  await signUp(page);
+  await page.getByRole('button', { name: 'New path' }).first().click();
+  await page.getByLabel(/^what are you learning/i).fill('Learn Effect');
+  await page.getByRole('button', { name: 'Create path' }).click();
+  await expect(page).toHaveURL(/\/paths\/[^/]+\/pages\//);
+
+  await page.goto('/paths');
+  await page.getByRole('button', { name: 'More for Learn Effect' }).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('menuitem', { name: 'Download as Markdown' }).click();
+  expect((await download).suggestedFilename()).toBe('Learn Effect.zip');
+});

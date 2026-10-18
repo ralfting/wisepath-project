@@ -3,15 +3,16 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Collapse, Avatar, Group, Menu, Stack, Text, UnstyledButton, VisuallyHidden } from '@mantine/core';
-import { IconChevronDown, IconCheck, IconLanguage, IconLogout, IconSelector } from '@tabler/icons-react';
+import { IconChevronDown, IconCheck, IconDownload, IconLanguage, IconLogout, IconSelector } from '@tabler/icons-react';
 import { useLogout, useSaveLocale, useSession } from '@/useCases/auth';
+import { allPathsDownloadHref } from '@/useCases/paths';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { LOCALES, LOCALE_NAMES } from '@/i18n/locales';
 import { Flag } from '@/i18n/Flag';
 import type { Locale } from '@/i18n/locales';
 import classes from './AppFrame.module.css';
 
-/** The learner's menu at the foot of the sidebar: their language and logging out */
+/** The learner's menu at the foot of the sidebar: their language, downloading their paths and logging out */
 export function AccountMenu() {
   const router = useRouter();
   const session = useSession();
@@ -90,6 +91,9 @@ export function AccountMenu() {
             );
           })}
         </Collapse>
+        <Menu.Item component="a" href={allPathsDownloadHref()} download leftSection={<IconDownload size={16} />}>
+          {t('shell.account.download')}
+        </Menu.Item>
         <Menu.Divider role="separator" />
         <Menu.Item leftSection={<IconLogout size={16} />} onClick={onLogout}>
           {t('shell.account.logout')}

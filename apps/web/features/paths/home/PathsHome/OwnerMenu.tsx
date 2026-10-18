@@ -2,16 +2,16 @@
 
 import { useState } from 'react';
 import { ActionIcon, Menu } from '@mantine/core';
-import { IconDotsVertical, IconFolderShare, IconTrash } from '@tabler/icons-react';
+import { IconDotsVertical, IconDownload, IconFolderShare, IconTrash } from '@tabler/icons-react';
 import type { PathSummary } from '@wisepath/domain/paths';
 import type { Project } from '@wisepath/domain/projects';
-import { useSetPathKind } from '@/useCases/paths';
+import { pathDownloadHref, useSetPathKind } from '@/useCases/paths';
 import { KindSwitchItem } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PathsHome.module.css';
 import { DeleteMapModal } from './DeleteMapModal';
 
-/** The owner's menu on a path card: its kind, moving it to another project, deleting it */
+/** The owner's menu on a path card: its kind, moving it to another project, downloading it, deleting it */
 export function OwnerMenu({
   path,
   projects,
@@ -51,6 +51,9 @@ export function OwnerMenu({
               </Menu.Sub.Dropdown>
             </Menu.Sub>
           )}
+          <Menu.Item component="a" href={pathDownloadHref(path.id)} download leftSection={<IconDownload size={15} />}>
+            {t('home.card.download')}
+          </Menu.Item>
           <Menu.Divider />
           <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={() => setDeleting(true)}>
             {t('home.card.delete')}

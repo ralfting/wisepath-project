@@ -3,6 +3,7 @@ export const shell = {
   account: {
     menu: 'Account',
     logout: 'Log out',
+    download: 'Download my paths',
   },
   sidebar: {
     label: 'Sidebar',
