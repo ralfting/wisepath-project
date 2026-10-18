@@ -27,7 +27,7 @@ export const map = {
   results: {
     count: { zero: 'Nenhuma página encontrada', one: '{count} página', other: '{count} páginas' },
     label: 'Páginas encontradas',
-    centre: 'Centro da trilha',
+    centre: 'Página principal',
     offMap: 'Fora do mapa',
     inPage: 'Em {title}',
   },

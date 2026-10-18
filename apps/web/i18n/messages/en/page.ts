@@ -14,7 +14,7 @@ export const page = {
   panel: {
     label: 'Selected page',
     trail: 'Path to this page',
-    centre: 'Centre of the path',
+    centre: 'Main page',
     orphans: 'Orphans',
     morePages: 'More pages',
     expand: 'Expand',
@@ -25,7 +25,6 @@ export const page = {
       'To add a page, type / and choose Page, then its name and Enter (Cmd/Ctrl+Enter to stay here). To connect pages, type [[ and a name.',
   },
   kind: {
-    path: 'The path',
     orphan: 'Orphan: no link reaches this page',
     module: 'Module',
     page: 'Page',

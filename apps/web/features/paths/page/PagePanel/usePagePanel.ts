@@ -36,7 +36,8 @@ export function usePagePanel({ path, page, store, onSelect }: { path: Path; page
   const branchFrom = trail.length > 1 ? trail[trail.length - 2] : null;
   // A learning path counts what below was studied; a study, how many pages are below
   const progress = path.kind === 'learningPath';
-  const kind = t(isRoot ? 'page.kind.path' : isOrphan ? 'page.kind.orphan' : page.module ? 'page.kind.module' : 'page.kind.page');
+  // The main page is named by the header; under its title goes what the path is about
+  const kind = isRoot ? (path.description ?? null) : t(isOrphan ? 'page.kind.orphan' : page.module ? 'page.kind.module' : 'page.kind.page');
   const belowText =
     !below || below.total === 0
       ? null
@@ -56,7 +57,7 @@ export function usePagePanel({ path, page, store, onSelect }: { path: Path; page
       below,
       progress,
       related: relatedPages(path, page.id),
-      subtitle: belowText ? `${kind} · ${belowText}` : kind,
+      subtitle: [kind, belowText].filter(Boolean).join(' · '),
       actions: pageActionsFor(store, onSelect),
     },
     operations: {

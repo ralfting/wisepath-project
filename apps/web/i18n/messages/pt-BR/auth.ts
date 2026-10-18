@@ -5,6 +5,9 @@ import type { auth as en } from '@/i18n/messages/en/auth';
 export const auth = {
   landing: {
     tagline: 'Mapeie o que você está aprendendo, página por página, até o “Agora eu sei”.',
+    what: 'Páginas em markdown, uma para cada coisa a aprender.',
+    links: 'Ligadas com [[ ]], para o assunto ganhar forma de mapa.',
+    study: 'Seguidas página por página, marcando o que você estudou.',
     logIn: 'Entrar',
     signUp: 'Criar conta',
   },

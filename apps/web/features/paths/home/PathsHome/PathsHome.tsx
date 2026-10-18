@@ -32,7 +32,8 @@ export function PathsHome() {
             </Title>
             <Text c="dimmed">{t('home.intro')}</Text>
           </Stack>
-          <Group gap="sm" wrap="nowrap">
+          {/* Below sm the search takes a line of its own, the buttons the next */}
+          <Group gap="sm">
             {state.hasPaths && (
               <TextInput
                 type="search"
@@ -42,7 +43,7 @@ export function PathsHome() {
                 value={state.query}
                 onChange={(event) => operations.setQuery(event.currentTarget.value)}
                 onKeyDown={(event) => event.key === 'Escape' && operations.clearQuery()}
-                w={{ base: '100%', xs: 240 }}
+                w={{ base: '100%', sm: 240 }}
               />
             )}
             <Button variant="default" leftSection={<IconFolderPlus size={16} />} onClick={operations.openNewProject} style={{ flexShrink: 0 }}>

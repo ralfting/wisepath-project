@@ -17,7 +17,7 @@ export const page = {
   panel: {
     label: 'Página selecionada',
     trail: 'Caminho até esta página',
-    centre: 'Centro da trilha',
+    centre: 'Página principal',
     orphans: 'Órfãs',
     morePages: 'Mais páginas',
     expand: 'Expandir',
@@ -28,7 +28,6 @@ export const page = {
       'Para adicionar uma página, digite / e escolha Página, depois o nome e Enter (Cmd/Ctrl+Enter para ficar aqui). Para conectar páginas, digite [[ e um nome.',
   },
   kind: {
-    path: 'A trilha',
     orphan: 'Órfã: nenhum link chega a esta página',
     module: 'Módulo',
     page: 'Página',

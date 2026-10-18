@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Button, Center, Group, Stack, Text, Title } from '@mantine/core';
+import { Button, Center, Group, List, Stack, Text, Title } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
 
 export default function Home() {
@@ -15,6 +15,11 @@ export default function Home() {
         <Text size="lg" c="dimmed" ta="center">
           {t('auth.landing.tagline')}
         </Text>
+        <List spacing={4} c="dimmed">
+          <List.Item>{t('auth.landing.what')}</List.Item>
+          <List.Item>{t('auth.landing.links')}</List.Item>
+          <List.Item>{t('auth.landing.study')}</List.Item>
+        </List>
         <Group>
           <Button component={Link} href="/login">
             {t('auth.landing.logIn')}

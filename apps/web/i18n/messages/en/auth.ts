@@ -2,6 +2,9 @@
 export const auth = {
   landing: {
     tagline: 'Map what you are learning, page by page, down to “Now I know it”.',
+    what: 'Pages in markdown, one per thing to learn.',
+    links: 'Linked with [[ ]], so the subject takes shape as a map.',
+    study: 'Followed page by page, marking what you studied.',
     logIn: 'Log in',
     signUp: 'Sign up',
   },

@@ -25,7 +25,7 @@ export const map = {
   results: {
     count: { zero: 'No page matches', one: '{count} page', other: '{count} pages' },
     label: 'Pages found',
-    centre: 'Centre of the path',
+    centre: 'Main page',
     offMap: 'Not on the map',
     inPage: 'In {title}',
   },
