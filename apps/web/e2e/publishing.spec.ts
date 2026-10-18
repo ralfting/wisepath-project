@@ -42,9 +42,11 @@ test('an owner asks to publish a path, and an administrator approves it', async 
   await reader.goto(`/p/${slug}`);
   await expect(reader.getByRole('heading', { name: 'Rust', level: 1 })).toBeVisible();
   await expect(reader.getByText('Ownership and borrowing in Rust')).toBeVisible();
-  await reader.getByRole('article').getByRole('link', { name: 'Borrowing' }).click();
+  await reader.getByRole('article').getByRole('link', { name: 'Borrowing', exact: true }).click();
   await expect(reader).toHaveURL(new RegExp(`/p/${slug}/borrowing$`));
   await expect(reader.getByRole('heading', { name: 'Borrowing', level: 1 })).toBeVisible();
+  // The way back, in the map's reading order
+  await expect(reader.getByRole('navigation', { name: 'Previous and next page' }).getByRole('link', { name: /Rust/ })).toBeVisible();
 
   // Without a domain of its own (no SITE_URL here) search engines are kept out: noindex, and robots.txt closed
   await expect(reader.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);

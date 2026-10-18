@@ -10,3 +10,8 @@
   padding: 0;
   margin: 0;
 }
+
+/* Set apart from the text it follows */
+.pager {
+  border-top: 1px solid var(--wp-line);
+}

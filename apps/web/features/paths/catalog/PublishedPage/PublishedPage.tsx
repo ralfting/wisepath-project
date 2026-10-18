@@ -1,5 +1,5 @@
 import { Anchor, Badge, Box, Breadcrumbs, Container, Flex, Group, Paper, Stack, Text, Title } from '@mantine/core';
-import { relatedPages, trailTo } from '@wisepath/domain/paths';
+import { neighbours, relatedPages, trailTo } from '@wisepath/domain/paths';
 import type { Page, Path, Relation } from '@wisepath/domain/paths';
 import type { Translate, TranslationKey } from '@/i18n/I18nProvider';
 import { displayTitle } from '@/i18n/title';
@@ -32,6 +32,7 @@ export function PublishedPage({ path, pathSlug, page, t }: PublishedPageProps) {
   const isRoot = page.id === path.rootPageId;
   const trail = trailTo(path, page.id);
   const related = relatedPages(path, page.id);
+  const { previous, next } = neighbours(path, page.id);
 
   return (
     <Container component="main" size="lg" py="xl">
@@ -71,6 +72,28 @@ export function PublishedPage({ path, pathSlug, page, t }: PublishedPageProps) {
               {displayTitle(page)}
             </Title>
             {page.content.trim() ? <MarkdownText content={page.content} hrefOf={hrefOfTitle} /> : <Text c="dimmed">{t('catalog.empty')}</Text>}
+            {(previous || next) && (
+              <Group component="nav" aria-label={t('catalog.pager')} justify="space-between" align="flex-start" mt="xl" pt="md" className={classes.pager}>
+                {previous ? (
+                  <Anchor href={hrefOf(previous)} rel="prev">
+                    <Text span size="xs" c="dimmed" display="block">
+                      ← {t('catalog.previous')}
+                    </Text>
+                    {displayTitle(previous)}
+                  </Anchor>
+                ) : (
+                  <span />
+                )}
+                {next && (
+                  <Anchor href={hrefOf(next)} rel="next" ta="right">
+                    <Text span size="xs" c="dimmed" display="block">
+                      {t('catalog.next')} →
+                    </Text>
+                    {displayTitle(next)}
+                  </Anchor>
+                )}
+              </Group>
+            )}
           </Paper>
 
           <Stack gap="lg" w={{ base: '100%', md: 280 }}>

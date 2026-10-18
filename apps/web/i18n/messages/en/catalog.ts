@@ -7,5 +7,8 @@ export const catalog = {
   trail: 'Where this page sits',
   related: 'Related pages',
   pages: 'Pages in this path',
+  pager: 'Previous and next page',
+  previous: 'Previous',
+  next: 'Next',
   empty: 'This page has no text yet.',
 } as const;

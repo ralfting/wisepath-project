@@ -10,5 +10,8 @@ export const catalog = {
   trail: 'Onde esta página fica',
   related: 'Páginas relacionadas',
   pages: 'Páginas desta trilha',
+  pager: 'Página anterior e próxima',
+  previous: 'Anterior',
+  next: 'Próxima',
   empty: 'Esta página ainda não tem texto.',
 } as const satisfies Shape<typeof en>;
