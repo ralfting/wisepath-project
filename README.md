@@ -138,10 +138,11 @@ Migrations only add: new tables, new columns with a default, new indexes. In pro
 | `ADMIN_EMAILS` | Accounts that review requests to publish to the catalog, comma separated; none when unset | your own email |
 | `HOST`, `PORT` | Where the API listens | `127.0.0.1`, `4001` (Docker uses `0.0.0.0`) |
 
-**Web** (`apps/web/.env.local`, optional)
+**Web** (`apps/web/.env.local`, optional; `SITE_URL` only in production, see docs/DEPLOY.md)
 
 | Variable | Purpose | Default |
 |---|---|---|
+| `SITE_URL` | The site's own domain; unset, search engines are kept out (no sitemap, robots.txt closed, noindex) | unset |
 | `NEXT_PUBLIC_API_URL` | API base URL | `http://localhost:4001/api` |
 
 Never commit real `.env` files; use the `.env.example` files as templates.

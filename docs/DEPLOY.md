@@ -69,3 +69,16 @@ Deploy the API before the web app when both change.
 - Hobby is for non-commercial use only.
 - The API cold-starts after a while idle (Nest boot + Neon waking up), so the
   first request can take a few seconds.
+
+## When WisePath gets a domain of its own
+
+Search engines are kept out until then: `robots.txt` closes the site, the sitemap is empty and every page is
+`noindex`. Setting `SITE_URL` opens the catalog to them (`apps/web/useCases/paths/searchEngines.ts`).
+
+1. Add the domain to the web project in Vercel (Settings, Domains) and point its DNS as Vercel says.
+2. Web project, environment variable `SITE_URL`: the domain with its scheme (`https://wisepath.com.br`). Redeploy.
+3. API project: change `FRONTEND_URL` to the same address (CORS), and redeploy it.
+4. Check `https://<domain>/robots.txt` names the sitemap and `https://<domain>/sitemap.xml` lists the published paths.
+5. Google Search Console: add the domain, verify it by DNS, and submit `https://<domain>/sitemap.xml`.
+6. Once email goes through Resend (decision G5), its sending domain is this one too.
+
