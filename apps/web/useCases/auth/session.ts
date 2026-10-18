@@ -3,7 +3,7 @@
 import { Schema } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { useAtomSet, useAtomValue } from "@effect/atom-react"
-import { Credentials, SignupDetails } from "@wisepath/domain/auth"
+import { AccountDeletion, Credentials, SignupDetails } from "@wisepath/domain/auth"
 import type { User } from "@wisepath/domain/auth"
 import { useT } from "@/i18n/I18nProvider"
 import { ReactivityKeys, appRuntime } from "../runtime"
@@ -21,6 +21,7 @@ const loginAtom = appRuntime.fn(programs.login, { reactivityKeys: [ReactivityKey
 const signupAtom = appRuntime.fn(programs.signup, { reactivityKeys: [ReactivityKeys.session] })
 const logoutAtom = appRuntime.fn(programs.logout, { reactivityKeys: [ReactivityKeys.session] })
 const settingsAtom = appRuntime.fn(programs.updateSettings, { reactivityKeys: [ReactivityKeys.session] })
+const deleteAccountAtom = appRuntime.fn(programs.deleteAccount, { reactivityKeys: [ReactivityKeys.session] })
 
 export type Session =
   | { readonly status: "loading" }
@@ -94,6 +95,22 @@ export function useSaveLocale(): (locale: string | null) => Promise<void> {
   }
 }
 
+/** Deletes the account once its password is confirmed; resolves to null on success or a message to show */
+export function useDeleteAccount(): (input: { password: string }) => Promise<ActionError> {
+  const run = useAtomSet(deleteAccountAtom, { mode: "promiseExit" })
+  const t = useT()
+  const domain = useDomainMessage()
+  return async (input) =>
+    domain(
+      messageFor(
+        await run(input),
+        { InvalidCredentials: t("auth.deleteAccount.wrongPassword"), AuthUnavailable: t("common.errors.unavailable") },
+        t("common.errors.generic")
+      )
+    )
+}
+
 /** Form validators built from the domain schemas, in the Standard Schema shape form libraries accept */
 export const loginFormSchema = Schema.toStandardSchemaV1(Credentials)
 export const signupFormSchema = Schema.toStandardSchemaV1(SignupDetails)
+export const deleteAccountFormSchema = Schema.toStandardSchemaV1(AccountDeletion)

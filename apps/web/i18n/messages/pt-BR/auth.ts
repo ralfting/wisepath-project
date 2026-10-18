@@ -35,6 +35,15 @@ export const auth = {
     haveAccount: 'Já tem uma conta?',
     logIn: 'Entrar',
   },
+  deleteAccount: {
+    title: 'Excluir sua conta?',
+    body: 'Todos os caminhos que você criou são excluídos, com as páginas, junto com seus projetos, sua Caixa de entrada e seu progresso nos caminhos de outras pessoas. Quem estuda os seus caminhos deixa de ter acesso. Não dá para desfazer.',
+    downloadFirst: 'Baixar meus caminhos antes',
+    confirmHint: 'Digite sua senha para confirmar.',
+    keep: 'Manter minha conta',
+    confirm: 'Excluir conta',
+    wrongPassword: 'Essa senha não está certa.',
+  },
   errors: {
     invalidCredentials: 'E-mail ou senha incorretos.',
     emailTaken: 'Já existe uma conta com este e-mail. Entre com ela.',

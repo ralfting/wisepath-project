@@ -4,6 +4,7 @@ export const shell = {
     menu: 'Account',
     logout: 'Log out',
     download: 'Download my paths',
+    delete: 'Delete account',
   },
   sidebar: {
     label: 'Sidebar',

@@ -52,7 +52,14 @@ const make = Layer.effect(
       Effect.mapError(unavailable)
     )
 
-    return Auth.of({ login, signup, logout, currentUser, updateSettings })
+    const deleteAccount = Effect.fn("Auth.deleteAccount")(
+      function*(deletion: Parameters<Auth["Service"]["deleteAccount"]>[0]) {
+        yield* client.auth.deleteMe({ payload: deletion })
+      },
+      Effect.catchIf((error) => error._tag !== "InvalidCredentials", (error) => Effect.fail(unavailable(error)))
+    )
+
+    return Auth.of({ login, signup, logout, currentUser, updateSettings, deleteAccount })
   })
 )
 

@@ -1,5 +1,5 @@
 import { Effect, Option, Schema } from "effect"
-import { AccountSettings, Auth, Credentials, NotAuthenticated, SignupDetails } from "@wisepath/domain/auth"
+import { AccountDeletion, AccountSettings, Auth, Credentials, NotAuthenticated, SignupDetails } from "@wisepath/domain/auth"
 
 /**
  * Account use cases as Effect programs: decode what the person typed with the
@@ -37,4 +37,9 @@ export const requireSession = <A, E, R>(program: Effect.Effect<A, E, R>) =>
 export const updateSettings = Effect.fn("useCases.auth.updateSettings")(function*(input: { locale: string | null }) {
   const settings = yield* Schema.decodeUnknownEffect(AccountSettings)(input)
   return yield* Auth.use((auth) => auth.updateSettings(settings))
+})
+
+export const deleteAccount = Effect.fn("useCases.auth.deleteAccount")(function*(input: { password: string }) {
+  const deletion = yield* Schema.decodeUnknownEffect(AccountDeletion)(input)
+  yield* Auth.use((auth) => auth.deleteAccount(deletion))
 })

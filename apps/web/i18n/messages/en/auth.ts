@@ -32,6 +32,15 @@ export const auth = {
     haveAccount: 'Already have an account?',
     logIn: 'Log in',
   },
+  deleteAccount: {
+    title: 'Delete your account?',
+    body: "Every path you own goes, with its pages, along with your projects, your Inbox and your progress on paths from others. People studying your paths lose them. This can't be undone.",
+    downloadFirst: 'Download my paths first',
+    confirmHint: 'Type your password to confirm.',
+    keep: 'Keep my account',
+    confirm: 'Delete account',
+    wrongPassword: "That password isn't right.",
+  },
   errors: {
     invalidCredentials: 'Email or password is incorrect.',
     emailTaken: 'An account with this email already exists. Log in instead.',

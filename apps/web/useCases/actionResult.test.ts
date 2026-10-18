@@ -28,7 +28,8 @@ const unreachableAuth = Layer.succeed(Auth)(
     signup: () => Effect.fail(new AuthUnavailable({ cause: "offline" })),
     logout: () => Effect.fail(new AuthUnavailable({ cause: "offline" })),
     currentUser: () => Effect.fail(new AuthUnavailable({ cause: "offline" })),
-    updateSettings: () => Effect.fail(new AuthUnavailable({ cause: "offline" }))
+    updateSettings: () => Effect.fail(new AuthUnavailable({ cause: "offline" })),
+    deleteAccount: () => Effect.fail(new AuthUnavailable({ cause: "offline" }))
   })
 )
 

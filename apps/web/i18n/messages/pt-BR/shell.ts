@@ -7,6 +7,7 @@ export const shell = {
     menu: 'Conta',
     logout: 'Sair',
     download: 'Baixar meus caminhos',
+    delete: 'Excluir conta',
   },
   sidebar: {
     label: 'Barra lateral',

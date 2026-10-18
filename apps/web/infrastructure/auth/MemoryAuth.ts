@@ -8,9 +8,12 @@ interface Account {
 
 /**
  * Auth kept in memory: for tests and for running the app without the API.
- * Starts with the given accounts and no session.
+ * Starts with the given accounts and no session, or signed in as the account with `signedIn` as its email.
  */
-export const MemoryAuth = (accounts: ReadonlyArray<{ email: string; password: string; name?: string }> = []) =>
+export const MemoryAuth = (
+  accounts: ReadonlyArray<{ email: string; password: string; name?: string }> = [],
+  options: { readonly signedIn?: string } = {}
+) =>
   Layer.effect(
     Auth,
     Effect.gen(function*() {
@@ -20,7 +23,9 @@ export const MemoryAuth = (accounts: ReadonlyArray<{ email: string; password: st
           password: a.password
         }))
       )
-      const session = yield* Ref.make(Option.none<User>())
+      const session = yield* Ref.make(
+        Option.fromNullishOr((yield* Ref.get(store)).find((a) => a.user.email === options.signedIn)?.user)
+      )
 
       return Auth.of({
         login: Effect.fn("MemoryAuth.login")(function*(credentials) {
@@ -46,6 +51,14 @@ export const MemoryAuth = (accounts: ReadonlyArray<{ email: string; password: st
           yield* Ref.update(store, (all) => all.map((a) => (a.user.id === user.id ? { ...a, user } : a)))
           yield* Ref.set(session, Option.some(user))
           return user
+        }),
+        deleteAccount: Effect.fn("MemoryAuth.deleteAccount")(function*(deletion) {
+          const current = yield* Ref.get(session)
+          if (Option.isNone(current)) return yield* Effect.die("No session")
+          const account = (yield* Ref.get(store)).find((a) => a.user.id === current.value.id)
+          if (!account || account.password !== deletion.password) return yield* new InvalidCredentials()
+          yield* Ref.update(store, (all) => all.filter((a) => a.user.id !== account.user.id))
+          yield* Ref.set(session, Option.none())
         })
       })
     })
