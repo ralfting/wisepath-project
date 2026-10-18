@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Writes a path kept as Markdown files in the repo (content/<path>/) into a WisePath account through the API, makes
- * it readable by its link and asks to publish it to the catalog. Running it again updates the same path: its ids come
- * from the folder and the titles.
+ * it readable by its link, asks to publish it to the catalog and, when the account is an administrator (ADMIN_EMAILS
+ * on the API), approves it. Running it again updates the same path: its ids come from the folder and the titles.
  *
  *   WISEPATH_EMAIL=you@example.com WISEPATH_PASSWORD=... node scripts/publish-path.mjs content/como-usar-o-wisepath
  *   node scripts/publish-path.mjs content/como-usar-o-wisepath --check     # validates the files, sends nothing
@@ -97,5 +97,18 @@ const { visibility } = await call('GET', at);
 if (visibility === 'private') await call('PATCH', `${at}/visibility`, { visibility: 'public' });
 await call('PUT', `${at}/publication`, { description: meta.description, audience: meta.audience, language: meta.language });
 
-console.log(`Done. Readable by its link: ${WEB}/public/paths/${pathId}`);
-if (visibility !== 'published') console.log(`Asked to publish to the catalog: approve it at ${WEB}/admin/publications`);
+// The account approves its own request when it is an administrator (ADMIN_EMAILS on the API); anyone else's waits
+if (visibility !== 'published') {
+  const approval = await fetch(`${API}/admin/publications/${pathId}/approve`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${token}` },
+  });
+  if (!approval.ok && approval.status !== 404) throw new Error(`Approving failed: ${approval.status} ${await approval.text()}`);
+  if (approval.status === 404) {
+    console.log(`Readable by its link: ${WEB}/public/paths/${pathId}`);
+    console.log(`Asked to publish, not approved: ${email} is not in the API's ADMIN_EMAILS. Add it in Vercel, redeploy the API and run this again.`);
+    process.exit(0);
+  }
+}
+const { slug } = await call('GET', at);
+console.log(`In the catalog: ${WEB}/p/${slug}`);

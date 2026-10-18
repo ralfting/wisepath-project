@@ -2,7 +2,8 @@
 
 Paths written by WisePath's owner and kept here as Markdown, one folder per path, so they are reviewed and versioned
 like code. `scripts/publish-path.mjs` writes a folder into an account through the API, makes it readable by its
-link and asks to publish it to the catalog; running it again updates the same path.
+link, asks to publish it to the catalog and approves it when the account is an administrator (`ADMIN_EMAILS` on
+the API); running it again updates the same path.
 
 | Folder | Path |
 |---|---|
