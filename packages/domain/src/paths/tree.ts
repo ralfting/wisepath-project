@@ -123,6 +123,20 @@ export function pagesInMapOrder(path: Path): ReadonlyArray<Page> {
   return [root.page, ...descendants(root)]
 }
 
+/**
+ * The pages before and after this one in the map's reading order: down into its first branch, else on to the next
+ * branch beside it, else back up to the next branch beside the page above. None for an unlinked page.
+ */
+export function neighbours(path: Path, pageId: PageId): { readonly previous?: Page; readonly next?: Page } {
+  const order = pagesInMapOrder(path)
+  const index = order.findIndex((p) => p.id === pageId)
+  if (index < 0) return {}
+  return {
+    ...(index > 0 ? { previous: order[index - 1] } : {}),
+    ...(index < order.length - 1 ? { next: order[index + 1] } : {})
+  }
+}
+
 export function progressOf(pages: ReadonlyArray<Page>): Progress {
   return { studied: pages.filter((p) => p.studied).length, total: pages.length }
 }

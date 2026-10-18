@@ -14,6 +14,7 @@ import {
   findPageByTitle,
   lookOf,
   mapTree,
+  neighbours,
   newPath,
   nextPage,
   pendingTitles,
@@ -186,4 +187,26 @@ describe("path storage format", () => {
       assert.strictEqual(p.pages.length, 42)
       assert.isTrue(p.pages[1].module)
     }))
+})
+
+describe("reading order", () => {
+  // Root links A and B; A branches into A1 and A2; A2 into A2x; B has nothing below; Lone no link reaches
+  const p = path({ Root: "[[A]] [[B]]", A: "[[A1]] [[A2]]", A1: "", A2: "[[A2x]]", A2x: "", B: "", Lone: "" })
+  const titleOf = (page?: { title: string }) => page?.title
+
+  it("goes down into the first branch, on to the next one beside it, then back up to the next beside the page above", () => {
+    const step = (title: string) => {
+      const around = neighbours(p, id(title.toLowerCase()))
+      return [titleOf(around.previous), titleOf(around.next)]
+    }
+    assert.deepStrictEqual(step("Root"), [undefined, "A"])
+    assert.deepStrictEqual(step("A"), ["Root", "A1"])
+    assert.deepStrictEqual(step("A1"), ["A", "A2"])
+    assert.deepStrictEqual(step("A2x"), ["A2", "B"])
+    assert.deepStrictEqual(step("B"), ["A2x", undefined])
+  })
+
+  it("leaves an unlinked page out of the order", () => {
+    assert.deepStrictEqual(neighbours(p, id("lone")), {})
+  })
 })
