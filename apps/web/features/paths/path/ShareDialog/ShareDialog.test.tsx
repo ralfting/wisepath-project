@@ -13,6 +13,8 @@ vi.mock('@/useCases/paths/actions', () => ({
   cancelInvite: vi.fn(async () => ({ ok: true, value: undefined })),
   unsharePath: vi.fn(async () => ({ ok: true, value: undefined })),
   setPathVisibility: vi.fn(async () => ({ ok: true, value: undefined })),
+  requestPublication: vi.fn(async () => ({ ok: true, value: undefined })),
+  withdrawPublication: vi.fn(async () => ({ ok: true, value: undefined })),
   takePath: vi.fn(),
   leavePath: vi.fn(),
 }));
@@ -75,5 +77,44 @@ describe('ShareDialog', () => {
     await user.click(toggle);
     await waitFor(() => expect(actions.setPathVisibility).toHaveBeenLastCalledWith(path.id, 'private'));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull());
+  });
+
+  it('asks to publish the path with what it teaches, who it is for and its language, then withdraws', async () => {
+    const user = userEvent.setup();
+    renderWithLayers(<ShareDialog path={path} opened onClose={() => {}} />, layers);
+
+    await user.click(await screen.findByRole('button', { name: 'Ask to publish' }));
+    // What it teaches starts from the path's own description
+    expect((screen.getByLabelText(/^what it teaches/i) as HTMLInputElement).value).toBe(path.description);
+    await user.click(screen.getByRole('button', { name: 'Send for review' }));
+    expect(await screen.findByText('Say who the path is for')).toBeTruthy();
+    expect(actions.requestPublication).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText(/^who it is for/i), 'Backend developers');
+    await user.click(screen.getByRole('button', { name: 'Send for review' }));
+    await waitFor(() =>
+      expect(actions.requestPublication).toHaveBeenCalledWith(path.id, {
+        description: path.description,
+        audience: 'Backend developers',
+        language: 'en',
+      }),
+    );
+    expect(await screen.findByText('Waiting for review')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: 'Withdraw' }));
+    await waitFor(() => expect(actions.withdrawPublication).toHaveBeenCalledWith(path.id));
+    expect(await screen.findByRole('button', { name: 'Ask to publish' })).toBeTruthy();
+  });
+
+  it('shows a published path as in the catalog, readable by its link, and takes it out', async () => {
+    const user = userEvent.setup();
+    renderWithLayers(<ShareDialog path={{ ...path, visibility: 'published' }} opened onClose={() => {}} />, layers);
+
+    expect(await screen.findByText('In the catalog')).toBeTruthy();
+    expect((screen.getByRole('switch', { name: /^anyone with the link can read/i }) as HTMLInputElement).checked).toBe(true);
+    await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+    await waitFor(() => expect(actions.withdrawPublication).toHaveBeenCalledWith(path.id));
+    expect(await screen.findByRole('button', { name: 'Ask to publish' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Copy link' })).toBeTruthy();
   });
 });

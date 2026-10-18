@@ -12,7 +12,9 @@ const DOMAIN_MESSAGES: Readonly<Record<string, TranslationKey>> = {
   "Tell us your name": "auth.validation.name",
   "Use at least 8 characters": "auth.validation.passwordLength",
   "Give the map a name": "home.create.nameRequired",
-  "Give the project a name": "home.projectForm.nameRequired"
+  "Give the project a name": "home.projectForm.nameRequired",
+  "Say what the path teaches": "share.catalog.descriptionRequired",
+  "Say who the path is for": "share.catalog.audienceRequired"
 }
 
 /** Turns a domain validation message into the current language; null and undefined pass through */

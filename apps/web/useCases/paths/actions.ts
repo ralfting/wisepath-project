@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import type { Path, ShareResult } from "@wisepath/domain/paths"
 import type { Translate } from "@/i18n/I18nProvider"
-import { HOME } from "@/shared/routes"
+import { ADMIN_PUBLICATIONS, HOME } from "@/shared/routes"
 import type { ActionResult } from "../actionResult"
 import { runAction } from "../server"
 import * as programs from "./programs"
@@ -90,4 +90,22 @@ export async function leavePath(pathId: string): Promise<ActionResult<void>> {
 /** A notice of a lost path, once shown */
 export async function dismissNotice(noticeId: string): Promise<ActionResult<void>> {
   return runAction(programs.dismissNotice(noticeId), (t) => ({ PathsUnavailable: t("common.errors.unavailable") }))
+}
+
+export async function requestPublication(pathId: string, request: unknown): Promise<ActionResult<void>> {
+  return runAction(programs.requestPublication(pathId, request), gone)
+}
+
+export async function withdrawPublication(pathId: string): Promise<ActionResult<void>> {
+  return runAction(programs.withdrawPublication(pathId), gone)
+}
+
+/** An administrator's decision on a request to publish; the review page reads the requests again */
+export async function decidePublication(pathId: string, approve: boolean): Promise<ActionResult<void>> {
+  const result = await runAction(programs.decidePublication(pathId, approve), (t) => ({
+    PathNotFound: t("admin.publications.decided"),
+    PathsUnavailable: t("common.errors.unavailable")
+  }))
+  if (result.ok) revalidatePath(ADMIN_PUBLICATIONS)
+  return result
 }

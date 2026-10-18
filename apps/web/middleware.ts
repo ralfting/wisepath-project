@@ -23,8 +23,8 @@ export function middleware(request: NextRequest) {
   // Paths and the Inbox need an account
   if ((pathname.startsWith('/paths') || pathname === '/inbox') && !hasAccessToken) return redirect('/login');
 
-  // Capturing from the web (a popup) and settings come back, filled in, once logged in
-  if ((pathname === '/capture' || pathname.startsWith('/settings')) && !hasAccessToken) return redirect(loginHref(pathname + search));
+  // Capturing from the web (a popup), settings and the review of publications come back, filled in, once logged in
+  if ((pathname === '/capture' || pathname.startsWith('/settings') || pathname.startsWith('/admin')) && !hasAccessToken) return redirect(loginHref(pathname + search));
 
   // Logged-in users have no use for the login and signup pages
   if ((pathname === '/login' || pathname === '/signup') && hasAccessToken) return redirect(afterLogin(request.nextUrl.searchParams.get('next')));
@@ -34,5 +34,5 @@ export function middleware(request: NextRequest) {
 
 // Configure which routes to apply middleware to
 export const config = {
-  matcher: ['/', '/projects', '/projects/:path*', '/dashboard/:path*', '/paths/:path*', '/inbox', '/capture', '/settings/:path*', '/login', '/signup'],
+  matcher: ['/', '/projects', '/projects/:path*', '/dashboard/:path*', '/paths/:path*', '/inbox', '/capture', '/settings/:path*', '/admin/:path*', '/login', '/signup'],
 };

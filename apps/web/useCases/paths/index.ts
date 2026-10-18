@@ -8,6 +8,21 @@ export type { OpenPath } from "./openPath"
 export { newPageId } from "./programs"
 export { allPathsDownloadHref, pathDownloadHref } from "./downloads"
 export type { Command } from "./sync"
-export { shareFormSchema, useCancelInvite, useLeavePath, useSetVisibility, useSharePath, useShares, useTakePath, useUnsharePath, useVisibility } from "./sharing"
-export type { SharesState } from "./sharing"
+export {
+  publicationFormSchema,
+  shareFormSchema,
+  useCancelInvite,
+  useCatalog,
+  useDecidePublication,
+  useLeavePath,
+  useRequestPublication,
+  useSetVisibility,
+  useSharePath,
+  useShares,
+  useTakePath,
+  useUnsharePath,
+  useVisibility,
+  useWithdrawPublication
+} from "./sharing"
+export type { CatalogState, SharesState } from "./sharing"
 export { useAccessNotices } from "./notices"

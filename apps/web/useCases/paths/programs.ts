@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { AccessNotices, LinkPreviews, NewPath, NoticeId, PageId, PathId, PathKind, PathRepository, PathSharing, PathVisibility, ShareEdit } from "@wisepath/domain/paths"
+import { AccessNotices, LinkPreviews, NewPath, NoticeId, PageId, PathId, PathKind, PathRepository, PathSharing, LinkVisibility, PublicationRequest, PublicationReview, ShareEdit } from "@wisepath/domain/paths"
 import { UserId } from "@wisepath/domain/auth"
 import { ProjectId } from "@wisepath/domain/projects"
 
@@ -95,7 +95,7 @@ export const cancelInvite = Effect.fn("useCases.paths.cancelInvite")(function*(p
 /** Makes a map public, readable by anyone with its link, or private again */
 export const setVisibility = Effect.fn("useCases.paths.setVisibility")(function*(pathId: string, visibility: string) {
   const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
-  const to = yield* Schema.decodeUnknownEffect(PathVisibility)(visibility)
+  const to = yield* Schema.decodeUnknownEffect(LinkVisibility)(visibility)
   yield* PathSharing.use((sharing) => sharing.setVisibility(id, { visibility: to }))
 })
 
@@ -124,4 +124,28 @@ export const listNotices = AccessNotices.use((notices) => notices.list).pipe(Eff
 export const dismissNotice = Effect.fn("useCases.paths.dismissNotice")(function*(noticeId: string) {
   const id = yield* Schema.decodeUnknownEffect(NoticeId)(noticeId)
   yield* AccessNotices.use((notices) => notices.dismiss(id))
+})
+
+/** Asks to publish a map to the catalog, from what the owner typed: what it teaches, who it is for, its language */
+export const requestPublication = Effect.fn("useCases.paths.requestPublication")(function*(pathId: string, input: unknown) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  const request = yield* Schema.decodeUnknownEffect(PublicationRequest)(input)
+  yield* PathSharing.use((sharing) => sharing.requestPublication(id, request))
+})
+
+/** Withdraws a request to publish, or takes a published map out of the catalog */
+export const withdrawPublication = Effect.fn("useCases.paths.withdrawPublication")(function*(pathId: string) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  yield* PathSharing.use((sharing) => sharing.withdrawPublication(id))
+})
+
+/** The requests to publish waiting for an administrator */
+export const pendingPublications = PublicationReview.use((review) => review.pending()).pipe(
+  Effect.withSpan("useCases.paths.pendingPublications")
+)
+
+/** An administrator approves a request to publish, or declines it */
+export const decidePublication = Effect.fn("useCases.paths.decidePublication")(function*(pathId: string, approve: boolean) {
+  const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
+  yield* PublicationReview.use((review) => (approve ? review.approve(id) : review.decline(id)))
 })

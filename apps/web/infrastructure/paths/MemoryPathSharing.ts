@@ -38,6 +38,8 @@ export const MemoryPathSharing = (
         setVisibility: () => Effect.void,
         take: () => Effect.void,
         leave: () => Effect.void,
+        requestPublication: () => Effect.void,
+        withdrawPublication: () => Effect.void,
         readPublic: (id) => {
           const path = seed.publicPaths?.find((p) => p.id === id)
           return path ? Effect.succeed(path) : Effect.fail(new PathNotFound({ pathId: id }))

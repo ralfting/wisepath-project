@@ -22,6 +22,10 @@ const make = (reads: typeof inBrowser) =>
           classify(api.setVisibility({ params: { pathId }, payload: edit })).pipe(Effect.withSpan("PathSharing.setVisibility")),
         take: (pathId) => classify(api.take({ params: { pathId } })).pipe(Effect.withSpan("PathSharing.take")),
         leave: (pathId) => classify(api.leave({ params: { pathId } })).pipe(Effect.withSpan("PathSharing.leave")),
+        requestPublication: (pathId, request) =>
+          classify(api.requestPublication({ params: { pathId }, payload: request })).pipe(Effect.withSpan("PathSharing.requestPublication")),
+        withdrawPublication: (pathId) =>
+          classify(api.withdrawPublication({ params: { pathId } })).pipe(Effect.withSpan("PathSharing.withdrawPublication")),
         // No session needed, so it reads on the server render too
         readPublic: (pathId) => classify(client.publicPaths.get({ params: { pathId } })).pipe(Effect.withSpan("PathSharing.readPublic"))
       })

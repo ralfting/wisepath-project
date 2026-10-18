@@ -15,7 +15,8 @@ export function LinkSection({ path }: { path: Path }) {
   const setVisibility = useSetVisibility();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const isPublic = visibility === 'public';
+  // A published path is readable by its link too
+  const isPublic = visibility !== 'private';
 
   const handleChange = async (makePublic: boolean) => {
     setBusy(true);

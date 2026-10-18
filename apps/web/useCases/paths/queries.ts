@@ -1,7 +1,7 @@
 import "server-only"
 import { cache } from "react"
 import { Cause, Exit, Option } from "effect"
-import type { Path } from "@wisepath/domain/paths"
+import type { Path, PendingPublication } from "@wisepath/domain/paths"
 import { runServer } from "../server"
 import * as programs from "./programs"
 
@@ -38,3 +38,15 @@ export const publicPath = cache(async (pathId: string): Promise<Path | null> => 
   if (Option.isSome(error) && error.value._tag !== "PathsUnavailable") return null
   throw new Error("The public map could not be read")
 })
+
+/**
+ * The requests to publish waiting for review, for an administrator: null for anyone else (not an administrator, or
+ * logged out), so the page answers 404. The API being down is thrown, for the segment's error page.
+ */
+export const pendingPublications = async (): Promise<ReadonlyArray<PendingPublication> | null> => {
+  const exit = await runServer(programs.pendingPublications)
+  if (Exit.isSuccess(exit)) return exit.value
+  const error = Cause.findErrorOption(exit.cause)
+  if (Option.isSome(error) && error.value._tag === "NotAdmin") return null
+  throw new Error("The requests to publish could not be read")
+}

@@ -38,6 +38,9 @@ export const publicMapHref = (pathId: string) => `/public/paths/${pathId}`;
 
 export const HOME = '/paths';
 
+/** Where WisePath's administrators review requests to publish paths to the catalog */
+export const ADMIN_PUBLICATIONS = '/admin/publications';
+
 /** The login page, coming back to an address of the app's own once logged in */
 export const loginHref = (next: string) => `/login?next=${encodeURIComponent(next)}`;
 
