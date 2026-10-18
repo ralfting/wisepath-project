@@ -46,6 +46,9 @@ paths:
   specificity or use `!important` to beat Mantine. **Why:** loading order once flipped and Mantine won (fix "the
   app's styles outrank Mantine's again").
 - Use nesting, `&[data-*]` for state, and `@media (prefers-reduced-motion: reduce)` on every transition or animation.
+- No animation library (Framer Motion, `motion`, GSAP): Mantine's transitions and CSS cover what the app needs
+  (decided 2026-10-18). **Why:** the app is read and written in many times a day, where motion mostly adds
+  latency, and a library adds weight to the public pages.
 - Fixed and portal elements (notifications, rails) set `pointer-events` deliberately. **Why:** invisible toast
   containers once covered the page and swallowed every click.
 
