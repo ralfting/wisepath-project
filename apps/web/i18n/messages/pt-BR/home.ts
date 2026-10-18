@@ -77,8 +77,6 @@ export const home = {
     namePlaceholder: 'Rust, Álgebra linear, Japonês…',
     nameRequired: 'Dê um nome à trilha',
     project: 'Projeto',
-    kind: 'Que tipo de trilha?',
-    kindHint: 'Dá para mudar depois, no menu da trilha.',
     submit: 'Criar trilha',
   },
   delete: {

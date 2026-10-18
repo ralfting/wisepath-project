@@ -25,20 +25,19 @@ export const readPath = Effect.fn("useCases.paths.read")(function*(pathId: strin
 })
 
 /**
- * A new map named after its root page, in one of the learner's projects: a study, or a learning path. What is sent
- * is decoded with the domain's NewPath, so the form and the Server Action get the same answer
+ * A new map named after its root page, in one of the learner's projects. It starts as a study: with one page there
+ * is nothing to follow yet, and it becomes a learning path from its menu once it has pages. What is sent is decoded
+ * with the domain's NewPath, so the form and the Server Action get the same answer
  */
 export const createPath = Effect.fn("useCases.paths.create")(function*(input: {
   readonly title: string
-  readonly kind: string
   readonly projectId: string
 }) {
   const command = yield* Schema.decodeUnknownEffect(NewPath)({
     id: newId(),
     projectId: input.projectId,
     rootPageId: newId(),
-    title: input.title.trim(),
-    kind: input.kind
+    title: input.title.trim()
   })
   return yield* PathRepository.use((repo) => repo.create(command))
 })

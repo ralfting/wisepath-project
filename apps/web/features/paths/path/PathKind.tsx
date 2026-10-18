@@ -15,7 +15,7 @@ import type { TranslationKey } from '@/i18n/I18nProvider';
  */
 
 /** label, hint and switchTo are message keys (home.kind.*) */
-export const KIND_OPTIONS: ReadonlyArray<{
+const KIND_OPTIONS: ReadonlyArray<{
   value: PathKind;
   label: TranslationKey;
   hint: TranslationKey;

@@ -127,8 +127,8 @@ export const help = {
       title: 'Start a path',
       steps: {
         a: 'Click **New path**',
-        b: 'Write what you are learning and choose its **project**',
-        c: 'Choose **Study** or **Learning path** and create it: its map opens',
+        b: 'Write what you are learning and choose its **project**. It starts as a **Study**',
+        c: 'Click **Create path**: its main page opens, ready to write',
       },
       tip: 'A project’s **+** starts a path right in it.',
     },

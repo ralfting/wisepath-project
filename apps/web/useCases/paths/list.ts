@@ -49,7 +49,7 @@ export function usePaths(): ReadonlyArray<PathSummary> | null {
 }
 
 /** Makes a new map in a project, a study unless said otherwise; resolves to it, or to the message to show */
-export function useCreatePath(): (title: string, kind: PathKind, projectId: string) => Promise<ActionResult<Path>> {
+export function useCreatePath(): (title: string, projectId: string) => Promise<ActionResult<Path>> {
   return useAction(actions.createPath, [ReactivityKeys.paths])
 }
 

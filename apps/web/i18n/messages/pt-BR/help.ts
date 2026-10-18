@@ -124,8 +124,8 @@ export const help = {
       title: 'Começar uma trilha',
       steps: {
         a: 'Clique em **Nova trilha**',
-        b: 'Escreva o que você está aprendendo e escolha o **projeto**',
-        c: 'Escolha **Estudo** ou **Trilha guiada** e crie: o mapa abre',
+        b: 'Escreva o que você está aprendendo e escolha o **projeto**. Ela começa como **Estudo**',
+        c: 'Clique em **Criar trilha**: a página principal abre, pronta para escrever',
       },
       tip: 'O **+** de um projeto começa uma trilha direto nele.',
     },

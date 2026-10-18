@@ -17,8 +17,8 @@ import * as programs from "./programs"
 
 const gone = (t: Translate) => ({ PathNotFound: t("share.errors.gone"), PathsUnavailable: t("common.errors.unavailable") })
 
-export async function createPath(title: string, kind: string, projectId: string): Promise<ActionResult<Path>> {
-  const result = await runAction(programs.createPath({ title, kind, projectId }), (t) => ({
+export async function createPath(title: string, projectId: string): Promise<ActionResult<Path>> {
+  const result = await runAction(programs.createPath({ title, projectId }), (t) => ({
     PathsUnavailable: t("common.errors.unavailable"),
     ProjectNotFound: t("home.errors.projectGone")
   }))

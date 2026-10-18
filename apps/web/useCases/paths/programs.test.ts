@@ -11,7 +11,7 @@ const recording = Effect.gen(function*() {
   const layer = Layer.succeed(PathRepository)(PathRepository.of({
     list: Effect.succeed([]),
     get: () => Effect.succeed(samplePath),
-    create: (command: NewPath) => record(`create ${command.title} ${command.kind}`).pipe(Effect.as(samplePath)),
+    create: (command: NewPath) => record(`create ${command.title}${command.kind ? ` ${command.kind}` : ""}`).pipe(Effect.as(samplePath)),
     update: (id, edit: PathEdit) => record(`update ${id} ${JSON.stringify(edit)}`),
     remove: (id) => record(`remove ${id}`),
     takeSample: Effect.die("not used"),
@@ -29,17 +29,16 @@ describe("path use cases behind the Server Actions", () => {
       const run = <A, E extends { readonly _tag: string }>(effect: Effect.Effect<A, E, PathRepository>) => effect.pipe(Effect.provide(layer), Effect.flip, Effect.map((e) => e._tag), Effect.orElseSucceed(() => "ok"))
 
       const outcomes = [
-        yield* run(programs.createPath({ title: "  Rust ", kind: "learningPath", projectId: "general" })),
-        yield* run(programs.createPath({ title: "   ", kind: "study", projectId: "general" })),
-        yield* run(programs.createPath({ title: "Go", kind: "course", projectId: "general" })),
+        yield* run(programs.createPath({ title: "  Rust ", projectId: "general" })),
+        yield* run(programs.createPath({ title: "   ", projectId: "general" })),
         yield* run(programs.movePath("rust", "work")),
         yield* run(programs.setPathKind("rust", "study")),
         yield* run(programs.setPathKind("rust", "anything")),
         yield* run(programs.removePath("rust"))
       ]
-      assert.deepStrictEqual(outcomes, ["ok", "SchemaError", "SchemaError", "ok", "ok", "SchemaError", "ok"])
+      assert.deepStrictEqual(outcomes, ["ok", "SchemaError", "ok", "ok", "SchemaError", "ok"])
       assert.deepStrictEqual(yield* Ref.get(sent), [
-        "create Rust learningPath",
+        "create Rust",
         'update rust {"projectId":"work"}',
         'update rust {"kind":"study"}',
         "remove rust"

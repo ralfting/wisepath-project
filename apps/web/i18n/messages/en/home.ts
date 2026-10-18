@@ -76,8 +76,6 @@ export const home = {
     namePlaceholder: 'Rust, Linear algebra, Japanese…',
     nameRequired: 'Give the path a name',
     project: 'Project',
-    kind: 'What kind of path?',
-    kindHint: "You can switch it later from the path's menu.",
     submit: 'Create path',
   },
   delete: {
