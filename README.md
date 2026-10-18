@@ -155,6 +155,7 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `POST` | `/api/auth/login` | `{ email, password }`, sets the cookie; 401 `InvalidCredentials` |
 | `POST` | `/api/auth/logout` | clears the cookie |
 | `GET` | `/api/auth/me` | the session's user |
+| `DELETE` | `/api/auth/me` | `{ password }`: deletes the account, every path it owns (their members are told) and all its data, and clears the cookie; 401 `InvalidCredentials` |
 | `GET` | `/api/projects` | your projects, the default first (made the first time), then by name |
 | `POST` | `/api/projects` | `{ id, name }`: a new project; ids are UUIDs chosen by the client |
 | `PATCH` | `/api/projects/:projectId` | `{ name }` |
