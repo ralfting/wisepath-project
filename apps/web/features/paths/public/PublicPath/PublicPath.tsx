@@ -1,13 +1,13 @@
 'use client';
 
-import Link from 'next/link';
-import { Alert, Badge, Button, Card, Container, Grid, Group, Stack, Text, Title } from '@mantine/core';
-import { IconPlayerPlayFilled } from '@tabler/icons-react';
+import { Badge, Card, Container, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import type { Path } from '@wisepath/domain/paths';
 import { MarkdownEditor } from '@/features/paths/editor';
 import { MapList } from '@/features/paths/map';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
+import { publicMapHref } from '@/shared/routes';
+import { StudyThisPath } from '../StudyThisPath/StudyThisPath';
 import { usePublicPath } from './usePublicPath';
 
 const noop = () => {};
@@ -34,31 +34,8 @@ export function PublicPath({ path }: { path: Path }) {
             </Title>
             {path.description && <Text c="dimmed">{path.description}</Text>}
           </Stack>
-          <Stack gap={4} align="flex-end">
-            {state.signedIn ? (
-              <Button leftSection={<IconPlayerPlayFilled size={14} />} loading={state.busy} onClick={() => void operations.study()}>
-                {t('share.public.study')}
-              </Button>
-            ) : (
-              <Group gap="sm">
-                <Button component={Link} href={state.signupHref} variant="default">
-                  {t('share.public.signUp')}
-                </Button>
-                <Button component={Link} href={state.loginHref}>
-                  {t('share.public.logIn')}
-                </Button>
-              </Group>
-            )}
-            <Text size="xs" c="dimmed">
-              {t('share.public.studyHint')}
-            </Text>
-          </Stack>
+          <StudyThisPath pathId={path.id} readingHref={publicMapHref(path.id)} />
         </Group>
-        {state.error && (
-          <Alert color="red" role="alert">
-            {state.error}
-          </Alert>
-        )}
         <Grid gutter="xl">
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Card padding="md" radius="md" withBorder component="nav" aria-label={t('share.public.pages')}>
