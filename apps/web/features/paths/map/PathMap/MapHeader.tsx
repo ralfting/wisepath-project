@@ -37,7 +37,8 @@ export function MapHeader({
   return (
     <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
       <Group gap="sm" wrap="nowrap" miw={0} style={{ flex: 1 }}>
-        <ThemeIcon size={36} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
+        {/* On a phone the title needs the room more than the icon does */}
+        <ThemeIcon visibleFrom="sm" size={36} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
           <PageGlyph icon={look.icon} size={20} />
         </ThemeIcon>
         <Tooltip label={path.description} disabled={!path.description} multiline w={320} position="bottom-start" withArrow>
@@ -58,17 +59,30 @@ export function MapHeader({
             </Menu.Dropdown>
           </Menu>
         )}
+        {/* On a phone the button is its icon, so the title and the way on keep their room */}
         {canManage(path.access) && (
-          <Button
-            variant="default"
-            size="xs"
-            leftSection={<IconShare size={14} />}
-            onClick={() => setSharing(true)}
-            aria-label={t('share.openFor', { title: path.title })}
-            style={{ flexShrink: 0 }}
-          >
-            {t('share.open')}
-          </Button>
+          <>
+            <Button
+              visibleFrom="sm"
+              variant="default"
+              size="xs"
+              leftSection={<IconShare size={14} />}
+              onClick={() => setSharing(true)}
+              aria-label={t('share.openFor', { title: path.title })}
+              style={{ flexShrink: 0 }}
+            >
+              {t('share.open')}
+            </Button>
+            <ActionIcon
+              hiddenFrom="sm"
+              variant="default"
+              onClick={() => setSharing(true)}
+              aria-label={t('share.openFor', { title: path.title })}
+              style={{ flexShrink: 0 }}
+            >
+              <IconShare size={16} />
+            </ActionIcon>
+          </>
         )}
         <ShareDialog path={path} opened={sharing} onClose={() => setSharing(false)} />
         {/* Only while something is on its way, or was undone */}

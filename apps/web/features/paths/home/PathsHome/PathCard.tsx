@@ -56,7 +56,7 @@ export function PathCard({ path, owned }: { path: PathSummary; owned?: OwnedCard
             <PageGlyph icon={path.icon} size={27} />
           </ThemeIcon>
           <Stack gap={0} miw={0} style={{ flex: 1 }}>
-            <Text component={Link} href={href} fw={800} fz={20} className={classes.title} truncate>
+            <Text component={Link} href={href} fw={800} fz={20} className={classes.title} lineClamp={2}>
               {path.title}
             </Text>
             {!owned && (
