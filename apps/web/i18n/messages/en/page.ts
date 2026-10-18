@@ -50,6 +50,11 @@ export const page = {
     content: 'Content',
     related: 'Related ({count})',
   },
+  pager: {
+    label: 'Previous and next page',
+    previous: 'Previous',
+    next: 'Next',
+  },
   related: {
     empty: 'Nothing related yet. Type [[ in the content to link another page.',
     parent: { label: 'Branches from', hint: 'The page this one grows out of on the map' },

@@ -7,6 +7,7 @@ import { MarkdownEditor } from '@/features/paths/editor';
 import type { EditorFocus } from '@/features/paths/editor';
 import { Stack } from '@mantine/core';
 import { useInbox, useTakeFromInbox } from '@/useCases/inbox';
+import { PagePager } from './PagePager';
 import { PageTitleInput } from './PageTitleInput';
 import type { PageActions } from './PageContent.helpers';
 
@@ -81,6 +82,7 @@ export function PageContent({
         readOnly={!canEdit(path.access)}
         inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, path.id) }}
       />
+      <PagePager path={path} page={page} onOpen={actions.openPage} />
     </Stack>
   );
 }

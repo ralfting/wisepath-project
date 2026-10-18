@@ -16,3 +16,20 @@
     opacity: 0.6;
   }
 }
+
+/* The way on to the page before and after, set apart from the text */
+.pager {
+  margin-top: var(--mantine-spacing-xl);
+  padding-top: var(--mantine-spacing-md);
+  border-top: 1px solid var(--wp-line);
+}
+
+.pagerLink {
+  max-width: 48%;
+  border-radius: var(--mantine-radius-sm);
+  padding: var(--mantine-spacing-xs);
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+  }
+}

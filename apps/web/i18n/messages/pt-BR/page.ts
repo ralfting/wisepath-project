@@ -52,6 +52,11 @@ export const page = {
     content: 'Conteúdo',
     related: 'Relacionadas ({count})',
   },
+  pager: {
+    label: 'Página anterior e próxima',
+    previous: 'Anterior',
+    next: 'Próxima',
+  },
   related: {
     empty: 'Nada relacionado ainda. Digite [[ no conteúdo para criar um link para outra página.',
     parent: { label: 'Ramo de', hint: 'A página de onde esta sai no mapa' },
