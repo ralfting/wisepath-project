@@ -30,6 +30,9 @@ export class PathStore extends Context.Service<
       options?: { readonly lock?: boolean },
     ) => Effect.Effect<Option.Option<Path>>;
 
+    /** A published map by its catalog address, as a visitor with no account reads it */
+    readonly findPublished: (slug: string) => Effect.Effect<Option.Option<Path>>;
+
     /** Stores a new map in a project, its studied pages as the learner's marks; false when its id is already used */
     readonly insert: (learnerId: UserId, projectId: ProjectId, path: Path) => Effect.Effect<boolean>;
 

@@ -80,12 +80,15 @@ export const paths = pgTable(
     /** Who the path is for, in one line, and its language: told when asking to publish it */
     audience: text(),
     language: text({ enum: ['en', 'pt-BR'] }),
+    /** Its address in the catalog (/p/<slug>), given when first published and kept after */
+    slug: text(),
     createdAt: timestamp('created_at', { precision: 3, withTimezone: true })
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
   },
   (t) => [
     index('paths_project_id_idx').on(t.projectId),
+    uniqueIndex('paths_slug_key').on(t.slug),
     foreignKey({ name: 'paths_project_id_fkey', columns: [t.projectId], foreignColumns: [projects.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),

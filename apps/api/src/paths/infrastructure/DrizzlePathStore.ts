@@ -46,6 +46,7 @@ const toDomain = (row: PathRow, reader: UserId | null) => {
     access,
     ...(row.audience !== null ? { audience: row.audience } : {}),
     ...(row.language !== null ? { language: row.language } : {}),
+    ...(row.slug !== null ? { slug: row.slug } : {}),
     // Whether its owner asked to publish it, and what came of it, is theirs to know
     ...(access === 'owner' && row.publication ? { publication: row.publication.status } : {}),
     pages: row.pages.map((page) => ({
@@ -180,6 +181,13 @@ export const DrizzlePathStore = Layer.effect(
       return path.access === 'none' ? Option.none<Path>() : Option.some(path);
     });
 
+    const findPublished = Effect.fn('PathStore.findPublished')(function* (slug: string) {
+      const row = yield* run(
+        db.query.paths.findFirst({ where: and(eq(paths.slug, slug), eq(paths.visibility, 'published')), with: readFor(null) }),
+      );
+      return row ? Option.some(yield* toDomain(row, null)) : Option.none<Path>();
+    });
+
     const insert = Effect.fn('PathStore.insert')(function* (learnerId: UserId, projectId: ProjectId, path: Path) {
       return yield* transaction(
         Effect.gen(function* () {
@@ -266,6 +274,6 @@ export const DrizzlePathStore = Layer.effect(
       yield* run(db.update(paths).set({ visibility }).where(eq(paths.id, id)));
     });
 
-    return PathStore.of({ listFor, find, insert, move, setVisibility, save, remove, transaction });
+    return PathStore.of({ listFor, find, findPublished, insert, move, setVisibility, save, remove, transaction });
   }),
 );

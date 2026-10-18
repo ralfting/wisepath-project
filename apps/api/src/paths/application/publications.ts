@@ -79,6 +79,7 @@ export const approvePublication = Effect.fn('publications.approve')(function* (i
     id,
     Effect.gen(function* () {
       yield* (yield* PathStore).setVisibility(id, 'published');
+      yield* (yield* PublicationStore).assignSlug(id);
       yield* (yield* PublicationStore).drop(id);
     }),
   );
@@ -86,4 +87,11 @@ export const approvePublication = Effect.fn('publications.approve')(function* (i
 
 export const declinePublication = Effect.fn('publications.decline')(function* (id: PathId) {
   yield* decide(id, PublicationStore.use((publications) => publications.decline(id)));
+});
+
+/** A published map by its catalog address, as a visitor reads it: no marks, nothing to change */
+export const readPublished = Effect.fn('publications.readPublished')(function* (slug: string) {
+  const found = yield* (yield* PathStore).findPublished(slug);
+  if (Option.isNone(found)) return yield* new PathNotFound({ pathId: slug });
+  return found.value;
 });

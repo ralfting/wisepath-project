@@ -201,3 +201,17 @@ export class AdminApiGroup extends HttpApiGroup.make("admin")
     })
   )
   .prefix("/admin") {}
+
+/**
+ * The catalog, read without a session (under /api/public/catalog): a published map by its address, as a visitor
+ * reads it. Anything not published answers PathNotFound.
+ */
+export class CatalogApiGroup extends HttpApiGroup.make("catalog")
+  .add(
+    HttpApiEndpoint.get("get", "/:slug", {
+      params: { slug: Schema.String },
+      success: Path,
+      error: [PathNotFound]
+    })
+  )
+  .prefix("/public/catalog") {}

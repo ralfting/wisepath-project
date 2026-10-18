@@ -3,7 +3,7 @@ import { AuthApiGroup } from "./AuthApi"
 import { CaptureApiGroup } from "./CaptureApi"
 import { LinksApiGroup } from "./LinksApi"
 import { NoticesApiGroup } from "./NoticesApi"
-import { AdminApiGroup, PathsApiGroup, PublicPathsApiGroup } from "./PathsApi"
+import { AdminApiGroup, CatalogApiGroup, PathsApiGroup, PublicPathsApiGroup } from "./PathsApi"
 import { ProjectsApiGroup } from "./ProjectsApi"
 import { ReviewApiGroup } from "./ReviewApi"
 import { SearchApiGroup } from "./SearchApi"
@@ -14,6 +14,7 @@ export class WisePathApi extends HttpApi.make("wisepath")
   .add(ProjectsApiGroup)
   .add(PathsApiGroup)
   .add(PublicPathsApiGroup)
+  .add(CatalogApiGroup)
   .add(LinksApiGroup)
   .add(ReviewApiGroup)
   .add(SearchApiGroup)

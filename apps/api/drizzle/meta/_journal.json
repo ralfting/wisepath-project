@@ -92,6 +92,13 @@
       "when": 1792339664409,
       "tag": "0012_publication",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792343992615,
+      "tag": "0013_path_slug",
+      "breakpoints": true
     }
   ]
 }

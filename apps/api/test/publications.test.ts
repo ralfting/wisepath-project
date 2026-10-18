@@ -115,4 +115,30 @@ describe('publishing a map to the catalog', () => {
       assert.isFalse(waiting.some((p) => p.pathId === map.pathId));
     }),
   );
+
+  it.effect('gives a published map its address from its title, unique, and reads it there without an account', () =>
+    Effect.gen(function* () {
+      const reviewer = yield* admin;
+      const publish = (map: OwnedMap) =>
+        Effect.gen(function* () {
+          yield* ask(map);
+          yield* reviewer.admin.approve({ params: { pathId: map.pathId } });
+          return (yield* read(map)).slug!;
+        });
+      const first = yield* ownedMap(signedIn);
+      const second = yield* ownedMap(signedIn);
+      const [one, two] = [yield* publish(first), yield* publish(second)];
+      assert.match(one, /^rust(-\d+)?$/);
+      assert.strictEqual(two, one === 'rust' ? 'rust-2' : `rust-${Number(one.split('-')[1]) + 1}`);
+
+      const anonymous = yield* makeClient;
+      const path = yield* anonymous.catalog.get({ params: { slug: two } });
+      assert.deepStrictEqual([path.id, path.visibility, path.access], [second.pathId, 'published', 'viewer']);
+
+      // Out of the catalog, its address finds nothing; nor does one never given
+      yield* second.owner.paths.withdrawPublication({ params: { pathId: second.pathId } });
+      const gone = yield* outcomes([anonymous.catalog.get({ params: { slug: two } }), anonymous.catalog.get({ params: { slug: 'nowhere' } })]);
+      assert.deepStrictEqual(gone, ['PathNotFound', 'PathNotFound']);
+    }),
+  );
 });

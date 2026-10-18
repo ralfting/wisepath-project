@@ -1,6 +1,6 @@
 import { Effect, Layer, Schema } from 'effect';
-import { and, asc, count, eq } from 'drizzle-orm';
-import { PendingPublication } from '@wisepath/domain/paths';
+import { and, asc, count, eq, isNotNull, like } from 'drizzle-orm';
+import { PendingPublication, freeSlug, slugOf } from '@wisepath/domain/paths';
 import type { PathId, PublicationRequest } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
 import { pages, paths, projects, publicationRequests, users } from '../../shared/infrastructure/database/schema';
@@ -42,6 +42,17 @@ export const DrizzlePublicationStore = Layer.effect(
 
     const drop = Effect.fn('PublicationStore.drop')(function* (pathId: PathId) {
       yield* run(db.delete(publicationRequests).where(eq(publicationRequests.pathId, pathId)));
+    });
+
+    const assignSlug = Effect.fn('PublicationStore.assignSlug')(function* (pathId: PathId) {
+      const [path] = yield* run(db.select({ title: paths.title, slug: paths.slug }).from(paths).where(eq(paths.id, pathId)));
+      if (!path || path.slug !== null) return;
+      const base = slugOf(path.title) || 'path';
+      const similar = yield* run(
+        db.select({ slug: paths.slug }).from(paths).where(and(isNotNull(paths.slug), like(paths.slug, `${base}%`))),
+      );
+      const slug = freeSlug(base, new Set(similar.map((row) => row.slug!)));
+      yield* run(db.update(paths).set({ slug }).where(eq(paths.id, pathId)));
     });
 
     const isPending = Effect.fn('PublicationStore.isPending')(function* (pathId: PathId) {
@@ -87,6 +98,6 @@ export const DrizzlePublicationStore = Layer.effect(
       );
     });
 
-    return PublicationStore.of({ describe, request, decline, drop, isPending, listPending });
+    return PublicationStore.of({ describe, request, decline, drop, assignSlug, isPending, listPending });
   }),
 );
