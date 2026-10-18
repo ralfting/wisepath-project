@@ -19,11 +19,10 @@ export const newPageId = (): PageId => PageId.make(newId())
 /** Every map the learner has, as their cards show them */
 export const listPaths = PathRepository.use((repo) => repo.list).pipe(Effect.withSpan("useCases.paths.list"))
 
-/** A map's title, from an id that came from the URL */
-export const pathTitle = Effect.fn("useCases.paths.title")(function*(pathId: string) {
+/** A map as the learner may read it, from an id that came from the URL */
+export const readPath = Effect.fn("useCases.paths.read")(function*(pathId: string) {
   const id = yield* Schema.decodeUnknownEffect(PathId)(pathId)
-  const path = yield* PathRepository.use((repo) => repo.get(id))
-  return path.title
+  return yield* PathRepository.use((repo) => repo.get(id))
 })
 
 /** A new map named after its root page, in one of the learner's projects: a study, or a learning path */

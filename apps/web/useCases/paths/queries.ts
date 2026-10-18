@@ -7,11 +7,25 @@ import * as programs from "./programs"
 
 /** Path reads for Server Components */
 
-/** The map's title, read with the learner's session; null when it can't be read (no session, gone, API down) */
-export const pathTitle = cache(async (pathId: string): Promise<string | null> => {
-  const exit = await runServer(programs.pathTitle(pathId))
-  return Exit.isSuccess(exit) ? exit.value : null
-})
+/**
+ * A map as the learner may read it, read once per request (the layout, the page and the tab title share it).
+ * Missing: there is none for them (gone, someone else's, a malformed id), so the route answers 404. Unknown: the
+ * API couldn't say (down, or the session expired), so the browser decides as before.
+ */
+export const readablePath = cache(
+  async (pathId: string): Promise<{ readonly status: "found"; readonly path: Path } | { readonly status: "missing" | "unknown" }> => {
+    const exit = await runServer(programs.readPath(pathId))
+    if (Exit.isSuccess(exit)) return { status: "found", path: exit.value }
+    const error = Cause.findErrorOption(exit.cause)
+    return Option.isSome(error) && error.value._tag !== "PathsUnavailable" ? { status: "missing" } : { status: "unknown" }
+  }
+)
+
+/** The map's title, read with the learner's session; null when it can't be read */
+export const pathTitle = async (pathId: string): Promise<string | null> => {
+  const read = await readablePath(pathId)
+  return read.status === "found" ? read.path.title : null
+}
 
 /**
  * A public map, read without anyone's session: null when there is none (private, gone, or a malformed id). The API

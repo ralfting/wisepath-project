@@ -124,3 +124,17 @@ test('a public path is read by its link without an account, taken to study, and 
   await bob.page.reload();
   await expect(bob.page.getByRole('region', { name: 'From others' })).toHaveCount(0);
 });
+
+test("someone else's private map, or one that doesn't exist, answers 404 from the server", async ({ browser }) => {
+  const ada = await someone(browser, 'Ada');
+  const eve = await someone(browser, 'Eve');
+  const map = await learningPath(ada.page);
+
+  for (const pathId of [map.pathId, crypto.randomUUID()]) {
+    expect((await eve.page.goto(`/paths/${pathId}`))?.status()).toBe(404);
+    await expect(eve.page.getByRole('heading', { name: 'Path not found' })).toBeVisible();
+  }
+  // Its own pages too, and the owner still opens it
+  expect((await eve.page.goto(`/paths/${map.pathId}/pages/${map.pageId}`))?.status()).toBe(404);
+  expect((await ada.page.goto(`/paths/${map.pathId}`))?.status()).toBe(200);
+});
