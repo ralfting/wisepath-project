@@ -9,7 +9,7 @@ Small stages, each shippable alone, each with a check that it is done. Stages 1 
 | 1. Trust basics (done 2026-10-18; axe moved to stage 4) | P0.1 export, P0.3 delete copy, P0.4 recents, P1.9 e2e in CI | A path downloads as Markdown that Obsidian opens; e2e and axe run in CI | Tests green on main |
 | 2. Accounts | P1.10 account deletion (done 2026-10-18), P1.7 sessions | A learner can stay logged in for weeks and leave with their data | API and e2e tests |
 | 2b. Password reset | P0.2, after stage 2 (2026-10-18: waits for the Gmail app password) | A learner who forgot the password gets back in | API and e2e tests |
-| 3. Publishing state | P0.5 terms and privacy, P1.1 `published` | Today's public links unchanged and `noindex`; an author can publish with a summary, language and audience | Domain, API, e2e tests |
+| 3. Publishing state (published state done 2026-10-18, plan 19; terms and privacy drafted in docs/legal, waiting for review) | P0.5 terms and privacy, P1.1 `published` | Today's public links unchanged and `noindex`; an author can publish with a summary, language and audience | Domain, API, e2e tests |
 | 4. Crawlable pages | P1.2 | A published page answers with its text and links with JavaScript off, from cache | `curl`, Lighthouse, axe |
 | 5. Search engines | P1.3, P1.8, domain | Sitemap submitted, Search Console and page analytics live | Coverage report shows pages indexed |
 | 6. Content | P1.4 | 10-20 published paths in the chosen niche over the quality bar | Impressions in Search Console |
