@@ -27,9 +27,8 @@ context and confirmed against the code. Status: **Done**, **Partial**, **Missing
 
 ### Defects found on the way
 
-- The page-delete dialog says links "stay in other pages and show as missing" (`i18n/messages/en/page.ts:115-117`), but
-  the web client turns them into plain text (`useCases/paths/path.ts:140-149`), and the API's `deletePage` does
-  neither. The two clients disagree with the copy.
+- The page-delete dialog said links "stay in other pages and show as missing", but deleting turns them into plain
+  text on purpose (`useCases/paths/path.ts:140-149`, `docs/FEATURES.md:59`). Fixed 2026-10-18: the copy now says so.
 - Spaced review was removed from the app on 2026-10-16, but `ReviewModule` and its table still run
   (`apps/api/src/app.module.ts:10,26`), and `docs/FEATURES.md:131` still lists Review.
 - Recent pages in ⌘P are shared across accounts on one browser (`recent.ts:24`): a privacy leak on shared computers.

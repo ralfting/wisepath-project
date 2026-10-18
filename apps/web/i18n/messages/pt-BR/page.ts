@@ -114,9 +114,9 @@ export const page = {
   },
   delete: {
     title: 'Excluir página?',
-    body: 'será excluída. Os links para ela continuam nas outras páginas e aparecem como ausentes. Não dá para desfazer.',
+    body: 'será excluída. Os links para ela nas outras páginas viram texto comum. Não dá para desfazer.',
     bodyWithOrphans:
-      'será excluída. Os links para ela continuam nas outras páginas e aparecem como ausentes, e as páginas que só ela alcança ficam soltas, fora do mapa. Não dá para desfazer.',
+      'será excluída. Os links para ela nas outras páginas viram texto comum, e as páginas que só ela alcança ficam soltas, fora do mapa. Não dá para desfazer.',
     keep: 'Manter',
     confirm: 'Excluir página',
   },

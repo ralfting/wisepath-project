@@ -112,9 +112,9 @@ export const page = {
   },
   delete: {
     title: 'Delete page?',
-    body: "will be deleted. Links to it stay in other pages and show as missing. This can't be undone.",
+    body: "will be deleted. Links to it in other pages become plain text. This can't be undone.",
     bodyWithOrphans:
-      "will be deleted. Links to it stay in other pages and show as missing, and pages only it reaches end up unlinked, off the map. This can't be undone.",
+      "will be deleted. Links to it in other pages become plain text, and pages only it reaches end up unlinked, off the map. This can't be undone.",
     keep: 'Keep it',
     confirm: 'Delete page',
   },
