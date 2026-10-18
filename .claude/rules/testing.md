@@ -27,7 +27,7 @@ paths:
 `test/setup.ts` (cleanup, `matchMedia` for Mantine) and compiles JSX itself, since tsconfig keeps it for Next.
 A test that renders React is `.test.tsx`; everything else is `.test.ts`.
 
-Render components with `renderWithLayers(ui, layers, locale?)` from `test/render.tsx`: Mantine theme, `I18nProvider`
+Render components with `renderWithLayers(ui, layers?, locale?)` from `test/render.tsx` (no Layers for a component that runs no use case, as in `ui/`, where Effect can't be imported): Mantine theme, `I18nProvider`
 and a fresh registry on the given Layers, as the app wraps them; `rerender` keeps them, so a test can close and
 reopen a component on the same data. Never assemble those providers in a test.
 

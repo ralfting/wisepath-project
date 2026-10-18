@@ -1,6 +1,5 @@
 import { act, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Layer } from 'effect';
 import { renderWithLayers } from '@/test/render';
 import { ReadingLoader } from './ReadingLoader';
 
@@ -10,7 +9,7 @@ describe('ReadingLoader', () => {
   afterEach(() => vi.useRealTimers());
 
   it('shows nothing for a quick load, and the reader with what is loading once it takes longer', () => {
-    renderWithLayers(<ReadingLoader label="Opening the path…" />, Layer.empty);
+    renderWithLayers(<ReadingLoader label="Opening the path…" />);
     expect(screen.getByRole('status')).toBeTruthy();
     expect(screen.queryByText('Opening the path…')).toBeNull();
 
