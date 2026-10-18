@@ -22,7 +22,9 @@ import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import { CurrentUser } from '../application/CurrentUser';
 import * as paths from '../application/paths';
+import * as sample from '../application/sample';
 import * as sharing from '../application/sharing';
+import { requestLocale } from '../../projects/infrastructure/requestLocale';
 
 /**
  * PathsController
@@ -51,6 +53,11 @@ export class PathsController {
   @Post()
   create(@Req() req: Request, @Body(new SchemaPipe(NewPath)) command: NewPath) {
     return this.effect.respond(paths.createPath(command).pipe(asUser(req)), Path);
+  }
+
+  @Post('sample')
+  takeSample(@Req() req: Request) {
+    return this.effect.respond(sample.takeSample(requestLocale(req)).pipe(asUser(req)), Path);
   }
 
   @Get(':pathId')

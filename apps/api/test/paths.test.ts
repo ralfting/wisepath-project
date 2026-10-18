@@ -143,4 +143,22 @@ describe('paths API', () => {
     assert.strictEqual(response.status, 400);
     assert.strictEqual(((await response.json()) as { _tag: string })._tag, 'InvalidRequest');
   });
+
+  it.effect("copies the sample path once, in the account's language, into its default project", () =>
+    Effect.gen(function* () {
+      const client = yield* signedIn;
+      const taken = yield* client.paths.takeSample();
+      const again = yield* client.paths.takeSample();
+      const listed = yield* client.paths.list();
+      assert.deepStrictEqual(
+        [taken.title, taken.kind, again.id, listed.length, listed[0].projectId, listed[0].access],
+        ['Literature (sample)', 'learningPath', taken.id, 1, yield* generalOf(client), 'owner'],
+      );
+
+      // Someone who chose Portuguese gets it in Portuguese
+      const other = yield* signedIn;
+      yield* other.auth.updateMe({ payload: { locale: 'pt-BR' } });
+      assert.strictEqual((yield* other.paths.takeSample()).title, 'Literatura (exemplo)');
+    }),
+  );
 });

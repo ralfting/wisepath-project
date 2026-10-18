@@ -55,6 +55,11 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
       success: Path.pipe(HttpApiSchema.status(201)),
       error: [SessionRequired, InvalidRequest, ProjectNotFound]
     }),
+    /** The learner's copy of the sample path, in their language and default project; asking again returns it */
+    HttpApiEndpoint.post("takeSample", "/sample", {
+      success: Path.pipe(HttpApiSchema.status(201)),
+      error: [SessionRequired]
+    }),
     HttpApiEndpoint.get("get", "/:pathId", {
       params: path,
       success: Path,

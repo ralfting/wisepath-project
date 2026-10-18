@@ -1,16 +1,16 @@
 import { PageId, PathId } from './Path';
-import type { Page, PageColor, PageIcon, Path } from './Path';
+import type { Page, PageColor, PageIcon, Path, PathKind } from './Path';
 
 /**
- * The sample map every account starts with: a copy of it is made once, with
- * fresh ids, and from then on it is the learner's own map like any other.
- * Pages connect only through the [[links]] in their text, so each seed page
- * lists the pages it leads to; the order of those links orders the map.
+ * Sample maps, written as a tree of seed pages. Pages connect only through
+ * the [[links]] in their text, so each seed page lists the pages it leads to;
+ * the order of those links orders the map. `samplePath` (NestJS) is the large
+ * map the tests read; the one offered to learners is in literature.ts.
  */
 
 const UPDATED = '2026-10-01T12:00:00.000Z';
 
-interface Seed {
+export interface Seed {
   title: string;
   text: string;
   studied?: boolean;
@@ -144,18 +144,17 @@ const nest: Seed = {
   ],
 };
 
-const pages = flatten(nest);
-// The root links its modules; its own studied flag never counts
-const { module: _module, ...root } = pages[0];
-pages[0] = root;
+/** A map from its root seed: the root is the map's title and links its first pages */
+export function pathFrom(seed: Seed, fields: { readonly id: PathId; readonly description: string; readonly kind: PathKind }): Path {
+  const pages = flatten(seed);
+  // The root links its modules; its own studied flag never counts
+  const { module: _module, ...root } = pages[0];
+  pages[0] = root;
+  return { ...fields, title: seed.title, pages, rootPageId: pages[0].id, visibility: 'private', access: 'owner' };
+}
 
-export const samplePath: Path = {
+export const samplePath: Path = pathFrom(nest, {
   id: PathId.make('nestjs'),
-  title: 'NestJS',
   description: 'From the basics to advanced: learning the NestJS framework by building real applications.',
   kind: 'study',
-  pages,
-  rootPageId: pages[0].id,
-  visibility: 'private',
-  access: 'owner',
-};
+});
