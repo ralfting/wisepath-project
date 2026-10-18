@@ -41,9 +41,10 @@ export function PageSheet({
   const { isRoot, between } = state;
 
   return (
-    <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="xl" className={classes.sheet}>
-      <Group justify="space-between" align="flex-start" wrap="nowrap" gap="lg" mb="lg" className={classes.header}>
-        <Group gap="md" wrap="nowrap" align="flex-start" miw={0} className={classes.titleRow}>
+    <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="lg" className={classes.sheet}>
+      {/* One compact line: the page is its text, and the title should not push it down */}
+      <Group justify="space-between" align="center" wrap="nowrap" gap="md" mb="sm" className={classes.header}>
+        <Group gap="sm" wrap="nowrap" align="center" miw={0} className={classes.titleRow}>
           {back && (
             <Tooltip label={t('page.back', { title: displayTitle(back.page) })}>
               <ActionIcon variant="subtle" color="gray" size="lg" onClick={back.onClick} aria-label={t('page.back', { title: displayTitle(back.page) })}>
@@ -51,14 +52,14 @@ export function PageSheet({
               </ActionIcon>
             </Tooltip>
           )}
-          <PageLook path={path} page={page} store={store} size={48} />
+          <PageLook path={path} page={page} store={store} size={32} />
           <Box miw={0} style={{ flex: 1 }}>
             <PageTitleInput
               key={page.id}
               path={path}
               page={page}
               actions={store}
-              size={34}
+              size={26}
               autoFocus={isFresh}
               onEnter={operations.focusText}
             />
