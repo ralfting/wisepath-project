@@ -161,7 +161,9 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `DELETE` | `/api/projects/:projectId` | its paths move to the default project, which can't be deleted (422 `DefaultProjectProtected`) |
 | `GET` | `/api/paths` | your maps and those from others (shared with you or taken), summarised (project or owner, access, progress, next page); progress is yours |
 | `POST` | `/api/paths` | `{ id, projectId, rootPageId, title }`: a new map in one of your projects (404 `ProjectNotFound` otherwise) |
+| `GET` | `/api/paths/export` | the maps you own as Markdown, one folder each, in a zip; maps from others are left out |
 | `GET` | `/api/paths/:pathId` | one map with its pages |
+| `GET` | `/api/paths/:pathId/export` | one map you own as Markdown, one file per page, in a zip (owner only) |
 | `PATCH` | `/api/paths/:pathId` | `{ description, kind, projectId }`; `projectId` moves it; the title follows the root page's |
 | `DELETE` | `/api/paths/:pathId` | deletes the map and its pages |
 | `POST` | `/api/paths/:pathId/pages` | `{ id, title }`: a new page; 409 `TitleTaken` |
