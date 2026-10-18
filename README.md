@@ -165,6 +165,10 @@ The full description, generated from the contract, is at <http://localhost:4001/
 | `POST` | `/api/paths` | `{ id, projectId, rootPageId, title }`: a new map in one of your projects (404 `ProjectNotFound` otherwise) |
 | `GET` | `/api/paths/export` | the maps you own as Markdown, one folder each, in a zip; maps from others are left out |
 | `GET` | `/api/paths/:pathId` | one map with its pages |
+| `PUT` | `/api/paths/:pathId/publication` | `{ description, audience, language }`: asks to publish to the catalog (owner only); a published map only saves them |
+| `DELETE` | `/api/paths/:pathId/publication` | withdraws the request, or unpublishes to readable by link (owner only) |
+| `GET` | `/api/admin/publications` | the requests waiting, for the accounts in `ADMIN_EMAILS`; 404 `NotAdmin` for anyone else |
+| `POST` | `/api/admin/publications/:pathId/approve`, `/decline` | decides a waiting request; 404 `PathNotFound` once it no longer waits |
 | `GET` | `/api/paths/:pathId/export` | one map you own as Markdown, one file per page, in a zip (owner only) |
 | `PATCH` | `/api/paths/:pathId` | `{ description, kind, projectId }`; `projectId` moves it; the title follows the root page's |
 | `DELETE` | `/api/paths/:pathId` | deletes the map and its pages |

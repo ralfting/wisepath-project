@@ -20,6 +20,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 16 | [First steps that explain themselves](16-first-steps.md) | Links not made yet show on the map, a first-visit card with an optional sample path, and a lighter start |
 | 17 | [Download paths as Markdown](17-markdown-export.md) | A path, or all of them, as a zip of `.md` files that opens in Obsidian; only the paths you own |
 | 18 | [Delete my account](18-delete-account.md) | From the account menu, with the password, after offering the download |
+| 19 | [Publish a path to the catalog](19-publish-to-the-catalog.md) | The owner asks from the Share dialog; an administrator approves at /admin/publications |
 
 AI (10) comes last, once these exist to build on.
 

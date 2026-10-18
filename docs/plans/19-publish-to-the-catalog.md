@@ -49,7 +49,8 @@ Every page stays `noindex` in this plan, `published` too: search engines come wi
     pending request. `DELETE /paths/:id/publication` (owner): withdraws the request, or unpublishes to `public`.
   - `GET /admin/publications`, `POST /admin/publications/:id/approve`, `POST /admin/publications/:id/decline`:
     administrators are the accounts whose email is in `ADMIN_EMAILS` (comma separated, read through Effect `Config`).
-  - `setVisibility` to `private` or `public` drops a request and takes a published path out of the catalog.
+  - `setVisibility` to `private` drops a request and takes a published path out of the catalog; to `public`, a
+    published path leaves the catalog and a waiting request stays.
 - **Web**: `CatalogSection` in the Share dialog with its form; `app/admin/publications` reading on the server
   (`queries.ts`) and deciding through Server Actions; messages under `share.catalog` and `admin.`.
 
