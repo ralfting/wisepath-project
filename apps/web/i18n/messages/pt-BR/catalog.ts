@@ -5,8 +5,7 @@ import type { catalog as en } from '@/i18n/messages/en/catalog';
 export const catalog = {
   meta: '{page} | {path} | WisePath',
   metaRoot: '{path} | WisePath',
-  badge: 'Catálogo do WisePath',
-  for: 'Para {audience}',
+  for: 'Para: {audience}',
   trail: 'Onde esta página fica',
   related: 'Páginas relacionadas',
   pages: 'Páginas desta trilha',

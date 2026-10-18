@@ -1,4 +1,4 @@
-import { Anchor, Badge, Box, Breadcrumbs, Container, Flex, Group, Paper, Stack, Text, Title } from '@mantine/core';
+import { Anchor, Box, Breadcrumbs, Container, Flex, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { neighbours, relatedPages, trailTo } from '@wisepath/domain/paths';
 import type { Page, Path, Relation } from '@wisepath/domain/paths';
 import type { Translate, TranslationKey } from '@/i18n/I18nProvider';
@@ -35,25 +35,15 @@ export function PublishedPage({ path, pathSlug, page, t }: PublishedPageProps) {
   const { previous, next } = neighbours(path, page.id);
 
   return (
-    <Container component="main" size="lg" py="xl">
-      <Stack gap="xl">
-        <Group justify="space-between" align="flex-end" gap="md">
-          <Stack gap={4} miw={0} style={{ flex: 1 }}>
-            <Badge variant="light" w="fit-content">
-              {t('catalog.badge')}
-            </Badge>
-            {isRoot ? null : (
-              <Anchor href={hrefOf({ id: path.rootPageId })} fw={700}>
-                {path.title}
-              </Anchor>
-            )}
-            {path.description && <Text c="dimmed">{path.description}</Text>}
-            {path.audience && (
-              <Text size="sm" c="dimmed">
-                {t('catalog.for', { audience: path.audience })}
-              </Text>
-            )}
-          </Stack>
+    <Container component="main" size="lg" py="md">
+      <Stack gap="md">
+        <Group justify="space-between" align="center" gap="sm" wrap="nowrap" className={classes.header}>
+          <Text size="sm" c="dimmed" miw={0} truncate>
+            <Anchor href={hrefOf({ id: path.rootPageId })} fw={600} size="sm">
+              {path.title}
+            </Anchor>
+            {path.audience && <> · {t('catalog.for', { audience: path.audience })}</>}
+          </Text>
           <StudyThisPath pathId={path.id} readingHref={hrefOf(page)} />
         </Group>
 
@@ -68,9 +58,14 @@ export function PublishedPage({ path, pathSlug, page, t }: PublishedPageProps) {
                 ))}
               </Breadcrumbs>
             )}
-            <Title order={1} mb="md">
+            <Title order={1} mb={isRoot && path.description ? 'xs' : 'md'}>
               {displayTitle(page)}
             </Title>
+            {isRoot && path.description && (
+              <Text size="lg" c="dimmed" mb="lg">
+                {path.description}
+              </Text>
+            )}
             {page.content.trim() ? <MarkdownText content={page.content} hrefOf={hrefOfTitle} /> : <Text c="dimmed">{t('catalog.empty')}</Text>}
             {(previous || next) && (
               <Group component="nav" aria-label={t('catalog.pager')} justify="space-between" align="flex-start" mt="xl" pt="md" className={classes.pager}>

@@ -2,8 +2,7 @@
 export const catalog = {
   meta: '{page} | {path} | WisePath',
   metaRoot: '{path} | WisePath',
-  badge: 'WisePath catalog',
-  for: 'For {audience}',
+  for: 'For: {audience}',
   trail: 'Where this page sits',
   related: 'Related pages',
   pages: 'Pages in this path',

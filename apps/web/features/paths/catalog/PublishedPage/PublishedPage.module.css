@@ -15,3 +15,9 @@
 .pager {
   border-top: 1px solid var(--wp-line);
 }
+
+/* One quiet line above the page: which path it is, and the way to study it */
+.header {
+  padding-bottom: var(--mantine-spacing-sm);
+  border-bottom: 1px solid var(--wp-line);
+}
