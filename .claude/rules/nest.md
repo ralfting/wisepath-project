@@ -94,8 +94,9 @@ async rename(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, 
   in production without a 32+ character secret of its own. Never weaken that check.
 - `process.env` is read in `main.ts`, `setup.ts`, `auth.module.ts` (passed to `jwtSecret`) and `session.ts` only;
   `Sql.ts` reads `DATABASE_URL` through Effect `Config.Redacted`. New config goes through `Config`, not `process.env`.
-- The session cookie is httpOnly, `sameSite: 'lax'`, `secure` in production, 24 h. Bearer tokens are accepted for
-  non-browser clients. Never log a token, a password or a request body.
+- The session cookie is httpOnly, `sameSite: 'lax'`, `secure` in production, 30 days, renewed by `JwtAuthGuard`
+  once a day while it is used (decided 2026-10-18). Bearer tokens are accepted for non-browser clients. Never log a
+  token, a password or a request body.
 - `SafePageFetcher` resolves DNS and refuses private addresses, caps time, size and redirects. Any new outbound
   fetch of a user-supplied URL goes through it or copies those checks.
 

@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './infrastructure/auth.controller';
 import { JwtAuthGuard } from './infrastructure/jwt.guard';
 import { jwtSecret } from './infrastructure/jwtSecret';
-import { SESSION_HOURS } from './infrastructure/session';
+import { SESSION_DAYS } from './infrastructure/session';
 
 /** Accounts and sessions, served under /api/auth; other modules guard their routes with JwtAuthGuard */
 @Module({
@@ -12,7 +12,7 @@ import { SESSION_HOURS } from './infrastructure/session';
       // Read when the app starts, after ConfigModule has loaded .env
       useFactory: () => ({
         secret: jwtSecret(process.env),
-        signOptions: { expiresIn: `${SESSION_HOURS}h` },
+        signOptions: { expiresIn: `${SESSION_DAYS}d` },
       }),
     }),
   ],

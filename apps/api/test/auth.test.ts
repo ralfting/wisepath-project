@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { assert, describe, it } from '@effect/vitest';
 import { Effect, Option, Ref } from 'effect';
 import { Cookies } from 'effect/http';
+import { JwtService } from '@nestjs/jwt';
 import { Email } from '@wisepath/domain/auth';
 import { useApp } from './app';
 
@@ -103,6 +104,30 @@ describe('auth API', () => {
       const [parts0, parts1] = jwt.split('.');
       const forged = `${parts0}.${parts1}.${'x'.repeat(43)}`;
       assert.deepStrictEqual(yield* me(`Bearer ${forged}`), [401, { _tag: 'NotAuthenticated' }]);
+    }),
+  );
+
+  it.effect('keeps a browser session for 30 days, renewed as it is used', () =>
+    Effect.gen(function* () {
+      const { client } = yield* makeClient;
+      const { user } = yield* client.auth.signup({ payload: { name: 'Ada', email: newEmail(), password } });
+      // Signed with the test secret, as the API would have two days ago
+      const signer = new JwtService({ secret: 'test-only' });
+      const issuedAt = Math.floor(Date.now() / 1000);
+      const token = (daysAgo: number) =>
+        signer.sign({ userId: user.id, email: user.email, iat: issuedAt - daysAgo * 86_400 }, { expiresIn: '30d' });
+      const me = (jwt: string) =>
+        Effect.promise(() => fetch(`${baseUrl()}/auth/me`, { headers: { cookie: `access_token=${jwt}` } }));
+
+      const renewed = yield* me(token(2));
+      assert.strictEqual(renewed.status, 200);
+      assert.match(renewed.headers.get('set-cookie') ?? '', /access_token=.+Max-Age=2592000/);
+
+      const fresh = yield* me(token(0));
+      assert.deepStrictEqual([fresh.status, fresh.headers.get('set-cookie')], [200, null]);
+
+      const expired = yield* me(token(31));
+      assert.strictEqual(expired.status, 401);
     }),
   );
 

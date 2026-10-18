@@ -20,7 +20,7 @@ context and confirmed against the code. Status: **Done**, **Partial**, **Missing
 | Password reset | Missing | The app sends no email (`PathsApi.ts:100`); a forgotten password locks the notes away |
 | Account deletion, data download | Missing | `AuthApi.ts:22-44` has no delete; the account menu offers language and logout |
 | Undo, trash, page history | Missing | Hard deletes (`apps/api/src/paths/application/paths.ts:77-91,130`); an editor can delete the owner's pages |
-| Session length | Partial | 24 h, no refresh (`apps/api/src/auth/infrastructure/session.ts:22,46`): after any pause the learner logs in again |
+| Session length | Done | 30 days, renewed while used (2026-10-18; was 24 h with no refresh) |
 | Keyboard | Done | Shortcuts in `docs/FEATURES.md`; `MindMap/useMindKeys.ts` |
 | Phones | Partial / Unverified | List view below 640px (`PathMap/useMapView.ts:24-26`); not checked on a device |
 | Accessibility checks | Missing | No axe in `apps/web/e2e`, though `docs/plans/README.md` requires it |
