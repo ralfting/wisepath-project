@@ -123,9 +123,10 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     if (editor && focusSignal > 0) editor.commands.focus('end');
   }, [editor, focusSignal]);
 
-  // Access can change while the page is open (the owner makes someone an editor)
+  // Access can change while the page is open (the owner makes someone an editor). No update event: Tiptap emits
+  // one by default, which saved the unchanged text on every open
   useEffect(() => {
-    if (editor && !editor.isDestroyed) editor.setEditable(!readOnly);
+    if (editor && !editor.isDestroyed) editor.setEditable(!readOnly, false);
   }, [editor, readOnly]);
 
   /** The / Page command's name: links it where / was typed, then opens it (made when missing), or stays */

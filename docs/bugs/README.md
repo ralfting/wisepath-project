@@ -20,6 +20,7 @@ Skip it for typos and bugs whose cause is obvious from the diff.
 
 | Id | Title | Area | Date |
 |---|---|---|---|
+| [BUG-005](BUG-005-opening-a-page-saves-it.md) | Opening a page sends a PATCH with its unchanged text | web/paths | 2026-10-18 |
 | [BUG-004](BUG-004-mantine-compound-in-server-component.md) | A public path shows "Can't open this path" while it is loading | web/paths | 2026-10-17 |
 | [BUG-003](BUG-003-helpers-lost-use-client.md) | The build fails with "createContext only works in a Client Component" after a split | web/build | 2026-10-17 |
 | [BUG-002](BUG-002-picker-step-loses-focus.md) | Picking a path in the page picker sometimes leaves the keyboard on the back button | web/inbox | 2026-10-17 |
