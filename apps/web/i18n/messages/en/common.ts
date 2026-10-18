@@ -13,6 +13,12 @@ export const common = {
     save: 'Save',
     retry: 'Retry',
   },
+  /** An address that leads to no screen at all: mistyped, or an old link */
+  notFound: {
+    title: 'Page not found',
+    body: "This address doesn't exist or the link is wrong.",
+    home: 'Go to WisePath',
+  },
   errors: {
     unavailable: "Can't reach WisePath right now. Try again in a moment.",
     generic: 'Something went wrong. Try again in a moment.',

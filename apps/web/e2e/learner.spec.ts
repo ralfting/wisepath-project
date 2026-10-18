@@ -281,3 +281,10 @@ test('a path downloads from My paths as a zip of Markdown named after it', async
   await page.getByRole('menuitem', { name: 'Download as Markdown' }).click();
   expect((await download).suggestedFilename()).toBe('Learn Effect.zip');
 });
+
+test('an address with no screen answers 404 with a way back into WisePath', async ({ page }) => {
+  expect((await page.goto('/no-such-screen'))?.status()).toBe(404);
+  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+  await page.getByRole('link', { name: 'Go to WisePath' }).click();
+  await expect(page).not.toHaveURL(/no-such-screen/);
+});

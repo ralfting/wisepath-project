@@ -15,6 +15,11 @@ export const common = {
     save: 'Salvar',
     retry: 'Tentar de novo',
   },
+  notFound: {
+    title: 'Página não encontrada',
+    body: 'Este endereço não existe ou o link está errado.',
+    home: 'Ir para o WisePath',
+  },
   errors: {
     unavailable: 'Não foi possível falar com o WisePath agora. Tente de novo em instantes.',
     generic: 'Algo deu errado. Tente de novo em instantes.',
