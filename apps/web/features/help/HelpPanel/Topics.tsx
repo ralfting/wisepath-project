@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Accordion, Badge, Group, List, Stack, Text } from '@mantine/core';
+import { Accordion, Badge, List, Stack, Text } from '@mantine/core';
 import { IconBulb, IconPlayerPlay } from '@tabler/icons-react';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './HelpPanel.module.css';
@@ -40,14 +40,13 @@ export function Topics({ screen }: { screen: Screen }) {
                       </List.Item>
                     ))}
                   </List>
-                  <Group gap={8} wrap="nowrap" align="flex-start" className={classes.tip}>
-                    <Badge size="sm" variant="light" color="yellow" leftSection={<IconBulb size={12} />} style={{ flexShrink: 0 }}>
+                  {/* The label opens the sentence, which runs on after it and wraps under it */}
+                  <Text component="div" size="sm" className={classes.tip}>
+                    <Badge size="sm" variant="light" color="yellow" leftSection={<IconBulb size={12} />} mr={6} className={classes.tipLabel}>
                       {t('help.tip')}
                     </Badge>
-                    <Text size="sm">
-                      <Rich text={t(key(`${topic.base}.tip`))} />
-                    </Text>
-                  </Group>
+                    <Rich text={t(key(`${topic.base}.tip`))} />
+                  </Text>
                 </Stack>
               </Accordion.Panel>
             </Accordion.Item>

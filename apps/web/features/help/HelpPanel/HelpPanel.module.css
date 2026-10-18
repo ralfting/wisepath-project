@@ -60,7 +60,12 @@
 
 /* The tip under a topic's steps */
 .tip {
-  padding: 8px 10px;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
   border-radius: var(--mantine-radius-md);
   background: var(--mantine-color-yellow-light);
+}
+
+/* Sits on the first line of the text, not above it */
+.tipLabel {
+  vertical-align: text-bottom;
 }
