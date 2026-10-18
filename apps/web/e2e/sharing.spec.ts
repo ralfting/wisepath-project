@@ -1,36 +1,12 @@
 import { expect, test } from '@playwright/test';
-import type { Browser, Page } from '@playwright/test';
-import { API, signUp } from './helpers';
+import type { Page } from '@playwright/test';
+import { API, learningPath, shareDialog, signUp, someone } from './helpers';
+import type { Map } from './helpers';
 
 /**
  * Sharing a path (docs/plans/14-public-and-shared-paths.md), with two or three people at once, each in a browser of
  * their own: the owner shares and makes public, a reader studies with their own marks, a visitor reads the link.
  */
-
-interface Map {
-  readonly pathId: string;
-  readonly pageId: string;
-}
-
-/** Someone new, signed in, in a browser of their own */
-async function someone(browser: Browser, name: string) {
-  const page = await (await browser.newContext()).newPage();
-  const email = await signUp(page, name);
-  return { page, email };
-}
-
-/** A learning path made through the API as the signed-in owner: a root linking one page, Borrowing */
-async function learningPath(owner: Page): Promise<Map> {
-  const [general] = (await (await owner.request.get(`${API}/projects`)).json()) as Array<{ id: string }>;
-  const pathId = crypto.randomUUID();
-  const rootPageId = crypto.randomUUID();
-  const pageId = crypto.randomUUID();
-  const paths = `${API}/paths/${pathId}`;
-  expect((await owner.request.post(`${API}/paths`, { data: { id: pathId, projectId: general.id, rootPageId, title: 'Rust', kind: 'learningPath' } })).ok()).toBe(true);
-  expect((await owner.request.patch(`${paths}/pages/${rootPageId}`, { data: { content: 'Start with [[Borrowing]]' } })).ok()).toBe(true);
-  expect((await owner.request.post(`${paths}/pages`, { data: { id: pageId, title: 'Borrowing' } })).ok()).toBe(true);
-  return { pathId, pageId };
-}
 
 /** Whether Borrowing is studied, as this person's own marks say */
 const studied = async (page: Page, map: Map) => {
@@ -42,8 +18,6 @@ const content = async (page: Page, map: Map) => {
   const path = (await (await page.request.get(`${API}/paths/${map.pathId}`)).json()) as { pages: Array<{ id: string; content: string }> };
   return path.pages.find((p) => p.id === map.pageId)?.content;
 };
-
-const shareDialog = (page: Page) => page.getByRole('dialog', { name: 'Share “Rust”' });
 
 test('a path shared to read is studied with your own marks, and once you may edit it, edited', async ({ browser }) => {
   const ada = await someone(browser, 'Ada');

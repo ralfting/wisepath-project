@@ -28,7 +28,7 @@ export default defineConfig({
       command: 'node ../web/e2e/prepareDatabase.mjs && node dist/migrate.js && node dist/main.js',
       cwd: '../api',
       url: `${API}/api`,
-      env: { DATABASE_URL: databaseUrl, JWT_SECRET: 'e2e-only-secret', FRONTEND_URL: WEB, PORT: '4201', NODE_ENV: 'test' },
+      env: { DATABASE_URL: databaseUrl, JWT_SECRET: 'e2e-only-secret', FRONTEND_URL: WEB, PORT: '4201', NODE_ENV: 'test', ADMIN_EMAILS: 'admin-e2e@wisepath.test' },
       timeout: 60_000,
     },
     {
