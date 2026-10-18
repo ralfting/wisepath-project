@@ -1,6 +1,6 @@
 import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema } from "effect/http-api"
-import { AccountSettings, Credentials, EmailAlreadyRegistered, InvalidCredentials, Locale, NotAuthenticated, SignupDetails, UserId } from "@wisepath/domain/auth"
+import { AccountDeletion, AccountSettings, Credentials, EmailAlreadyRegistered, InvalidCredentials, Locale, NotAuthenticated, SignupDetails, UserId } from "@wisepath/domain/auth"
 import { InvalidRequest } from "./InvalidRequest"
 
 /**
@@ -40,6 +40,11 @@ export class AuthApiGroup extends HttpApiGroup.make("auth")
       payload: AccountSettings,
       success: Schema.Struct({ user: UserJson }),
       error: [InvalidRequest, NotAuthenticated]
+    }),
+    /** Deletes the account and all it owns once the password is confirmed; the session ends with it */
+    HttpApiEndpoint.delete("deleteMe", "/me", {
+      payload: AccountDeletion,
+      error: [InvalidRequest, NotAuthenticated, InvalidCredentials]
     })
   )
   .prefix("/auth")

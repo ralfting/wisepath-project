@@ -42,6 +42,12 @@ export const Credentials = Schema.Struct({
 })
 export type Credentials = typeof Credentials.Type
 
+/** What a learner types to confirm deleting their account */
+export const AccountDeletion = Schema.Struct({
+  password: Schema.String.check(Schema.isMinLength(1, { message: "Enter your password" }))
+})
+export type AccountDeletion = typeof AccountDeletion.Type
+
 /** What someone types to create an account */
 export const SignupDetails = Schema.Struct({
   name: Schema.Trim.check(Schema.isMinLength(1, { message: "Tell us your name" })),

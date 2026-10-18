@@ -1,12 +1,13 @@
-import { Body, Controller, Get, HttpCode, Patch, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Patch, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request, Response } from 'express';
-import { Option, Schema } from 'effect';
+import { Effect, Option, Schema } from 'effect';
 import { UserJson } from '@wisepath/contract';
-import { AccountSettings, Credentials, SignupDetails } from '@wisepath/domain/auth';
+import { AccountDeletion, AccountSettings, Credentials, SignupDetails } from '@wisepath/domain/auth';
 import type { User } from '@wisepath/domain/auth';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
+import { CurrentUser } from '../../paths/application/CurrentUser';
 import * as auth from '../application/auth';
 import { JwtAuthGuard } from './jwt.guard';
 import { claimsOf, clearSessionCookie, setSessionCookie } from './session';
@@ -63,5 +64,17 @@ export class AuthController {
     const user = await this.effect.run(auth.updateSettings(req.user!.id, settings));
     if (Option.isNone(user)) throw new UnauthorizedException();
     return bodyOf(user.value);
+  }
+
+  @Delete('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  async deleteMe(
+    @Req() req: Request,
+    @Body(new SchemaPipe(AccountDeletion)) deletion: AccountDeletion,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.effect.run(auth.deleteAccount(deletion).pipe(Effect.provideService(CurrentUser, { id: req.user!.id })));
+    clearSessionCookie(res);
   }
 }

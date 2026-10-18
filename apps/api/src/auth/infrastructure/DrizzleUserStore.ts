@@ -41,6 +41,10 @@ export const DrizzleUserStore = Layer.effect(
       yield* run(db.update(users).set({ locale, updatedAt: new Date() }).where(eq(users.id, id)));
     });
 
-    return UserStore.of({ findByEmail, findById, insert, setLocale });
+    const remove = Effect.fn('UserStore.remove')(function* (id: UserId) {
+      yield* run(db.delete(users).where(eq(users.id, id)));
+    });
+
+    return UserStore.of({ findByEmail, findById, insert, setLocale, remove });
   }),
 );

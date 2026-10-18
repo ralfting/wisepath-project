@@ -1,8 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { Effect, Option } from 'effect';
-import { EmailAlreadyRegistered, InvalidCredentials, User, UserId } from '@wisepath/domain/auth';
-import type { AccountSettings, Credentials, SignupDetails } from '@wisepath/domain/auth';
+import { Email, EmailAlreadyRegistered, InvalidCredentials, User, UserId } from '@wisepath/domain/auth';
+import type { AccountDeletion, AccountSettings, Credentials, SignupDetails } from '@wisepath/domain/auth';
+import { CurrentUser } from '../../paths/application/CurrentUser';
 import { MemberStore } from '../../paths/application/MemberStore';
+import { PathStore } from '../../paths/application/PathStore';
+import { removePath } from '../../paths/application/paths';
 import { PasswordHasher } from './PasswordHasher';
 import { UserStore } from './UserStore';
 
@@ -53,4 +56,25 @@ export const updateSettings = Effect.fn('auth.updateSettings')(function* (id: Us
 export const sessionUser = Effect.fn('auth.sessionUser')(function* (id: UserId) {
   const users = yield* UserStore;
   return yield* users.findById(id);
+});
+
+/**
+ * Deletes the session's account once its password is confirmed. Its paths go first, one by one as when the learner
+ * deletes one, so whoever studied or was invited to them is told; the rest cascades from the account. An account
+ * already gone changes nothing (a retry).
+ */
+export const deleteAccount = Effect.fn('auth.deleteAccount')(function* (deletion: AccountDeletion) {
+  const user = yield* CurrentUser;
+  const users = yield* UserStore;
+  const hasher = yield* PasswordHasher;
+
+  const found = yield* users.findById(user.id);
+  if (Option.isNone(found)) return;
+  const account = yield* users.findByEmail(Email.make(found.value.email));
+  const hash = Option.match(account, { onNone: () => null, onSome: (a) => a.passwordHash });
+  if (!(yield* hasher.verify(deletion.password, hash))) return yield* new InvalidCredentials();
+
+  const listed = yield* (yield* PathStore).listFor(user.id);
+  for (const { path } of listed.filter((entry) => entry.projectId !== null)) yield* removePath(path.id);
+  yield* users.remove(user.id);
 });

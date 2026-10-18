@@ -20,5 +20,8 @@ export class UserStore extends Context.Service<
 
     /** Saves the language the user chose; null follows their browser */
     readonly setLocale: (id: UserId, locale: Locale | null) => Effect.Effect<void>;
+
+    /** Deletes the account; everything that references it goes with it */
+    readonly remove: (id: UserId) => Effect.Effect<void>;
   }
 >()('@wisepath/api/auth/application/UserStore') {}
