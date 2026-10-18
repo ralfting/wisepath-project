@@ -101,8 +101,6 @@ export const pages = pgTable(
     /** lower(trim(title)), or null while the page has no title: keeps titles unique per map */
     titleKey: text('title_key'),
     content: text().notNull().default(''),
-    /** No longer read or written: marks moved to page_progress. Dropped once the API that reads it is gone */
-    studied: boolean().notNull().default(false),
     module: boolean(),
     color: text(),
     icon: text(),

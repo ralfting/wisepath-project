@@ -99,7 +99,7 @@ User 1──< PageProgress >── Page                          (studied marks,
 7. Web: Share dialog and its actions; "From others" on My paths, with Leave.
 8. Web: public page, Study this path, middleware, metadata.
 9. Docs: `docs/FEATURES.md`, README endpoints.
-10. Once step 1 is deployed: a migration that drops `pages.studied` ([nest.md](../../.claude/rules/nest.md): never drop in the
+10. Done 2026-10-17 (0011): once step 1 is deployed, a migration that drops `pages.studied` ([nest.md](../../.claude/rules/nest.md): never drop in the
     release that stops reading it). Until then, rolling the API back to before step 1 shows each owner the marks
     `pages.studied` had at the migration: marks made since live only in `page_progress`.
 
