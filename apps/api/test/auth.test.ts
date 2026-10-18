@@ -1,46 +1,22 @@
-import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import type { AddressInfo } from 'node:net';
-import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import { afterAll, assert, beforeAll, describe, it } from '@effect/vitest';
+import { assert, describe, it } from '@effect/vitest';
 import { Effect, Option, Ref } from 'effect';
-import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
-import { HttpApiClient } from 'effect/http-api';
-import { WisePathApi } from '@wisepath/contract';
+import { Cookies } from 'effect/http';
 import { Email } from '@wisepath/domain/auth';
-import { AppModule } from '../src/app.module';
-import { configureApp } from '../src/setup';
+import { useApp } from './app';
 
 /**
  * Accounts and sessions, end to end: the real Nest app and Postgres, called
  * through the client generated from the contract.
  */
 
-let app: NestExpressApplication;
-let baseUrl: string;
+const { makeSession, baseUrl } = useApp();
 
-beforeAll(async () => {
-  app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error'] });
-  configureApp(app);
-  await app.listen(0, '127.0.0.1');
-  baseUrl = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}/api`;
-});
-
-afterAll(async () => {
-  await app?.close();
-});
-
-/** A client with its own cookie jar, so each one is a separate browser */
-const makeClient = Effect.gen(function* () {
-  const cookies = yield* Ref.make(Cookies.empty);
-  const client = yield* HttpApiClient.make(WisePathApi, {
-    baseUrl,
-    transformClient: HttpClient.withCookiesRef(cookies),
-  });
-  const token = Ref.get(cookies).pipe(Effect.map((jar) => Option.getOrThrow(Cookies.getValue(jar, 'access_token'))));
-  return { client, token };
-}).pipe(Effect.provide(FetchHttpClient.layer));
+/** A client and its session token, so each one is a separate browser */
+const makeClient = Effect.map(makeSession, ({ client, cookies }) => ({
+  client,
+  token: Ref.get(cookies).pipe(Effect.map((jar) => Option.getOrThrow(Cookies.getValue(jar, 'access_token')))),
+}));
 
 const newEmail = () => Email.make(`a-${randomUUID()}@wisepath.test`);
 const password = 'long-enough';
@@ -117,7 +93,7 @@ describe('auth API', () => {
       const jwt = yield* token;
       const me = (auth: string) =>
         Effect.promise(() =>
-          fetch(`${baseUrl}/auth/me`, { headers: { authorization: auth } }).then(
+          fetch(`${baseUrl()}/auth/me`, { headers: { authorization: auth } }).then(
             async (r) => [r.status, (await r.json()) as { user?: { id: string }; _tag?: string }] as const,
           ),
         );
@@ -132,7 +108,7 @@ describe('auth API', () => {
 
   it('trims what other clients send, as the contract decodes it', async () => {
     const email = newEmail();
-    const response = await fetch(`${baseUrl}/auth/signup`, {
+    const response = await fetch(`${baseUrl()}/auth/signup`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name: ' Ada ', email: ` ${email} `, password }),
@@ -143,7 +119,7 @@ describe('auth API', () => {
   });
 
   it('answers a request that breaks the contract with InvalidRequest', async () => {
-    const response = await fetch(`${baseUrl}/auth/signup`, {
+    const response = await fetch(`${baseUrl()}/auth/signup`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name: 'Ada', email: 'not-an-email', password: 'short' }),

@@ -1,50 +1,17 @@
-import 'reflect-metadata';
-import { randomUUID } from 'node:crypto';
-import type { AddressInfo } from 'node:net';
-import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import { afterAll, assert, beforeAll, describe, it } from '@effect/vitest';
-import { Effect, Layer, Ref } from 'effect';
-import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
-import { HttpApiClient } from 'effect/http-api';
-import { WisePathApi } from '@wisepath/contract';
-import { Email } from '@wisepath/domain/auth';
+import { assert, describe, it } from '@effect/vitest';
+import { Effect, Layer } from 'effect';
 import { previewLink } from '../src/links/application/links';
 import { PageFetcher } from '../src/links/application/PageFetcher';
-import { AppModule } from '../src/app.module';
-import { configureApp } from '../src/setup';
+import { useApp } from './app';
 
 /**
  * Link previews: what is read from a page (with a stand-in fetcher), and the
  * real endpoint refusing what it must never fetch.
  */
 
-let app: NestExpressApplication;
-let baseUrl: string;
-
-beforeAll(async () => {
-  app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error'] });
-  configureApp(app);
-  await app.listen(0, '127.0.0.1');
-  baseUrl = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}/api`;
-});
-
-afterAll(async () => {
-  await app?.close();
-});
-
-const makeClient = Effect.gen(function* () {
-  const cookies = yield* Ref.make(Cookies.empty);
-  return yield* HttpApiClient.make(WisePathApi, { baseUrl, transformClient: HttpClient.withCookiesRef(cookies) });
-}).pipe(Effect.provide(FetchHttpClient.layer));
-
-const signedIn = Effect.gen(function* () {
-  const client = yield* makeClient;
-  yield* client.auth.signup({
-    payload: { name: 'Tester', email: Email.make(`l-${randomUUID()}@wisepath.test`), password: 'long-enough' },
-  });
-  return client;
-});
+const { makeClient, signedIn: signUp } = useApp();
+/** A new account, signed in */
+const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
 /** A fetcher that answers every URL with this page */
 const servesPage = (html: string, at: string) =>

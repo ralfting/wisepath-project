@@ -1,58 +1,19 @@
-import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import type { AddressInfo } from 'node:net';
-import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import { afterAll, assert, beforeAll, describe, it } from '@effect/vitest';
-import { Effect, Ref } from 'effect';
-import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
-import { HttpApiClient } from 'effect/http-api';
-import { WisePathApi } from '@wisepath/contract';
-import { Email } from '@wisepath/domain/auth';
+import { assert, describe, it } from '@effect/vitest';
+import { Effect } from 'effect';
 import { PageId, PathId } from '@wisepath/domain/paths';
 import { CardId } from '@wisepath/domain/review';
-import { AppModule } from '../src/app.module';
-import { configureApp } from '../src/setup';
+import { generalOf, useApp } from './app';
+import type { Client } from './app';
 
 /**
  * The review API, end to end: cards written in pages, listed when due and
  * graded, through the client generated from the contract.
  */
 
-let app: NestExpressApplication;
-let baseUrl: string;
-
-beforeAll(async () => {
-  app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error'] });
-  configureApp(app);
-  await app.listen(0, '127.0.0.1');
-  baseUrl = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}/api`;
-});
-
-afterAll(async () => {
-  await app?.close();
-});
-
-const makeClient = Effect.gen(function* () {
-  const cookies = yield* Ref.make(Cookies.empty);
-  return yield* HttpApiClient.make(WisePathApi, {
-    baseUrl,
-    transformClient: HttpClient.withCookiesRef(cookies),
-  });
-}).pipe(Effect.provide(FetchHttpClient.layer));
-
-type Client = Effect.Success<typeof makeClient>;
-
-/** The account's default project, where its paths go unless told otherwise */
-const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
-
-const signedIn = Effect.gen(function* () {
-  const client = yield* makeClient;
-  yield* client.auth.signup({
-    payload: { name: 'Tester', email: Email.make(`r-${randomUUID()}@wisepath.test`), password: 'long-enough' },
-  });
-  return client;
-});
+const { makeClient, signedIn: signUp, baseUrl } = useApp();
+/** A new account, signed in */
+const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
 /** A new path whose root page has this text */
 const pathWith = (client: Client, title: string, content: string) =>
@@ -204,7 +165,7 @@ describe('review API', () => {
       const bad = yield* Effect.flip(client.review.counts({ query: { dayEnds: 'soon' } }));
       assert.strictEqual(bad._tag, 'InvalidRequest');
       const res = yield* Effect.promise(() =>
-        fetch(`${baseUrl}/review/x`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"grade":5,"reps":0}' }),
+        fetch(`${baseUrl()}/review/x`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"grade":5,"reps":0}' }),
       );
       // Without a session the guard answers first; the schema refusal is covered by the pipe
       assert.strictEqual(res.status, 401);

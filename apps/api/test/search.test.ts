@@ -1,58 +1,24 @@
-import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import type { AddressInfo } from 'node:net';
-import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import { afterAll, assert, beforeAll, describe, it } from '@effect/vitest';
-import { Effect, Ref } from 'effect';
-import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
-import { HttpApiClient } from 'effect/http-api';
-import { WisePathApi } from '@wisepath/contract';
-import { Email } from '@wisepath/domain/auth';
+import { assert, describe, it } from '@effect/vitest';
+import { Effect } from 'effect';
 import { PageId, PathId } from '@wisepath/domain/paths';
-import { AppModule } from '../src/app.module';
-import { configureApp } from '../src/setup';
+import { generalOf, useApp } from './app';
+import type { Client } from './app';
 
 /**
  * Search everywhere, end to end: the real Nest app and Postgres (its trigram
  * indexes and unaccent), called through the client generated from the contract.
  */
 
-let app: NestExpressApplication;
-let baseUrl: string;
+const { makeClient, signedIn: signUp, baseUrl } = useApp();
+/** A new account, signed in */
+const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
-beforeAll(async () => {
-  app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error'] });
-  configureApp(app);
-  await app.listen(0, '127.0.0.1');
-  baseUrl = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}/api`;
-});
 
-afterAll(async () => {
-  await app?.close();
-});
-
-const makeClient = Effect.gen(function* () {
-  const cookies = yield* Ref.make(Cookies.empty);
-  return yield* HttpApiClient.make(WisePathApi, { baseUrl, transformClient: HttpClient.withCookiesRef(cookies) });
-}).pipe(Effect.provide(FetchHttpClient.layer));
-
-const signedIn = Effect.gen(function* () {
-  const client = yield* makeClient;
-  yield* client.auth.signup({
-    payload: { name: 'Tester', email: Email.make(`s-${randomUUID()}@wisepath.test`), password: 'long-enough' },
-  });
-  return client;
-});
-
-type Client = Effect.Success<typeof signedIn>;
-
-/** The account's default project, where its paths go unless told otherwise */
-const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
 
 /** The session cookie of a new account, for requests made without the generated client */
 const signupCookie = Effect.promise(async () => {
-  const response = await fetch(`${baseUrl}/auth/signup`, {
+  const response = await fetch(`${baseUrl()}/auth/signup`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ name: 'Raw', email: `r-${randomUUID()}@wisepath.test`, password: 'long-enough' }),
@@ -173,7 +139,7 @@ describe('search API', () => {
       assert.strictEqual((yield* client.search.search({ query: { q: 'common' } })).length, 6);
       // The generated client won't send it, so ask as any other client could
       const cookie = yield* signupCookie;
-      const response = yield* Effect.promise(() => fetch(`${baseUrl}/search?q=common&limit=500`, { headers: { cookie } }));
+      const response = yield* Effect.promise(() => fetch(`${baseUrl()}/search?q=common&limit=500`, { headers: { cookie } }));
       assert.strictEqual(response.status, 400);
       assert.strictEqual(((yield* Effect.promise(() => response.json())) as { _tag: string })._tag, 'InvalidRequest');
     }),

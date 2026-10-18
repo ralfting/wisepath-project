@@ -34,12 +34,16 @@ export function useApp() {
     await app?.close();
   });
 
-  const makeClient = Effect.suspend(() =>
+  /** A client and its cookie jar, for tests that read the session cookie itself */
+  const makeSession = Effect.suspend(() =>
     Effect.gen(function* () {
       const cookies = yield* Ref.make(Cookies.empty);
-      return yield* HttpApiClient.make(WisePathApi, { baseUrl, transformClient: HttpClient.withCookiesRef(cookies) });
+      const client = yield* HttpApiClient.make(WisePathApi, { baseUrl, transformClient: HttpClient.withCookiesRef(cookies) });
+      return { client, cookies };
     }),
   ).pipe(Effect.provide(FetchHttpClient.layer));
+
+  const makeClient = Effect.map(makeSession, ({ client }) => client);
 
   /** A new account, signed in, who it is and its email */
   const signedIn = (name: string) =>
@@ -50,11 +54,15 @@ export function useApp() {
       return { client, user, email };
     });
 
-  return { makeClient, signedIn };
+  // A function: the port is known once the app listens
+  return { makeClient, makeSession, signedIn, baseUrl: () => baseUrl };
 }
 
 export type Client = Effect.Success<ReturnType<typeof useApp>['makeClient']>;
 type SignedIn = ReturnType<typeof useApp>['signedIn'];
+
+/** The account's default project, where its paths go unless told otherwise */
+export const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
 
 export const pid = () => PathId.make(randomUUID());
 export const pgid = () => PageId.make(randomUUID());

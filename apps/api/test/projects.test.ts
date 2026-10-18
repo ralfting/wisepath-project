@@ -1,18 +1,12 @@
-import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import type { AddressInfo } from 'node:net';
-import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import { afterAll, assert, beforeAll, describe, it } from '@effect/vitest';
+import { assert, describe, it } from '@effect/vitest';
 import { Effect, Ref } from 'effect';
 import { Cookies, FetchHttpClient, HttpClient, HttpClientRequest } from 'effect/http';
 import { HttpApiClient } from 'effect/http-api';
 import { WisePathApi } from '@wisepath/contract';
 import { Email } from '@wisepath/domain/auth';
-import { PageId, PathId } from '@wisepath/domain/paths';
 import { ProjectId } from '@wisepath/domain/projects';
-import { AppModule } from '../src/app.module';
-import { configureApp } from '../src/setup';
+import { generalOf, pgid, pid, useApp } from './app';
 
 /**
  * The projects API, end to end, and how paths are filed in projects: the
@@ -20,44 +14,11 @@ import { configureApp } from '../src/setup';
  * contract.
  */
 
-let app: NestExpressApplication;
-let baseUrl: string;
-
-beforeAll(async () => {
-  app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error'] });
-  configureApp(app);
-  await app.listen(0, '127.0.0.1');
-  baseUrl = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}/api`;
-});
-
-afterAll(async () => {
-  await app?.close();
-});
-
-/** A client with its own cookie jar, so each one is a separate session */
-const makeClient = Effect.gen(function* () {
-  const cookies = yield* Ref.make(Cookies.empty);
-  return yield* HttpApiClient.make(WisePathApi, {
-    baseUrl,
-    transformClient: HttpClient.withCookiesRef(cookies),
-  });
-}).pipe(Effect.provide(FetchHttpClient.layer));
-
+const { signedIn: signUp, baseUrl } = useApp();
 /** A new account, signed in */
-const signedIn = Effect.gen(function* () {
-  const client = yield* makeClient;
-  yield* client.auth.signup({
-    payload: { name: 'Tester', email: Email.make(`t-${randomUUID()}@wisepath.test`), password: 'long-enough' },
-  });
-  return client;
-});
+const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
-type Client = Effect.Success<typeof makeClient>;
-/** The account's default project, where its paths go unless told otherwise */
-const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
 
-const pid = () => PathId.make(randomUUID());
-const pgid = () => PageId.make(randomUUID());
 const prid = () => ProjectId.make(randomUUID());
 
 describe('projects API', () => {
@@ -74,7 +35,7 @@ describe('projects API', () => {
     Effect.gen(function* () {
       const cookies = yield* Ref.make(Cookies.empty);
       const client = yield* HttpApiClient.make(WisePathApi, {
-        baseUrl,
+        baseUrl: baseUrl(),
         transformClient: (http) =>
           HttpClient.withCookiesRef(http, cookies).pipe(
             HttpClient.mapRequest(HttpClientRequest.setHeader('accept-language', 'pt-BR,pt;q=0.9,en;q=0.8')),

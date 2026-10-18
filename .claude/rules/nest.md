@@ -101,9 +101,11 @@ async rename(@Req() req: Request, @Param('projectId', projectId) id: ProjectId, 
 
 ## Tests
 
-- Integration, through the real Nest app and Postgres: `test/<module>.test.ts` boots `AppModule`, listens on a
-  random port and calls it with `HttpApiClient.make(WisePathApi, { baseUrl })`. Each test makes its own account
-  (`signedIn`), so tests do not share data.
+- Integration, through the real Nest app and Postgres: each `test/<module>.test.ts` calls `useApp()` from
+  `test/app.ts`, which boots `AppModule` on a random port and gives clients generated from the contract
+  (`makeClient`, `signedIn(name)`, `makeSession` with its cookie jar, `baseUrl()` for raw requests). Each test makes
+  its own account, so tests do not share data. Shared fixtures live there too (`generalOf`, `ownedMap`, `outcomes`);
+  never copy the app setup into a test file.
 - Database: `wisepath_test` on the local Postgres, wiped and migrated by `test/globalSetup.ts`. Override with
   `TEST_DATABASE_URL` whose name ends in `_test`. **Never** point it at `apps/api/.env`'s `DATABASE_URL`.
 - One `it.effect` per behaviour, named in product words; assert the error by its `_tag` through the client's typed

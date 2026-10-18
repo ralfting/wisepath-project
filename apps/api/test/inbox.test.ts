@@ -1,50 +1,17 @@
-import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
-import type { AddressInfo } from 'node:net';
-import { NestFactory } from '@nestjs/core';
-import type { NestExpressApplication } from '@nestjs/platform-express';
-import { afterAll, assert, beforeAll, describe, it } from '@effect/vitest';
-import { Effect, Ref } from 'effect';
-import { Cookies, FetchHttpClient, HttpClient } from 'effect/http';
-import { HttpApiClient } from 'effect/http-api';
-import { WisePathApi } from '@wisepath/contract';
-import { Email } from '@wisepath/domain/auth';
+import { assert, describe, it } from '@effect/vitest';
+import { Effect } from 'effect';
 import { InboxItemId } from '@wisepath/domain/inbox';
-import { AppModule } from '../src/app.module';
-import { configureApp } from '../src/setup';
+import { useApp } from './app';
 
 /**
  * The Inbox API, end to end: the real Nest app and Postgres, called through
  * the client generated from the contract.
  */
 
-let app: NestExpressApplication;
-let baseUrl: string;
-
-beforeAll(async () => {
-  app = await NestFactory.create<NestExpressApplication>(AppModule, { logger: ['error'] });
-  configureApp(app);
-  await app.listen(0, '127.0.0.1');
-  baseUrl = `http://127.0.0.1:${(app.getHttpServer().address() as AddressInfo).port}/api`;
-});
-
-afterAll(async () => {
-  await app?.close();
-});
-
-/** A client with its own cookie jar, so each one is a separate session */
-const makeClient = Effect.gen(function* () {
-  const cookies = yield* Ref.make(Cookies.empty);
-  return yield* HttpApiClient.make(WisePathApi, { baseUrl, transformClient: HttpClient.withCookiesRef(cookies) });
-}).pipe(Effect.provide(FetchHttpClient.layer));
-
-const signedIn = Effect.gen(function* () {
-  const client = yield* makeClient;
-  yield* client.auth.signup({
-    payload: { name: 'Tester', email: Email.make(`i-${randomUUID()}@wisepath.test`), password: 'long-enough' },
-  });
-  return client;
-});
+const { makeClient, signedIn: signUp, baseUrl } = useApp();
+/** A new account, signed in */
+const signedIn = Effect.map(signUp('Tester'), ({ client }) => client);
 
 const iid = () => InboxItemId.make(randomUUID());
 
@@ -101,13 +68,13 @@ describe('inbox API', () => {
   );
 
   it("refuses what isn't an item", async () => {
-    const cookie = await fetch(`${baseUrl}/auth/signup`, {
+    const cookie = await fetch(`${baseUrl()}/auth/signup`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ name: 'T', email: `i-${randomUUID()}@wisepath.test`, password: 'long-enough' }),
     }).then((r) => r.headers.get('set-cookie')!.split(';')[0]);
     for (const body of [{ id: 'x', text: '   ' }, { id: 'x', text: 'a', url: 'javascript:alert(1)' }, { text: 'no id' }]) {
-      const response = await fetch(`${baseUrl}/inbox`, {
+      const response = await fetch(`${baseUrl()}/inbox`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', cookie },
         body: JSON.stringify(body),
