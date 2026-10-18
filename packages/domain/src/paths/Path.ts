@@ -93,6 +93,8 @@ export const Path = Schema.Struct({
   audience: Schema.optional(Schema.String),
   language: Schema.optional(PathLanguage),
   /** A request to publish it, for its owner only: waiting, or declined */
-  publication: Schema.optional(PublicationStatus)
+  publication: Schema.optional(PublicationStatus),
+  /** Its address in the catalog (/p/<slug>), given when it is first published and kept after */
+  slug: Schema.optional(Schema.String)
 })
 export type Path = typeof Path.Type
