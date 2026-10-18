@@ -1,0 +1,13 @@
+{
+  "kind": "learningPath",
+  "description": "Como estudar por conta própria no WisePath: escrever páginas, ligar umas às outras e ler o assunto como um mapa.",
+  "audience": "Quem está começando a usar o WisePath",
+  "language": "pt-BR",
+  "modules": {
+    "Primeiros passos": { "color": "blue", "icon": "rocket" },
+    "Escrever e ligar páginas": { "color": "violet", "icon": "book" },
+    "O mapa": { "color": "teal", "icon": "network" },
+    "Estudar com progresso": { "color": "green", "icon": "school" },
+    "Compartilhar e publicar": { "color": "orange", "icon": "world" }
+  }
+}
