@@ -102,7 +102,7 @@ export const editor = {
     shellSession: 'Sessão de terminal',
   },
   help: {
-    title: 'Markdown que você pode usar',
+    title: 'Formatação enquanto você escreve',
     intro: 'Quase tudo vira formatação enquanto você digita. Links de sites e tabelas vêm da barra de ferramentas ou de um texto colado.',
     groups: {
       text: 'Texto',
@@ -129,7 +129,7 @@ export const editor = {
       timestamp:
         'Um momento do vídeo acima: um clique toca a partir dali, e Cmd/Ctrl+Enter toca o tempo da linha do cursor; com Shift, os dois tocam em tela cheia. Nota em, embaixo de um vídeo, pausa o vídeo para adicionar uma (ou N com o vídeo em foco)',
       tableRow: 'Depois Enter: uma tabela com esses cabeçalhos e uma linha para preencher. /table também funciona',
-      tablePaste: 'Cole uma tabela em markdown como esta: a linha acima da linha --- é o cabeçalho',
+      tablePaste: 'Cole uma tabela escrita como esta: a linha acima da linha --- é o cabeçalho',
     },
   },
 } as const satisfies Shape<typeof en>;

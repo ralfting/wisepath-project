@@ -15,7 +15,7 @@ export const page = {
     label: 'Selected page',
     trail: 'Path to this page',
     centre: 'Main page',
-    orphans: 'Orphans',
+    orphans: 'Unlinked pages',
     morePages: 'More pages',
     expand: 'Expand',
     expandHint: 'Open as a full page',
@@ -25,7 +25,7 @@ export const page = {
       'To add a page, type / and choose Page, then its name and Enter (Cmd/Ctrl+Enter to stay here). To connect pages, type [[ and a name.',
   },
   kind: {
-    orphan: 'Orphan: no link reaches this page',
+    orphan: 'Unlinked: no page links here, so it is off the map',
     module: 'Module',
     page: 'Page',
   },
@@ -114,7 +114,7 @@ export const page = {
     title: 'Delete page?',
     body: "will be deleted. Links to it stay in other pages and show as missing. This can't be undone.",
     bodyWithOrphans:
-      "will be deleted. Links to it stay in other pages and show as missing, and pages only it reaches become orphans. This can't be undone.",
+      "will be deleted. Links to it stay in other pages and show as missing, and pages only it reaches end up unlinked, off the map. This can't be undone.",
     keep: 'Keep it',
     confirm: 'Delete page',
   },

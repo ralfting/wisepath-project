@@ -40,7 +40,7 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 
 The map is a reading of the links, never stored on its own.
 
-- **Layout.** A horizontal mind map: the centre page in the middle, its branches split left and right, each level a column further out. The first link that reaches a page makes it a branch of the linking page; any other link is drawn as a faint arrow, which brightens for the open page or the one under the pointer. Pages no link reaches are **orphans**, listed apart.
+- **Layout.** A horizontal mind map: the centre page in the middle, its branches split left and right, each level a column further out. The first link that reaches a page makes it a branch of the linking page; any other link is drawn as a faint arrow, which brightens for the open page or the one under the pointer. Pages no link reaches are **unlinked pages** (orphans, in the code), listed apart.
 - **Pages named but not made.** A `[[link]]` to a page that doesn't exist yet shows at once as a ghost page, dashed and faint, after the real pages branching from the same page, on the map and in the list. Opening it (click or Enter) makes the page and opens it. Someone who may only read the path sees none.
 - **Modules.** Any page can be shown as a module: drawn larger, with a colour and an icon (set on the page's icon). Pages below a module take its colour.
 - **List view.** The same tree as an indented list (the default on phones).
@@ -54,9 +54,9 @@ The map is a reading of the links, never stored on its own.
 - **Drawer.** A page opens in a drawer beside the map; its URL is the page's own, so Back closes it and a reload opens the full page. Another page (from the map, search or Related) replaces it at once. Expand grows it into the full page in place. Esc closes it (a menu or popup open in it closes first); the focus goes back to the page on the map.
 - **Opened from the keyboard,** the focus is on the title (so the page is announced and keys don't land in its text); opened with a click, the cursor waits at the end of the text, ready to write. Tab past the drawer's end goes back to the map.
 - **Related tab:** where the page branches from, its branches, the pages it links to and those linking to it. Pointing at one rings it on the map and singles out its link.
-- **Title.** Edited in place; links to the page follow the new name when editing ends, and the page never shows as an orphan meanwhile. A title another page has is refused (links would be ambiguous). Enter moves on to the text.
+- **Title.** Edited in place; links to the page follow the new name when editing ends, and the page never shows as unlinked meanwhile. A title another page has is refused (links would be ambiguous). Enter moves on to the text.
 - **Outline.** With two headings or more, a rail of dashes on the right edge; hovering it lists the headings ("On this page"), and it works from the keyboard.
-- **Delete** from the page's ⋯ menu: links to it become plain text, and pages only it reached become orphans.
+- **Delete** from the page's ⋯ menu: links to it become plain text, and pages only it reached end up unlinked, off the map.
 
 ## Writing
 

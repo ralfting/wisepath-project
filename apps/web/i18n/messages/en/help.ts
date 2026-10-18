@@ -13,7 +13,7 @@ export const help = {
   enlarge: 'Enlarge',
   enlargeClip: 'Enlarge the example: {title}',
   page: {
-    intro: 'A page is free text in markdown, linked to the rest of the path.',
+    intro: 'A page is your notes, links and videos, linked to the rest of the path.',
     addPage: {
       title: 'Add a page',
       steps: {

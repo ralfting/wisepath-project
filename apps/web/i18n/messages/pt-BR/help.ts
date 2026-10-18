@@ -10,7 +10,7 @@ export const help = {
   enlarge: 'Ampliar',
   enlargeClip: 'Ampliar o exemplo: {title}',
   page: {
-    intro: 'Uma página é texto livre em markdown, ligada ao resto da trilha.',
+    intro: 'Uma página guarda suas anotações, links e vídeos, ligada ao resto da trilha.',
     addPage: {
       title: 'Adicionar uma página',
       steps: {

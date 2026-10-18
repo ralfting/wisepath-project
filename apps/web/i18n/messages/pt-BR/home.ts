@@ -25,7 +25,7 @@ export const home = {
   card: {
     pages: { one: '{count} página', other: '{count} páginas' },
     modules: { one: '{count} módulo', other: '{count} módulos' },
-    orphans: { one: '{count} página órfã', other: '{count} páginas órfãs' },
+    orphans: { one: '{count} página solta', other: '{count} páginas soltas' },
     more: 'Mais opções para {title}',
     progress: 'Progresso em {title}',
     studied: { one: '{studied} de {count} página estudada', other: '{studied} de {count} páginas estudadas' },

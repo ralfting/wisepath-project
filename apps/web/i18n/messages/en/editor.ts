@@ -99,7 +99,7 @@ export const editor = {
     shellSession: 'Shell session',
   },
   help: {
-    title: 'Markdown you can use',
+    title: 'Formatting as you type',
     intro: 'Most of it turns into formatting as you type. Website links and tables come from the toolbar or a paste.',
     groups: {
       text: 'Text',
@@ -126,7 +126,7 @@ export const editor = {
       timestamp:
         "A moment of the video above: a click plays it from there, and Cmd/Ctrl+Enter plays the time on the cursor's line; with Shift, either plays it in fullscreen. Note at, under a video, pauses it to add one (or N with the video focused)",
       tableRow: 'Then Enter: a table with those headers and a row to fill. /table works too',
-      tablePaste: 'Paste a markdown table like this one: the row above the --- line is the header',
+      tablePaste: 'Paste a table written like this one: the row above the --- line is the header',
     },
   },
 } as const;

@@ -80,8 +80,8 @@ export const map = {
   },
   list: {
     empty: 'Nada no mapa ainda. Adicione uma página abaixo, ou digite / no conteúdo de {title}.',
-    orphans: 'Órfãs',
-    orphansHeading: 'Órfãs · nenhum link chega a elas',
+    orphans: 'Páginas soltas',
+    orphansHeading: 'Soltas · nenhuma página tem link para elas',
   },
   orphans: {
     count: { one: '{count} página fora do mapa', other: '{count} páginas fora do mapa' },

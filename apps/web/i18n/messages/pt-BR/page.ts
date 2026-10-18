@@ -18,7 +18,7 @@ export const page = {
     label: 'Página selecionada',
     trail: 'Caminho até esta página',
     centre: 'Página principal',
-    orphans: 'Órfãs',
+    orphans: 'Páginas soltas',
     morePages: 'Mais páginas',
     expand: 'Expandir',
     expandHint: 'Abrir como página inteira',
@@ -28,7 +28,7 @@ export const page = {
       'Para adicionar uma página, digite / e escolha Página, depois o nome e Enter (Cmd/Ctrl+Enter para ficar aqui). Para conectar páginas, digite [[ e um nome.',
   },
   kind: {
-    orphan: 'Órfã: nenhum link chega a esta página',
+    orphan: 'Solta: nenhuma página tem link para ela, então fica fora do mapa',
     module: 'Módulo',
     page: 'Página',
   },
@@ -116,7 +116,7 @@ export const page = {
     title: 'Excluir página?',
     body: 'será excluída. Os links para ela continuam nas outras páginas e aparecem como ausentes. Não dá para desfazer.',
     bodyWithOrphans:
-      'será excluída. Os links para ela continuam nas outras páginas e aparecem como ausentes, e as páginas que só ela alcança ficam órfãs. Não dá para desfazer.',
+      'será excluída. Os links para ela continuam nas outras páginas e aparecem como ausentes, e as páginas que só ela alcança ficam soltas, fora do mapa. Não dá para desfazer.',
     keep: 'Manter',
     confirm: 'Excluir página',
   },
