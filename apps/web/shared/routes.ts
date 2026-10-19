@@ -45,6 +45,9 @@ export function openPageId(pathname: string, pathId: string): string | null {
 /** A public map, read without an account (the Share dialog's link) */
 export const publicMapHref = (pathId: string) => `/public/paths/${pathId}`;
 
+/** The catalog: every published map, all of them or those in one language */
+export const exploreHref = (language?: string) => (language ? `/explore?lang=${encodeURIComponent(language)}` : '/explore');
+
 /** A published map in the catalog, at its root page or at one of its pages */
 export const catalogHref = (pathSlug: string, pageSlug?: string) => (pageSlug ? `/p/${pathSlug}/${pageSlug}` : `/p/${pathSlug}`);
 

@@ -4,6 +4,7 @@ import type { auth as en } from '@/i18n/messages/en/auth';
 /** Mensagens da área auth, em português do Brasil */
 export const auth = {
   landing: {
+    explore: 'Explorar trilhas',
     tagline: 'Mapeie o que você está aprendendo, página por página, até o “Agora eu sei”.',
     what: 'Uma página de anotações para cada coisa que você aprende.',
     links: 'Ligadas com [[ ]], para o assunto ganhar forma de mapa.',

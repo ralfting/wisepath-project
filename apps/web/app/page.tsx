@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Button, Center, Group, List, Stack, Text, Title } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
+import { exploreHref } from '@/shared/routes';
 
 export default function Home() {
   const t = useT();
@@ -28,6 +29,9 @@ export default function Home() {
             {t('auth.landing.signUp')}
           </Button>
         </Group>
+        <Button component={Link} href={exploreHref()} variant="subtle">
+          {t('auth.landing.explore')}
+        </Button>
       </Stack>
     </Center>
   );

@@ -1,0 +1,34 @@
+/* A grid of cards, read as a list rather than bullet points */
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* The whole card opens its path: the title's link covers it */
+.card {
+  position: relative;
+
+  &:hover {
+    border-color: var(--mantine-primary-color-filled);
+  }
+}
+
+.cardLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* The language in view stands out from the others */
+.filter {
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-xl);
+  border: 1px solid var(--wp-line);
+
+  &[data-on] {
+    background: var(--mantine-primary-color-light);
+    border-color: transparent;
+    font-weight: 600;
+  }
+}

@@ -4,6 +4,7 @@ import type { Page, Path, Relation } from '@wisepath/domain/paths';
 import type { Translate, TranslationKey } from '@/i18n/I18nProvider';
 import { displayTitle } from '@/i18n/title';
 import { StudyThisPath } from '@/features/paths/public';
+import { exploreHref } from '@/shared/routes';
 import { MarkdownText } from '../MarkdownText/MarkdownText';
 import { hrefsOf, outline } from './PublishedPage.helpers';
 import classes from './PublishedPage.module.css';
@@ -39,6 +40,10 @@ export function PublishedPage({ path, pathSlug, page, t }: PublishedPageProps) {
       <Stack gap="md">
         <Group justify="space-between" align="center" gap="sm" wrap="nowrap" className={classes.header}>
           <Text size="sm" c="dimmed" miw={0} truncate>
+            <Anchor href={exploreHref()} size="sm" c="dimmed">
+              {t('catalog.explore.link')}
+            </Anchor>
+            {' / '}
             <Anchor href={hrefOf({ id: path.rootPageId })} fw={600} size="sm">
               {path.title}
             </Anchor>

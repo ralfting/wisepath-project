@@ -39,7 +39,10 @@ test('an owner asks to publish a path, and an administrator approves it', async 
   // A visitor with JavaScript off reads it at its catalog address, and follows a [[link]] to the next page
   const { slug } = (await (await ada.page.request.get(`${API}/paths/${map.pathId}`)).json()) as { slug: string };
   const reader = await (await browser.newContext({ javaScriptEnabled: false })).newPage();
-  await reader.goto(`/p/${slug}`);
+  // Found in the catalog, without an account or JavaScript
+  await reader.goto('/explore');
+  await reader.getByRole('link', { name: 'Rust', exact: true }).click();
+  await expect(reader).toHaveURL(new RegExp(`/p/${slug}$`));
   await expect(reader.getByRole('heading', { name: 'Rust', level: 1 })).toBeVisible();
   await expect(reader.getByText('Ownership and borrowing in Rust')).toBeVisible();
   await reader.getByRole('article').getByRole('link', { name: 'Borrowing', exact: true }).click();

@@ -1,6 +1,7 @@
 /** Messages for the auth area, in English: the source the other languages follow */
 export const auth = {
   landing: {
+    explore: 'Explore paths',
     tagline: 'Map what you are learning, page by page, down to “Now I know it”.',
     what: 'A page of notes for each thing you learn.',
     links: 'Linked with [[ ]], so the subject takes shape as a map.',

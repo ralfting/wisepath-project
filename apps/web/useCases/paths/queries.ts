@@ -72,3 +72,13 @@ export const catalogEntries = async (): Promise<ReadonlyArray<CatalogEntry>> => 
   const exit = await runServer(programs.listCatalog)
   return Exit.isSuccess(exit) ? exit.value : []
 }
+
+/**
+ * Every published map, as the catalog page lists them, read without anyone's session. The API being down is thrown,
+ * for the segment's error page, rather than shown as an empty catalog.
+ */
+export const publishedCatalog = cache(async (): Promise<ReadonlyArray<CatalogEntry>> => {
+  const exit = await runServer(programs.listCatalog)
+  if (Exit.isSuccess(exit)) return exit.value
+  throw new Error("The catalog could not be read")
+})

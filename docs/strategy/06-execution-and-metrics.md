@@ -13,7 +13,7 @@ Small stages, each shippable alone, each with a check that it is done. Stages 1 
 | 4. Crawlable pages (done 2026-10-18, plan 20; caching left for later: the root layout reads cookies) | P1.2 | A published page answers with its text and links with JavaScript off, from cache | `curl`, Lighthouse, axe |
 | 5. Search engines (prepared 2026-10-18: sitemap, robots, canonical and Open Graph wait for SITE_URL; the domain is not bought yet) | P1.3, P1.8, domain | Sitemap submitted, Search Console and page analytics live | Coverage report shows pages indexed |
 | 6. Content | P1.4 | 10-20 published paths in the chosen niche over the quality bar | Impressions in Search Console |
-| 7. Visitors become learners | P1.5 catalog and take after signup, P1.6 resume | A visitor goes from a search result to studying in one flow; home shows where they stopped | e2e; activation metrics below |
+| 7. Visitors become learners (catalog page done 2026-10-19; take after signup and resume still open) | P1.5 catalog and take after signup, P1.6 resume | A visitor goes from a search result to studying in one flow; home shows where they stopped | e2e; activation metrics below |
 | 8. Read the numbers | none | 8-12 weeks of data after stage 6 | Monthly review against the questions below |
 | 9. Revenue, gated | P2 donations, then curated affiliate links | Gates in [05-backlog.md](05-backlog.md) met | Revenue and cost metrics |
 
