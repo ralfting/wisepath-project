@@ -19,6 +19,15 @@ a {
   text-underline-offset: 0.2em;
 }
 
+/* Safari on a phone zooms the page into any field under 16px when it takes focus */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: var(--mantine-font-size-md);
+  }
+}
+
 /* In the page drawer, the key the cursor's line answers to (▶ ⌘↵ plays its time, ↗ ⌘↵ opens its link), held
    against the drawer's left edge like a tab (ActiveBlockRail places it; on a page the rail carries it) */
 .wp-rail-tag {
