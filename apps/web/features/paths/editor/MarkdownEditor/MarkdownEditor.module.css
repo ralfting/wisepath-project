@@ -35,6 +35,15 @@
     --code-color-keyword: light-dark(var(--mantine-color-violet-8), var(--mantine-color-violet-3));
   }
 
+  /* On a phone, code keeps its lines and scrolls sideways: wrapped to a narrow screen it stops reading as code.
+     Through .ProseMirror, whose own pre-wrap is injected after this file */
+  & :global(.ProseMirror) pre {
+    @media (max-width: $mantine-breakpoint-sm) {
+      white-space: pre;
+      overflow-x: auto;
+    }
+  }
+
   /* While writing, a short bar in the margin marks the block the cursor is in,
      sliding along as it moves (ActiveBlockRail places it) */
   & :global(.wp-active-rail) {

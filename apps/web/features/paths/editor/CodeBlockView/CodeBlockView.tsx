@@ -96,7 +96,8 @@ export function CodeBlockView({ node, updateAttributes, editor }: NodeViewProps)
         />
       </div>
       <pre>
-        <NodeViewContent as="code" />
+        {/* Tiptap writes pre-wrap on the code itself; inherited instead, the editor's CSS decides (on a phone: no wrap) */}
+        <NodeViewContent as="code" style={{ whiteSpace: 'inherit' }} />
       </pre>
     </NodeViewWrapper>
   );
