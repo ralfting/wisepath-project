@@ -12,6 +12,11 @@
     width: auto;
   }
 
+  /* A phone has no room beside the map: the drawer takes the whole screen, as expanded */
+  @media (max-width: $mantine-breakpoint-sm) {
+    inset: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
@@ -45,6 +50,12 @@
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+  }
+
+  /* After the frame above, which it takes off on a phone */
+  @media (max-width: $mantine-breakpoint-sm) {
+    border-width: 0;
+    border-radius: 0;
   }
 }
 
