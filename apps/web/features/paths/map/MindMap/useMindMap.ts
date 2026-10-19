@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import type { Page, Path } from '@wisepath/domain/paths';
-import { descendants, lookOf, mapTree, progressOf } from '@wisepath/domain/paths';
+import { descendants, lookOf, mapTree, pathProgress, progressOf } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import { withGhosts } from '../ghosts';
@@ -100,7 +100,7 @@ export function useMindMap({
     viewport,
     highlights,
     keys,
-    state: { tree, root, layout, rootId, rootSide, promptAt, rootLook: lookOf(path, rootId, tree), overall: progressOf(descendants(tree.root)) },
+    state: { tree, root, layout, rootId, rootSide, promptAt, rootLook: lookOf(path, rootId, tree), overall: pathProgress(path) },
     statusOf,
     counterOf,
     countText,

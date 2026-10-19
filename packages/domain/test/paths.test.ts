@@ -106,11 +106,15 @@ describe("pending links", () => {
 })
 
 describe("progress and looks", () => {
-  it("counts the pages below a page, and the whole map at the root", () => {
-    assert.deepStrictEqual(pathProgress(samplePath), { studied: 8, total: 41 })
+  it("counts the whole map with its root, and the pages below a page", () => {
+    assert.deepStrictEqual(pathProgress(samplePath), { studied: 8, total: 42 })
     assert.deepStrictEqual(branchProgress(samplePath, id("authentication")), { studied: 0, total: 5 })
     assert.deepStrictEqual(branchProgress(samplePath, id("guards")), { studied: 0, total: 0 })
-    assert.strictEqual(nextPage(samplePath)?.title, "Modules")
+    // The root is the first step: studying starts there, then goes out along the branches
+    assert.strictEqual(nextPage(samplePath)?.title, "NestJS")
+    const rootStudied = updatePage(samplePath, samplePath.rootPageId, { studied: true })
+    assert.deepStrictEqual(pathProgress(rootStudied), { studied: 9, total: 42 })
+    assert.strictEqual(nextPage(rootStudied)?.title, "Modules")
   })
 
   it("takes the colour of the nearest module above; any page can be a module", () => {
@@ -134,7 +138,7 @@ describe("path rules", () => {
     const course = startPath({ projectId: ProjectId.make("general"), id: PathId.make("c"), rootPageId: id("c"), title: "Course", kind: "learningPath" })
     assert.strictEqual(course.kind, "learningPath")
     assert.isNull(summarize(samplePath, ProjectId.make("general"), null).next)
-    assert.strictEqual(summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general"), null).next?.title, "Modules")
+    assert.strictEqual(summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general"), null).next?.title, "NestJS")
   })
 
   it("keeps the studied marks when a map switches kind, so they come back with the progress", () => {
@@ -151,10 +155,9 @@ describe("path rules", () => {
     assert.strictEqual(createPage(next, "jwt", id("dup")).page.id, "jwt")
   })
 
-  it("refuses a title another page has, and never marks the root studied", () => {
+  it("refuses a title another page has, and renames the map with its root", () => {
     assert.isTrue(titleTaken(samplePath, id("guards"), " jwt "))
     assert.strictEqual(updatePage(samplePath, id("guards"), { title: "JWT" }), samplePath)
-    assert.strictEqual(updatePage(samplePath, samplePath.rootPageId, { studied: true }), samplePath)
     assert.strictEqual(updatePage(samplePath, samplePath.rootPageId, { title: "Nest" }).title, "Nest")
   })
 

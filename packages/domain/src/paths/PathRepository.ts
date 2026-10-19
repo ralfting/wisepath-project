@@ -28,7 +28,7 @@ export class PathRepository extends Context.Service<PathRepository, {
     id: PathId,
     pageId: PageId,
     edit: PageEdit
-  ) => Effect.Effect<void, PathNotFound | PageNotFound | TitleTaken | RootPageProtected | PathsUnavailable>
+  ) => Effect.Effect<void, PathNotFound | PageNotFound | TitleTaken | PathsUnavailable>
   readonly removePage: (
     id: PathId,
     pageId: PageId

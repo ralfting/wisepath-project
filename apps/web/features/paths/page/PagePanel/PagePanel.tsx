@@ -172,7 +172,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
           </Stack>
         </Group>
 
-        {!isRoot && progress && (
+        {progress && (
           <Group gap="xs" px="lg" pt="md">
             <StudiedToggle
               studied={page.studied}

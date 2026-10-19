@@ -102,7 +102,7 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
     HttpApiEndpoint.patch("updatePage", "/:pathId/pages/:pageId", {
       params: page,
       payload: PageEdit,
-      error: [SessionRequired, InvalidRequest, PathNotFound, PageNotFound, TitleTaken, RootPageProtected]
+      error: [SessionRequired, InvalidRequest, PathNotFound, PageNotFound, TitleTaken]
     }),
     HttpApiEndpoint.delete("removePage", "/:pathId/pages/:pageId", {
       params: page,

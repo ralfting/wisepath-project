@@ -133,7 +133,6 @@ export const addBranch = Effect.fnUntraced(function*(path: Path, parentId: PageI
 export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, edit: PageEdit, now = new Date()) {
   const page = path.pages.find((p) => p.id === pageId)
   if (!page) return yield* new PageNotFound({ pageId })
-  if (edit.studied !== undefined && pageId === path.rootPageId) return yield* new RootPageProtected({ pageId })
   if (edit.title !== undefined && titleTaken(path, pageId, edit.title)) return yield* new TitleTaken({ title: edit.title })
 
   const { title, content, studied, module, color, icon, previousTitle } = edit

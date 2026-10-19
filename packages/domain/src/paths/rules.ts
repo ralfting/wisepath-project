@@ -50,7 +50,7 @@ export function createPage(path: Path, title: string, id: PageId, now = new Date
 
 /**
  * Edits a page. A title another page already has is refused (the path comes
- * back unchanged), and the root can't be marked studied. The root names the map.
+ * back unchanged). The root names the map.
  */
 export function updatePage(
   path: Path,
@@ -59,17 +59,14 @@ export function updatePage(
   now = new Date(),
 ): Path {
   if (patch.title !== undefined && titleTaken(path, pageId, patch.title)) return path;
-  const isRoot = pageId === path.rootPageId;
-  const { studied: _studied, ...rest } = patch;
-  const applied = isRoot ? rest : patch;
-  if (Object.keys(applied).length === 0) return path;
+  if (Object.keys(patch).length === 0) return path;
   const pages = path.pages.map((p) => {
     if (p.id !== pageId) return p;
     // Toggling studied is not an edit of the page
     const edited = patch.title !== undefined || patch.content !== undefined;
-    return { ...p, ...applied, updatedAt: edited ? now.toISOString() : p.updatedAt };
+    return { ...p, ...patch, updatedAt: edited ? now.toISOString() : p.updatedAt };
   });
-  const title = isRoot && patch.title !== undefined ? patch.title : path.title;
+  const title = pageId === path.rootPageId && patch.title !== undefined ? patch.title : path.title;
   return { ...path, title, pages };
 }
 

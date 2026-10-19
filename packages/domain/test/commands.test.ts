@@ -85,7 +85,8 @@ describe("page commands", () => {
 
   it.effect("protects the root and reports pages that are gone", () =>
     Effect.gen(function*() {
-      assert.strictEqual((yield* Effect.flip(editPage(samplePath, rootId, { studied: true })))._tag, "RootPageProtected")
+      const studied = yield* editPage(samplePath, rootId, { studied: true })
+      assert.isTrue(studied.pages.find((p) => p.id === rootId)?.studied)
       assert.strictEqual((yield* Effect.flip(removePage(samplePath, rootId)))._tag, "RootPageProtected")
       assert.strictEqual((yield* Effect.flip(editPage(samplePath, id("nope"), { content: "" })))._tag, "PageNotFound")
       // Deleting twice is fine: the second time there is nothing left to do
@@ -108,7 +109,7 @@ describe("paths", () => {
 
   it("summarizes a map for its card", () => {
     const s = summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general"), null)
-    assert.deepStrictEqual([s.kind, s.studied, s.total, s.modules, s.orphans, s.next?.title, s.color], ["learningPath", 8, 41, 8, 0, "Modules", "red"])
+    assert.deepStrictEqual([s.kind, s.studied, s.total, s.modules, s.orphans, s.next?.title, s.color], ["learningPath", 8, 42, 8, 0, "NestJS", "red"])
   })
 
   it("copies the sample with fresh ids and the same map", () => {

@@ -63,7 +63,7 @@ export const SEND_AFTER = Duration.millis(400)
 const reconnect = Schedule.min([Schedule.exponential("500 millis"), Schedule.spaced("10 seconds")])
 
 /** A command applied to a map, as the API will apply it */
-export const applyCommand = (path: Path, command: Command) => {
+export const applyCommand = (path: Path, command: Command): Effect.Effect<Path, PageNotFound | TitleTaken | RootPageProtected> => {
   switch (command._tag) {
     case "UpdatePath":
       return Effect.succeed(editPath(path, command.edit))

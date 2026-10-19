@@ -68,7 +68,7 @@ export function PageSheet({
         <Group gap="sm" wrap="nowrap" className={classes.headerActions}>
           {save.status === 'saved' && !save.notice ? <SavedAt updatedAt={page.updatedAt} /> : <SaveStatus save={save} />}
           {/* A study has nothing to mark as studied */}
-          {!isRoot && path.kind === 'learningPath' && (
+          {path.kind === 'learningPath' && (
             <StudiedToggle
               studied={page.studied}
               onChange={(studied) => store.updatePage(page.id, { studied })}

@@ -147,7 +147,7 @@ const nest: Seed = {
 /** A map from its root seed: the root is the map's title and links its first pages */
 export function pathFrom(seed: Seed, fields: { readonly id: PathId; readonly description: string; readonly kind: PathKind }): Path {
   const pages = flatten(seed);
-  // The root links its modules; its own studied flag never counts
+  // The root links its modules and is a page of its own, never a module
   const { module: _module, ...root } = pages[0];
   pages[0] = root;
   return { ...fields, title: seed.title, pages, rootPageId: pages[0].id, visibility: 'private', access: 'owner' };

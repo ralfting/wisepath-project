@@ -20,7 +20,7 @@ export class TitleTaken extends Schema.TaggedError<TitleTaken>()("TitleTaken", {
   title: Schema.String
 }, { httpApiStatus: 409 }) {}
 
-/** The root page names the map: it can't be deleted or marked studied */
+/** The root page names the map: it can't be deleted */
 export class RootPageProtected extends Schema.TaggedError<RootPageProtected>()("RootPageProtected", {
   pageId: Schema.String
 }, { httpApiStatus: 422 }) {}

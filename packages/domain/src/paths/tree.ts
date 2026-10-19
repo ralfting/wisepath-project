@@ -141,20 +141,20 @@ export function progressOf(pages: ReadonlyArray<Page>): Progress {
   return { studied: pages.filter((p) => p.studied).length, total: pages.length }
 }
 
-/** Studied pages below a page (not counting itself); the root's covers the whole map */
+/** Studied pages below a page (not counting itself) */
 export function branchProgress(path: Path, pageId: PageId): Progress | undefined {
   const node = mapTree(path).nodes.get(pageId)
   return node ? progressOf(descendants(node)) : undefined
 }
 
-/** Every page the root reaches, orphans aside */
+/** The root and every page it reaches, orphans aside: the root is the first step of the study */
 export function pathProgress(path: Path): Progress {
-  return progressOf(descendants(mapTree(path).root))
+  return progressOf(pagesInMapOrder(path))
 }
 
-/** The first page not studied yet, in map order: where "Continue studying" goes */
+/** The first page not studied yet, in map order, the root first: where "Start" and "Continue studying" go */
 export function nextPage(path: Path): Page | undefined {
-  return descendants(mapTree(path).root).find((p) => !p.studied)
+  return pagesInMapOrder(path).find((p) => !p.studied)
 }
 
 /** Pages from the root down to this one; empty for an orphan. Pass the tree when you have it. */

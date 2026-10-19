@@ -90,13 +90,11 @@ describe('paths API', () => {
         ['Borrow checker', true, 'green', true],
       );
 
-      // The root names the map: renaming it renames the map, and it can't be studied or deleted
+      // The root names the map: renaming it renames the map, and it can't be deleted; it is studied like any page
       yield* client.paths.updatePage({ params: { ...params, pageId: rootPageId }, payload: { title: 'Rust 2024' } });
       assert.strictEqual((yield* client.paths.get({ params })).title, 'Rust 2024');
-      const studied = yield* Effect.flip(
-        client.paths.updatePage({ params: { ...params, pageId: rootPageId }, payload: { studied: true } }),
-      );
-      assert.strictEqual(studied._tag, 'RootPageProtected');
+      yield* client.paths.updatePage({ params: { ...params, pageId: rootPageId }, payload: { studied: true } });
+      assert.isTrue((yield* client.paths.get({ params })).pages.find((p) => p.id === rootPageId)?.studied);
       const rootDelete = yield* Effect.flip(client.paths.removePage({ params: { ...params, pageId: rootPageId } }));
       assert.strictEqual(rootDelete._tag, 'RootPageProtected');
 
