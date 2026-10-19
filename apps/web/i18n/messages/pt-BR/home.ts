@@ -43,6 +43,8 @@ export const home = {
   },
   /** Um projeto: um grupo de trilhas nesta página */
   project: {
+    collapse: 'Recolher {name}',
+    expand: 'Expandir {name}',
     default: 'Padrão',
     defaultHint: 'Trilhas novas vêm para cá, a menos que você escolha outro projeto, e as trilhas de um projeto excluído vêm para cá.',
     paths: { one: '{count} trilha', other: '{count} trilhas' },

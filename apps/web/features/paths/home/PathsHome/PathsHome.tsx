@@ -10,6 +10,7 @@ import { NewMapModal } from './NewMapModal/NewMapModal';
 import { OthersGroup } from './OthersGroup';
 import { PathsHomeSkeleton } from './PathsHomeSkeleton';
 import { ProjectGroup } from './ProjectGroup/ProjectGroup';
+import { useCollapsedProjects } from '@/useCases/projects';
 import { usePathsHome } from './usePathsHome';
 
 /**
@@ -22,6 +23,7 @@ import { usePathsHome } from './usePathsHome';
 export function PathsHome() {
   const t = useT();
   const { state, operations } = usePathsHome();
+  const folds = useCollapsedProjects();
 
   return (
     <AppFrame crumbs={[{ label: t('home.title') }]}>
@@ -76,6 +78,9 @@ export function PathsHome() {
               projects={state.projects ?? []}
               fallback={state.fallback?.name ?? ''}
               bare={(state.projects?.length ?? 0) === 1}
+              // A search shows what it found, folded projects included
+              collapsed={folds.collapsed.has(project.id) && !state.searching}
+              onToggle={() => folds.toggle(project.id)}
               onNewPath={() => operations.newPathIn(project.id)}
               dragging={state.dragging}
               onDrag={operations.setDragging}

@@ -69,3 +69,27 @@
     transition: none;
   }
 }
+
+/* A project's name folds and unfolds its paths */
+.groupToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-xs);
+  max-width: 100%;
+  font: inherit;
+  border-radius: var(--mantine-radius-sm);
+}
+
+.groupChevron {
+  flex-shrink: 0;
+  color: var(--mantine-color-dimmed);
+  transition: transform 150ms ease;
+
+  &[data-collapsed] {
+    transform: rotate(-90deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

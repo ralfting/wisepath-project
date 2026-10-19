@@ -39,6 +39,14 @@ test('projects are created, renamed and deleted from the paths page', async ({ p
   await page.getByRole('button', { name: 'Create project' }).click();
   await expect(page.getByRole('heading', { name: 'Work' })).toBeVisible();
 
+  // A project folds from its name, and stays folded after a reload
+  const work = page.getByRole('heading', { name: 'Work' }).getByRole('button');
+  await work.click();
+  await expect(work).toHaveAttribute('aria-expanded', 'false');
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Work' }).getByRole('button')).toHaveAttribute('aria-expanded', 'false');
+  await page.getByRole('heading', { name: 'Work' }).getByRole('button').click();
+
   await page.getByRole('button', { name: 'More for Work' }).click();
   await page.getByRole('menuitem', { name: 'Rename' }).click();
   await page.getByLabel(/^name/i).fill('Languages');

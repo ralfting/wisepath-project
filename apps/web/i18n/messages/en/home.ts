@@ -43,6 +43,8 @@ export const home = {
   },
   /** A project: a group of paths on this page */
   project: {
+    collapse: 'Fold {name}',
+    expand: 'Unfold {name}',
     default: 'Default',
     defaultHint: 'New paths go here unless you choose another project, and paths of a deleted project move here.',
     paths: { one: '{count} path', other: '{count} paths' },
