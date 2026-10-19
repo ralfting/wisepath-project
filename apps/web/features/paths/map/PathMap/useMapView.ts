@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
 import type { Path } from '@wisepath/domain/paths';
 import { lookOf, nextPage, pathProgress } from '@wisepath/domain/paths';
 import type { PathActions } from '@/useCases/paths';
@@ -21,10 +22,11 @@ export function useMapView({ path, actions }: { path: Path; actions: PathActions
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // A phone opens the outline: the drawing needs room to read; the map renders only in the browser, so the width is known
-  const [view, setView] = useState<View>(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches ? 'list' : 'map',
-  );
+  // A phone shows only the outline: the drawing needs more room than a phone has to be read. The map renders only in
+  // the browser, so the width is known on the first render
+  const phone = useMediaQuery('(max-width: 640px)', false, { getInitialValueInEffect: false });
+  const [chosen, setView] = useState<View>('map');
+  const view: View = phone ? 'list' : chosen;
   const [focusRequest, setFocusRequest] = useState<FocusRequest | null>(null);
   const bringIntoView = useCallback((pageId: string) => setFocusRequest((r) => ({ pageId, nonce: (r?.nonce ?? 0) + 1 })), []);
   const selectedId = openPageId(pathname, path.id);
@@ -66,7 +68,7 @@ export function useMapView({ path, actions }: { path: Path; actions: PathActions
   return {
     search,
     branch,
-    state: { view, selectedId, focusRequest, progress, next, ...pathProgress(path), look: lookOf(path, path.rootPageId) },
+    state: { view, canSwitchView: !phone, selectedId, focusRequest, progress, next, ...pathProgress(path), look: lookOf(path, path.rootPageId) },
     operations: {
       setView,
       // A ghost page is made as it is opened: its [[link]] is already written, so it joins the map in its place

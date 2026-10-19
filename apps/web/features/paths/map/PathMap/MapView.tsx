@@ -39,7 +39,7 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
   const canvasTools = (
     <Stack gap={6} align="flex-start">
       <Group gap="xs" wrap="nowrap" w="100%">
-        <ViewSwitch view={state.view} onChange={operations.setView} />
+        {state.canSwitchView && <ViewSwitch view={state.view} onChange={operations.setView} />}
         <MapSearch search={search} view={state.view} path={path} selectedId={state.selectedId} currentId={currentId} progress={state.progress} />
       </Group>
       <MapOrphans path={path} selectedId={state.selectedId} onSelect={operations.select} />
