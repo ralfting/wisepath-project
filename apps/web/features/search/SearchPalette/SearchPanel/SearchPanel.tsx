@@ -9,13 +9,14 @@ import classes from '../SearchPalette.module.css';
 import { LIST_ID, optionId } from '../SearchPalette.helpers';
 import { Marked } from '../Marked';
 import { Hint } from '../Hint';
-import { useIsMac } from '@/ui/platform';
+import { useHasKeyboard, useIsMac } from '@/ui/platform';
 import { useSearchPanel } from './useSearchPanel';
 
 /** The field and the list; `onDone` is called once a page is opened, or on Esc */
 export function SearchPanel({ onDone }: { onDone: () => void }) {
   const t = useT();
   const mod = useIsMac() ? '⌘' : 'Ctrl';
+  const hasKeyboard = useHasKeyboard();
   const { state, operations } = useSearchPanel({ onDone });
   const { rows, active } = state;
 
@@ -56,9 +57,11 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
           spellCheck={false}
         />
         {state.busy && <Loader size={16} aria-label={t('search.found.searching')} />}
-        <Kbd size="xs" className={classes.escHint} aria-hidden>
-          Esc
-        </Kbd>
+        {hasKeyboard && (
+          <Kbd size="xs" className={classes.escHint} aria-hidden>
+            Esc
+          </Kbd>
+        )}
       </div>
 
       <VisuallyHidden role="status">{announcement}</VisuallyHidden>
@@ -106,12 +109,14 @@ export function SearchPanel({ onDone }: { onDone: () => void }) {
         )}
       </ScrollArea.Autosize>
 
-      <Group gap="md" className={classes.hints} aria-hidden>
-        <Hint keys={['↑', '↓']} label={t('search.hints.move')} />
-        <Hint keys={['↵']} label={t('search.hints.open')} />
-        <Hint keys={[mod, '↵']} label={t('search.hints.full')} />
-        <Hint keys={['Esc']} label={t('search.hints.close')} />
-      </Group>
+      {hasKeyboard && (
+        <Group gap="md" className={classes.hints} aria-hidden>
+          <Hint keys={['↑', '↓']} label={t('search.hints.move')} />
+          <Hint keys={['↵']} label={t('search.hints.open')} />
+          <Hint keys={[mod, '↵']} label={t('search.hints.full')} />
+          <Hint keys={['Esc']} label={t('search.hints.close')} />
+        </Group>
+      )}
     </div>
   );
 }

@@ -34,6 +34,7 @@ export const inbox = {
   empty: {
     title: 'Nothing waiting',
     body: 'Press {keys} anywhere in WisePath to write something down. It waits here until you add it to a page.',
+    bodyTouch: 'Tap Capture to write something down. It waits here until you add it to a page.',
   },
   item: {
     label: '{text}, {time}',

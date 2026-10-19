@@ -18,13 +18,13 @@ import { useInboxPage } from './useInboxPage';
 export function InboxPage() {
   const t = useT();
   const { state, operations } = useInboxPage();
-  const { items, captureKeys: keys } = state;
+  const { items, captureKeys: keys, hasKeyboard } = state;
 
   return (
     <AppFrame
       crumbs={[{ label: t('inbox.title') }]}
       tools={
-        <Button leftSection={<IconPlus size={16} />} onClick={openCapture} rightSection={<Kbd size="xs">{keys}</Kbd>}>
+        <Button leftSection={<IconPlus size={16} />} onClick={openCapture} rightSection={hasKeyboard ? <Kbd size="xs">{keys}</Kbd> : undefined}>
           {t('inbox.capture.label')}
         </Button>
       }
@@ -56,15 +56,17 @@ export function InboxPage() {
                 {t('inbox.empty.title')}
               </Title>
               <Text c="dimmed" size="sm" maw={420}>
-                {t('inbox.empty.body', { keys })}
+                {hasKeyboard ? t('inbox.empty.body', { keys }) : t('inbox.empty.bodyTouch')}
               </Text>
             </Stack>
           </Paper>
         ) : (
           <>
-            <Text size="xs" c="dimmed">
-              {t('inbox.list.keys')}
-            </Text>
+            {hasKeyboard && (
+              <Text size="xs" c="dimmed">
+                {t('inbox.list.keys')}
+              </Text>
+            )}
             <ul className={classes.list} aria-label={t('inbox.list.label')}>
               {items.map((item, index) => (
                 <InboxRow

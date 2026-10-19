@@ -2,7 +2,7 @@
 
 import type { NodeViewProps } from '@tiptap/react';
 import { useCallback, useRef, useState } from 'react';
-import { useMediaQuery } from '@mantine/hooks';
+import { useHasKeyboard } from '@/ui/platform';
 import { youTubeId } from '../../youtube';
 import { embedUrl } from '../youtubeApi';
 import { useFloatingVideo } from './useFloatingVideo';
@@ -21,7 +21,7 @@ export function useVideoBlock({ node, editor, getPos }: Pick<NodeViewProps, 'nod
   const stage = useRef<HTMLDivElement>(null);
   // This block, for "the video most recently used"
   const video = useRef({}).current;
-  const hasKeyboard = useMediaQuery('(hover: hover) and (pointer: fine)', true);
+  const hasKeyboard = useHasKeyboard();
   // The embed address is fixed once: changing it would reload the video
   const [src] = useState(() => (videoId ? embedUrl(videoId, Number(node.attrs.start) || 0) : ''));
   const position = useCallback(() => (typeof getPos === 'function' ? getPos() : undefined), [getPos]);

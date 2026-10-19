@@ -37,6 +37,7 @@ export const inbox = {
   empty: {
     title: 'Nada esperando',
     body: 'Pressione {keys} em qualquer lugar do WisePath para anotar algo. Fica aqui até você adicionar a uma página.',
+    bodyTouch: 'Toque em Capturar para anotar algo. Fica aqui até você adicionar a uma página.',
   },
   item: {
     label: '{text}, {time}',

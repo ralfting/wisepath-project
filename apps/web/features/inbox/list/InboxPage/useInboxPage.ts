@@ -7,6 +7,7 @@ import type { InboxItem } from '@wisepath/domain/inbox';
 import { useT } from '@/i18n/I18nProvider';
 import { useDiscard, useFileItem, useInbox, useMakePage } from '@/useCases/inbox';
 import { showToast, useCaptureKeys } from '@/features/inbox/capture';
+import { useHasKeyboard } from '@/ui/platform';
 import type { ToastMessage } from '@/features/inbox/capture';
 import { mapWithPageHref } from '@/shared/routes';
 import type { PickedPage } from '../PagePicker/PagePicker.helpers';
@@ -26,6 +27,7 @@ export function useInboxPage() {
   const fileItem = useFileItem();
   const makePage = useMakePage();
   const captureKeys = useCaptureKeys();
+  const hasKeyboard = useHasKeyboard();
   const [picking, setPicking] = useState<Picking>(null);
   const items = useMemo(() => (inbox.status === 'ready' ? inbox.items : []), [inbox]);
 
@@ -103,7 +105,7 @@ export function useInboxPage() {
   };
 
   return {
-    state: { status: inbox.status, items, picking: picking?.mode ?? null, captureKeys },
+    state: { status: inbox.status, items, picking: picking?.mode ?? null, captureKeys, hasKeyboard },
     operations: {
       rowRef,
       keyDown,

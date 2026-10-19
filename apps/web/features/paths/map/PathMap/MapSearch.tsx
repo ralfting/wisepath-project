@@ -1,11 +1,10 @@
 'use client';
 
 import { ActionIcon, Kbd, TextInput, UnstyledButton } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
-import { useIsMac } from '@/ui/platform';
+import { useHasKeyboard, useIsMac } from '@/ui/platform';
 import { MapSearchResults, SEARCH_RESULTS_ID } from '../MapSearchResults/MapSearchResults';
 import classes from './PathMap.module.css';
 import type { View } from './PathMap.helpers';
@@ -31,8 +30,7 @@ export function MapSearch({
   progress: boolean;
 }) {
   const t = useT();
-  // Keyboard hints only where there is a keyboard
-  const hasKeyboard = useMediaQuery('(hover: hover) and (pointer: fine)', true);
+  const hasKeyboard = useHasKeyboard();
   const shortcut = useIsMac() ? '⌘K' : 'Ctrl K';
   const { state, operations } = search;
 
