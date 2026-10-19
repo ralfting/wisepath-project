@@ -17,6 +17,7 @@ export const shell = {
     collapse: 'Recolher a barra lateral',
     keepOpen: 'Manter a barra lateral aberta',
     openNavigation: 'Abrir a navegação',
+    closeNavigation: 'Fechar a navegação',
   },
   rail: {
     pathProgress: '{title}, {percent}% estudada',

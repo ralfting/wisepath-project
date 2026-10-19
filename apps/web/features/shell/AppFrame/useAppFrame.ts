@@ -50,6 +50,7 @@ export function useAppFrame() {
     state: { opened, collapsed, peeking },
     operations: {
       toggleNavigation: toggle,
+      closeNavigation: close,
       collapse: () => setCollapsed(true),
       keepOpen: () => setCollapsed(false),
       peek: () => setPeeking(true),

@@ -14,6 +14,7 @@ export const shell = {
     collapse: 'Collapse sidebar',
     keepOpen: 'Keep the sidebar open',
     openNavigation: 'Open navigation',
+    closeNavigation: 'Close navigation',
   },
   rail: {
     pathProgress: '{title}, {percent}% studied',

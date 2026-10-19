@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ActionIcon, AppShell, Box, Burger, Group, Tooltip } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Burger, CloseButton, Group, Tooltip } from '@mantine/core';
 import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand } from '@tabler/icons-react';
 import { useT } from '@/i18n/I18nProvider';
 import { CaptureLauncher } from '@/features/inbox/capture';
@@ -38,6 +38,10 @@ export function AppFrame({
 }) {
   const t = useT();
   const { state, operations } = useAppFrame();
+  // On a phone the navigation covers the screen, the burger that opened it included, so it closes from here
+  const closeNavigation = (
+    <CloseButton size="lg" hiddenFrom="sm" onClick={operations.closeNavigation} aria-label={t('shell.sidebar.closeNavigation')} />
+  );
 
   return (
     <AppShell
@@ -52,23 +56,26 @@ export function AppFrame({
               <Rail />
             </Box>
             <Box hiddenFrom="sm" h="100%" className={classes.column}>
-              <Sidebar sidebarAction={null} />
+              <Sidebar sidebarAction={closeNavigation} />
             </Box>
           </>
         ) : (
           <Sidebar
             sidebarAction={
-              <Tooltip label={t('shell.sidebar.collapse')} position="right">
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  onClick={operations.collapse}
-                  aria-label={t('shell.sidebar.collapse')}
-                  visibleFrom="sm"
-                >
-                  <IconLayoutSidebarLeftCollapse size={19} />
-                </ActionIcon>
-              </Tooltip>
+              <>
+                <Tooltip label={t('shell.sidebar.collapse')} position="right">
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    onClick={operations.collapse}
+                    aria-label={t('shell.sidebar.collapse')}
+                    visibleFrom="sm"
+                  >
+                    <IconLayoutSidebarLeftCollapse size={19} />
+                  </ActionIcon>
+                </Tooltip>
+                {closeNavigation}
+              </>
             }
           />
         )}
