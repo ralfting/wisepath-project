@@ -6,6 +6,7 @@ import { useT } from '@/i18n/I18nProvider';
 import { useLinkPreviewLoader } from '@/useCases/paths';
 import type { CaptureInput, PageTarget, useCapture, useFileItem } from '@/useCases/inbox';
 import { displayTitle } from '@/i18n/title';
+import { useHasKeyboard } from '@/ui/platform';
 import { isVideo, pastedAddress, startOf } from '../pasted';
 
 /** A pasted address kept with the text: its title and icon once fetched, and the video's moment */
@@ -25,8 +26,9 @@ export interface CaptureSavers {
 
 /**
  * Quick capture's view model: the text, a pasted address with its preview, whether it goes to the page on screen,
- * and saving it to the Inbox or to that page. It starts blank on every opening, since the palette mounts it then.
- * The savers come from outside: saving goes on after the form has closed, so they must live in something that stays.
+ * and saving it to the Inbox or to that page, on Enter or, where there is no keyboard, from its button. It starts
+ * blank on every opening, since the palette mounts it then. The savers come from outside: saving goes on after the
+ * form has closed, so they must live in something that stays.
  */
 export function useQuickCaptureForm({
   page,
@@ -42,6 +44,7 @@ export function useQuickCaptureForm({
   const t = useT();
   const { capture, fileItem } = savers;
   const loadPreview = useLinkPreviewLoader();
+  const hasKeyboard = useHasKeyboard();
   const [text, setText] = useState('');
   const [link, setLink] = useState<Link | null>(null);
   const [toPage, setToPage] = useState(false);
@@ -85,13 +88,14 @@ export function useQuickCaptureForm({
   };
 
   const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
+    // A phone's keyboard has no Shift+Enter, so there Enter starts a new line and the Save button saves
+    if (!hasKeyboard || event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
     event.preventDefault();
     save(!!page && (toPage || event.metaKey || event.ctrlKey));
   };
 
   return {
-    state: { text, toPage, shownLink: link && text.includes(link.url) ? link : null },
-    operations: { setText, paste, keyDown, removeLink: () => setLink(null), setToPage, rememberTitle },
+    state: { text, toPage, shownLink: link && text.includes(link.url) ? link : null, hasKeyboard },
+    operations: { setText, paste, keyDown, submit: () => save(!!page && toPage), removeLink: () => setLink(null), setToPage, rememberTitle },
   };
 }

@@ -97,7 +97,7 @@ A YouTube address alone on its line becomes an embedded video built for taking n
 
 Write it down now, sort it later: capturing never asks where something goes.
 
-- **Quick capture (⌘⇧Space / Ctrl+Shift+Space),** anywhere in the app, even while typing in a page, opens a small box in the middle of the screen with one field. Enter saves to the Inbox and closes; Shift+Enter starts a new line; Esc closes without saving. The Capture button on the Inbox opens it too.
+- **Quick capture (⌘⇧Space / Ctrl+Shift+Space),** anywhere in the app, even while typing in a page, opens a small box in the middle of the screen with one field. Enter saves to the Inbox and closes; Shift+Enter starts a new line; Esc closes without saving. The Capture button on the Inbox opens it too. On a phone, with no Shift+Enter, Enter starts a new line and a Save button saves.
 - **A pasted address** is kept with its title (from the link preview), shown under the field; a YouTube address with a time (`?t=85`, `t=1m25s`) keeps that moment. The address is dropped if it is taken out of the text, or with the ✕ beside it.
 - **Over a page** (in the drawer or full), the box also offers **Add to "this page"**: chosen there, or with ⌘Enter / Ctrl+Enter, the text goes straight to the end of that page instead of the Inbox.
 - **From a page, `/` Inbox item** brings something waiting in the Inbox into the text where the cursor is: a note as written, a link, or a video moment as its `- [01:25]` note (after the video, when the page doesn't have it yet).

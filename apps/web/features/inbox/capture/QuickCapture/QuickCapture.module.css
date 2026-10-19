@@ -15,6 +15,10 @@
   padding: 0 var(--mantine-spacing-lg) var(--mantine-spacing-md);
 }
 
+.actions {
+  padding: 0 var(--mantine-spacing-lg) var(--mantine-spacing-md);
+}
+
 .pageChoice {
   display: inline-block;
   max-width: 260px;

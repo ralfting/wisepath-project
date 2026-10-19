@@ -1,6 +1,6 @@
 'use client';
 
-import { ActionIcon, Group, Image, Loader, Text, Textarea, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Group, Image, Loader, Text, Textarea, Tooltip } from '@mantine/core';
 import { IconLink, IconX } from '@tabler/icons-react';
 import { formatTime } from '@wisepath/domain/inbox';
 import type { PageTarget } from '@/useCases/inbox';
@@ -68,6 +68,13 @@ export function QuickCaptureForm({
         </Group>
       )}
       {page && <Destination page={page} toPage={state.toPage} onChange={operations.setToPage} onTitle={operations.rememberTitle} />}
+      {!state.hasKeyboard && (
+        <Group justify="flex-end" className={classes.actions}>
+          <Button onClick={operations.submit} disabled={!state.text.trim()}>
+            {t('common.actions.save')}
+          </Button>
+        </Group>
+      )}
     </>
   );
 }
