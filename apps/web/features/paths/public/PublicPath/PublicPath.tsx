@@ -3,27 +3,26 @@
 import { Badge, Card, Container, Grid, Group, Stack, Text, Title } from '@mantine/core';
 import type { Path } from '@wisepath/domain/paths';
 import { MarkdownEditor } from '@/features/paths/editor';
-import { MapList, MindMap } from '@/features/paths/map';
+import { MapList } from '@/features/paths/map';
 import { PagePager } from '@/features/paths/page';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import { publicMapHref } from '@/shared/routes';
 import { ShareButton } from '@/ui/ShareButton/ShareButton';
 import { StudyThisPath } from '../StudyThisPath/StudyThisPath';
-import classes from './PublicPath.module.css';
 import { usePublicPath } from './usePublicPath';
 
 const noop = () => {};
 
 /**
- * A public path as anyone with its link reads it: on a wide screen its map first, then its pages as a list in map
- * order, and the one chosen, for reading only, with the pages before and after it underneath. Studying it adds it to
- * the learner's paths with their own progress; it stays its owner's.
+ * A public path as anyone with its link reads it: its pages as a list in map order, and the one chosen, for reading
+ * only, with the pages before and after it underneath. Studying it adds it to the learner's paths with their own
+ * progress; it stays its owner's.
  */
 export function PublicPath({ path }: { path: Path }) {
   const t = useT();
   const { state, refs, operations } = usePublicPath(path);
-  const { page, wide } = state;
+  const { page } = state;
 
   return (
     <Container component="main" size="xl" py="xl">
@@ -44,21 +43,6 @@ export function PublicPath({ path }: { path: Path }) {
             <StudyThisPath pathId={path.id} readingHref={publicMapHref(path.id)} />
           </Group>
         </Stack>
-        {/* A phone keeps to the list: the drawing needs more room than a phone has to be read */}
-        <Card className={classes.map} padding={0} radius="md" withBorder visibleFrom="sm">
-          {wide && (
-            <MindMap
-              path={path}
-              selectedId={page.id}
-              currentId={null}
-              progress={false}
-              matchIds={null}
-              focusRequest={null}
-              onSelect={(pageId) => operations.open(pageId)}
-              inScrollingPage
-            />
-          )}
-        </Card>
         <Grid gutter="xl">
           {/* On a phone the page comes first and the list follows it, as its table of contents */}
           <Grid.Col span={{ base: 12, md: 4 }} order={{ base: 2, md: 1 }}>
