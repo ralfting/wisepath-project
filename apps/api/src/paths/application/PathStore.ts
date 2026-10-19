@@ -1,7 +1,7 @@
 import { Context } from 'effect';
 import type { Effect, Option } from 'effect';
 import type { UserId } from '@wisepath/domain/auth';
-import type { Path, PathId, PathVisibility } from '@wisepath/domain/paths';
+import type { CatalogEntry, Path, PathId, PathVisibility } from '@wisepath/domain/paths';
 import type { ProjectId } from '@wisepath/domain/projects';
 
 /**
@@ -33,8 +33,8 @@ export class PathStore extends Context.Service<
     /** A published map by its catalog address, as a visitor with no account reads it */
     readonly findPublished: (slug: string) => Effect.Effect<Option.Option<Path>>;
 
-    /** Every published map, as a visitor reads it, oldest first */
-    readonly listPublished: () => Effect.Effect<ReadonlyArray<Path>>;
+    /** Every published map as the catalog lists it, oldest first: read without its pages' text */
+    readonly listCatalog: () => Effect.Effect<ReadonlyArray<CatalogEntry>>;
 
     /** Stores a new map in a project, its studied pages as the learner's marks; false when its id is already used */
     readonly insert: (learnerId: UserId, projectId: ProjectId, path: Path) => Effect.Effect<boolean>;

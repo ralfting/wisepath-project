@@ -1,4 +1,5 @@
 import { Schema } from "effect"
+import { fold, queryWords } from "../search/rules"
 import { PathLanguage } from "./access"
 import type { Page, Path, PageId } from "./Path"
 
@@ -81,4 +82,24 @@ export function catalogEntry(path: Path): CatalogEntry | null {
       return slug ? [{ slug, updatedAt: page.updatedAt }] : []
     })
   }
+}
+
+/**
+ * What the catalog is narrowed to: words to find and a language. More filters (tags) join here as the catalog grows;
+ * an empty filter keeps everything.
+ */
+export const CatalogFilter = Schema.Struct({
+  q: Schema.optional(Schema.String),
+  language: Schema.optional(PathLanguage)
+})
+export type CatalogFilter = typeof CatalogFilter.Type
+
+/**
+ * Whether a published path is one the filter asks for: in its language, and with every word of the query in its
+ * title, what it teaches or who it is for, ignoring case and accents as the app's search does
+ */
+export function inCatalog(entry: CatalogEntry, filter: CatalogFilter): boolean {
+  if (filter.language && entry.language !== filter.language) return false
+  const text = fold([entry.title, entry.description ?? "", entry.audience ?? ""].join(" "))
+  return queryWords(filter.q ?? "").every((word) => text.includes(word))
 }

@@ -1,5 +1,5 @@
 import { assert, describe, it } from "@effect/vitest"
-import { PageId, PathId, catalogEntry, freeSlug, pageAt, pageSlugs, slugOf } from "../src/paths/index"
+import { PageId, PathId, catalogEntry, freeSlug, inCatalog, pageAt, pageSlugs, slugOf } from "../src/paths/index"
 import type { Path } from "../src/paths/index"
 
 const path = (titles: ReadonlyArray<string>): Path => ({
@@ -56,5 +56,15 @@ describe("addresses of published paths", () => {
       pages: [{ slug: "hooks", updatedAt: "2026-10-02T00:00:00.000Z" }]
     })
     assert.isNull(catalogEntry(path(["React"])))
+  })
+
+  it("finds catalog paths by every word typed, in title, teaching or audience, ignoring case and accents, and by language", () => {
+    const entry = { slug: "testes", title: "Testes em React", description: "Simular a API com MSW", audience: "Pessoas de frontend", language: "pt-BR" as const, updatedAt: "", pages: [] }
+    assert.isTrue(inCatalog(entry, {}))
+    assert.isTrue(inCatalog(entry, { q: "react msw" }))
+    assert.isTrue(inCatalog(entry, { q: "FRONTEND", language: "pt-BR" }))
+    assert.isTrue(inCatalog({ ...entry, title: "Revisão espaçada" }, { q: "revisao" }))
+    assert.isFalse(inCatalog(entry, { q: "react vue" }))
+    assert.isFalse(inCatalog(entry, { language: "en" }))
   })
 })

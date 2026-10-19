@@ -1,6 +1,6 @@
 import { Config, Effect, Option } from 'effect';
-import { NotAdmin, PathNotFound, catalogEntry } from '@wisepath/domain/paths';
-import type { PathId, PublicationRequest } from '@wisepath/domain/paths';
+import { NotAdmin, PathNotFound, inCatalog } from '@wisepath/domain/paths';
+import type { CatalogFilter, PathId, PublicationRequest } from '@wisepath/domain/paths';
 import { UserStore } from '../../auth/application/UserStore';
 import { CurrentUser } from './CurrentUser';
 import { PathStore } from './PathStore';
@@ -96,8 +96,8 @@ export const readPublished = Effect.fn('publications.readPublished')(function* (
   return found.value;
 });
 
-/** Every published map's address and its pages', for the sitemap */
-export const listCatalog = Effect.fn('publications.listCatalog')(function* () {
-  const published = yield* (yield* PathStore).listPublished();
-  return published.flatMap((path) => catalogEntry(path) ?? []);
+/** The published maps the filter asks for (all of them without one), for the catalog and the sitemap */
+export const listCatalog = Effect.fn('publications.listCatalog')(function* (filter: CatalogFilter) {
+  const entries = yield* (yield* PathStore).listCatalog();
+  return entries.filter((entry) => inCatalog(entry, filter));
 });

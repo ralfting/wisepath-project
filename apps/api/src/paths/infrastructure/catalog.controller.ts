@@ -1,6 +1,6 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { Schema } from 'effect';
-import { CatalogEntry, Path } from '@wisepath/domain/paths';
+import { CatalogEntry, CatalogFilter, Path } from '@wisepath/domain/paths';
 import { EffectRuntime } from '../../shared/infrastructure/EffectRuntime';
 import { SchemaPipe } from '../../shared/infrastructure/SchemaPipe';
 import * as publications from '../application/publications';
@@ -15,8 +15,8 @@ export class CatalogController {
   constructor(private readonly effect: EffectRuntime) {}
 
   @Get()
-  list() {
-    return this.effect.respond(publications.listCatalog(), Schema.Array(CatalogEntry));
+  list(@Query(new SchemaPipe(CatalogFilter)) filter: CatalogFilter) {
+    return this.effect.respond(publications.listCatalog(filter), Schema.Array(CatalogEntry));
   }
 
   @Get(':slug')

@@ -4,6 +4,7 @@ import { NotAuthenticated, UserId } from "@wisepath/domain/auth"
 import {
   CannotShareWithSelf,
   CatalogEntry,
+  CatalogFilter,
   NewPage,
   NewPath,
   Page,
@@ -209,9 +210,11 @@ export class AdminApiGroup extends HttpApiGroup.make("admin")
  */
 export class CatalogApiGroup extends HttpApiGroup.make("catalog")
   .add(
-    /** Every published map: what its card in the catalog shows, its address and its pages', for the sitemap */
+    /** The published maps a filter asks for (words, a language; all without one): their cards, addresses and pages */
     HttpApiEndpoint.get("list", "/", {
-      success: Schema.Array(CatalogEntry)
+      query: CatalogFilter,
+      success: Schema.Array(CatalogEntry),
+      error: [InvalidRequest]
     }),
     HttpApiEndpoint.get("get", "/:slug", {
       params: { slug: Schema.String },

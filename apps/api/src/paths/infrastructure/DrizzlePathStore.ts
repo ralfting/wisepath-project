@@ -1,7 +1,7 @@
 import { Effect, Layer, Option, Schema } from 'effect';
 import { and, asc, eq, inArray, or, sql } from 'drizzle-orm';
-import { Path, accessOf } from '@wisepath/domain/paths';
-import type { Page, PathId, PathVisibility } from '@wisepath/domain/paths';
+import { PageId, Path, PathId, accessOf, catalogEntry } from '@wisepath/domain/paths';
+import type { Page, PathVisibility } from '@wisepath/domain/paths';
 import { UserId } from '@wisepath/domain/auth';
 import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
@@ -188,15 +188,39 @@ export const DrizzlePathStore = Layer.effect(
       return row ? Option.some(yield* toDomain(row, null)) : Option.none<Path>();
     });
 
-    const listPublished = Effect.fn('PathStore.listPublished')(function* () {
+    // Hundreds of maps make the catalog: their pages are read for their titles and dates only, never their text
+    const listCatalog = Effect.fn('PathStore.listCatalog')(function* () {
       const rows = yield* run(
         db.query.paths.findMany({
           where: eq(paths.visibility, 'published'),
           orderBy: [asc(paths.createdAt), asc(paths.id)],
-          with: readFor(null),
+          with: {
+            pages: { columns: { id: true, title: true, updatedAt: true }, orderBy: [asc(pages.position), asc(pages.id)] },
+          },
         }),
       );
-      return yield* Effect.forEach(rows, (row) => toDomain(row, null));
+      return rows.flatMap((row) => {
+        const entry = catalogEntry({
+          id: PathId.make(row.id),
+          title: row.title,
+          ...(row.description !== null ? { description: row.description } : {}),
+          ...(row.audience !== null ? { audience: row.audience } : {}),
+          ...(row.language !== null ? { language: row.language } : {}),
+          ...(row.slug !== null ? { slug: row.slug } : {}),
+          kind: row.kind,
+          rootPageId: PageId.make(row.rootPageId),
+          visibility: row.visibility,
+          access: 'viewer',
+          pages: row.pages.map((page) => ({
+            id: PageId.make(page.id),
+            title: page.title,
+            content: '',
+            studied: false,
+            updatedAt: page.updatedAt.toISOString(),
+          })),
+        });
+        return entry ? [entry] : [];
+      });
     });
 
     const insert = Effect.fn('PathStore.insert')(function* (learnerId: UserId, projectId: ProjectId, path: Path) {
@@ -285,6 +309,6 @@ export const DrizzlePathStore = Layer.effect(
       yield* run(db.update(paths).set({ visibility }).where(eq(paths.id, id)));
     });
 
-    return PathStore.of({ listFor, find, findPublished, listPublished, insert, move, setVisibility, save, remove, transaction });
+    return PathStore.of({ listFor, find, findPublished, listCatalog, insert, move, setVisibility, save, remove, transaction });
   }),
 );

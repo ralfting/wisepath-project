@@ -136,9 +136,16 @@ describe('publishing a map to the catalog', () => {
       assert.deepStrictEqual([path.id, path.visibility, path.access], [second.pathId, 'published', 'viewer']);
 
       // The catalog lists it with what its card shows and its page, and anyone may read the list
-      const listed = (yield* anonymous.catalog.list()).find((entry) => entry.slug === two);
+      const listed = (yield* anonymous.catalog.list({ query: {} })).find((entry) => entry.slug === two);
       assert.deepStrictEqual(listed?.pages.map((page) => page.slug), ['borrowing']);
       assert.deepStrictEqual([listed?.title, listed?.audience, listed?.language], ['Rust', request.audience, request.language]);
+      // Searched by words in what it teaches, ignoring case and accents, and by its language
+      const found = (query: { q?: string; language?: 'en' | 'pt-BR' }) =>
+        Effect.map(anonymous.catalog.list({ query }), (entries) => entries.some((entry) => entry.slug === two));
+      assert.deepStrictEqual(
+        [yield* found({ q: 'TESTING react' }), yield* found({ q: 'python' }), yield* found({ language: 'pt-BR' }), yield* found({ language: 'en' })],
+        [true, false, true, false],
+      );
 
       // Out of the catalog, its address finds nothing; nor does one never given
       yield* second.owner.paths.withdrawPublication({ params: { pathId: second.pathId } });
