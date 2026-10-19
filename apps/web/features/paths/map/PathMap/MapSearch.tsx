@@ -1,6 +1,6 @@
 'use client';
 
-import { ActionIcon, Kbd, TextInput, UnstyledButton } from '@mantine/core';
+import { ActionIcon, Box, Kbd, TextInput, UnstyledButton } from '@mantine/core';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
@@ -96,6 +96,10 @@ export function MapSearch({
       className={classes.searchButton}
     >
       <IconSearch size={16} />
+      {/* A phone has the width to spare and no shortcut to show: the button reads as the field it opens */}
+      <Box component="span" hiddenFrom="sm" fz="sm">
+        {t('map.search.placeholder')}
+      </Box>
       {hasKeyboard && <Kbd size="xs">{shortcut}</Kbd>}
     </UnstyledButton>
   );

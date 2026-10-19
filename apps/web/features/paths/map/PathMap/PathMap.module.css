@@ -33,6 +33,10 @@
   min-width: 0;
   width: 100%;
   max-width: 280px;
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    max-width: none;
+  }
 }
 
 .results {
@@ -78,6 +82,10 @@
   &:hover {
     color: var(--mantine-color-text);
     background: var(--mantine-color-gray-0);
+  }
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    flex: 1;
   }
 
   /* Folded with a search in it: what it holds, in the text's colour, and × to drop it */
