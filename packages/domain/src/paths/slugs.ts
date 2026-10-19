@@ -1,4 +1,5 @@
 import { Schema } from "effect"
+import { PathLanguage } from "./access"
 import type { Page, Path, PageId } from "./Path"
 
 /**
@@ -48,9 +49,16 @@ export function pageAt(path: Path, slug: string | null): Page | undefined {
   return undefined
 }
 
-/** A published path as the sitemap lists it: its address, and each page's with when it last changed (ISO dates) */
+/**
+ * A published path as the catalog lists it: what its card shows, its address, and each page's with when it last
+ * changed (ISO dates), for the sitemap
+ */
 export const CatalogEntry = Schema.Struct({
   slug: Schema.String,
+  title: Schema.String,
+  description: Schema.optional(Schema.String),
+  audience: Schema.optional(Schema.String),
+  language: Schema.optional(PathLanguage),
   updatedAt: Schema.String,
   pages: Schema.Array(Schema.Struct({ slug: Schema.String, updatedAt: Schema.String }))
 })
@@ -63,6 +71,10 @@ export function catalogEntry(path: Path): CatalogEntry | null {
   const latest = (dates: ReadonlyArray<string>) => dates.reduce((a, b) => (b > a ? b : a), "")
   return {
     slug: path.slug,
+    title: path.title,
+    ...(path.description !== undefined ? { description: path.description } : {}),
+    ...(path.audience !== undefined ? { audience: path.audience } : {}),
+    ...(path.language !== undefined ? { language: path.language } : {}),
     updatedAt: latest(path.pages.map((page) => page.updatedAt)),
     pages: path.pages.flatMap((page) => {
       const slug = slugs.get(page.id)

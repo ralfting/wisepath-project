@@ -209,7 +209,7 @@ export class AdminApiGroup extends HttpApiGroup.make("admin")
  */
 export class CatalogApiGroup extends HttpApiGroup.make("catalog")
   .add(
-    /** Every published map's address and its pages', with when each changed: what the sitemap lists */
+    /** Every published map: what its card in the catalog shows, its address and its pages', for the sitemap */
     HttpApiEndpoint.get("list", "/", {
       success: Schema.Array(CatalogEntry)
     }),

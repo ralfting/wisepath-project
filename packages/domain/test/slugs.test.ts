@@ -44,11 +44,14 @@ describe("addresses of published paths", () => {
     assert.isUndefined(pageAt(p, "react"))
   })
 
-  it("lists a published path for the sitemap: its address, its pages', and when each last changed", () => {
+  it("lists a published path for the catalog: its card, its address, its pages', and when each last changed", () => {
     const p = { ...path(["React", "Hooks"]), slug: "react" }
     const dated = { ...p, pages: p.pages.map((page, index) => ({ ...page, updatedAt: `2026-10-0${index + 1}T00:00:00.000Z` })) }
-    assert.deepStrictEqual(catalogEntry(dated), {
+    assert.deepStrictEqual(catalogEntry({ ...dated, description: "Testing React", language: "pt-BR" }), {
       slug: "react",
+      title: "React",
+      description: "Testing React",
+      language: "pt-BR",
       updatedAt: "2026-10-02T00:00:00.000Z",
       pages: [{ slug: "hooks", updatedAt: "2026-10-02T00:00:00.000Z" }]
     })

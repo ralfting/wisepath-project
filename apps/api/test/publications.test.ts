@@ -135,9 +135,10 @@ describe('publishing a map to the catalog', () => {
       const path = yield* anonymous.catalog.get({ params: { slug: two } });
       assert.deepStrictEqual([path.id, path.visibility, path.access], [second.pathId, 'published', 'viewer']);
 
-      // The sitemap lists it with its page, and anyone may read the list
+      // The catalog lists it with what its card shows and its page, and anyone may read the list
       const listed = (yield* anonymous.catalog.list()).find((entry) => entry.slug === two);
       assert.deepStrictEqual(listed?.pages.map((page) => page.slug), ['borrowing']);
+      assert.deepStrictEqual([listed?.title, listed?.audience, listed?.language], ['Rust', request.audience, request.language]);
 
       // Out of the catalog, its address finds nothing; nor does one never given
       yield* second.owner.paths.withdrawPublication({ params: { pathId: second.pathId } });
