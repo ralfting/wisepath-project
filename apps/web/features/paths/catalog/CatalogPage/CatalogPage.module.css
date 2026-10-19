@@ -32,3 +32,8 @@
     font-weight: 600;
   }
 }
+
+/* The search field takes the room the button leaves */
+.search {
+  flex: 1;
+}

@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { AccessNotices, LinkPreviews, NewPath, NoticeId, PageId, PathId, PathKind, PathRepository, PathSharing, LinkVisibility, PublicationRequest, PublicationReview, ShareEdit } from "@wisepath/domain/paths"
+import { AccessNotices, LinkPreviews, NewPath, NoticeId, PageId, PathId, CatalogFilter, PathKind, PathRepository, PathSharing, LinkVisibility, PublicationRequest, PublicationReview, ShareEdit } from "@wisepath/domain/paths"
 import { UserId } from "@wisepath/domain/auth"
 import { ProjectId } from "@wisepath/domain/projects"
 
@@ -122,8 +122,11 @@ export const readPublishedPath = Effect.fn("useCases.paths.readPublished")(funct
   return yield* PathSharing.use((sharing) => sharing.readPublished(address))
 })
 
-/** Every published map's address and its pages', for the sitemap */
-export const listCatalog = PathSharing.use((sharing) => sharing.catalog()).pipe(Effect.withSpan("useCases.paths.listCatalog"))
+/** The published maps a filter asks for, decoded from the address it came in (all of them without one) */
+export const listCatalog = Effect.fn("useCases.paths.listCatalog")(function*(input: unknown) {
+  const filter = yield* Schema.decodeUnknownEffect(CatalogFilter)(input)
+  return yield* PathSharing.use((sharing) => sharing.catalog(filter))
+})
 
 /** The learner's notices of paths they lost */
 export const listNotices = AccessNotices.use((notices) => notices.list).pipe(Effect.withSpan("useCases.paths.notices"))

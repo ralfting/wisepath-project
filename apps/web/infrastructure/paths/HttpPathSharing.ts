@@ -28,7 +28,7 @@ const make = (reads: typeof inBrowser) =>
           classify(api.withdrawPublication({ params: { pathId } })).pipe(Effect.withSpan("PathSharing.withdrawPublication")),
         // No session needed, so it reads on the server render too
         readPublic: (pathId) => classify(client.publicPaths.get({ params: { pathId } })).pipe(Effect.withSpan("PathSharing.readPublic")),
-        catalog: () => classify(client.catalog.list()).pipe(Effect.withSpan("PathSharing.catalog")),
+        catalog: (filter) => classify(client.catalog.list({ query: filter })).pipe(Effect.withSpan("PathSharing.catalog")),
         readPublished: (slug) => classify(client.catalog.get({ params: { slug } })).pipe(Effect.withSpan("PathSharing.readPublished"))
       })
     })

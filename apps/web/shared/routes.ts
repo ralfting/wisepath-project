@@ -45,8 +45,15 @@ export function openPageId(pathname: string, pathId: string): string | null {
 /** A public map, read without an account (the Share dialog's link) */
 export const publicMapHref = (pathId: string) => `/public/paths/${pathId}`;
 
-/** The catalog: every published map, all of them or those in one language */
-export const exploreHref = (language?: string) => (language ? `/explore?lang=${encodeURIComponent(language)}` : '/explore');
+/** The catalog: every published map, or those the words searched, a language and a page of results narrow it to */
+export const exploreHref = (filter: { readonly q?: string | null; readonly lang?: string | null; readonly page?: number } = {}) => {
+  const params = new URLSearchParams();
+  if (filter.q) params.set('q', filter.q);
+  if (filter.lang) params.set('lang', filter.lang);
+  if (filter.page && filter.page > 1) params.set('page', String(filter.page));
+  const query = params.toString();
+  return query ? `/explore?${query}` : '/explore';
+};
 
 /** A published map in the catalog, at its root page or at one of its pages */
 export const catalogHref = (pathSlug: string, pageSlug?: string) => (pageSlug ? `/p/${pathSlug}/${pageSlug}` : `/p/${pathSlug}`);
