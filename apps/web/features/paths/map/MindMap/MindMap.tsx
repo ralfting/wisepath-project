@@ -46,6 +46,8 @@ interface MindMapProps {
   onAddBranch?: (pageId: string) => void;
   /** The page a branch is being added to, and the name field shown under it */
   branch?: { from: string; prompt: ReactNode } | null;
+  /** The map sits in a page that scrolls, so a plain wheel scrolls the page; Ctrl/⌘ + wheel and a pinch still zoom, dragging still pans */
+  inScrollingPage?: boolean;
 }
 
 /**
@@ -70,6 +72,7 @@ export function MindMap({
   topLeft,
   onAddBranch,
   branch = null,
+  inScrollingPage = false,
 }: MindMapProps) {
   const t = useT();
   const mind = useMindMap({
@@ -84,6 +87,7 @@ export function MindMap({
     onIntent,
     onAddBranch,
     branchFrom: branch?.from ?? null,
+    inScrollingPage,
   });
   const { viewport, highlights, keys } = mind;
   const { tree, root, layout, rootId, rootSide, promptAt, rootLook, overall } = mind.state;

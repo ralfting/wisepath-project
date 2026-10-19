@@ -20,12 +20,14 @@ export function useMindViewport({
   coveredRight,
   focusRequest,
   branchFrom,
+  inScrollingPage,
 }: {
   tree: MapTree;
   layout: MindLayout;
   coveredRight: number;
   focusRequest: FocusRequest | null;
   branchFrom: string | null;
+  inScrollingPage: boolean;
 }) {
   const viewport = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
@@ -107,11 +109,12 @@ export function useMindViewport({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusRequest?.nonce, size !== null]);
 
-  // Wheel pans; Ctrl/⌘ + wheel (and trackpad pinch) zooms around the pointer
+  // Wheel pans, or scrolls the page the map sits in; Ctrl/⌘ + wheel (and trackpad pinch) zooms around the pointer
   useEffect(() => {
     const el = viewport.current;
     if (!el) return;
     const onWheel = (event: WheelEvent) => {
+      if (inScrollingPage && !event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       setAnimate(false);
       if (event.ctrlKey || event.metaKey) {

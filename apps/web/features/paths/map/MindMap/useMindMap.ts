@@ -31,6 +31,7 @@ export function useMindMap({
   onIntent,
   onAddBranch,
   branchFrom,
+  inScrollingPage,
 }: {
   path: Path;
   selectedId: string | null;
@@ -43,6 +44,7 @@ export function useMindMap({
   onIntent?: (pageId: string) => void;
   onAddBranch?: (pageId: string) => void;
   branchFrom: string | null;
+  inScrollingPage: boolean;
 }) {
   const t = useT();
   const tree = useMemo(() => mapTree(path), [path]);
@@ -52,7 +54,7 @@ export function useMindMap({
   const layout = useMemo(() => layoutMind(drawn, root), [drawn, root]);
   const rootId = tree.root.page.id;
 
-  const viewport = useMindViewport({ tree: drawn, layout, coveredRight, focusRequest, branchFrom });
+  const viewport = useMindViewport({ tree: drawn, layout, coveredRight, focusRequest, branchFrom, inScrollingPage });
   const highlights = useMindHighlights({ selectedId, matchIds, searchActiveId, onIntent });
   const keys = useMindKeys({ tree: drawn, layout, selectedId, currentId, onAddBranch, frameOn: viewport.operations.frameOn });
 
