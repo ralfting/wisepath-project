@@ -41,7 +41,7 @@ export function PageSheet({
   const { isRoot, between } = state;
 
   return (
-    <Card component="main" mx={{ base: 'md', sm: 'xl' }} mb="xl" padding="lg" className={classes.sheet}>
+    <Card component="main" mb="xl" padding="lg" className={classes.sheet}>
       {/* One compact line: the page is its text, and the title should not push it down */}
       <Group justify="space-between" align="center" wrap="nowrap" gap="md" mb="sm" className={classes.header}>
         <Group gap="sm" wrap="nowrap" align="center" miw={0} className={classes.titleRow}>

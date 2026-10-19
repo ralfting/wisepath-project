@@ -41,6 +41,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
   variables: {
     // The app frame's top bar; the page drawer opens below it
     '--wp-topbar-height': '64px',
+    // A page's text column: about 90 characters of body text, and as wide as a video note
+    '--wp-page-width': '40rem',
   },
   light: {
     // The ground behind cards: a touch cooler than white

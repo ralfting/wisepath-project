@@ -1,6 +1,14 @@
-/* The page fills the content area, below the top bar */
+/* The page fills the content area's height, below the top bar; across, it stops at a readable line and centres */
 .sheet {
   flex: 1;
+  width: calc(100% - 2 * var(--mantine-spacing-md));
+  max-width: calc(var(--wp-page-width) + 2 * var(--mantine-spacing-lg));
+  margin-inline: auto;
+
+  @media (min-width: $mantine-breakpoint-sm) {
+    width: calc(100% - 2 * var(--mantine-spacing-xl));
+  }
+
   /* A card clips by default, which would stop the editor's toolbar from sticking while the text scrolls */
   overflow: visible;
 }
