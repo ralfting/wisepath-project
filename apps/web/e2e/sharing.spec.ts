@@ -99,6 +99,23 @@ test('a public path is read by its link without an account, taken to study, and 
   await expect(bob.page.getByRole('region', { name: 'From others' })).toHaveCount(0);
 });
 
+test('a public path opens with its map on a wide screen, and a page chosen in it is read beside', async ({ browser }) => {
+  const ada = await someone(browser, 'Ada');
+  const visitor = await (await browser.newContext()).newPage();
+  const map = await learningPath(ada.page);
+  expect((await ada.page.request.patch(`${API}/paths/${map.pathId}/visibility`, { data: { visibility: 'public' } })).ok()).toBe(true);
+
+  await visitor.goto(`/public/paths/${map.pathId}`);
+  const borrowing = visitor.getByRole('tree', { name: /Rust/ }).getByRole('treeitem', { name: /Borrowing/ });
+  await expect(borrowing).toBeVisible();
+  // The wheel over the map scrolls the page instead of being kept by the map
+  await borrowing.hover();
+  await visitor.mouse.wheel(0, 300);
+  await expect.poll(() => visitor.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  await borrowing.click();
+  await expect(visitor.getByRole('heading', { name: 'Borrowing', level: 2 })).toBeVisible();
+});
+
 test("someone else's private map, or one that doesn't exist, answers 404 from the server", async ({ browser }) => {
   const ada = await someone(browser, 'Ada');
   const eve = await someone(browser, 'Eve');
