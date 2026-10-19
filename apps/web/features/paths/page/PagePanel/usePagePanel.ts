@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { UIEvent } from 'react';
 import { branchProgress, mapTree, relatedPages, trailTo } from '@wisepath/domain/paths';
 import type { Page, Path } from '@wisepath/domain/paths';
 import type { PathActions } from '@/useCases/paths';
@@ -12,10 +13,17 @@ import { pageActionsFor } from '../PageContent/PageContent.helpers';
 /** The panel's tabs: the page's text, or the pages related to it */
 export type PanelTab = 'content' | 'related';
 
+/** Scrolled this far down, the header folds; back above COMPACT_LEAVE, it unfolds */
+const COMPACT_ENTER = 40;
+const COMPACT_LEAVE = 8;
+/** Folding only where this much is left to scroll: a shorter text would fit once folded and unfold at once */
+const COMPACT_ROOM = 160;
+
 /**
  * The page panel's view model: where the page sits on the map (its trail, what it is, what is below it), the pages
- * related to it, the open tab, its delete dialog, and Enter in the title moving to the text. Opening it puts the
- * page among the recent ones the search palette offers.
+ * related to it, the open tab, its delete dialog, Enter in the title moving to the text, and the header folded while
+ * the text is scrolled down (only a phone shows it folded). Opening it puts the page among the recent ones the search
+ * palette offers.
  */
 export function usePagePanel({ path, page, store, onSelect }: { path: Path; page: Page; store: PathActions; onSelect: (pageId: string, alternate?: boolean) => void }) {
   const t = useT();
@@ -27,6 +35,8 @@ export function usePagePanel({ path, page, store, onSelect }: { path: Path; page
   // Enter in the title moves on to the text
   const [textFocus, setTextFocus] = useState(0);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Kept per page, so another page opens with its header unfolded
+  const [compactOn, setCompactOn] = useState<string | null>(null);
 
   const isRoot = page.id === path.rootPageId;
   const tree = mapTree(path);
@@ -48,6 +58,7 @@ export function usePagePanel({ path, page, store, onSelect }: { path: Path; page
   return {
     state: {
       tab,
+      compact: compactOn === page.id,
       textFocus,
       confirmingDelete,
       isRoot,
@@ -62,6 +73,11 @@ export function usePagePanel({ path, page, store, onSelect }: { path: Path; page
     },
     operations: {
       showTab: (next: PanelTab) => setTab(next),
+      scroll: (event: UIEvent<HTMLElement>) => {
+        const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+        if (scrollTop < COMPACT_LEAVE) setCompactOn(null);
+        else if (scrollTop > COMPACT_ENTER && scrollHeight - clientHeight > COMPACT_ROOM) setCompactOn(page.id);
+      },
       // From the title: to the text, on its tab
       focusText: () => {
         setTab('content');

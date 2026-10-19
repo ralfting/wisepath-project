@@ -67,6 +67,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
     <Card
       padding={0}
       className={`${classes.panel} ${flat ? classes.flat : ''}`}
+      data-compact={state.compact || undefined}
       aria-label={t('page.panel.label')}
       component="aside"
     >
@@ -103,6 +104,10 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             )
           )}
         </Breadcrumbs>
+        {/* Folded, the header keeps only the page's title, in place of its trail */}
+        <Text size="sm" fw={600} truncate className={classes.compactTitle}>
+          {displayTitle(page)}
+        </Text>
         </Group>
         <Group gap={2} wrap="nowrap">
           {onExpand && (
@@ -148,33 +153,35 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
         onDelete={operations.remove}
       />
 
-      <Group gap="md" wrap="nowrap" align="flex-start" px="lg" pt="md">
-        <PageLook path={path} page={page} store={store} size={60} />
-        <Stack gap={2} miw={0} style={{ flex: 1 }}>
-          <PageTitleInput
-            key={page.id}
-            path={path}
-            page={page}
-            actions={store}
-            size={26}
-            autoFocus={focusTitle}
-            onEnter={operations.focusText}
-          />
-          <Text size="sm" c="dimmed">
-            {subtitle}
-          </Text>
-        </Stack>
-      </Group>
-
-      {!isRoot && progress && (
-        <Group gap="xs" px="lg" pt="md">
-          <StudiedToggle
-            studied={page.studied}
-            onChange={(studied) => store.updatePage(page.id, { studied })}
-            progress={{ map: path.title, ...pathProgress(path) }}
-          />
+      <div className={classes.head}>
+        <Group gap="md" wrap="nowrap" align="flex-start" px="lg" pt="md">
+          <PageLook path={path} page={page} store={store} size={60} />
+          <Stack gap={2} miw={0} style={{ flex: 1 }}>
+            <PageTitleInput
+              key={page.id}
+              path={path}
+              page={page}
+              actions={store}
+              size={26}
+              autoFocus={focusTitle}
+              onEnter={operations.focusText}
+            />
+            <Text size="sm" c="dimmed">
+              {subtitle}
+            </Text>
+          </Stack>
         </Group>
-      )}
+
+        {!isRoot && progress && (
+          <Group gap="xs" px="lg" pt="md">
+            <StudiedToggle
+              studied={page.studied}
+              onChange={(studied) => store.updatePage(page.id, { studied })}
+              progress={{ map: path.title, ...pathProgress(path) }}
+            />
+          </Group>
+        )}
+      </div>
 
       <Tabs value={state.tab} onChange={(v) => operations.showTab((v as PanelTab) ?? 'content')} mt="md" className={classes.tabs}>
         <Tabs.List px="lg">
@@ -182,7 +189,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
           <Tabs.Tab value="related">{t('page.tabs.related', { count: related.length })}</Tabs.Tab>
         </Tabs.List>
 
-        <Tabs.Panel value="content" className={classes.body}>
+        <Tabs.Panel value="content" className={classes.body} onScroll={operations.scroll}>
           <PageContent
             key={page.id}
             path={path}
@@ -203,7 +210,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
           )}
         </Tabs.Panel>
 
-        <Tabs.Panel value="related" className={classes.body}>
+        <Tabs.Panel value="related" className={classes.body} onScroll={operations.scroll}>
           {related.length === 0 ? (
             <Text size="sm" c="dimmed">
               {t('page.related.empty')}

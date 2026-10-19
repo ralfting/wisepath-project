@@ -15,6 +15,25 @@
   flex-shrink: 0;
 }
 
+/* On a phone, scrolling the text down folds the header to its top row, with the page's title in place of its trail:
+   the page's look, its full title and what it is give the text their room */
+.compactTitle {
+  display: none;
+}
+
+@media (max-width: $mantine-breakpoint-sm) {
+  .panel[data-compact] {
+    .head,
+    .trail {
+      display: none;
+    }
+
+    .compactTitle {
+      display: block;
+    }
+  }
+}
+
 .tabs {
   display: flex;
   flex-direction: column;
