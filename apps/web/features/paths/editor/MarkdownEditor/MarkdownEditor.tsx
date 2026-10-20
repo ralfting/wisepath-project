@@ -6,6 +6,7 @@ import type { InboxItem } from '@wisepath/domain/inbox';
 import { useT } from '@/i18n/I18nProvider';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import classes from './MarkdownEditor.module.css';
+import blocks from './MarkdownBlocks.module.css';
 import { EditorToolbar } from './EditorToolbar';
 import { InboxItemPrompt } from './InboxItemPrompt/InboxItemPrompt';
 import { LinkCard } from './LinkCard';
@@ -69,7 +70,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       <RichTextEditor
         editor={editor}
         variant="subtle"
-        classNames={{ root: classes.root, content: classes.content }}
+        classNames={{ root: classes.root, content: `${classes.content} ${blocks.blocks}` }}
         labels={{
           h2ControlLabel: t('editor.toolbar.heading'),
           h3ControlLabel: t('editor.toolbar.subheading'),
