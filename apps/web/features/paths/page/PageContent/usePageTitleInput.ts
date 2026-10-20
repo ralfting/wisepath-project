@@ -4,7 +4,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { asTitle, titleTaken } from '@wisepath/domain/paths';
-import { isUntitled } from '@/i18n/title';
 import { titleSizeFor } from '../titleSize';
 import type { PageActions } from './PageContent.helpers';
 
@@ -17,14 +16,12 @@ export function usePageTitleInput({
   page,
   actions,
   size,
-  autoFocus,
   onEnter,
 }: {
   path: Path;
   page: Page;
   actions: Pick<PageActions, 'updatePage' | 'beginRename' | 'renameLinks'>;
   size: number;
-  autoFocus: boolean;
   onEnter?: () => void;
 }) {
   const titleAtFocus = useRef(page.title);
@@ -41,16 +38,6 @@ export function usePageTitleInput({
     [],
   );
   const field = useFitToLines(draft, size);
-  // After a frame, not on mount: the drawer and the editor settle their own focus first, and the title must win.
-  // A stand-in title is picked whole, so typing the real name replaces it
-  useEffect(() => {
-    if (!autoFocus) return;
-    const frame = requestAnimationFrame(() => {
-      field.current?.focus();
-      if (field.current && isUntitled(field.current.value)) field.current.select();
-    });
-    return () => cancelAnimationFrame(frame);
-  }, [autoFocus, field]);
 
   const focus = () => {
     titleAtFocus.current = page.title;

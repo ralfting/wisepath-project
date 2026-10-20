@@ -7,7 +7,6 @@ import { Textarea } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PageContent.module.css';
 import type { PageActions } from './PageContent.helpers';
-import { useOpensOnTitle } from './useOpensOnTitle';
 import { usePageTitleInput } from './usePageTitleInput';
 
 /**
@@ -21,20 +20,17 @@ export function PageTitleInput({
   path,
   page,
   actions,
-  autoFocus = false,
   size = 32,
   onEnter,
 }: {
   path: Path;
   page: Page;
   actions: Pick<PageActions, 'updatePage' | 'beginRename' | 'renameLinks'>;
-  autoFocus?: boolean;
   size?: number;
   onEnter?: () => void;
 }) {
   const t = useT();
-  const opensOnTitle = useOpensOnTitle(path, page);
-  const { field, state, operations } = usePageTitleInput({ path, page, actions, size, autoFocus: autoFocus || opensOnTitle, onEnter });
+  const { field, state, operations } = usePageTitleInput({ path, page, actions, size, onEnter });
   return (
     <Textarea
       ref={field}

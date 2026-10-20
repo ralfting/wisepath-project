@@ -24,7 +24,6 @@ export interface PageSheetProps {
   store: PathActions;
   /** Whether the latest edits reached WisePath */
   save: SaveState;
-  isFresh?: boolean;
   /** `alternate`: opened with Cmd/Ctrl, in the other way */
   onOpenPage: (pageId: string, alternate?: boolean) => void;
   /** The graph button: a link to the map, or (in the expanded drawer) going back to it */

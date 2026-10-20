@@ -21,13 +21,3 @@ export function displayTitle(page: Pick<Page, 'title'>): string {
 export function untitledName(pages: ReadonlyArray<Pick<Page, 'title'>>): string {
   return freeTitle(pages, untitled);
 }
-
-/** Whether a title is still that stand-in, to be replaced by the page's real name */
-export function isUntitled(title: string): boolean {
-  return title === untitled || (title.startsWith(`${untitled} (`) && /^ \(\d+\)$/.test(title.slice(untitled.length)));
-}
-
-/** A page made without a name, with nothing written in it yet: it opens on its title, to be given one */
-export function awaitsName(page: Pick<Page, 'title' | 'content'>): boolean {
-  return isUntitled(page.title) && !page.content.trim();
-}

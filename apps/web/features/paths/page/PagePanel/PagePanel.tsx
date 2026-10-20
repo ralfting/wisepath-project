@@ -10,7 +10,6 @@ import type { PathActions } from '@/useCases/paths';
 import { PageGlyph, pointAtRelated } from '@/features/paths/path';
 import { PageContent } from '../PageContent/PageContent';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
-import { useOpensOnTitle } from '../PageContent/useOpensOnTitle';
 import type { EditorFocus } from '@/features/paths/editor';
 import { DeletePageModal } from '../DeletePageModal';
 import { StudiedToggle } from '../StudiedToggle';
@@ -41,8 +40,6 @@ interface PagePanelProps {
   back?: { page: Page; onClick: () => void };
   /** Puts the cursor in the text on open: at a position, its start or its end */
   focusEditor?: EditorFocus | null;
-  /** Puts the focus on the title on open instead */
-  focusTitle?: boolean;
   /** Follows the cursor in the text */
   onCursor?: (pos: number) => void;
 }
@@ -59,11 +56,10 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
   { relation: 'linkedFrom', icon: IconArrowLeft },
 ];
 
-export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, focusTitle = false, onCursor }: PagePanelProps) {
+export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const t = useT();
   const { state, operations } = usePagePanel({ path, page, store, onSelect });
   const { isRoot, isOrphan, tree, trail, below, progress, related, subtitle } = state;
-  const opensOnTitle = useOpensOnTitle(path, page);
 
   return (
     <Card
@@ -165,7 +161,6 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
               page={page}
               actions={store}
               size={26}
-              autoFocus={focusTitle}
               onEnter={operations.focusText}
             />
             <Text size="sm" c="dimmed">
@@ -198,8 +193,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             page={page}
             actions={state.actions}
             showTitle={false}
-            // The title takes the cursor instead (PageTitleInput)
-            focusEditor={opensOnTitle ? null : focusEditor}
+            focusEditor={focusEditor}
             onCursor={onCursor}
             focusSignal={state.textFocus}
             // The panel's top padding: the toolbar sticks at the very top, so no text shows above it

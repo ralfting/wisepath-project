@@ -21,8 +21,6 @@ interface PageContentProps {
   path: Path;
   page: Page;
   actions: PageActions;
-  /** Focus the title on mount, for a page just created */
-  isFresh?: boolean;
   /** Show the title field; the side panel shows the title in its own header */
   showTitle?: boolean;
   /** Title size in px: larger on the full-screen page */
@@ -40,7 +38,6 @@ export function PageContent({
   path,
   page,
   actions,
-  isFresh = false,
   showTitle = true,
   titleSize = 32,
   toolbarOffset = 0,
@@ -60,7 +57,6 @@ export function PageContent({
           path={path}
           page={page}
           actions={actions}
-          autoFocus={isFresh}
           size={titleSize}
           onEnter={() => setFocusSignal((n) => n + 1)}
         />

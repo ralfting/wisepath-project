@@ -8,9 +8,9 @@ import { DrawerContext } from './PageDrawer.helpers';
 
 /**
  * A page in the drawer's view model: which page it shows (the URL's, ahead of the route when swapped in place), the
- * pages walked through to it, whether it replaced another (to slide in), where the focus goes (the title when opened
- * from the map, the text when the page was just made, back where it was when reached from another page in the
- * drawer), and moving between pages
+ * pages walked through to it, whether it replaced another (to slide in), where the cursor goes in its text (the start
+ * when opened from the map, the end when the page was just made, back where it was when reached from another page
+ * in the drawer), and moving between pages
  */
 export function usePageDrawer({ pathId, routePageId }: { pathId: string; routePageId: string }) {
   // The page in the URL: swapped in place (swapOpenPage) it is ahead of the route's own
@@ -25,10 +25,8 @@ export function usePageDrawer({ pathId, routePageId }: { pathId: string; routePa
   // A page that replaces another in the open drawer, rather than the drawer's first; read once per page, as it opens
   const swap = useRef<{ id: string; swapped: boolean } | null>(null);
   if (swap.current?.id !== pageId) swap.current = { id: pageId, swapped: shown.current !== null && shown.current !== pageId };
-  // Opened from the map, by a click or the keys: the title takes the focus, so the page is read from its top and
-  // announced, and Tab moves on to the text
-  const titleFirst = !fromDrawer && !isNew;
-  const cursor: EditorFocus | null = titleFirst ? null : fromDrawer ? (cursors.get(pageId) ?? 'start') : 'end';
+  // Opened from the map, by a click or the keys: at the start of the text, to read or write in it
+  const cursor: EditorFocus = fromDrawer ? (cursors.get(pageId) ?? 'start') : isNew ? 'end' : 'start';
   useEffect(() => {
     shown.current = pageId;
   }, [shown, pageId]);
@@ -39,7 +37,6 @@ export function usePageDrawer({ pathId, routePageId }: { pathId: string; routePa
       pageId,
       before,
       swapped: swap.current.swapped,
-      titleFirst,
       cursor,
     },
     operations: {

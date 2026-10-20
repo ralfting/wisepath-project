@@ -28,7 +28,6 @@ export function PageSheet({
   page,
   store,
   save,
-  isFresh = false,
   onOpenPage,
   showOnMap,
   onDeleted,
@@ -60,7 +59,6 @@ export function PageSheet({
               page={page}
               actions={store}
               size={26}
-              autoFocus={isFresh}
               onEnter={operations.focusText}
             />
           </Box>

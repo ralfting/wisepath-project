@@ -46,7 +46,8 @@ export function EditorView({ path, store, save, pageId }: { path: Path; store: P
         page={page}
         store={store}
         save={save}
-        isFresh={isFresh}
+        // Just made (?new=1): at the end of the text, to write in it; else at its start
+        focusEditor={isFresh ? 'end' : 'start'}
         // Another page opens as a full page too; with Cmd/Ctrl, on the map in its drawer
         onOpenPage={(id, alternate) => (alternate ? router.push(mapWithPageHref(path.id, id)) : showFullPage(pageHref(id)))}
         showOnMap={{ href: mapWithPageHref(path.id, page.id) }}
