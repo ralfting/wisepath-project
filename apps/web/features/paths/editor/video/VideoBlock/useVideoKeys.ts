@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import type { MutableRefObject, RefObject } from 'react';
 import { PLAYING } from '../youtubeApi';
 import type { YouTubePlayer } from '../youtubeApi';
-import { isLastUsed } from './VideoBlock.helpers';
+import { isLastUsed, SKIP_SECONDS } from './VideoBlock.helpers';
 
 /**
  * The block's keys: YouTube's own on the video (Space or K plays and pauses, ← → skip 5 seconds, M mutes, F is
@@ -44,7 +44,7 @@ export function useVideoKeys({
         if (p.getPlayerState() === PLAYING) p.pauseVideo();
         else p.playVideo();
       } else if (key === 'arrowleft' || key === 'arrowright') {
-        const to = Math.max(0, p.getCurrentTime() + (key === 'arrowleft' ? -5 : 5));
+        const to = Math.max(0, p.getCurrentTime() + (key === 'arrowleft' ? -SKIP_SECONDS : SKIP_SECONDS));
         p.seekTo(to, true);
         setTime(to);
       } else if (key === 'm') {

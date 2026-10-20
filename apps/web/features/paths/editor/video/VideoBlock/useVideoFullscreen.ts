@@ -33,7 +33,14 @@ export function useVideoFullscreen({ stage, video }: { stage: RefObject<HTMLDivE
       }
     };
     document.addEventListener('fullscreenchange', onChange);
-    return () => document.removeEventListener('fullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      // Gone while fullscreen, the block hears no fullscreenchange: the lock would hold Esc for the whole tab
+      if (locked.current) {
+        locked.current = false;
+        keyboard()?.unlock?.();
+      }
+    };
   }, [stage, video]);
   const toggle = () => {
     if (document.fullscreenElement) void document.exitFullscreen();

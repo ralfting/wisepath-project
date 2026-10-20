@@ -7,11 +7,14 @@ export const markUsed = (video: object) => {
 };
 export const isLastUsed = (video: object) => lastUsed === video;
 
+/** How far ← → skip, and how far back a note taken while playing goes */
+export const SKIP_SECONDS = 5;
+
 /**
- * Where a note taken now goes: while the video plays, a few seconds back, where what caught the ear began rather
- * than where N was pressed; paused, the learner chose the spot, so exactly there
+ * Where a note taken now goes: while the video plays, a step back, where what caught the ear began rather than
+ * where N was pressed; paused, the learner chose the spot, so exactly there
  */
-export const noteMoment = (seconds: number, playing: boolean) => (playing ? Math.max(0, seconds - 5) : seconds);
+export const noteMoment = (seconds: number, playing: boolean) => (playing ? Math.max(0, seconds - SKIP_SECONDS) : seconds);
 
 /** A corner of the area the text is in, where the floating video sits: top or bottom, left or right */
 export type Corner = 'tl' | 'tr' | 'bl' | 'br';
