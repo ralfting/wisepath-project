@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isControlDone, nearestCorner } from './VideoBlock.helpers';
+import { isControlDone, nearestCorner, noteMoment } from './VideoBlock.helpers';
 
 describe('the video block', () => {
   it("hears when one of YouTube's controls has done its part, and not the reports while playing", () => {
@@ -10,6 +10,12 @@ describe('the video block', () => {
     expect(isControlDone(JSON.stringify({ event: 'infoDelivery', info: { playbackRate: 1, currentTime: 12 } }))).toBe(false);
     expect(isControlDone('not json')).toBe(false);
     expect(isControlDone({ event: 'apiInfoDelivery' })).toBe(false);
+  });
+
+  it('marks a note a few seconds back while the video plays, and exactly where it is paused', () => {
+    expect(noteMoment(85, true)).toBe(80);
+    expect(noteMoment(3, true)).toBe(0);
+    expect(noteMoment(85, false)).toBe(85);
   });
 
   it('settles a dropped video in the nearest corner', () => {

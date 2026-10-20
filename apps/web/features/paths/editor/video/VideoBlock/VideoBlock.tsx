@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { useT } from '@/i18n/I18nProvider';
 import { formatTime } from '../timestamps';
 import classes from './VideoBlock.module.css';
+import { noteMoment } from './VideoBlock.helpers';
 import { FloatingBar } from './FloatingBar';
 import { FullscreenNotes } from './FullscreenNotes';
 import { NoteButton } from './NoteButton';
@@ -35,9 +36,9 @@ export function VideoBlock({ node, editor, getPos }: NodeViewProps) {
   const { videoId, src, iframe, slot, stage, hasKeyboard, player, notes, floating, fullscreen, visibility } = useVideoBlock({ node, editor, getPos });
   if (!videoId) return <NodeViewWrapper data-youtube-video />;
 
-  const { ready, failed, time } = player.state;
+  const { ready, failed, time, playing } = player.state;
   const { composer, draft } = notes;
-  const seconds = composer?.seconds ?? time;
+  const seconds = composer?.seconds ?? noteMoment(time, playing);
   // The popup sits by whichever "Note" button is on screen: the bar, the fullscreen column or the floating video
   const anchor = fullscreen.fullscreen ? 'side' : floating.floating ? 'float' : 'bar';
   const notePopover = (where: typeof anchor, target: ReactNode) => (

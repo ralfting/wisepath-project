@@ -8,7 +8,7 @@ import type { YouTubePlayer } from '../youtubeApi';
 import { setActiveNote } from '../activeNote';
 import { addNote, noteAt, notesAfter } from '../videoNotes';
 import type { VideoNote } from '../videoNotes';
-import { markUsed } from './VideoBlock.helpers';
+import { markUsed, noteMoment } from './VideoBlock.helpers';
 
 /**
  * The video's notes: the [mm:ss] lines under it, following the text as it changes, the one for what is playing
@@ -66,7 +66,7 @@ export function useVideoNotes({
     // Paused out of view, nothing floats: bring the video to where the note is written
     if (!resume && !inViewRef.current) slot.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
     setDraft('');
-    setComposer({ seconds: p.getCurrentTime(), resume });
+    setComposer({ seconds: noteMoment(p.getCurrentTime(), resume), resume });
   }, [player, editor, video, inViewRef, slot]);
 
   const closeComposer = (save: boolean) => {
