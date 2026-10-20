@@ -9,6 +9,10 @@ describe('the [[ picker', () => {
     expect(pageLinkItems(pages, 'here', 'fib')).toEqual([{ id: 'a', title: 'Fiber pools' }, { id: null, title: 'fib' }]);
   });
 
+  it('offers a page to make without the [ or ] that would break its links', () => {
+    expect(pageLinkItems(pages, 'here', 'Ownership [draft')).toEqual([{ id: null, title: 'Ownership draft' }]);
+  });
+
   it('offers no page to make when one has the name, ignoring case', () => {
     expect(pageLinkItems(pages, 'here', 'scheduler')).toEqual([{ id: 'b', title: 'Scheduler' }]);
   });

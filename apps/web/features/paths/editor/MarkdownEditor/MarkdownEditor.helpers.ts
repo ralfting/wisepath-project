@@ -2,7 +2,7 @@ import type { Editor } from '@tiptap/react';
 import { common, createLowlight } from 'lowlight';
 import { IconBlockquote, IconBrackets, IconCode, IconFilePlus, IconH2, IconH3, IconList, IconListCheck, IconListNumbers, IconTable } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
-import { findPageByTitle } from '@wisepath/domain/paths';
+import { asTitle, findPageByTitle } from '@wisepath/domain/paths';
 import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { editor as editorMessages } from '@/i18n/messages/en/editor';
 import type { PageLinkItem } from '../menus';
@@ -84,10 +84,10 @@ export const MAX_PICKER_ITEMS = 6;
 
 /**
  * What the [[ picker offers for what is typed after [[: the pages whose title has it (not this page, nor untitled
- * ones), and a page of that name to make when none has it exactly
+ * ones), and a page of that name to make when none has it exactly, without the [ or ] a title can't hold
  */
 export function pageLinkItems(pages: ReadonlyArray<PreviewPage>, currentPageId: string, query: string): PageLinkItem[] {
-  const q = query.trim();
+  const q = asTitle(query).trim();
   const matches = pages
     .filter((p) => p.id !== currentPageId && p.title.trim())
     .filter((p) => p.title.toLowerCase().includes(q.toLowerCase()))
