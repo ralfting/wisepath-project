@@ -2,6 +2,7 @@
 
 import type { NodeViewProps } from '@tiptap/react';
 import { useCallback, useRef, useState } from 'react';
+import { useReducedMotion } from '@mantine/hooks';
 import { useHasKeyboard } from '@/ui/platform';
 import { youTubeId } from '../../youtube';
 import { embedUrl } from '../youtubeApi';
@@ -22,6 +23,7 @@ export function useVideoBlock({ node, editor, getPos }: Pick<NodeViewProps, 'nod
   // This block, for "the video most recently used"
   const video = useRef({}).current;
   const hasKeyboard = useHasKeyboard();
+  const reduceMotion = useReducedMotion();
   // The embed address is fixed once: changing it would reload the video
   const [src] = useState(() => (videoId ? embedUrl(videoId, Number(node.attrs.start) || 0) : ''));
   const position = useCallback(() => (typeof getPos === 'function' ? getPos() : undefined), [getPos]);
@@ -29,7 +31,14 @@ export function useVideoBlock({ node, editor, getPos }: Pick<NodeViewProps, 'nod
   const reclaimFocus = useVideoFocus({ iframe, stage, video });
   const visibility = useVideoVisibility(slot);
   const fullscreen = useVideoFullscreen({ stage, video });
-  const player = useVideoPlayer({ editor, src, iframe, stage, video, position, reclaimFocus, onSeek: visibility.undismiss });
+  // Played from a time in the text with the video out of view, the page goes to the video; it floats again only
+  // once it has been in view, so it doesn't flash in a corner on the way
+  const showVideo = () => {
+    if (visibility.inViewRef.current || document.fullscreenElement) return visibility.undismiss();
+    visibility.dismiss();
+    slot.current?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+  };
+  const player = useVideoPlayer({ editor, src, iframe, stage, video, position, reclaimFocus, onSeek: showVideo });
   const notes = useVideoNotes({
     editor,
     position,
