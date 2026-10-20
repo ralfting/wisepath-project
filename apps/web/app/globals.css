@@ -19,6 +19,17 @@ a {
   text-underline-offset: 0.2em;
 }
 
+/* A quote in a page's text, in the editor and in the catalog: a rule in the margin beside text of the page's own
+   size. Mantine's Typography draws a grey box in a larger font, which reads like a code block */
+:is(.mantine-RichTextEditor-content, .mantine-Typography-root) blockquote {
+  padding: 0 0 0 var(--mantine-spacing-md);
+  border-left: 3px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  border-radius: 0;
+  background: none;
+  font-size: inherit;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
 /* Safari on a phone zooms the page into any field under 16px when it takes focus */
 @media (pointer: coarse) {
   input,

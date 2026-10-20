@@ -62,13 +62,7 @@
   pointer-events: none;
 }
 
-/* A quote is a rule in the margin beside text of the page's own size: Mantine's grey box read like a code block */
+/* A quote sits as close to the line above as a paragraph, so a heading over it stays with it (its look: globals.css) */
 .blocks :global(.ProseMirror blockquote) {
   margin: 0 0 var(--mantine-spacing-xs);
-  padding: 0 0 0 var(--mantine-spacing-md);
-  border-left: 3px solid light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
-  border-radius: 0;
-  background: none;
-  font-size: inherit;
-  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
 }
