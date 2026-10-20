@@ -19,13 +19,15 @@ import { ProjectId } from "../projects/Project"
 /** Ids are made by the client (a UUID), so a page can open before the server answers */
 const idChecks = [Schema.isMinLength(1), Schema.isMaxLength(64)] as const
 const Title = Schema.String.check(Schema.isMaxLength(200))
+/** A page's title (a map's is its root page's): [ or ] in it would end the [[Title]] links to it */
+const PageTitle = Title.check(Schema.isPattern(/^[^[\]]*$/, { message: "Leave [ and ] out of the title" }))
 
 /** A new map, in one of the learner's projects: its root page carries the title */
 export const NewPath = Schema.Struct({
   id: PathId.check(...idChecks),
   projectId: ProjectId,
   rootPageId: PageId.check(...idChecks),
-  title: Title.check(Schema.isMinLength(1, { message: "Give the map a name" })),
+  title: PageTitle.check(Schema.isMinLength(1, { message: "Give the map a name" })),
   /** A study unless said otherwise */
   kind: Schema.optional(PathKind)
 })
@@ -43,19 +45,20 @@ export type PathEdit = typeof PathEdit.Type
 /** The page a [[link]] points to, created when the link is first followed */
 export const NewPage = Schema.Struct({
   id: PageId.check(...idChecks),
-  title: Title.check(Schema.isMinLength(1))
+  title: PageTitle.check(Schema.isMinLength(1))
 })
 export type NewPage = typeof NewPage.Type
 
 /** Any edit to one page; fields left out stay as they are */
 export const PageEdit = Schema.Struct({
-  title: Schema.optional(Title),
+  title: Schema.optional(PageTitle),
   content: Schema.optional(Schema.String),
   studied: Schema.optional(Schema.Boolean),
   module: Schema.optional(Schema.Boolean),
   color: Schema.optional(PageColor),
   icon: Schema.optional(PageIcon),
-  /** After a rename: [[links]] still written with this title move to the new one */
+  /** After a rename: [[links]] still written with this title move to the new one. Not held to PageTitle, so a
+   *  title from before [ and ] were refused can be renamed away */
   previousTitle: Schema.optional(Title)
 })
 export type PageEdit = typeof PageEdit.Type

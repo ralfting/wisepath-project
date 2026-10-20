@@ -20,6 +20,7 @@ Skip it for typos and bugs whose cause is obvious from the diff.
 
 | Id | Title | Area | Date |
 |---|---|---|---|
+| [BUG-006](BUG-006-brackets-in-a-title-unlink-the-page.md) | Renaming a page with [ or ] in the title takes it off the map | web/paths | 2026-10-20 |
 | [BUG-005](BUG-005-opening-a-page-saves-it.md) | Opening a page sends a PATCH with its unchanged text | web/paths | 2026-10-18 |
 | [BUG-004](BUG-004-mantine-compound-in-server-component.md) | A public path shows "Can't open this path" while it is loading | web/paths | 2026-10-17 |
 | [BUG-003](BUG-003-helpers-lost-use-client.md) | The build fails with "createContext only works in a Client Component" after a split | web/build | 2026-10-17 |

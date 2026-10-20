@@ -1,5 +1,5 @@
 import { Effect } from "effect"
-import { addPage, editPage, findPageByTitle, PageNotFound, withLinkTo } from "../paths/index"
+import { addPage, asTitle, editPage, findPageByTitle, PageNotFound, withLinkTo } from "../paths/index"
 import type { Page, PageId, Path } from "../paths/index"
 import type { InboxItem } from "./InboxItem"
 
@@ -133,7 +133,7 @@ export const fileItem = Effect.fnUntraced(function*(path: Path, pageId: PageId, 
 export function titleFor(item: Item, untitled = "From the Inbox"): string {
   const firstLine = ownText(item).split("\n").find((line) => line.trim()) ?? ""
   const raw = item.title?.trim() || firstLine.replace(/^#+\s*|^[-*>]\s*/, "") || item.url || untitled
-  const clean = raw.replace(/[[\]\n]/g, " ").replace(/\s+/g, " ").trim()
+  const clean = asTitle(raw).replace(/\s+/g, " ").trim()
   return clean.length > 80 ? `${clean.slice(0, 79).trimEnd()}…` : clean
 }
 

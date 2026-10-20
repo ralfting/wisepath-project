@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import type { Page, Path } from '@wisepath/domain/paths';
-import { titleTaken } from '@wisepath/domain/paths';
+import { asTitle, titleTaken } from '@wisepath/domain/paths';
 import { titleSizeFor } from '../titleSize';
 import type { PageActions } from './PageContent.helpers';
 
@@ -64,8 +64,7 @@ export function usePageTitleInput({
     actions.renameLinks(titleAtFocus.current, page.title);
   };
   const change = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    // A title is one line: a pasted line break becomes a space
-    const title = event.currentTarget.value.replace(/\s*\n+\s*/g, ' ');
+    const title = asTitle(event.currentTarget.value);
     setDraft(title);
     if (!titleTaken(path, page.id, title)) actions.updatePage(page.id, { title });
   };

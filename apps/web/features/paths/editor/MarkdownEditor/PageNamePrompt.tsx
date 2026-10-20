@@ -4,7 +4,7 @@ import { Paper, Text, TextInput } from '@mantine/core';
 import { IconFilePlus } from '@tabler/icons-react';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import { findPageByTitle } from '@wisepath/domain/paths';
+import { asTitle, findPageByTitle } from '@wisepath/domain/paths';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { useT } from '@/i18n/I18nProvider';
@@ -70,7 +70,7 @@ export function PageNamePrompt({
         autoFocus
         // Keeps Esc here: the drawer around the editor would close on it
         data-mantine-stop-propagation
-        onChange={(e) => setName(e.currentTarget.value)}
+        onChange={(e) => setName(asTitle(e.currentTarget.value))}
         // Clicking elsewhere on the page cancels; switching to another window does not
         onBlur={() => {
           if (document.hasFocus()) onCancel();

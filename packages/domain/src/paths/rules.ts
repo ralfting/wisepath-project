@@ -19,6 +19,11 @@ export function displayTitle(page: Pick<Page, 'title'>): string {
   return page.title.trim() || 'Untitled page';
 }
 
+/** A title as typed, made fit to be one: a single line without [ or ], which would end the [[Title]] links to it */
+export function asTitle(typed: string): string {
+  return typed.replace(/\s*\n+\s*/g, ' ').replace(/[[\]]/g, '');
+}
+
 const sameTitle = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
 
 /** The page a [[Title]] link points at: case-insensitive, ignoring surrounding spaces */

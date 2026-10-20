@@ -79,6 +79,7 @@ export const home = {
     nameHint: 'A página principal da trilha recebe esse nome. Adicione páginas digitando / e escolhendo Página.',
     namePlaceholder: 'Rust, Álgebra linear, Japonês…',
     nameRequired: 'Dê um nome à trilha',
+    nameBrackets: 'Deixe [ e ] fora do nome: eles quebrariam os [[links]] para a página',
     project: 'Projeto',
     submit: 'Criar trilha',
   },

@@ -24,6 +24,7 @@ import {
   renameLinks,
   samplePath,
   setLook,
+  asTitle,
   titleTaken,
   unlinkPages,
   updatePage
@@ -153,6 +154,11 @@ describe("path rules", () => {
     const { path: next, page } = createPage(linked, "Strategies", id("strategies"))
     assert.strictEqual(mapTree(next).nodes.get(page.id)?.parentId, "guards")
     assert.strictEqual(createPage(next, "jwt", id("dup")).page.id, "jwt")
+  })
+
+  it("keeps a typed title to one line without [ or ], so the [[links]] to it still parse", () => {
+    assert.strictEqual(asTitle("Ownership [draft]"), "Ownership draft")
+    assert.strictEqual(asTitle("Two\n lines"), "Two lines")
   })
 
   it("refuses a title another page has, and renames the map with its root", () => {

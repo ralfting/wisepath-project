@@ -79,6 +79,7 @@ export const home = {
     nameHint: "The path's main page takes this name. Add pages to it by typing / and choosing Page.",
     namePlaceholder: 'Rust, Linear algebra, Japanese…',
     nameRequired: 'Give the path a name',
+    nameBrackets: 'Leave [ and ] out of the name: they would break the [[links]] to it',
     project: 'Project',
     submit: 'Create path',
   },

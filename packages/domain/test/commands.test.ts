@@ -98,6 +98,8 @@ describe("page commands", () => {
     assert.isTrue(Schema.is(PageEdit)({ studied: true }))
     assert.isFalse(Schema.is(PageEdit)({ color: "plaid" }))
     assert.isFalse(Schema.is(NewPath)({ id: "p", rootPageId: "r", title: "" }))
+    assert.isFalse(Schema.is(PageEdit)({ title: "Ownership [draft]" }))
+    assert.isTrue(Schema.is(PageEdit)({ title: "Ownership", previousTitle: "Ownership [draft]" }))
   })
 })
 

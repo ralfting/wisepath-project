@@ -12,6 +12,7 @@ const DOMAIN_MESSAGES: Readonly<Record<string, TranslationKey>> = {
   "Tell us your name": "auth.validation.name",
   "Use at least 8 characters": "auth.validation.passwordLength",
   "Give the map a name": "home.create.nameRequired",
+  "Leave [ and ] out of the title": "home.create.nameBrackets",
   "Give the project a name": "home.projectForm.nameRequired",
   "Say what the path teaches": "share.catalog.descriptionRequired",
   "Say who the path is for": "share.catalog.audienceRequired"

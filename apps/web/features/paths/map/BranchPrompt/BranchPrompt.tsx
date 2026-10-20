@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
 import { Paper, Text, TextInput } from '@mantine/core';
 import { IconFilePlus } from '@tabler/icons-react';
 import type { Page } from '@wisepath/domain/paths';
-import { findPageByTitle } from '@wisepath/domain/paths';
+import { asTitle, findPageByTitle } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './BranchPrompt.module.css';
@@ -67,7 +67,7 @@ export function BranchPrompt({
         autoFocus
         // Keeps Esc here: the drawer would close on it
         data-mantine-stop-propagation
-        onChange={(event) => setName(event.currentTarget.value)}
+        onChange={(event) => setName(asTitle(event.currentTarget.value))}
         // Clicking elsewhere on the page closes it; switching to another window does not
         onBlur={() => {
           if (document.hasFocus()) onClose();
