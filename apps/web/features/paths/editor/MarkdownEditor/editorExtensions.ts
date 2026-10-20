@@ -25,7 +25,7 @@ import { CodeBlockView } from '../CodeBlockView/CodeBlockView';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import { VideoBlock } from '../video/VideoBlock/VideoBlock';
 import { Timestamp, timestampLabels } from '../video/timestamps';
-import { SLASH_COMMANDS, lowlight, pageLinkItems } from './MarkdownEditor.helpers';
+import { SLASH_COMMANDS, lowlight, pageLinkItems, webAddress } from './MarkdownEditor.helpers';
 
 /** What the extensions read when they run, always the latest: the editor creates them once */
 export interface EditorContext {
@@ -64,7 +64,21 @@ export function editorExtensions({
     // The code block comes from CodeBlockLowlight instead, for syntax colours, with a language picker
     StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false }),
     CodeBlockLowlight.extend({ addNodeView: () => ReactNodeViewRenderer(CodeBlockView) }).configure({ lowlight }),
-    Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
+    // A link written to a bare host is read with https, so it opens the site and saves that way
+    Link.extend({
+      addAttributes() {
+        return {
+          ...this.parent?.(),
+          href: {
+            default: null,
+            parseHTML: (el: HTMLElement) => {
+              const href = el.getAttribute('href');
+              return href && (webAddress(href) ?? href);
+            },
+          },
+        };
+      },
+    }).configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
     Placeholder.configure({ placeholder: () => context().t('editor.content.placeholder') }),
     getTaskListExtension(TaskList),
     TaskItem.configure({ nested: true }),

@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import type { MouseEvent, RefObject } from 'react';
 import { findPageByTitle } from '@wisepath/domain/paths';
 import type { PreviewPage, PreviewTarget } from '../LinkPreview/LinkPreview';
-import { openInNewTab } from './MarkdownEditor.helpers';
+import { openInNewTab, webAddress } from './MarkdownEditor.helpers';
 import type { LinkCard } from './MarkdownEditor.helpers';
 
 /**
@@ -63,7 +63,9 @@ export function useLinkCard({
     hoverTimer.current = window.setTimeout(() => {
       const title = el.getAttribute('data-wikilink');
       const linkTarget: PreviewTarget =
-        title !== null ? { kind: 'page', title, page: findPageByTitle(pages(), title) } : { kind: 'url', href: el.getAttribute('href') ?? '' };
+        title !== null
+          ? { kind: 'page', title, page: findPageByTitle(pages(), title) }
+          : { kind: 'url', href: webAddress(el.getAttribute('href') ?? '') ?? el.getAttribute('href') ?? '' };
       setCard({ target: linkTarget, ...placeBelow(el) });
     }, 350);
   };

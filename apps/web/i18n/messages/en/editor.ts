@@ -83,6 +83,7 @@ export const editor = {
   card: {
     create: 'Create page',
     openInNewTab: 'Open {href} in a new tab',
+    newTabHint: '+ click on the link opens it in a new tab',
   },
   preview: {
     empty: 'Nothing written yet.',

@@ -100,11 +100,22 @@ export function pageLinkItems(pages: ReadonlyArray<PreviewPage>, currentPageId: 
 /** The markdown saved for the text: a link is put in with a space after it, to keep typing; at a line's end it goes */
 export const savedMarkdown = (markdown: string) => markdown.replace(/\]\] +$/gm, ']]');
 
+/**
+ * A link's web address, absolute: as written when it has http(s), with https added to a bare host written without
+ * it ("www.google.com"), which the browser would otherwise read as a path inside the app; null for anything else
+ */
+export function webAddress(href: string): string | null {
+  const address = href.trim();
+  if (/^https?:\/\//i.test(address)) return address;
+  return /^(?:[a-z0-9-]+\.)+[a-z]{2,}(?::\d+)?(?:[/?#]|$)/i.test(address) ? `https://${address}` : null;
+}
+
 /** Opens a web address in a new tab through a real anchor: embedded browsers (like Orca's) ignore window.open */
 export function openInNewTab(href: string) {
-  if (!/^https?:/.test(href)) return;
+  const address = webAddress(href);
+  if (!address) return;
   const a = document.createElement('a');
-  a.href = href;
+  a.href = address;
   a.target = '_blank';
   a.rel = 'noopener noreferrer';
   a.click();

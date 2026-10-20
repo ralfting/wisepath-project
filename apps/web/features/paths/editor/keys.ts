@@ -3,6 +3,7 @@ import { NodeSelection, Plugin, PluginKey, TextSelection } from '@tiptap/pm/stat
 import type { ResolvedPos } from '@tiptap/pm/model';
 import { videoAbove } from './video/videos';
 import { isMacPlatform } from '@/ui/platform';
+import { webAddress } from './MarkdownEditor/MarkdownEditor.helpers';
 
 /**
  * The editor's keys: "- [ ]" checklists, keys for whole blocks, opening the link on the
@@ -149,13 +150,10 @@ export function lineLink($from: ResolvedPos): LineLink | null {
   let chosen = null as LineLink | null;
   $from.parent.forEach((child, offset) => {
     const pos = start + offset;
-    const href = child.marks.find((mark) => mark.type.name === 'link')?.attrs.href;
+    const mark = child.marks.find((m) => m.type.name === 'link')?.attrs.href;
+    const href = typeof mark === 'string' ? webAddress(mark) : null;
     const link: LineLink | null =
-      child.type.name === 'wikiLink'
-        ? { kind: 'page', title: child.attrs.title, pos }
-        : typeof href === 'string' && /^https?:/.test(href)
-          ? { kind: 'web', href, pos }
-          : null;
+      child.type.name === 'wikiLink' ? { kind: 'page', title: child.attrs.title, pos } : href ? { kind: 'web', href, pos } : null;
     if (link && (!chosen || pos <= $from.pos)) chosen = link;
   });
   return chosen;

@@ -86,6 +86,7 @@ export const editor = {
   card: {
     create: 'Criar página',
     openInNewTab: 'Abrir {href} em uma nova aba',
+    newTabHint: '+ clique no link abre em outra aba',
   },
   preview: {
     empty: 'Nada escrito ainda.',

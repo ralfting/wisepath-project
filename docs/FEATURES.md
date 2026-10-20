@@ -77,7 +77,7 @@ The editor shows formatting as you type and saves markdown. The **?** in its too
 - **Tables:** a markdown header row (`| A | B |`) then Enter makes a table with a row to fill; pasted markdown tables work too.
 - **Code blocks** have syntax colours, and the language in their top corner: a searchable picker (TypeScript, Python, SQL… or Auto, which guesses). The fence keeps the language (```` ```ts ````).
 - **Web addresses** written on their own read as the site's icon and the page's title, in the line; the cursor on one brings the address back to edit it. A link with its own words (`[text](https://…)`) shows those.
-- **Hover cards.** Pointing at a link shows a card: another page's title and opening lines, or a site's icon, title and description. The whole card opens it (a site in a new tab).
+- **Hover cards.** Pointing at a link shows a card: another page's title and opening lines, or a site's icon, title and description. The whole card opens it (a site in a new tab); a site's card also shows that ⌘-click (Ctrl-click) on the link opens it in a new tab. A link written without http, like `www.google.com`, opens that site with https.
 - **Where the keys go:** a bar in the left margin marks the block the cursor is in.
 - Backspace at the start of the line after a table, code block or video selects that block, so a second Backspace removes it.
 
