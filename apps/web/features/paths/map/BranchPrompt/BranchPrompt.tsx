@@ -6,7 +6,7 @@ import { Paper, Text, TextInput } from '@mantine/core';
 import { IconFilePlus } from '@tabler/icons-react';
 import type { Page } from '@wisepath/domain/paths';
 import { asTitle, findPageByTitle } from '@wisepath/domain/paths';
-import { displayTitle } from '@/i18n/title';
+import { displayTitle, untitledName } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './BranchPrompt.module.css';
 import { useIsMac } from '@/ui/platform';
@@ -15,7 +15,8 @@ import { useIsMac } from '@/ui/platform';
  * BranchPrompt
  * The name field the map's + opens beside a page. Enter adds the branch and opens it in the drawer, like /Page;
  * Cmd/Ctrl+Enter adds it and stays, the field emptied for the next one; Esc, or a click elsewhere, closes it.
- * A name another page has links that page instead, and says so before Enter.
+ * A name another page has links that page instead, and says so before Enter. With no name yet, Enter adds an
+ * untitled page, to be named once it is open.
  */
 
 export function BranchPrompt({
@@ -40,11 +41,13 @@ export function BranchPrompt({
   const title = name.trim();
   const existing = title ? findPageByTitle(pages, title) : undefined;
   const isParent = existing?.id === parent.id;
-  const note = isParent
-    ? t('map.branch.isThis')
-    : existing
-      ? t('map.branch.exists', { title: displayTitle(existing) })
-      : t('map.branch.hint', { mod });
+  const note = !title
+    ? t('map.branch.untitled', { mod })
+    : isParent
+      ? t('map.branch.isThis')
+      : existing
+        ? t('map.branch.exists', { title: displayTitle(existing) })
+        : t('map.branch.hint', { mod });
 
   return (
     <Paper
@@ -80,8 +83,8 @@ export function BranchPrompt({
           }
           if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
             event.preventDefault();
-            if (!title || isParent) return;
-            onSubmit(title, event.metaKey || event.ctrlKey);
+            if (isParent) return;
+            onSubmit(title || untitledName(pages), event.metaKey || event.ctrlKey);
             setName('');
           }
         }}

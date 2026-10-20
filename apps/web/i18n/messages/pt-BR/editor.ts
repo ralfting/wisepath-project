@@ -81,6 +81,7 @@ export const editor = {
     isThisPage: 'Esta é a página atual.',
     exists: 'Já existe uma página com esse nome: Enter abre a página, {mod}Enter só cria o link.',
     creates: 'Enter cria a página e vai até ela. {mod}Enter cria a página e fica aqui.',
+    untitled: 'Ainda sem nome? Enter cria uma página sem título para nomear depois. {mod}Enter cria e fica aqui.',
   },
   card: {
     create: 'Criar página',

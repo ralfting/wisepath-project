@@ -1,7 +1,7 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect, Schema } from "effect"
-import { Capture, InboxItemId, appendItem, captured, fileItem, freeTitle, itemHere, itemMarkdown, makePage, titleFor, youTubeId } from "../src/inbox/index"
-import { PageId, mapTree, samplePath } from "../src/paths/index"
+import { Capture, InboxItemId, appendItem, captured, fileItem, itemHere, itemMarkdown, makePage, titleFor, youTubeId } from "../src/inbox/index"
+import { PageId, freeTitle, mapTree, samplePath } from "../src/paths/index"
 
 const id = PageId.make
 const contentOf = (path: typeof samplePath, pageId: string) => path.pages.find((p) => p.id === pageId)!.content

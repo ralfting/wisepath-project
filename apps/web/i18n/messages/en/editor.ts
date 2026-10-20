@@ -78,6 +78,7 @@ export const editor = {
     isThisPage: 'That is this page.',
     exists: 'A page has this name: Enter opens it, {mod}Enter only links it.',
     creates: 'Enter creates it and takes you there. {mod}Enter creates it and stays here.',
+    untitled: 'No name yet? Enter creates an untitled page to name later. {mod}Enter creates it and stays here.',
   },
   card: {
     create: 'Create page',

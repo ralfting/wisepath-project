@@ -31,6 +31,15 @@ export function findPageByTitle<T extends Pick<Page, 'title'>>(pages: ReadonlyAr
   return title.trim() ? pages.find((p) => sameTitle(p.title, title)) : undefined;
 }
 
+/** The title, or "Title (2)", "Title (3)"… when another page has it */
+export function freeTitle(pages: ReadonlyArray<Pick<Page, 'title'>>, title: string): string {
+  if (!findPageByTitle(pages, title)) return title;
+  for (let n = 2; ; n++) {
+    const next = `${title} (${n})`;
+    if (!findPageByTitle(pages, next)) return next;
+  }
+}
+
 /** True when another page already uses this title, so [[links]] to it would be ambiguous */
 export function titleTaken(path: Path, pageId: PageId, title: string): boolean {
   return !!title.trim() && path.pages.some((p) => p.id !== pageId && sameTitle(p.title, title));

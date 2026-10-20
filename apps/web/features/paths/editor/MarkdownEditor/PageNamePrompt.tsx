@@ -8,6 +8,7 @@ import { asTitle, findPageByTitle } from '@wisepath/domain/paths';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import classes from './MarkdownEditor.module.css';
 import { useT } from '@/i18n/I18nProvider';
+import { untitledName } from '@/i18n/title';
 import { useIsMac } from '@/ui/platform';
 
 /** The text a popup belongs to, in window coordinates */
@@ -53,11 +54,13 @@ export function PageNamePrompt({
   const title = name.trim();
   const page = title ? findPageByTitle(pages, title) : undefined;
   const isThisPage = page?.id === currentPageId;
-  const note = isThisPage
-    ? t('editor.newPage.isThisPage')
-    : page
-      ? t('editor.newPage.exists', { mod })
-      : t('editor.newPage.creates', { mod });
+  const note = !title
+    ? t('editor.newPage.untitled', { mod })
+    : isThisPage
+      ? t('editor.newPage.isThisPage')
+      : page
+        ? t('editor.newPage.exists', { mod })
+        : t('editor.newPage.creates', { mod });
 
   return (
     <Paper withBorder shadow="md" p="sm" role="dialog" aria-label={t('editor.newPage.dialog')} className={classes.prompt} style={placeNear(prompt.anchor, 288, 110)}>
@@ -82,7 +85,8 @@ export function PageNamePrompt({
           }
           if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
             e.preventDefault();
-            if (title && !isThisPage) onSubmit(page ? page.title.trim() : title, page, e.metaKey || e.ctrlKey);
+            if (!title) onSubmit(untitledName(pages), undefined, e.metaKey || e.ctrlKey);
+            else if (!isThisPage) onSubmit(page ? page.title.trim() : title, page, e.metaKey || e.ctrlKey);
           }
         }}
       />

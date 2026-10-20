@@ -1,6 +1,6 @@
 import { Effect } from "effect"
-import { addPage, asTitle, editPage, findPageByTitle, PageNotFound, withLinkTo } from "../paths/index"
-import type { Page, PageId, Path } from "../paths/index"
+import { addPage, asTitle, editPage, freeTitle, PageNotFound, withLinkTo } from "../paths/index"
+import type { PageId, Path } from "../paths/index"
 import type { InboxItem } from "./InboxItem"
 
 /**
@@ -137,14 +137,6 @@ export function titleFor(item: Item, untitled = "From the Inbox"): string {
   return clean.length > 80 ? `${clean.slice(0, 79).trimEnd()}…` : clean
 }
 
-/** The title, or "Title (2)", "Title (3)"… when another page has it */
-export function freeTitle(pages: ReadonlyArray<Pick<Page, "title">>, title: string): string {
-  if (!findPageByTitle(pages, title)) return title
-  for (let n = 2; ; n++) {
-    const next = `${title} (${n})`
-    if (!findPageByTitle(pages, next)) return next
-  }
-}
 
 
 /**

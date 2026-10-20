@@ -5,7 +5,7 @@ import { IconArrowDownRight, IconArrowLeft, IconArrowRight, IconArrowUpLeft, Ico
 import type { Icon } from '@tabler/icons-react';
 import type { Page, Path, Relation } from '@wisepath/domain/paths';
 import { canEdit, lookOf, pathProgress } from '@wisepath/domain/paths';
-import { displayTitle } from '@/i18n/title';
+import { awaitsName, displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
 import { PageGlyph, pointAtRelated } from '@/features/paths/path';
 import { PageContent } from '../PageContent/PageContent';
@@ -196,7 +196,8 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             page={page}
             actions={state.actions}
             showTitle={false}
-            focusEditor={focusEditor}
+            // The title takes the cursor instead (PageTitleInput)
+            focusEditor={awaitsName(page) && canEdit(path.access) ? null : focusEditor}
             onCursor={onCursor}
             focusSignal={state.textFocus}
             // The panel's top padding: the toolbar sticks at the very top, so no text shows above it
