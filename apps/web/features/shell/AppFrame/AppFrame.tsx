@@ -47,6 +47,8 @@ export function AppFrame({
     <AppShell
       navbar={{ width: { base: SIDEBAR_WIDTH, sm: state.collapsed ? RAIL_WIDTH : SIDEBAR_WIDTH }, breakpoint: 'sm', collapsed: { mobile: !state.opened } }}
       padding={0}
+      className={classes.shell}
+      data-navigation-open={state.opened || undefined}
     >
       <AppShell.Navbar className={classes.navbar}>
         {state.collapsed ? (

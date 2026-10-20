@@ -1,3 +1,10 @@
+/* On a phone the navigation covers the content: the page behind it neither scrolls nor shows its scrollbar */
+@media (max-width: $mantine-breakpoint-sm) {
+  :global(html):has(.shell[data-navigation-open]) {
+    overflow: hidden;
+  }
+}
+
 .navbar {
   background: var(--mantine-color-body);
   border-right: 1px solid var(--wp-line);
