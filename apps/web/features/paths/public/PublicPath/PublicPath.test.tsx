@@ -27,6 +27,7 @@ describe('PublicPath', () => {
   it('reads the path page by page from the pager under the text, in map order', async () => {
     const user = userEvent.setup();
     renderWithLayers(<PublicPath path={path} />, Layer.mergeAll(MemoryAuth(), MemoryPathSharing({ publicPaths: [path] })));
+    await user.click(screen.getByRole('radio', { name: 'List' }));
 
     await user.click(screen.getByRole('button', { name: /Next.*Hooks/ }));
     expect(screen.getByRole('heading', { level: 2, name: 'Hooks' })).toBeTruthy();

@@ -79,6 +79,7 @@ test('a public path is read by its link without an account, taken to study, and 
   await expect(visitor.getByRole('heading', { name: 'Rust', level: 1 })).toBeVisible();
   await expect(visitor).toHaveTitle('Rust | WisePath');
   await expect(visitor.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/);
+  await visitor.getByRole('radiogroup', { name: 'View' }).getByText('List').click();
   await visitor.getByRole('navigation', { name: 'Pages' }).getByRole('button', { name: 'Borrowing' }).click();
   await expect(visitor.getByRole('heading', { name: 'Borrowing', level: 2 })).toBeVisible();
   await expect(visitor.getByRole('link', { name: 'Log in to study it' })).toBeVisible();
@@ -99,7 +100,7 @@ test('a public path is read by its link without an account, taken to study, and 
   await expect(bob.page.getByRole('region', { name: 'From others' })).toHaveCount(0);
 });
 
-test('a public path opens with its map on a wide screen, and a page chosen in it is read beside', async ({ browser }) => {
+test('a public path opens on its map on a wide screen, a page chosen in it read in a drawer, and a phone has the list', async ({ browser }) => {
   const ada = await someone(browser, 'Ada');
   const visitor = await (await browser.newContext()).newPage();
   const map = await learningPath(ada.page);
@@ -108,12 +109,31 @@ test('a public path opens with its map on a wide screen, and a page chosen in it
   await visitor.goto(`/public/paths/${map.pathId}`);
   const borrowing = visitor.getByRole('tree', { name: /Rust/ }).getByRole('treeitem', { name: /Borrowing/ });
   await expect(borrowing).toBeVisible();
+  // The map or the list, never both
+  await expect(visitor.getByRole('navigation', { name: 'Pages' })).toBeHidden();
   // The wheel over the map scrolls the page instead of being kept by the map
   await borrowing.hover();
   await visitor.mouse.wheel(0, 300);
   await expect.poll(() => visitor.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   await borrowing.click();
-  await expect(visitor.getByRole('heading', { name: 'Borrowing', level: 2 })).toBeVisible();
+  const drawer = visitor.getByRole('dialog', { name: 'Borrowing' });
+  await expect(drawer.getByText(/Previous/)).toBeVisible();
+  // The map stays usable beside it: another page takes its place
+  await visitor.getByRole('tree', { name: /Rust/ }).getByRole('treeitem', { name: /^Rust/ }).click();
+  await expect(visitor.getByRole('dialog', { name: 'Rust' })).toBeVisible();
+  await visitor.keyboard.press('Escape');
+  await expect(visitor.getByRole('dialog')).toHaveCount(0);
+
+  await visitor.getByRole('radiogroup', { name: 'View' }).getByText('List').click();
+  await expect(visitor.getByRole('tree')).toHaveCount(0);
+  await expect(visitor.getByRole('navigation', { name: 'Pages' })).toBeVisible();
+
+  const phone = await (await browser.newContext({ viewport: { width: 390, height: 844 } })).newPage();
+  await phone.goto(`/public/paths/${map.pathId}`);
+  await expect(phone.getByRole('navigation', { name: 'Pages' })).toBeVisible();
+  await expect(phone.getByRole('heading', { name: 'Rust', level: 2 })).toBeVisible();
+  await expect(phone.getByRole('tree')).toHaveCount(0);
+  await expect(phone.getByRole('radiogroup', { name: 'View' })).toBeHidden();
 });
 
 test("someone else's private map, or one that doesn't exist, answers 404 from the server", async ({ browser }) => {
