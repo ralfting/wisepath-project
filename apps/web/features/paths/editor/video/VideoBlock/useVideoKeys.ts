@@ -8,8 +8,8 @@ import { isLastUsed } from './VideoBlock.helpers';
 
 /**
  * The block's keys: YouTube's own on the video (Space or K plays and pauses, ← → skip 5 seconds, M mutes, F is
- * fullscreen), listened to on the element ahead of the editor, which would move its cursor on the arrows; and N for
- * a note, in fullscreen or with the focus on the page rather than in a field or the video
+ * fullscreen, and Esc leaves it), listened to on the element ahead of the editor, which would move its cursor on the
+ * arrows; and N for a note, in fullscreen or with the focus on the page rather than in a field or the video
  */
 export function useVideoKeys({
   stage,
@@ -50,7 +50,7 @@ export function useVideoKeys({
       } else if (key === 'm') {
         if (p.isMuted()) p.unMute();
         else p.mute();
-      } else if (key === 'f') {
+      } else if (key === 'f' || (key === 'escape' && document.fullscreenElement === el)) {
         toggleFullscreen.current();
       } else {
         return;

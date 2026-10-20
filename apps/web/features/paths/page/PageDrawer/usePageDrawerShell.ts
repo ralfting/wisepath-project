@@ -48,6 +48,8 @@ export function usePageDrawerShell({ ownContentClass }: { ownContentClass: strin
   // Esc first closes a popover or menu open in the drawer (they close themselves), then shrinks an expanded drawer
   // back, then closes it
   const escape = () => {
+    // A fullscreen video takes the Esc: it cancels its note, else leaves fullscreen
+    if (document.fullscreenElement) return;
     // Only one on screen counts: a closed Select (a code block's language) keeps its dropdown in the page, hidden
     const open = [...document.querySelectorAll('.mantine-Popover-dropdown, [role=menu]')].some((el) => el.getClientRects().length > 0);
     if (open) return;

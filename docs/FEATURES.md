@@ -85,11 +85,11 @@ The editor shows formatting as you type and saves markdown. The **?** in its too
 
 A YouTube address alone on its line becomes an embedded video built for taking notes.
 
-- **Note at 01:25** under the video (or **N** with the focus on the video or the page, not in the text) pauses it and opens a small popup with the time; Enter puts `- [01:25] the line` in the list right below the video, in time order, and the video goes on (it stays paused if it was). An empty Enter adds nothing; Esc cancels. In fullscreen the note is a card in the middle of the screen.
+- **Note at 01:25** under the video (or **N** with the focus on the video or the page, not in the text) pauses it and opens a small popup with the time; Enter puts `- [01:25] the line` in the list right below the video, in time order, and the video goes on (it stays paused if it was). An empty Enter adds nothing; Esc cancels. In fullscreen the note is a card in the middle of the screen, and Esc cancels it without leaving fullscreen (Chrome, Edge and other Chromium browsers; Safari and Firefox always leave on Esc).
 - **Times.** `[01:25]` (or `[1:02:15]`) anywhere in the text is a chip; a press plays the video above it from there. Shift-press, or ⇧⌘↵, plays it in fullscreen. ⌘↵ (Ctrl+Enter) on a line plays its time — or opens its link — and a tag in the margin shows it. A time belongs to the nearest video above it.
 - **Floating.** Scrolled away while playing, the video floats small in a corner, over the text; drag its bar to another corner (remembered). Its bar has Note, Back to the video and Close.
 - **Fullscreen** (the button under the video) shows the video large, with its notes in a column beside it, in time order; each plays from its time, and the note for what is playing is marked (also in the page). The column can be hidden.
-- **Keys on the video,** with the focus on its block (after fullscreen, a note, or a time picked from the list): Space or K play and pause, ← → skip 5 s, F fullscreen, N a note. A click inside YouTube's own player leaves the focus there, so its menus (settings, captions, volume) work; the focus comes back once they are done.
+- **Keys on the video,** with the focus on its block (after fullscreen, a note, or a time picked from the list): Space or K play and pause, ← → skip 5 s, F fullscreen (Esc, or holding it, leaves), N a note. A click inside YouTube's own player leaves the focus there, so its menus (settings, captions, volume) work; the focus comes back once they are done.
 - If YouTube can't load (offline, blocked), the block says so and offers Retry.
 - Stored as plain markdown: the video's watch URL on its line, the notes as a list of `[mm:ss]` lines.
 
