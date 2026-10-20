@@ -1,10 +1,14 @@
 /* The language sits in the block's top corner, out of the way of the code */
 .block {
   position: relative;
+  margin-bottom: var(--mantine-spacing-xs);
 
-  /* A strip above the code for the language, so a long first line never runs under it */
+  /* A strip above the code for the language, so a long first line never runs under it. As close to the text
+     around it as a paragraph, and edged, so the block reads as one piece with the lines it belongs to */
   & pre {
+    margin: 0;
     padding-top: 30px;
+    border: 1px solid var(--mantine-color-default-border);
   }
 }
 
