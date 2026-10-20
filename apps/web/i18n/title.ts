@@ -24,7 +24,7 @@ export function untitledName(pages: ReadonlyArray<Pick<Page, 'title'>>): string 
 
 /** Whether a title is still that stand-in, to be replaced by the page's real name */
 export function isUntitled(title: string): boolean {
-  return title === untitled || title.startsWith(`${untitled} (`);
+  return title === untitled || (title.startsWith(`${untitled} (`) && /^ \(\d+\)$/.test(title.slice(untitled.length)));
 }
 
 /** A page made without a name, with nothing written in it yet: it opens on its title, to be given one */

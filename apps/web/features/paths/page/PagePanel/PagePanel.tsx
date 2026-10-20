@@ -5,11 +5,12 @@ import { IconArrowDownRight, IconArrowLeft, IconArrowRight, IconArrowUpLeft, Ico
 import type { Icon } from '@tabler/icons-react';
 import type { Page, Path, Relation } from '@wisepath/domain/paths';
 import { canEdit, lookOf, pathProgress } from '@wisepath/domain/paths';
-import { awaitsName, displayTitle } from '@/i18n/title';
+import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
 import { PageGlyph, pointAtRelated } from '@/features/paths/path';
 import { PageContent } from '../PageContent/PageContent';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
+import { useOpensOnTitle } from '../PageContent/useOpensOnTitle';
 import type { EditorFocus } from '@/features/paths/editor';
 import { DeletePageModal } from '../DeletePageModal';
 import { StudiedToggle } from '../StudiedToggle';
@@ -62,6 +63,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
   const t = useT();
   const { state, operations } = usePagePanel({ path, page, store, onSelect });
   const { isRoot, isOrphan, tree, trail, below, progress, related, subtitle } = state;
+  const opensOnTitle = useOpensOnTitle(path, page);
 
   return (
     <Card
@@ -197,7 +199,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             actions={state.actions}
             showTitle={false}
             // The title takes the cursor instead (PageTitleInput)
-            focusEditor={awaitsName(page) && canEdit(path.access) ? null : focusEditor}
+            focusEditor={opensOnTitle ? null : focusEditor}
             onCursor={onCursor}
             focusSignal={state.textFocus}
             // The panel's top padding: the toolbar sticks at the very top, so no text shows above it

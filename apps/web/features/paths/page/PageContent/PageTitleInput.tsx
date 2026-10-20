@@ -5,9 +5,9 @@ import type { Page, Path } from '@wisepath/domain/paths';
 import { mayEditPage } from '@wisepath/domain/paths';
 import { Textarea } from '@mantine/core';
 import { useT } from '@/i18n/I18nProvider';
-import { awaitsName } from '@/i18n/title';
 import classes from './PageContent.module.css';
 import type { PageActions } from './PageContent.helpers';
+import { useOpensOnTitle } from './useOpensOnTitle';
 import { usePageTitleInput } from './usePageTitleInput';
 
 /**
@@ -33,9 +33,8 @@ export function PageTitleInput({
   onEnter?: () => void;
 }) {
   const t = useT();
-  const editable = mayEditPage(path, page.id, { title: page.title });
-  const focus = autoFocus || (editable && awaitsName(page));
-  const { field, state, operations } = usePageTitleInput({ path, page, actions, size, autoFocus: focus, onEnter });
+  const opensOnTitle = useOpensOnTitle(path, page);
+  const { field, state, operations } = usePageTitleInput({ path, page, actions, size, autoFocus: autoFocus || opensOnTitle, onEnter });
   return (
     <Textarea
       ref={field}
@@ -50,7 +49,7 @@ export function PageTitleInput({
       onChange={operations.change}
       onKeyDown={operations.keyDown}
       placeholder={t('page.title.placeholder')}
-      readOnly={!editable}
+      readOnly={!mayEditPage(path, page.id, { title: page.title })}
       classNames={{ input: classes.titleInput }}
       style={{ '--title-size': `${state.titleSize}px` } as CSSProperties}
     />
