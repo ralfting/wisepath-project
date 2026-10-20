@@ -116,10 +116,10 @@ test('a [[link]] and the / command make pages from the text, and the map grows w
   if (!(await fibers.evaluate((el) => el === document.activeElement))) await page.keyboard.press('ArrowLeft');
   await expect(fibers).toBeFocused();
   await page.keyboard.press('Enter');
-  const opened = page.getByRole('dialog', { name: 'Page beside the map' }).getByRole('textbox', { name: 'Page title' });
-  await expect(opened).toHaveValue('Fibers');
-  // Opened from the map, the page is read from its title
-  await expect(opened).toBeFocused();
+  const opened = page.getByRole('dialog', { name: 'Page beside the map' });
+  await expect(opened.getByRole('textbox', { name: 'Page title' })).toHaveValue('Fibers');
+  // Opened from the map, the page opens with the cursor in its text
+  await expect(opened.getByLabel('Page content')).toBeFocused();
 
   // As a full page, a [[link]] opens the next page as a full page too, in place, and Back returns
   const { rootPageId } = (await (await page.request.get(`${API}/paths/${pathId}`)).json()) as { rootPageId: string };
