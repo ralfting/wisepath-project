@@ -26,6 +26,21 @@
 
 
 
+/* One line beside the tools; on a phone two, a size down, so a long title is read in the same top bar */
+.title {
+  font-size: var(--mantine-font-size-xl);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    font-size: var(--mantine-font-size-md);
+    -webkit-line-clamp: 2;
+  }
+}
+
 /* Holds the field and, under it, what it finds */
 .searchWrap {
   position: relative;

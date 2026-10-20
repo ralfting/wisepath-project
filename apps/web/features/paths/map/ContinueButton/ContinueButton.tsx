@@ -25,14 +25,13 @@ export function ContinueButton({
   studied: number;
   total: number;
   onContinue: () => void;
-  /** The count without "pages", for a phone */
+  /** The ring without its count, for a phone: the path's title needs the room */
   compact?: boolean;
 }) {
   const t = useT();
   const percent = total ? Math.round((studied / total) * 100) : 0;
   const done = total > 0 && !next;
   const summary = t('map.continue.summary', { studied, count: total });
-  const count = compact ? `${studied}/${total}` : t('map.continue.count', { studied, count: total });
   // Worded as on the home's cards; a phone has room for the verb only
   const starting = studied === 0;
   const label = compact
@@ -50,9 +49,11 @@ export function ContinueButton({
           ) : (
             <RingProgress size={22} thickness={3} roundCaps sections={[{ value: percent, color: 'teal.6' }]} aria-hidden />
           )}
-          <Text component="span" size="sm" fw={600} className={classes.count} aria-hidden>
-            {count}
-          </Text>
+          {!compact && (
+            <Text component="span" size="sm" fw={600} className={classes.count} aria-hidden>
+              {t('map.continue.count', { studied, count: total })}
+            </Text>
+          )}
         </span>
       </Tooltip>
       {next && (

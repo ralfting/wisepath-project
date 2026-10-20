@@ -9,6 +9,7 @@ import type { PathActions, SaveState } from '@/useCases/paths';
 import { KindSwitchItem, PageGlyph, SaveStatus, ShareDialog } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import { ContinueButton } from '../ContinueButton/ContinueButton';
+import classes from './PathMap.module.css';
 
 /** The map's top bar: its title and look, its menu and Share (the owner's), what is still being saved, and a learning path's way on */
 export function MapHeader({
@@ -42,7 +43,7 @@ export function MapHeader({
           <PageGlyph icon={look.icon} size={20} />
         </ThemeIcon>
         <Tooltip label={path.description} disabled={!path.description} multiline w={320} position="bottom-start" withArrow>
-          <Title order={1} fz={20} lts={-0.3} lh={1.2} lineClamp={1}>
+          <Title order={1} lts={-0.3} lh={1.2} className={classes.title}>
             {path.title}
           </Title>
         </Tooltip>
@@ -55,34 +56,26 @@ export function MapHeader({
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
+              {/* On a phone Share waits in this menu, so the title keeps the room to be read */}
+              <Menu.Item hiddenFrom="sm" leftSection={<IconShare size={14} />} onClick={() => setSharing(true)}>
+                {t('share.open')}
+              </Menu.Item>
               <KindSwitchItem kind={path.kind} onSwitch={actions.setKind} />
             </Menu.Dropdown>
           </Menu>
         )}
-        {/* On a phone the button is its icon, so the title and the way on keep their room */}
         {canManage(path.access) && (
-          <>
-            <Button
-              visibleFrom="sm"
-              variant="default"
-              size="xs"
-              leftSection={<IconShare size={14} />}
-              onClick={() => setSharing(true)}
-              aria-label={t('share.openFor', { title: path.title })}
-              style={{ flexShrink: 0 }}
-            >
-              {t('share.open')}
-            </Button>
-            <ActionIcon
-              hiddenFrom="sm"
-              variant="default"
-              onClick={() => setSharing(true)}
-              aria-label={t('share.openFor', { title: path.title })}
-              style={{ flexShrink: 0 }}
-            >
-              <IconShare size={16} />
-            </ActionIcon>
-          </>
+          <Button
+            visibleFrom="sm"
+            variant="default"
+            size="xs"
+            leftSection={<IconShare size={14} />}
+            onClick={() => setSharing(true)}
+            aria-label={t('share.openFor', { title: path.title })}
+            style={{ flexShrink: 0 }}
+          >
+            {t('share.open')}
+          </Button>
         )}
         <ShareDialog path={path} opened={sharing} onClose={() => setSharing(false)} />
         {/* Only while something is on its way, or was undone */}
