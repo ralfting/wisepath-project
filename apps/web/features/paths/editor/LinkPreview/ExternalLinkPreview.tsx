@@ -22,7 +22,7 @@ export function ExternalLinkPreview({ href }: { href: string }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={preview.favicon} alt="" width={16} height={16} style={{ marginTop: 2, borderRadius: 2, flexShrink: 0 }} />
       ) : (
-        <Box w={16} h={16} mt={2} bg="gray.1" style={{ borderRadius: 2, flexShrink: 0 }} aria-hidden="true" />
+        <Box w={16} h={16} mt={2} bg="light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-4))" style={{ borderRadius: 2, flexShrink: 0 }} aria-hidden="true" />
       )}
       <Stack gap={2} miw={0}>
         <Text size="sm" fw={700} lh={1.3} lineClamp={2}>

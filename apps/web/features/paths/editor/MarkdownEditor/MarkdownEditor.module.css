@@ -151,7 +151,7 @@
 
   &[aria-selected='true'],
   &:hover {
-    background: var(--mantine-color-blue-0);
+    background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-light));
   }
 }
 
@@ -170,7 +170,7 @@
 
   &[aria-selected='true'],
   &:hover {
-    background: var(--mantine-color-blue-0);
+    background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-light));
   }
 }
 
