@@ -71,7 +71,7 @@ export function PublishedPage({ path, pathSlug, page, t }: PublishedPageProps) {
                 {path.description}
               </Text>
             )}
-            {page.content.trim() ? <MarkdownText content={page.content} hrefOf={hrefOfTitle} /> : <Text c="dimmed">{t('catalog.empty')}</Text>}
+            {page.content.trim() ? <MarkdownText content={page.content} hrefOf={hrefOfTitle} t={t} /> : <Text c="dimmed">{t('catalog.empty')}</Text>}
             {(previous || next) && (
               <Group component="nav" aria-label={t('catalog.pager')} justify="space-between" align="flex-start" mt="xl" pt="md" className={classes.pager}>
                 {previous ? (
