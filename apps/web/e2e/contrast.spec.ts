@@ -42,25 +42,24 @@ const drawer = (page: Page) => page.getByRole('dialog', { name: 'Page beside the
 async function richPath(page: Page): Promise<Map> {
   const map = await learningPath(page);
   const paths = `${API}/paths/${map.pathId}`;
-  const ok = async (response: Promise<{ ok: () => boolean }>) => expect((await response).ok()).toBe(true);
-  await ok(page.request.post(`${paths}/pages`, { data: { id: crypto.randomUUID(), title: 'Lifetimes' } }));
-  await ok(page.request.post(`${paths}/pages`, { data: { id: crypto.randomUUID(), title: 'Macros' } }));
-  await ok(page.request.patch(`${paths}/pages/${map.pageId}`, { data: { content: EVERY_BLOCK } }));
+  await expect(await page.request.post(`${paths}/pages`, { data: { id: crypto.randomUUID(), title: 'Lifetimes' } })).toBeOK();
+  await expect(await page.request.post(`${paths}/pages`, { data: { id: crypto.randomUUID(), title: 'Macros' } })).toBeOK();
+  await expect(await page.request.patch(`${paths}/pages/${map.pageId}`, { data: { content: EVERY_BLOCK } })).toBeOK();
   const projectId = crypto.randomUUID();
-  await ok(page.request.post(`${API}/projects`, { data: { id: projectId, name: 'Work' } }));
+  await expect(await page.request.post(`${API}/projects`, { data: { id: projectId, name: 'Work' } })).toBeOK();
   const data = { id: crypto.randomUUID(), projectId, rootPageId: crypto.randomUUID(), title: 'Effect', kind: 'study' };
-  await ok(page.request.post(`${API}/paths`, { data }));
+  await expect(await page.request.post(`${API}/paths`, { data })).toBeOK();
   return map;
 }
 
 /** Publishes the path through the API, approved by the administrator, and answers its catalog address */
 async function publish(page: Page, admin: APIRequestContext, map: Map) {
   const request = { description: 'Ownership and borrowing in Rust', audience: 'People who know another language', language: 'en' };
-  expect((await page.request.put(`${API}/paths/${map.pathId}/publication`, { data: request })).ok()).toBe(true);
+  await expect(await page.request.put(`${API}/paths/${map.pathId}/publication`, { data: request })).toBeOK();
   // Every spec in a run shares the one administrator, so whoever comes second logs in
   const signedUp = await admin.post(`${API}/auth/signup`, { data: { ...ADMIN, name: 'Admin' } });
-  if (!signedUp.ok()) expect((await admin.post(`${API}/auth/login`, { data: ADMIN })).ok()).toBe(true);
-  expect((await admin.post(`${API}/admin/publications/${map.pathId}/approve`)).ok()).toBe(true);
+  if (!signedUp.ok()) await expect(await admin.post(`${API}/auth/login`, { data: ADMIN })).toBeOK();
+  await expect(await admin.post(`${API}/admin/publications/${map.pathId}/approve`)).toBeOK();
   const { slug } = (await (await page.request.get(`${API}/paths/${map.pathId}`)).json()) as { slug: string };
   return `/p/${slug}/borrowing`;
 }
@@ -105,7 +104,15 @@ for (const scheme of SCHEMES) {
         await expect(drawer(page).getByRole('note', { name: 'Danger' })).toBeVisible();
         await expect(drawer(page).getByRole('table')).toBeVisible();
       } },
+      { name: 'map-drawer-commands', reach: async () => {
+        await drawer(page).getByText('Write the exercises').click();
+        await page.keyboard.press('ControlOrMeta+ArrowDown');
+        await page.keyboard.press('Enter');
+        await page.keyboard.type('/');
+        await expect(page.getByRole('listbox', { name: 'Commands' })).toBeVisible();
+      } },
       { name: 'map-drawer-related', reach: async () => {
+        await page.keyboard.press('Escape');
         await drawer(page).getByRole('tab', { name: /^Related/ }).click();
         await expect(drawer(page).getByRole('tab', { name: /^Related/ })).toHaveAttribute('aria-selected', 'true');
       } },
