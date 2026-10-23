@@ -6,6 +6,14 @@ export const common = {
     menu: 'Language',
     current: '{name}, in use',
   },
+  /** The colour scheme, picked in the account menu; System follows the device's setting */
+  appearance: {
+    menu: 'Appearance',
+    current: '{name}, in use',
+    light: 'Light',
+    dark: 'Dark',
+    system: 'System',
+  },
   actions: {
     cancel: 'Cancel',
     close: 'Close',

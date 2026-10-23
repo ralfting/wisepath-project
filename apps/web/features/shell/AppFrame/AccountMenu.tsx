@@ -7,13 +7,14 @@ import { IconChevronDown, IconCheck, IconDownload, IconLanguage, IconLogout, Ico
 import { useLogout, useSaveLocale, useSession } from '@/useCases/auth';
 import { allPathsDownloadHref } from '@/useCases/paths';
 import { DeleteAccountModal } from '@/features/auth';
+import { AppearanceChoice } from './AppearanceChoice';
 import { useLocale, useT } from '@/i18n/I18nProvider';
 import { LOCALES, LOCALE_NAMES } from '@/i18n/locales';
 import { Flag } from '@/i18n/Flag';
 import type { Locale } from '@/i18n/locales';
 import classes from './AppFrame.module.css';
 
-/** The learner's menu at the foot of the sidebar: their language, downloading their paths, logging out, deleting the account */
+/** The learner's menu at the foot of the sidebar: their language and appearance, downloading their paths, logging out, deleting the account */
 export function AccountMenu() {
   const router = useRouter();
   const session = useSession();
@@ -21,8 +22,10 @@ export function AccountMenu() {
   const t = useT();
   const { locale, setChoice } = useLocale();
   const saveLocale = useSaveLocale();
-  // The two languages, shown in the menu itself when its Language item is opened
-  const [languagesOpen, setLanguagesOpen] = useState(false);
+  // The language or the appearance, whichever is open in place inside the menu
+  const [opened, setOpened] = useState<'language' | 'appearance' | null>(null);
+  const toggle = (choice: 'language' | 'appearance') => setOpened((open) => (open === choice ? null : choice));
+  const languagesOpen = opened === 'language';
   const [deleting, setDeleting] = useState(false);
   // Changes at once here, and on the account for every other device
   const pick = (next: Locale | null) => {
@@ -38,7 +41,7 @@ export function AccountMenu() {
 
   return (
     <>
-      <Menu position="top-start" width="target" withinPortal onClose={() => setLanguagesOpen(false)}>
+      <Menu position="top-start" width="target" withinPortal onClose={() => setOpened(null)}>
         <Menu.Target>
           {/* Named by what it shows, after the word for it: a label that hid the name would not match what is read on screen */}
           <UnstyledButton className={classes.accountButton}>
@@ -62,12 +65,12 @@ export function AccountMenu() {
           {/* The language opens in place, inside this menu: a menu beside it would close as the pointer crossed over */}
           <Menu.Item
             closeMenuOnClick={false}
-            onClick={() => setLanguagesOpen((o) => !o)}
+            onClick={() => toggle('language')}
             leftSection={<IconLanguage size={16} />}
             rightSection={
               <Group gap={6} wrap="nowrap">
                 <Flag locale={locale} size={16} />
-                <IconChevronDown size={14} className={classes.languageChevron} data-open={languagesOpen || undefined} aria-hidden />
+                <IconChevronDown size={14} className={classes.choiceChevron} data-open={languagesOpen || undefined} aria-hidden />
               </Group>
             }
             aria-expanded={languagesOpen}
@@ -87,13 +90,14 @@ export function AccountMenu() {
                   // Menu items can't be checked: the one in use says so in its name, and wears a tick
                   aria-label={inUse ? t('common.language.current', { name }) : name}
                   data-locale-option={option}
-                  className={classes.languageOption}
+                  className={classes.choiceOption}
                 >
                   {name}
                 </Menu.Item>
               );
             })}
           </Collapse>
+          <AppearanceChoice open={opened === 'appearance'} onToggle={() => toggle('appearance')} />
           <Menu.Item component="a" href={allPathsDownloadHref()} download leftSection={<IconDownload size={16} />}>
             {t('shell.account.download')}
           </Menu.Item>

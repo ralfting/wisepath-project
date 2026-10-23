@@ -8,6 +8,13 @@ export const common = {
     menu: 'Idioma',
     current: '{name}, em uso',
   },
+  appearance: {
+    menu: 'Aparência',
+    current: '{name}, em uso',
+    light: 'Claro',
+    dark: 'Escuro',
+    system: 'Sistema',
+  },
   actions: {
     cancel: 'Cancelar',
     close: 'Fechar',

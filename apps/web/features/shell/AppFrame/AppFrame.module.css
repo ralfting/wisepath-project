@@ -154,12 +154,12 @@
   max-width: 220px;
 }
 
-/* The account menu's languages, opened in place under its Language item */
-.languageOption {
+/* The account menu's languages and appearances, opened in place under their item */
+.choiceOption {
   padding-left: calc(var(--mantine-spacing-sm) + 14px);
 }
 
-.languageChevron {
+.choiceChevron {
   color: var(--mantine-color-dimmed);
   transition: transform 160ms ease;
 

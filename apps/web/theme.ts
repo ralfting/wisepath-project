@@ -1,5 +1,5 @@
 import { createTheme } from '@mantine/core';
-import type { CSSVariablesResolver } from '@mantine/core';
+import type { CSSVariablesResolver, MantineColorScheme } from '@mantine/core';
 
 /**
  * WisePath theme on Mantine's own tokens: blue for actions and the current
@@ -7,6 +7,9 @@ import type { CSSVariablesResolver } from '@mantine/core';
  * (a module's `color` is one of those names). Inter sets everything; cards are
  * white on a near-white ground with soft shadows and generous radii.
  */
+
+/** The colour scheme for someone who never chose one in the account menu (Appearance); their choice is kept per device */
+export const defaultColorScheme: MantineColorScheme = 'light';
 
 export const theme = createTheme({
   primaryColor: 'blue',

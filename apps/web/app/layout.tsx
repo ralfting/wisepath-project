@@ -11,6 +11,7 @@ import { cookies, headers } from "next/headers";
 import { Providers } from "./providers";
 import { LOCALE_COOKIE, fromAcceptLanguage, isLocale } from "@/i18n/locales";
 import { site } from "@/useCases/paths/queries";
+import { defaultColorScheme } from "@/theme";
 
 const origin = site();
 
@@ -39,7 +40,7 @@ export default async function RootLayout({
     // Font variables sit on <html> so the theme's :root font stacks can use them
     <html lang={locale} className={inter.variable} {...mantineHtmlProps}>
       <head>
-        <ColorSchemeScript defaultColorScheme="light" />
+        <ColorSchemeScript defaultColorScheme={defaultColorScheme} />
       </head>
       <body>
         <Providers locale={locale} choice={choice}>

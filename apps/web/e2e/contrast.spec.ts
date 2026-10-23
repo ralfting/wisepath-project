@@ -143,8 +143,8 @@ for (const scheme of SCHEMES) {
       } },
       { name: 'account-menu', reach: async () => {
         await page.getByRole('button', { name: /^Account/ }).click();
-        await page.getByRole('menuitem', { name: 'Language' }).click();
-        await expect(page.getByRole('group', { name: 'Language' }).getByRole('menuitem').first()).toBeVisible();
+        await page.getByRole('menuitem', { name: 'Appearance' }).click();
+        await expect(page.getByRole('menuitem', { name: `${scheme === 'light' ? 'Light' : 'Dark'}, in use` })).toBeVisible();
       } },
       { name: 'catalog', reach: async () => {
         const admin = await playwright.request.newContext();

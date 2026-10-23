@@ -2,7 +2,7 @@
 
 import { MantineProvider } from '@mantine/core';
 import type { ReactNode } from 'react';
-import { cssVariablesResolver, theme } from '@/theme';
+import { cssVariablesResolver, defaultColorScheme, theme } from '@/theme';
 import { UseCasesProvider } from '@/useCases/UseCasesProvider';
 import { ToastHost } from '@/features/inbox/capture';
 import { I18nProvider } from '@/i18n/I18nProvider';
@@ -16,7 +16,7 @@ import { AccountLocale } from './AccountLocale';
  */
 export function Providers({ locale, choice, children }: { locale: Locale; choice: Locale | null; children: ReactNode }) {
   return (
-    <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver} defaultColorScheme="light">
+    <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver} defaultColorScheme={defaultColorScheme}>
       <ToastHost />
       <UseCasesProvider>
         <I18nProvider initialLocale={locale} initialChoice={choice}>
