@@ -70,7 +70,10 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
   dark: {
     // Without it the body has no background in dark, and contrast checkers measure the text against white
     '--wp-ground': t.colors.dark[8],
-    // Mantine's dark 2 (#828282) falls short on the drawer's ground (#2E2E2E); this passes AA on it and on the body
-    '--mantine-color-dimmed': '#9A9A9A',
+    // Without it every hairline (the sidebar's edge, the drawer's frame, the catalog's rules) vanishes in dark
+    '--wp-line': t.colors.dark[4],
+    // Mantine's dark 2 (#828282) falls short on the drawer's ground (#2E2E2E); this passes AA on it, on the body and
+    // on a hovered or open row (dark 5, #3B3B3B), where #9A9A9A made 4:1
+    '--mantine-color-dimmed': '#A6A6A6',
   },
 });
