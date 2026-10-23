@@ -56,6 +56,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     '--mantine-color-blue-light-color': t.colors.blue[9],
     // And teal (the Studied toggle): Mantine's teal 9 falls just short, so a step darker
     '--mantine-color-teal-light-color': '#06704F',
+    // And yellow (the warning callout's icon): no yellow shade reaches 3:1 on its tint, the darkest orange does
+    '--mantine-color-yellow-light-color': t.colors.orange[9],
   },
   dark: {
     // Without it the body has no background in dark, and contrast checkers measure the text against white

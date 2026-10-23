@@ -1,0 +1,20 @@
+.root {
+  margin-block: var(--mantine-spacing-sm);
+}
+
+/* The text inside reads like the rest of the page: its size, and nothing cut off */
+.message {
+  font-size: inherit;
+  overflow: visible;
+
+  /* Flush with the box, whether the blocks sit right in it (the catalog) or in the editor's content wrappers */
+  & > :first-child,
+  & [data-node-view-content-react] > :first-child {
+    margin-top: 0;
+  }
+
+  & > :last-child,
+  & [data-node-view-content-react] > :last-child {
+    margin-bottom: 0;
+  }
+}
