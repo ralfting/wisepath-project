@@ -82,6 +82,8 @@ for (const scheme of SCHEMES) {
   test(`every screen's text passes AA contrast in ${scheme}`, async ({ page, playwright }) => {
     test.setTimeout(120_000);
     await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [SCHEME_KEY, scheme] satisfies [string, Scheme]);
+    // Keys read as on Linux (Ctrl+↵), as in CI: a Mac's ⌘↵ is symbols only, which axe leaves unmeasured
+    await page.addInitScript(() => Object.defineProperty(Navigator.prototype, 'platform', { get: () => 'Linux x86_64' }));
     let made: Map | undefined;
     const map = () => {
       if (!made) throw new Error('The path is made on the paths page, before any screen that reads it');
@@ -106,10 +108,15 @@ for (const scheme of SCHEMES) {
         await expect(drawer(page).getByRole('note', { name: 'Danger' })).toBeVisible();
         await expect(drawer(page).getByRole('table')).toBeVisible();
       } },
+      { name: 'map-drawer-link-key', reach: async () => {
+        await drawer(page).getByText('A reference is').click();
+        // The key's tag beside a line with a link is aria-hidden, so no role finds it
+        await expect(page.locator('.wp-rail-tag[data-visible]')).toBeVisible();
+      } },
       { name: 'map-drawer-commands', reach: async () => {
-        // Opened from the map, the page takes the cursor itself; from there to the end of the text, then a new line
+        // From the cursor in the text to its end, then a new line
         await expect(drawer(page).getByLabel('Page content')).toBeFocused();
-        await page.keyboard.press('ControlOrMeta+ArrowDown');
+        await page.keyboard.press('Control+ArrowDown');
         await page.keyboard.press('Enter');
         await page.keyboard.type('/');
         await expect(page.getByRole('listbox', { name: 'Commands' })).toBeVisible();
