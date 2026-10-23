@@ -4,7 +4,7 @@ import { useContext, useEffect, useMemo } from "react"
 import { Cause, Effect, Exit, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomValue } from "@effect/atom-react"
-import { PageId, PathId, addBranch, findPageByTitle, renameLinks, unlinkPages } from "@wisepath/domain/paths"
+import { PageId, PathId, addBranch, findPageByTitle, moveBranch, renameLinks, unlinkPages } from "@wisepath/domain/paths"
 import type { Page, PageColor, PageIcon, Path, PathKind } from "@wisepath/domain/paths"
 import { useT } from "@/i18n/I18nProvider"
 import { useHydrated } from "../useHydrated"
@@ -58,6 +58,8 @@ export interface PathActions {
    * already); else the page, whether it is new, and an undo that puts the parent back as it was
    */
   addBranch: (parentId: string, title: string) => { page: Page; created: boolean; undo: () => void } | null
+  /** Moves a page to branch from another, by moving its [[link]]; pick the parent from branchTargets */
+  moveBranch: (pageId: string, parentId: string) => void
   /** Removes one page; pages only it reached become orphans; the root stays */
   deletePage: (pageId: string) => void
   /** Shows a page as a module or not, and sets its colour and icon */
@@ -136,6 +138,14 @@ export function usePath(pathId: string): { state: PathState; save: SaveState; ac
         if (created) dispatch({ _tag: "RemovePage", pageId: page.id })
       }
       return { page, created, undo }
+    },
+    moveBranch: (pageId, parentId) => {
+      const path = current()
+      if (!path) return
+      const moved = moveBranch(path, PageId.make(pageId), PageId.make(parentId))
+      moved.pages.forEach((page, index) => {
+        if (page !== path.pages[index]) dispatch({ _tag: "UpdatePage", pageId: page.id, edit: { content: page.content } })
+      })
     },
     // Links to the page become plain text first, so no page points at one that is gone
     deletePage: (pageId) => {
