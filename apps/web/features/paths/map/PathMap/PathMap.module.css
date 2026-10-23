@@ -96,7 +96,7 @@
 
   &:hover {
     color: var(--mantine-color-text);
-    background: var(--mantine-color-gray-0);
+    background: var(--mantine-color-default-hover);
   }
 
   @media (max-width: $mantine-breakpoint-sm) {

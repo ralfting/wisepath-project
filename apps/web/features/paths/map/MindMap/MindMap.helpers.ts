@@ -3,12 +3,14 @@ import type { MapTree, Page, PageColor } from '@wisepath/domain/paths';
 import { shade } from '@/features/paths/path';
 import type { MindLayout, PlacedNode, Point, RootShape } from '../mindLayout';
 
+// A module's colour, pale in light and deep in dark: a pale ground under dark mode's light text can't be read
+const tint = (color: PageColor, light: number, dark: string) => `light-dark(${shade(color, light)}, ${dark})`;
 const tints = (color: PageColor) => ({
-  '--c0': shade(color, 0),
-  '--c1': shade(color, 1),
-  '--c2': shade(color, 2),
-  '--c3': shade(color, 3),
-  '--c6': shade(color, 6),
+  '--c0': tint(color, 0, `var(--mantine-color-${color}-light)`),
+  '--c1': tint(color, 1, shade(color, 9)),
+  '--c2': tint(color, 2, shade(color, 8)),
+  '--c3': tint(color, 3, shade(color, 7)),
+  '--c6': tint(color, 6, shade(color, 5)),
 });
 
 /** Absolute position of a node: it grows away from the root, from its inner end */

@@ -6,7 +6,7 @@
   border-radius: var(--mantine-radius-lg);
   background-color: var(--mantine-color-body);
   /* A faint dot grid under the map */
-  background-image: radial-gradient(var(--mantine-color-gray-2) 1px, transparent 1px);
+  background-image: radial-gradient(light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4)) 1px, transparent 1px);
   background-size: 22px 22px;
   overflow: hidden;
 }
@@ -116,7 +116,7 @@
   &[data-selected] {
     border-color: var(--c6);
     box-shadow:
-      0 0 0 4px var(--mantine-color-blue-1),
+      0 0 0 4px light-dark(var(--mantine-color-blue-1), var(--mantine-color-blue-9)),
       var(--mantine-shadow-lg);
   }
 }
@@ -289,7 +289,7 @@
   font-variant-numeric: tabular-nums;
 
   &:hover {
-    background: var(--mantine-color-gray-0);
+    background: var(--mantine-color-default-hover);
     color: var(--mantine-color-text);
   }
 }

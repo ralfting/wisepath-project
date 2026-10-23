@@ -7,17 +7,17 @@
   height: 28px;
   box-shadow: var(--mantine-shadow-xs);
   padding: 0 10px;
-  border: 1px solid var(--mantine-color-orange-2);
+  border: 1px solid light-dark(var(--mantine-color-orange-2), var(--mantine-color-orange-9));
   border-radius: 999px;
-  background: var(--mantine-color-orange-0);
-  color: var(--mantine-color-orange-9);
+  background: light-dark(var(--mantine-color-orange-0), var(--mantine-color-orange-light));
+  color: var(--mantine-color-orange-text);
   font-size: 13px;
   font-weight: 500;
   white-space: nowrap;
 
   &:hover,
   &[data-expanded] {
-    border-color: var(--mantine-color-orange-4);
+    border-color: light-dark(var(--mantine-color-orange-4), var(--mantine-color-orange-6));
   }
 }
 
@@ -30,10 +30,10 @@
   border-radius: var(--mantine-radius-sm);
 
   &:hover {
-    background: var(--mantine-color-gray-0);
+    background: var(--mantine-color-default-hover);
   }
 
   &[data-selected] {
-    background: var(--mantine-color-blue-0);
+    background: light-dark(var(--mantine-color-blue-0), var(--mantine-color-blue-light));
   }
 }
