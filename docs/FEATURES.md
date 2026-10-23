@@ -31,7 +31,7 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 ## Help
 
 - **Help** in the sidebar (the ? on the collapsed rail) opens **What can I do here**, for the screen you are on: its topics as a list where one opens at a time.
-- **On a page:** Add a page; Take notes on a video. **On a map:** Add a page from the map; Find a page in this path; Open a page; Move with the keyboard. **On the Inbox:** Capture an idea; Add it to a page; Make it a page; Bring it in from a page; Use the keyboard. **On My paths:** Start a path; Group paths in projects; Study or learning path.
+- **On a page:** Add a page; Take notes on a video; Put a note in a coloured box; Move a page to another branch (these two without a clip yet). **On a map:** Add a page from the map; Find a page in this path; Open a page; Move with the keyboard. **On the Inbox:** Capture an idea; Add it to a page; Make it a page; Bring it in from a page; Use the keyboard. **On My paths:** Start a path; Group paths in projects; Study or learning path.
 - Most topics play a short looping clip of the app doing it, with a numbered caption for each step, in the app's language (English or Portuguese); with reduced motion the clip waits for Play. A press on a clip (or its corner button) shows it large, with the player's controls; Esc closes the large clip, then Help, then the page.
 - The clips are recorded from the real app (headless Chrome, demo account, a path on Rust), captioned and rendered with HyperFrames (`videos/help-*`, kept out of git), and served from `apps/web/public/help/`.
 

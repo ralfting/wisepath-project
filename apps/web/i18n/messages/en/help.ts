@@ -33,6 +33,24 @@ export const help = {
       },
       tip: 'Click a time to play the video **from there**.',
     },
+    callout: {
+      title: 'Put a note in a coloured box',
+      steps: {
+        a: 'On a new line, type `/` and choose **Info callout**, **Warning callout** or **Danger callout**',
+        b: 'Or type `[!info]`, `[!warning]` or `[!danger]` and a space',
+        c: 'Write inside the box; <kbd>Enter</kbd> on an empty line leaves it',
+      },
+      tip: 'Click the box’s **icon** to change its kind, or to remove the box and keep the text.',
+    },
+    moveBranch: {
+      title: 'Move a page to another branch',
+      steps: {
+        a: 'Open the page’s **Related** tab',
+        b: 'Beside **Branches from**, click **Change**',
+        c: 'Pick the page it should branch from and press <kbd>Enter</kbd>',
+      },
+      tip: 'Its `[[link]]` moves for you: out of the old page’s text, to the end of the new one’s. Only the pages where the move holds are listed.',
+    },
   },
   map: {
     intro: 'The map is drawn from the links between pages, outward from the path’s main page.',

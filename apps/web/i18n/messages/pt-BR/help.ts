@@ -30,6 +30,24 @@ export const help = {
       },
       tip: 'Clique num tempo para tocar o vídeo **dali**.',
     },
+    callout: {
+      title: 'Destacar uma nota numa caixa',
+      steps: {
+        a: 'Numa linha nova, digite `/` e escolha **Destaque de informação**, **de atenção** ou **de perigo**',
+        b: 'Ou digite `[!info]`, `[!warning]` ou `[!danger]` e um espaço',
+        c: 'Escreva dentro da caixa; <kbd>Enter</kbd> numa linha vazia sai dela',
+      },
+      tip: 'Clique no **ícone** da caixa para mudar o tipo, ou para tirar a caixa e manter o texto.',
+    },
+    moveBranch: {
+      title: 'Mudar uma página de ramo',
+      steps: {
+        a: 'Abra a aba **Relacionadas** da página',
+        b: 'Ao lado de **Ramo de**, clique em **Mudar**',
+        c: 'Escolha a página de onde ela deve sair e aperte <kbd>Enter</kbd>',
+      },
+      tip: 'O `[[link]]` muda sozinho: sai do texto da página antiga e vai para o fim da nova. Só aparecem as páginas onde a mudança vale.',
+    },
   },
   map: {
     intro: 'O mapa é desenhado a partir dos links entre as páginas, para fora da página principal da trilha.',
