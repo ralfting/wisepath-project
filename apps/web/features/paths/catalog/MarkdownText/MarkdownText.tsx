@@ -7,6 +7,7 @@ import { CALLOUT_KINDS } from '@/shared/callouts';
 import { Callout } from '@/ui/Callout/Callout';
 import { remarkCallouts } from './remarkCallouts';
 import { remarkWikiLinks } from './remarkWikiLinks';
+import classes from './MarkdownText.module.css';
 
 /** Links to other pages of the path start here; anything else leaves the site */
 const INTERNAL = '/';
@@ -43,7 +44,7 @@ const components = (t: Translate): Components => ({
  */
 export function MarkdownText({ content, hrefOf, t }: { content: string; hrefOf: (title: string) => string | null; t: Translate }) {
   return (
-    <TypographyStylesProvider>
+    <TypographyStylesProvider className={classes.text}>
       <Markdown remarkPlugins={[remarkGfm, remarkCallouts, [remarkWikiLinks, { hrefOf }]]} components={components(t)}>
         {content}
       </Markdown>

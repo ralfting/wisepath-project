@@ -4,7 +4,7 @@
   border: 1px solid var(--mantine-color-default-border);
   border-radius: var(--mantine-radius-md);
   overflow: hidden;
-  background: var(--mantine-color-gray-0);
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
   /* The recording (960x600) and its caption band (60) */
   aspect-ratio: 960 / 660;
 }
@@ -42,7 +42,7 @@
   width: min(960px, 86vw, calc((90vh - 80px) * 960 / 660));
   aspect-ratio: 960 / 660;
   border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-gray-0);
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
 }
 
 .play {

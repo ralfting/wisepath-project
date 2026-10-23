@@ -34,7 +34,7 @@
 
   &:hover,
   &[data-expanded] {
-    background: var(--mantine-color-gray-0);
+    background: var(--mantine-color-default-hover);
   }
 }
 
@@ -73,7 +73,7 @@
 
   /* The open path: a full-strength ring on a darker track */
   &[data-active]::before {
-    --track: var(--mantine-color-gray-4);
+    --track: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
     opacity: 1;
   }
 }

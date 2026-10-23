@@ -1,0 +1,6 @@
+/* Code inside a code block takes the block's ground: Mantine's scheme rule for inline code outranks its own reset
+   for it, and drew a chip behind every line (in dark, dark 5 stripes on dark 8) */
+.text :global(pre code) {
+  padding: 0;
+  background: none;
+}
