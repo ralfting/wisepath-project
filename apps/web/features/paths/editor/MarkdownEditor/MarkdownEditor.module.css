@@ -75,7 +75,8 @@
       height: min(100%, 26px);
       padding: 0 7px;
       border-radius: 4px;
-      background: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
+      /* Blue 8, as on filled buttons: white on blue 7 makes 4.2:1 */
+      background: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-4));
       color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-9));
       font-size: 12px;
       font-weight: 600;
@@ -366,7 +367,7 @@
   }
 
   &[data-active] {
-    color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-3));
+    color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-3));
 
     &::before {
       background: var(--mantine-color-blue-6);

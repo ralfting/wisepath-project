@@ -49,7 +49,8 @@ a {
   padding: 0 8px 0 10px;
   border-radius: 6px 0 0 6px;
   box-shadow: -3px 2px 8px alpha(var(--mantine-color-black), 0.14);
-  background: light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
+  /* Blue 8, as on filled buttons: white on blue 7 makes 4.2:1 */
+  background: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-4));
   color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-9));
   font-size: 12px;
   font-weight: 600;
