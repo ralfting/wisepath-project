@@ -43,6 +43,9 @@ const drawer = (page: Page) => page.getByRole('dialog', { name: 'Page beside the
 async function richPath(page: Page): Promise<Map> {
   const map = await learningPath(page);
   const paths = `${API}/paths/${map.pathId}`;
+  // A title of its own: publishing.spec.ts looks for its one Rust path, by "ownership", in the shared catalog
+  const { rootPageId } = (await (await page.request.get(paths)).json()) as { rootPageId: string };
+  await expect(await page.request.patch(`${paths}/pages/${rootPageId}`, { data: { title: 'Contrast tour' } })).toBeOK();
   await expect(await page.request.post(`${paths}/pages`, { data: { id: crypto.randomUUID(), title: 'Lifetimes' } })).toBeOK();
   await expect(await page.request.post(`${paths}/pages`, { data: { id: crypto.randomUUID(), title: 'Macros' } })).toBeOK();
   await expect(await page.request.patch(`${paths}/pages/${map.pageId}`, { data: { content: EVERY_BLOCK } })).toBeOK();
