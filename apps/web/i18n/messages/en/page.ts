@@ -57,7 +57,21 @@ export const page = {
   },
   related: {
     empty: 'Nothing related yet. Type [[ in the content to link another page.',
-    parent: { label: 'Branches from', hint: 'The page this one grows out of on the map' },
+    parent: {
+      label: 'Branches from',
+      hint: 'The page this one grows out of on the map',
+      none: 'None yet: no link reaches this page, so it is off the map.',
+      change: 'Change',
+      choose: 'Choose',
+      changeLabel: 'Choose the page this one branches from',
+    },
+    move: {
+      title: 'Move under…',
+      find: 'Find a page',
+      pages: 'Pages it can branch from',
+      noPages: 'No page matches.',
+      keys: '↑ ↓ choose · Enter move · Esc closes',
+    },
     child: { label: 'Branches into', hint: 'Pages that grow out of this one on the map' },
     linksTo: { label: 'Links to', hint: 'Pages this page mentions with [[ ]]' },
     linkedFrom: { label: 'Linked from', hint: 'Pages that mention this one with [[ ]]' },

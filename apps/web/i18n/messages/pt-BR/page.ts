@@ -59,7 +59,21 @@ export const page = {
   },
   related: {
     empty: 'Nada relacionado ainda. Digite [[ no conteúdo para criar um link para outra página.',
-    parent: { label: 'Ramo de', hint: 'A página de onde esta sai no mapa' },
+    parent: {
+      label: 'Ramo de',
+      hint: 'A página de onde esta sai no mapa',
+      none: 'Nenhuma ainda: nenhum link chega nesta página, então ela fica fora do mapa.',
+      change: 'Mudar',
+      choose: 'Escolher',
+      changeLabel: 'Escolher a página de onde esta sai',
+    },
+    move: {
+      title: 'Mover para baixo de…',
+      find: 'Buscar uma página',
+      pages: 'Páginas de onde ela pode sair',
+      noPages: 'Nenhuma página encontrada.',
+      keys: '↑ ↓ escolher · Enter mover · Esc fecha',
+    },
     child: { label: 'Ramos', hint: 'Páginas que saem desta no mapa' },
     linksTo: { label: 'Links para', hint: 'Páginas que esta menciona com [[ ]]' },
     linkedFrom: { label: 'Links de', hint: 'Páginas que mencionam esta com [[ ]]' },

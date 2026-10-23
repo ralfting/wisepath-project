@@ -1,13 +1,11 @@
 'use client';
 
-import { ActionIcon, Anchor, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, ThemeIcon, Tooltip, UnstyledButton } from '@mantine/core';
-import { IconArrowDownRight, IconArrowLeft, IconArrowRight, IconArrowUpLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
-import type { Icon } from '@tabler/icons-react';
-import type { Page, Path, Relation } from '@wisepath/domain/paths';
-import { canEdit, lookOf, pathProgress } from '@wisepath/domain/paths';
+import { ActionIcon, Anchor, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
+import { IconArrowLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
+import type { Page, Path } from '@wisepath/domain/paths';
+import { canEdit, pathProgress } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
-import { PageGlyph, pointAtRelated } from '@/features/paths/path';
 import { PageContent } from '../PageContent/PageContent';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
 import type { EditorFocus } from '@/features/paths/editor';
@@ -17,6 +15,7 @@ import { PageLook } from '../PageLook/PageLook';
 import { moduleLook } from '../PageLook/PageLook.helpers';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PagePanel.module.css';
+import { RelatedPages } from './RelatedPages';
 import { usePagePanel } from './usePagePanel';
 import type { PanelTab } from './usePagePanel';
 
@@ -43,18 +42,6 @@ interface PagePanelProps {
   /** Follows the cursor in the text */
   onCursor?: (pos: number) => void;
 }
-
-/**
- * The related pages, grouped by how they connect, in a fixed order: up the
- * branch, down it, then [[links]] out and in. Each arrow reads from this page,
- * so a section says its direction once instead of every row repeating it.
- */
-const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
-  { relation: 'parent', icon: IconArrowUpLeft },
-  { relation: 'child', icon: IconArrowDownRight },
-  { relation: 'linksTo', icon: IconArrowRight },
-  { relation: 'linkedFrom', icon: IconArrowLeft },
-];
 
 export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const t = useT();
@@ -208,60 +195,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
         </Tabs.Panel>
 
         <Tabs.Panel value="related" className={classes.body} onScroll={operations.scroll}>
-          {related.length === 0 ? (
-            <Text size="sm" c="dimmed">
-              {t('page.related.empty')}
-            </Text>
-          ) : (
-            <Stack gap="lg">
-              {RELATION_SECTIONS.map(({ relation, icon: Arrow }) => {
-                const pages = related.filter((r) => r.relation === relation);
-                if (pages.length === 0) return null;
-                const label = t(`page.related.${relation}.label`);
-                return (
-                  <section key={relation} aria-label={`${label} (${pages.length})`}>
-                    <Group gap={6} wrap="nowrap" className={classes.relationHead}>
-                      <Arrow size={15} stroke={2} className={classes.relationArrow} aria-hidden />
-                      <Text size="xs" fw={700} className={classes.relationLabel}>
-                        {label}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {pages.length}
-                      </Text>
-                    </Group>
-                    <Text size="xs" c="dimmed" mb={4}>
-                      {t(`page.related.${relation}.hint`)}
-                    </Text>
-                    <Stack gap={0}>
-                      {pages.map(({ page: p }) => {
-                        const l = lookOf(path, p.id, tree);
-                        return (
-                          <UnstyledButton
-                            key={p.id}
-                            className={classes.related}
-                            onClick={() => onSelect(p.id)}
-                            // The map beside the drawer singles out this page and its link to the open one
-                            onPointerEnter={() => pointAtRelated(p.id)}
-                            onPointerLeave={() => pointAtRelated(null)}
-                            onFocus={() => pointAtRelated(p.id)}
-                            onBlur={() => pointAtRelated(null)}
-                          >
-                            <ThemeIcon size={28} radius="xl" variant="light" color={l.color}>
-                              <PageGlyph icon={p.module || p.id === path.rootPageId ? l.icon : 'book'} size={15} />
-                            </ThemeIcon>
-                            <Text size="sm" fw={600} truncate style={{ flex: 1, minWidth: 0 }}>
-                              {displayTitle(p)}
-                            </Text>
-                            <IconChevronRight size={16} className={classes.relatedOpen} aria-hidden />
-                          </UnstyledButton>
-                        );
-                      })}
-                    </Stack>
-                  </section>
-                );
-              })}
-            </Stack>
-          )}
+          <RelatedPages path={path} page={page} tree={tree} related={related} store={store} onSelect={onSelect} />
         </Tabs.Panel>
 
       </Tabs>
