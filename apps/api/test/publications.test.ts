@@ -116,6 +116,19 @@ describe('publishing a map to the catalog', () => {
     }),
   );
 
+  it.effect('gives maps of the same title approved at the same time an address each', () =>
+    Effect.gen(function* () {
+      const reviewer = yield* admin;
+      const maps = yield* Effect.all(Array.from({ length: 6 }, () => ownedMap(signedIn)), { concurrency: 'unbounded' });
+      yield* Effect.all(maps.map(ask), { concurrency: 'unbounded' });
+      yield* Effect.all(
+        maps.map((map) => reviewer.admin.approve({ params: { pathId: map.pathId } })),
+        { concurrency: 'unbounded' },
+      );
+      const slugs = yield* Effect.all(maps.map((map) => Effect.map(read(map), (path) => path.slug)));
+      assert.strictEqual(new Set(slugs).size, maps.length);
+    }));
+
   it.effect('gives a published map its address from its title, unique, and reads it there without an account', () =>
     Effect.gen(function* () {
       const reviewer = yield* admin;
