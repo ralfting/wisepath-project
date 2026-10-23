@@ -21,7 +21,8 @@ export class PublicationStore extends Context.Service<
     /** Drops the request, waiting or declined; nothing when there is none */
     readonly drop: (pathId: PathId) => Effect.Effect<void>;
 
-    /** Gives the path its catalog address from its title, unless it has one: published once, it keeps it */
+    /** Gives the path its catalog address from its title, unless it has one: published once, it keeps it. Inside a
+     *  transaction, which keeps the other approvals from taking the same address until it commits */
     readonly assignSlug: (pathId: PathId) => Effect.Effect<void>;
 
     /** Whether a request waits for a decision */

@@ -20,6 +20,7 @@ Skip it for typos and bugs whose cause is obvious from the diff.
 
 | Id | Title | Area | Date |
 |---|---|---|---|
+| [BUG-007](BUG-007-two-approvals-take-the-same-address.md) | Approving two paths of the same title at once fails one of them | api/paths | 2026-10-23 |
 | [BUG-006](BUG-006-brackets-in-a-title-unlink-the-page.md) | Renaming a page with [ or ] in the title takes it off the map | web/paths | 2026-10-20 |
 | [BUG-005](BUG-005-opening-a-page-saves-it.md) | Opening a page sends a PATCH with its unchanged text | web/paths | 2026-10-18 |
 | [BUG-004](BUG-004-mantine-compound-in-server-component.md) | A public path shows "Can't open this path" while it is loading | web/paths | 2026-10-17 |

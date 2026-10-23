@@ -1,5 +1,5 @@
 import { Effect, Layer, Schema } from 'effect';
-import { and, asc, count, eq, isNotNull, like } from 'drizzle-orm';
+import { and, asc, count, eq, isNotNull, like, sql } from 'drizzle-orm';
 import { PendingPublication, freeSlug, slugOf } from '@wisepath/domain/paths';
 import type { PathId, PublicationRequest } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
@@ -47,6 +47,9 @@ export const DrizzlePublicationStore = Layer.effect(
     const assignSlug = Effect.fn('PublicationStore.assignSlug')(function* (pathId: PathId) {
       const [path] = yield* run(db.select({ title: paths.title, slug: paths.slug }).from(paths).where(eq(paths.id, pathId)));
       if (!path || path.slug !== null) return;
+      // One approval picks a slug at a time, until its transaction commits: two of the same title at once read the
+      // same free slug, and the second write broke the unique index
+      yield* run(db.execute(sql`select pg_advisory_xact_lock(hashtext('paths.slug'))`));
       const base = slugOf(path.title) || 'path';
       const similar = yield* run(
         db.select({ slug: paths.slug }).from(paths).where(and(isNotNull(paths.slug), like(paths.slug, `${base}%`))),
