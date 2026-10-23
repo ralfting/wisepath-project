@@ -8,8 +8,8 @@ import type { CSSVariablesResolver, MantineColorScheme } from '@mantine/core';
  * white on a near-white ground with soft shadows and generous radii.
  */
 
-/** The colour scheme for someone who never chose one in the account menu (Appearance); their choice is kept per device */
-export const defaultColorScheme: MantineColorScheme = 'light';
+/** The browser's colour scheme until the learner picks one in the account menu (Appearance), which Mantine keeps in local storage */
+export const defaultColorScheme: MantineColorScheme = 'auto';
 
 export const theme = createTheme({
   primaryColor: 'blue',

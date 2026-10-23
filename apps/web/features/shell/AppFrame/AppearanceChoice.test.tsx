@@ -20,7 +20,7 @@ describe('the account menu’s Appearance', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Account' }));
     // happy-dom lays nothing out, so the menu takes its target for scrolled away and hides itself: hidden finds it anyway
-    expect(await screen.findByRole('menuitem', { name: 'Light, in use', hidden: true })).toBeTruthy();
+    expect(await screen.findByRole('menuitem', { name: 'System, in use', hidden: true })).toBeTruthy();
 
     await user.click(screen.getByRole('menuitem', { name: 'Dark', hidden: true }));
     await user.click(screen.getByRole('button', { name: 'Account' }));

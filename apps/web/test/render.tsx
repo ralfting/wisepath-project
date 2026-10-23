@@ -5,7 +5,7 @@ import { Layer } from 'effect';
 import type { ReactElement, ReactNode } from 'react';
 import { I18nProvider } from '@/i18n/I18nProvider';
 import type { Locale } from '@/i18n/locales';
-import { theme } from '@/theme';
+import { defaultColorScheme, theme } from '@/theme';
 import { testRuntime } from '@/useCases/testing';
 
 /**
@@ -18,7 +18,7 @@ export function renderWithLayers<ROut, E>(ui: ReactElement, layers?: Layer.Layer
   const initialValues = testRuntime(layers ?? Layer.empty);
   function Providers({ children }: { children: ReactNode }) {
     return (
-      <MantineProvider theme={theme}>
+      <MantineProvider theme={theme} defaultColorScheme={defaultColorScheme}>
         <RegistryProvider initialValues={initialValues}>
           <I18nProvider initialLocale={locale} initialChoice={null}>
             {children}

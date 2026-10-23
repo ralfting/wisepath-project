@@ -136,7 +136,7 @@ Write it down now, sort it later: capturing never asks where something goes.
 
 ## Accessibility and themes
 
-- Light and dark themes: **Appearance** in the account menu picks **Light**, **Dark** or **System** (the device's setting). The choice is kept on this device, not on the account; until you pick one, WisePath is light.
+- Light and dark themes: **Appearance** in the account menu picks **Light**, **Dark** or **System** (the device's setting). Until you pick one, WisePath follows the browser's setting; a choice is kept on this device (local storage), not on the account.
 - Text meets WCAG AA contrast in both themes (code colours and callouts included): `e2e/contrast.spec.ts` checks every main screen with axe in light and dark, and saves a screenshot of each under `apps/web/test-results/contrast/`.
 - Everything is reachable from the keyboard; the map is a tree, dialogs and the drawer are named, controls (time chips, the video, close buttons) are announced with what they do.
 - Phones: paths open as a list, no horizontal scrolling, shortcut hints only where there is a keyboard.
