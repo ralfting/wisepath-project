@@ -27,7 +27,7 @@ export function DeleteMapModal({ opened, path, onClose }: { opened: boolean; pat
         <b>{path.title}</b> {t('home.delete.body', { count: path.total + 1 })}
       </Text>
       {error && (
-        <Text size="sm" c="red.7" mt="sm">
+        <Text size="sm" c="red" mt="sm">
           {error}
         </Text>
       )}

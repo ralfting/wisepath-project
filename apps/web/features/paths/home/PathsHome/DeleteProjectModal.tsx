@@ -41,7 +41,7 @@ export function DeleteProjectModal({
         <b>{project.name}</b> · {paths > 0 ? t('home.projectDelete.body', { count: paths, fallback }) : t('home.projectDelete.empty')}
       </Text>
       {error && (
-        <Text size="sm" c="red.7" mt="sm">
+        <Text size="sm" c="red" mt="sm">
           {error}
         </Text>
       )}

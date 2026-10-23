@@ -61,6 +61,11 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     '--mantine-color-teal-light-color': '#06704F',
     // And yellow (the warning callout's icon): no yellow shade reaches 3:1 on its tint, the darkest orange does
     '--mantine-color-yellow-light-color': t.colors.orange[9],
+    // Orange text (c="orange": unlinked pages, waiting to save): Mantine's darkest orange reaches 4.3:1 on white, this
+    // passes AA on white and on orange 0. In dark Mantine's own (orange 4) already passes
+    '--mantine-color-orange-text': '#C2410C',
+    // Red text (c="red", Delete account): Mantine's red 8 makes 4.5:1 on white, less on its own hover tint
+    '--mantine-color-red-text': t.colors.red[9],
   },
   dark: {
     // Without it the body has no background in dark, and contrast checkers measure the text against white

@@ -105,7 +105,8 @@ export function AccountMenu() {
           <Menu.Item leftSection={<IconLogout size={16} />} onClick={onLogout}>
             {t('shell.account.logout')}
           </Menu.Item>
-          <Menu.Item color="red" leftSection={<IconUserX size={16} />} onClick={() => setDeleting(true)}>
+          {/* Red's text shade, which passes AA in both schemes: a bare "red" makes a menu item red 6 in both (3.3:1 on white) */}
+          <Menu.Item color="var(--mantine-color-red-text)" leftSection={<IconUserX size={16} />} onClick={() => setDeleting(true)}>
             {t('shell.account.delete')}
           </Menu.Item>
         </Menu.Dropdown>

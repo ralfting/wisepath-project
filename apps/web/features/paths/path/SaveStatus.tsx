@@ -16,7 +16,7 @@ export function SaveStatus({ save, hideSaved = false }: { save: SaveState; hideS
   if (save.notice) {
     return (
       <Tooltip label={save.notice} multiline w={260}>
-        <Group gap={6} wrap="nowrap" c="red.7" role="status">
+        <Group gap={6} wrap="nowrap" c="red" role="status">
           <IconAlertTriangle size={16} aria-hidden="true" />
           <Text size="sm" fw={500} truncate>
             {t('home.save.undone')}
@@ -28,7 +28,7 @@ export function SaveStatus({ save, hideSaved = false }: { save: SaveState; hideS
   if (save.status === 'offline') {
     return (
       <Tooltip label={t('home.save.offlineHint')} multiline w={260}>
-        <Group gap={6} wrap="nowrap" c="orange.8" role="status">
+        <Group gap={6} wrap="nowrap" c="orange" role="status">
           <IconCloudOff size={16} aria-hidden="true" />
           <Text size="sm" fw={500} style={{ whiteSpace: 'nowrap' }}>
             {t('home.save.offline')}

@@ -148,7 +148,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
               style={{ '--depth': 0 } as CSSProperties}
             >
               <IconPlus size={18} stroke={1.8} color="var(--mantine-color-blue-6)" aria-hidden="true" />
-              <Text size="sm" c="blue.8" fw={500}>
+              <Text size="sm" c="blue" fw={500}>
                 {t('map.branch.listAdd')}
               </Text>
             </UnstyledButton>
