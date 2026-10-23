@@ -1,4 +1,5 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryAuth } from '@/infrastructure/auth/MemoryAuth';
 import { renderWithLayers } from '@/test/render';
@@ -48,5 +49,25 @@ describe('MarkdownEditor', () => {
       { href: 'https://www.google.com/', target: '_blank' },
     ]);
     click.mockRestore();
+  });
+
+  it('shows a [!warning] quote as a callout and changes its kind from its icon', async () => {
+    const user = userEvent.setup();
+    editor('Before\n\n> [!warning]\n> Back up first.');
+
+    const callout = await screen.findByRole('note', { name: 'Warning' });
+    expect(within(callout).getByText('Back up first.')).toBeTruthy();
+    expect(within(callout).queryByText(/\[!warning\]/)).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Warning: change the callout' }));
+    // happy-dom lays nothing out, so the menu takes its icon for scrolled away and hides itself: hidden finds it anyway
+    await user.click(await screen.findByRole('menuitem', { name: 'Danger', hidden: true }));
+
+    expect(await screen.findByRole('note', { name: 'Danger' })).toBeTruthy();
+  });
+
+  it('keeps a quote of another kind, or with no marker, a plain quote', async () => {
+    editor('> [!note]\n> GitHub kind\n\n> Said once');
+    expect(await screen.findByText(/GitHub kind/)).toBeTruthy();
+    expect(screen.queryByRole('note')).toBeNull();
   });
 });

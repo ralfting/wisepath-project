@@ -22,6 +22,8 @@ import { WikiLink } from '../wikiLink';
 import { YouTubeVideo } from '../youtube';
 import { LinkTitles } from '../linkTitles';
 import { CodeBlockView } from '../CodeBlockView/CodeBlockView';
+import { CalloutBlock } from '../callout';
+import { CalloutView } from '../CalloutView/CalloutView';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import { VideoBlock } from '../video/VideoBlock/VideoBlock';
 import { Timestamp, timestampLabels } from '../video/timestamps';
@@ -39,7 +41,7 @@ export interface EditorContext {
 }
 
 /**
- * Our Tiptap setup: markdown in and out, code with syntax colours, links (web and [[Page]]), checklists, tables kept
+ * Our Tiptap setup: markdown in and out, code with syntax colours, links (web and [[Page]]), checklists, callouts, tables kept
  * plain so they save as markdown, YouTube videos to take notes on, the [[ picker and the / commands. The page
  * prompts and link cards are the editor component's; these say when to show them.
  */
@@ -90,6 +92,8 @@ export function editorExtensions({
     TableRow,
     TableHeader,
     TableCell,
+    // Info, warning and danger boxes, saved as > [!kind] quotes
+    CalloutBlock.extend({ addNodeView: () => ReactNodeViewRenderer(CalloutView) }),
     // A video to take notes on, and the [01:25] times that play it from there
     YouTubeVideo.extend({ addNodeView: () => ReactNodeViewRenderer(VideoBlock) }),
     // Its chip's label in the current language, read when a chip is drawn

@@ -56,6 +56,9 @@ export const editor = {
     code: { label: 'Bloco de código', keywords: 'pre code' },
     quote: { label: 'Citação', keywords: 'blockquote quote' },
     table: { label: 'Tabela', hint: 'Cabeçalho e uma linha', keywords: 'grade table' },
+    info: { label: 'Destaque de informação', keywords: 'callout info nota caixa dica' },
+    warning: { label: 'Destaque de atenção', keywords: 'callout warning aviso caixa cuidado' },
+    danger: { label: 'Destaque de perigo', keywords: 'callout danger erro caixa alerta' },
   },
   inbox: {
     label: 'Item da Caixa de entrada',
@@ -97,6 +100,11 @@ export const editor = {
     label: 'Sumário',
     title: 'Nesta página',
   },
+  callout: {
+    kinds: { info: 'Informação', warning: 'Atenção', danger: 'Perigo' },
+    change: '{kind}: mudar o destaque',
+    remove: 'Tirar a caixa, manter o texto',
+  },
   codeBlock: {
     language: 'Linguagem do código',
     auto: 'Automática',
@@ -122,6 +130,7 @@ export const editor = {
       numbers: 'Uma lista numerada, para passos em ordem',
       task: 'Um item de lista de tarefas; - [x] é um item feito',
       quote: 'Uma citação, para algo que você leu ou ouviu',
+      callout: 'Uma nota numa caixa colorida: [!info], [!warning] ou [!danger], depois um espaço. /info, /warning e /danger também',
       codeBlock: 'Um bloco de código: digite isso e depois o código; ``` de novo fecha o bloco',
       pageLink: 'Cria um link para outra página desta trilha; escolher um nome novo na lista cria essa página. Cmd/Ctrl+Enter abre o link da linha do cursor',
       slash: 'Lista os comandos. Página pede um nome; Enter cria o link para essa página e vai até ela, criando a página se preciso; Cmd/Ctrl+Enter fica aqui. Item da Caixa de entrada traz para cá algo que está esperando nela',

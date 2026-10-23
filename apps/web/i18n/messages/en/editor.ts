@@ -53,6 +53,9 @@ export const editor = {
     code: { label: 'Code block', keywords: 'pre' },
     quote: { label: 'Quote', keywords: 'blockquote' },
     table: { label: 'Table', hint: 'Header and a row', keywords: 'grid' },
+    info: { label: 'Info callout', keywords: 'callout note box tip' },
+    warning: { label: 'Warning callout', keywords: 'callout caution box alert' },
+    danger: { label: 'Danger callout', keywords: 'callout error box alert' },
   },
   inbox: {
     label: 'Inbox item',
@@ -94,6 +97,11 @@ export const editor = {
     label: 'Contents',
     title: 'On this page',
   },
+  callout: {
+    kinds: { info: 'Info', warning: 'Warning', danger: 'Danger' },
+    change: '{kind}: change the callout',
+    remove: 'Remove the box, keep the text',
+  },
   codeBlock: {
     language: 'Code language',
     auto: 'Auto',
@@ -119,6 +127,7 @@ export const editor = {
       numbers: 'A numbered list, for steps in order',
       task: 'A checklist item; - [x] is a done one',
       quote: 'A quote, for something you read or were told',
+      callout: 'A note in a coloured box: [!info], [!warning] or [!danger], then a space. /info, /warning and /danger too',
       codeBlock: 'A code block: type it, then the code; ``` again closes it',
       pageLink: "Links another page of this path; picking a new name from the list creates that page. Cmd/Ctrl+Enter opens the cursor's line's link",
       slash: 'Lists commands. Page asks for a name, then Enter links that page and goes to it, creating it if needed; Cmd/Ctrl+Enter stays here. Inbox item puts something waiting in the Inbox here',

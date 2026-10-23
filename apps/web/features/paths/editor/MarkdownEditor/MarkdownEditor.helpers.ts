@@ -1,11 +1,12 @@
 import type { Editor } from '@tiptap/react';
 import { common, createLowlight } from 'lowlight';
-import { IconBlockquote, IconBrackets, IconCode, IconFilePlus, IconH2, IconH3, IconList, IconListCheck, IconListNumbers, IconTable } from '@tabler/icons-react';
+import { IconAlertOctagon, IconAlertTriangle, IconBlockquote, IconBrackets, IconCode, IconFilePlus, IconH2, IconH3, IconInfoCircle, IconList, IconListCheck, IconListNumbers, IconTable } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import { asTitle, findPageByTitle } from '@wisepath/domain/paths';
 import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { editor as editorMessages } from '@/i18n/messages/en/editor';
 import type { PageLinkItem } from '../menus';
+import { setCallout } from '../callout';
 import type { PreviewPage, PreviewTarget } from '../LinkPreview/LinkPreview';
 import type { PagePrompt } from './PageNamePrompt';
 
@@ -77,6 +78,9 @@ export const SLASH_COMMANDS: ReadonlyArray<{
     icon: IconTable,
     run: (e) => e.chain().focus().insertTable({ rows: 2, cols: 3, withHeaderRow: true }).run(),
   },
+  { id: 'info', message: 'info', hint: { syntax: '> [!info]' }, icon: IconInfoCircle, run: (e) => setCallout(e, 'info') },
+  { id: 'warning', message: 'warning', hint: { syntax: '> [!warning]' }, icon: IconAlertTriangle, run: (e) => setCallout(e, 'warning') },
+  { id: 'danger', message: 'danger', hint: { syntax: '> [!danger]' }, icon: IconAlertOctagon, run: (e) => setCallout(e, 'danger') },
 ];
 
 /** How many pages the [[ picker offers at once */
