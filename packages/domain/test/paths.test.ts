@@ -9,11 +9,13 @@ import {
   summarize,
   PathId,
   branchProgress,
+  branchTargets,
   createPage,
   deletePage,
   findPageByTitle,
   lookOf,
   mapTree,
+  moveBranch,
   neighbours,
   newPath,
   nextPage,
@@ -103,6 +105,42 @@ describe("pending links", () => {
     })
     assert.deepStrictEqual(pendingTitles(p, id("rust")), ["Ownership", "Lifetimes"])
     assert.deepStrictEqual(pendingTitles(p, id("borrowing")), [])
+  })
+})
+
+describe("moving a branch", () => {
+  const textOf = (p: Path, pageId: string) => p.pages.find((page) => page.id === pageId)?.content
+
+  it("takes the link from the page it branched from and adds it to the new one", () => {
+    const p = path({ Root: "[[A]]\n\n- [[B]]\n- [[C]]", A: "Intro", B: "", C: "See [[b]] first." })
+    const moved = moveBranch(p, id("b"), id("a"))
+    assert.strictEqual(mapTree(moved).nodes.get(id("b"))?.parentId, "a")
+    // A line with only the link goes; the page's title stays the link's text
+    assert.strictEqual(textOf(moved, "root"), "[[A]]\n\n- [[C]]")
+    assert.strictEqual(textOf(moved, "a"), "Intro\n\n[[B]]")
+    // Other pages linking to it keep their link
+    assert.strictEqual(textOf(moved, "c"), "See [[b]] first.")
+  })
+
+  it("leaves a link inside a sentence as its words, and links an unlinked page", () => {
+    const p = path({ Root: "Read [[A]] then [[B]].", A: "", B: "", Lone: "" })
+    assert.strictEqual(textOf(moveBranch(p, id("b"), id("a")), "root"), "Read [[A]] then B.")
+    assert.strictEqual(mapTree(moveBranch(p, id("lone"), id("b"))).nodes.get(id("lone"))?.parentId, "b")
+  })
+
+  it("changes nothing for the root, the page itself or where it already branches from", () => {
+    const p = path({ Root: "[[A]] [[B]]", A: "", B: "" })
+    assert.strictEqual(moveBranch(p, p.rootPageId, id("a")), p)
+    assert.strictEqual(moveBranch(p, id("a"), id("a")), p)
+    assert.strictEqual(moveBranch(p, id("a"), id("root")), p)
+  })
+
+  it("offers only the pages it would really branch from", () => {
+    // Under its own branch A would be cut off; under C or D, B's link to it would still win
+    const p = path({ Root: "[[A]] [[B]] [[C]]", A: "[[A1]]", A1: "", B: "[[A]]", C: "[[D]]", D: "" })
+    assert.deepStrictEqual(branchTargets(p, id("a")).map((page) => page.title), ["B"])
+    assert.deepStrictEqual(branchTargets(p, id("d")).map((page) => page.title), ["Root", "A", "A1", "B"])
+    assert.deepStrictEqual(branchTargets(p, p.rootPageId), [])
   })
 })
 

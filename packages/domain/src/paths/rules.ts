@@ -112,7 +112,7 @@ export function deletePage(path: Path, pageId: PageId): Path {
 }
 
 /** A [[Title]] link to this page, any case, as a pattern */
-function linkPattern(title: string): RegExp {
+export function linkPattern(title: string): RegExp {
   return new RegExp(`\\[\\[\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\]\\]`, 'gi');
 }
 
