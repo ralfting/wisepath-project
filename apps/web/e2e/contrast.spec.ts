@@ -9,12 +9,13 @@ import type { Map } from './helpers';
  * Each screen is also saved as a full-page screenshot under test-results/contrast/, for what axe can't judge.
  */
 
-const SCHEMES = ['light'] as const;
+const SCHEMES = ['light', 'dark'] as const;
 type Scheme = (typeof SCHEMES)[number];
 
 /** Mantine's localStorageColorSchemeManager key, which ColorSchemeScript reads before the first paint */
 const SCHEME_KEY = 'mantine-color-scheme-value';
-const ADMIN = { email: 'admin-e2e@wisepath.test', password: 'long-enough-password' };
+/** An administrator of this spec's own (ADMIN_EMAILS in playwright.config.ts), so publishing.spec.ts can still sign up its one */
+const ADMIN = { email: 'contrast-admin-e2e@wisepath.test', password: 'long-enough-password' };
 
 /** Every block the editor and the catalog draw, so each one is measured */
 const EVERY_BLOCK = [
@@ -54,9 +55,10 @@ async function richPath(page: Page): Promise<Map> {
 
 /** Publishes the path through the API, approved by the administrator, and answers its catalog address */
 async function publish(page: Page, admin: APIRequestContext, map: Map) {
-  const request = { description: 'Ownership and borrowing in Rust', audience: 'People who know another language', language: 'en' };
+  // Words publishing.spec.ts doesn't search the catalog for, so its search still finds its one path
+  const request = { description: 'References and lifetimes', audience: 'People who know another language', language: 'en' };
   await expect(await page.request.put(`${API}/paths/${map.pathId}/publication`, { data: request })).toBeOK();
-  // Every spec in a run shares the one administrator, so whoever comes second logs in
+  // Both schemes share the administrator, so whichever comes second logs in
   const signedUp = await admin.post(`${API}/auth/signup`, { data: { ...ADMIN, name: 'Admin' } });
   if (!signedUp.ok()) await expect(await admin.post(`${API}/auth/login`, { data: ADMIN })).toBeOK();
   await expect(await admin.post(`${API}/admin/publications/${map.pathId}/approve`)).toBeOK();
@@ -105,7 +107,8 @@ for (const scheme of SCHEMES) {
         await expect(drawer(page).getByRole('table')).toBeVisible();
       } },
       { name: 'map-drawer-commands', reach: async () => {
-        await drawer(page).getByText('Write the exercises').click();
+        // Opened from the map, the page takes the cursor itself; from there to the end of the text, then a new line
+        await expect(drawer(page).getByLabel('Page content')).toBeFocused();
         await page.keyboard.press('ControlOrMeta+ArrowDown');
         await page.keyboard.press('Enter');
         await page.keyboard.type('/');
