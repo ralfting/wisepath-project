@@ -3,7 +3,7 @@
 import type { Editor } from '@tiptap/react';
 import { Paper, Text, Transition, UnstyledButton } from '@mantine/core';
 import { useReducedMotion } from '@mantine/hooks';
-import classes from '../MarkdownEditor.module.css';
+import classes from './Outline.module.css';
 import { useT } from '@/i18n/I18nProvider';
 import { unfold } from './Outline.helpers';
 import type { Heading } from './Outline.helpers';
