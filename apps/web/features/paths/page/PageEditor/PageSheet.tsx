@@ -1,7 +1,7 @@
 'use client';
 
 import { ActionIcon, Box, Card, Group, Menu, Tooltip } from '@mantine/core';
-import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash } from '@tabler/icons-react';
+import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash, IconViewportNarrow, IconViewportWide } from '@tabler/icons-react';
 import Link from 'next/link';
 import { branchProgress, canEdit, pathProgress } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
@@ -41,7 +41,7 @@ export function PageSheet({
   const { isRoot, between } = state;
 
   return (
-    <Card component="main" mb="xl" padding="lg" className={classes.sheet} data-note-frame="column">
+    <Card component="main" mb="xl" padding="lg" className={classes.sheet} data-note-frame="column" data-wide={state.wide || undefined}>
       {/* One compact line: the page is its text, and the title should not push it down */}
       <Group justify="space-between" align="center" wrap="nowrap" gap="md" mb="sm" className={classes.header}>
         <Group gap="sm" wrap="nowrap" align="center" miw={0} className={classes.titleRow}>
@@ -85,24 +85,32 @@ export function PageSheet({
               </ActionIcon>
             )}
           </Tooltip>
-          {!isRoot && canEdit(path.access) && (
-            <Menu position="bottom-end">
-              <Menu.Target>
-                <ActionIcon variant="default" size="lg" radius="md" aria-label={t('page.menu.more')}>
-                  <IconDotsVertical size={18} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(path, page, !page.module))}>
-                  {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
-                </Menu.Item>
-                <Menu.Divider />
-                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={operations.confirmDelete}>
-                  {t('page.menu.delete')}
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          )}
+          <Menu position="bottom-end">
+            <Menu.Target>
+              <ActionIcon variant="default" size="lg" radius="md" aria-label={t('page.menu.more')}>
+                <IconDotsVertical size={18} />
+              </ActionIcon>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Item
+                leftSection={state.wide ? <IconViewportNarrow size={15} /> : <IconViewportWide size={15} />}
+                onClick={operations.toggleWide}
+              >
+                {t(state.wide ? 'page.menu.narrow' : 'page.menu.wide')}
+              </Menu.Item>
+              {!isRoot && canEdit(path.access) && (
+                <>
+                  <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(path, page, !page.module))}>
+                    {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
+                  </Menu.Item>
+                  <Menu.Divider />
+                  <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={operations.confirmDelete}>
+                    {t('page.menu.delete')}
+                  </Menu.Item>
+                </>
+              )}
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       </Group>
       <DeletePageModal

@@ -46,6 +46,8 @@ export const page = {
     more: 'Mais opções',
     showAsPage: 'Mostrar como página',
     showAsModule: 'Mostrar como módulo',
+    wide: 'Página mais larga',
+    narrow: 'Página mais estreita',
     delete: 'Excluir página',
   },
   tabs: {

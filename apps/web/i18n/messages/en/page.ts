@@ -44,6 +44,9 @@ export const page = {
     more: 'More',
     showAsPage: 'Show as a page',
     showAsModule: 'Show as a module',
+    /** Every page's text column, on this device */
+    wide: 'Wider page',
+    narrow: 'Narrower page',
     delete: 'Delete page',
   },
   tabs: {

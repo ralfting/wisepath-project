@@ -46,6 +46,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     '--wp-topbar-height': '64px',
     // A page's text column: about 90 characters of body text, and as wide as a video note
     '--wp-page-width': '40rem',
+    // The same column made wider, for a large screen, when the reader asks for it
+    '--wp-page-width-wide': '56rem',
   },
   light: {
     // The ground behind cards: a touch cooler than white
