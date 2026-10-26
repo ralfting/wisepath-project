@@ -129,6 +129,11 @@ export const page = {
     unmark: '{effect} Click to mark it as not studied yet.',
     mark: "Tick it once you've learned what this page covers. {effect}",
   },
+  notes: {
+    title: 'My notes',
+    private: 'Only you see these',
+    add: 'Add a note',
+  },
   delete: {
     title: 'Delete page?',
     body: "will be deleted. Links to it in other pages become plain text. This can't be undone.",

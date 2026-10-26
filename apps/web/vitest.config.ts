@@ -20,7 +20,16 @@ export default defineConfig({
       {
         resolve,
         oxc,
-        test: { name: 'dom', include: ['**/*.test.tsx'], exclude, environment: 'happy-dom', setupFiles: ['./test/setup.ts'] },
+        test: {
+          name: 'dom',
+          include: ['**/*.test.tsx'],
+          exclude,
+          environment: 'happy-dom',
+          setupFiles: ['./test/setup.ts'],
+          // Loaded by Node, the editor's bubble menu gets tippy.js as CommonJS, whose default import is not the
+          // function, and throws on the first keystroke; through Vite, as in the app, the import resolves
+          server: { deps: { inline: ['@mantine/tiptap', /@tiptap\//] } },
+        },
       },
     ],
   },

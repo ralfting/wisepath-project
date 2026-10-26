@@ -90,6 +90,11 @@
   }
 }
 
+/* Notes are a few lines under the page, not a page of their own */
+.lean :global(.ProseMirror) {
+  min-height: 4rem;
+}
+
 .bubble {
   background: var(--mantine-color-body);
   box-shadow: var(--mantine-shadow-md);

@@ -131,6 +131,11 @@ export const page = {
     unmark: '{effect} Clique para marcar como ainda não estudada.',
     mark: 'Marque quando tiver aprendido o que esta página cobre. {effect}',
   },
+  notes: {
+    title: 'Minhas notas',
+    private: 'Só você vê',
+    add: 'Adicionar uma nota',
+  },
   delete: {
     title: 'Excluir página?',
     body: 'será excluída. Os links para ela nas outras páginas viram texto comum. Não dá para desfazer.',

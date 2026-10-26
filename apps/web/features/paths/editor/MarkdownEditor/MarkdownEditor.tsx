@@ -75,7 +75,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       <RichTextEditor
         editor={editor}
         variant="subtle"
-        classNames={{ root: classes.root, content: `${classes.content} ${blocks.blocks}` }}
+        classNames={{ root: classes.root, content: `${classes.content} ${blocks.blocks}${lean ? ` ${classes.lean}` : ''}` }}
         labels={{
           h2ControlLabel: t('editor.toolbar.heading'),
           h3ControlLabel: t('editor.toolbar.subheading'),
