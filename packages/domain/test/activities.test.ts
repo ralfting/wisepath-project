@@ -1,6 +1,6 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect } from "effect"
-import { PageId, PathId, activitiesIn, editPage, mayEditPage, newPath, openActivities } from "../src/paths/index"
+import { ActivityId, PageId, PathId, activitiesIn, editPage, mayEditPage, newPath, openActivities } from "../src/paths/index"
 import type { Path, PathKind } from "../src/paths/index"
 
 const pathId = PathId.make("journal")
@@ -106,6 +106,13 @@ describe("progress on a page with activities", () => {
       const added = yield* editPage(studied, pageId, { content: `${twoActivities}\n\n> [!activity]\n> One more` })
       assert.isTrue(rootOf(added).studied)
       assert.strictEqual(yield* editPage(added, pageId, { done: [...done].reverse(), studied: true }), added)
+    }))
+
+  it.effect("keeps only ticks of activities the page has", () =>
+    Effect.gen(function*() {
+      const [first] = ids(twoActivities)
+      const ticked = yield* editPage(yield* pathWith(twoActivities), pageId, { done: [first, ActivityId.make("made-up")] })
+      assert.deepStrictEqual(rootOf(ticked).done, [first])
     }))
 
   it("lets a reader tick activities, as they mark pages studied, and nothing else", () => {

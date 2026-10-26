@@ -51,13 +51,16 @@ export const NewPage = Schema.Struct({
 })
 export type NewPage = typeof NewPage.Type
 
+/** More ticks than a page could hold activities: no learner sends them, and the cap keeps anyone from filling the table */
+const MAX_TICKS = 500
+
 /** Any edit to one page; fields left out stay as they are */
 export const PageEdit = Schema.Struct({
   title: Schema.optional(PageTitle),
   content: Schema.optional(Schema.String),
   studied: Schema.optional(Schema.Boolean),
   /** Every activity of the page the reader has ticked done, the whole set: sending it twice changes nothing */
-  done: Schema.optional(Schema.Array(ActivityId)),
+  done: Schema.optional(Schema.Array(ActivityId).check(Schema.isMaxLength(MAX_TICKS))),
   module: Schema.optional(Schema.Boolean),
   color: Schema.optional(PageColor),
   icon: Schema.optional(PageIcon),
@@ -168,39 +171,43 @@ export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, 
   const look = defined({ module, color, icon })
 
   let next = updatePage(path, pageId, text, now)
-  if (studied !== undefined || done !== undefined) next = yield* setProgress(next, pageId, studied, done)
+  if (studied !== undefined || done !== undefined) {
+    next = yield* setProgress(next, next.pages.find((p) => p.id === pageId) ?? page, studied, done)
+  }
   if (Object.keys(look).length > 0) next = setLook(next, pageId, look)
   if (previousTitle !== undefined) next = renameLinks(next, previousTitle, title ?? page.title)
   return next
 })
 
 /**
- * The reader's progress on a page: their ticks, then their studied mark. In a learning path a page is studied once
- * its activities are done, so marking it with some open is refused, and unticking one unmarks it. An activity added
- * to a page already studied leaves the mark: the condition holds when marking. Neither is an edit of the page.
+ * The reader's progress on a page: their ticks, then their studied mark. Ticks are kept only for activities the page
+ * has. In a learning path a page is studied once its activities are done, so marking it with some open is refused,
+ * and unticking one unmarks it. An activity added to a page already studied leaves the mark: the condition holds
+ * when marking. Neither is an edit of the page.
  */
 const setProgress = Effect.fnUntraced(function*(
   path: Path,
-  pageId: PageId,
+  page: Page,
   studied: boolean | undefined,
   done: ReadonlyArray<ActivityId> | undefined
 ) {
-  const page = path.pages.find((p) => p.id === pageId)!
+  const activities = activitiesIn(path.id, page)
+  const ids = new Set(activities.map((activity) => activity.id))
   const was = new Set(page.done ?? [])
-  const ticks = done === undefined ? was : new Set(done)
+  const ticks = done === undefined ? was : new Set(done.filter((id) => ids.has(id)))
   // A study has no progress to hold back
-  const activities = path.kind === "learningPath" ? activitiesIn(path.id, page) : []
+  const gated = path.kind === "learningPath" ? activities : []
 
-  const open = activities.some((activity) => !ticks.has(activity.id))
-  if (studied === true && !page.studied && open) return yield* new ActivitiesOpen({ pageId })
-  const unticked = activities.some((activity) => was.has(activity.id) && !ticks.has(activity.id))
+  const open = gated.some((activity) => !ticks.has(activity.id))
+  if (studied === true && !page.studied && open) return yield* new ActivitiesOpen({ pageId: page.id })
+  const unticked = gated.some((activity) => was.has(activity.id) && !ticks.has(activity.id))
   const nextStudied = unticked ? false : studied ?? page.studied
 
   const sameTicks = ticks.size === was.size && [...ticks].every((id) => was.has(id))
   if (sameTicks && nextStudied === page.studied) return path
   const { done: _done, ...rest } = page
   const next: Page = { ...rest, studied: nextStudied, ...(ticks.size > 0 ? { done: [...ticks] } : {}) }
-  return { ...path, pages: path.pages.map((p) => (p.id === pageId ? next : p)) }
+  return { ...path, pages: path.pages.map((p) => (p.id === page.id ? next : p)) }
 })
 
 /** The fields that were given; an edit leaves the others as they are */
