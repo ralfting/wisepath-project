@@ -6,7 +6,16 @@ import { UserId } from '@wisepath/domain/auth';
 import { PathInvite, PathShare } from '@wisepath/domain/paths';
 import type { MemberRole, PathId } from '@wisepath/domain/paths';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pageNotes, pageProgress, pathInvites, pathMembers, paths, projects, users } from '../../shared/infrastructure/database/schema';
+import {
+  activityProgress,
+  pageNotes,
+  pageProgress,
+  pathInvites,
+  pathMembers,
+  paths,
+  projects,
+  users,
+} from '../../shared/infrastructure/database/schema';
 import { MemberStore } from '../application/MemberStore';
 
 /** Path members in Postgres through Drizzle; what the Share dialog lists is decoded with the domain's schema */
@@ -16,7 +25,7 @@ export const DrizzleMemberStore = Layer.effect(
     const { db, run, transaction } = yield* Database;
 
     /**
-     * Removes members of a path, then the marks and notes on it of everyone who may no longer study it (`whose`, over
+     * Removes members of a path, then the marks, ticks and notes on it of everyone who may no longer study it (`whose`, over
      * the column of their id), in one transaction; the members removed
      */
     const removeWhere = (pathId: PathId, which: SQL, whose: (userId: PgColumn) => SQL) =>
@@ -29,6 +38,7 @@ export const DrizzleMemberStore = Layer.effect(
               .returning({ userId: pathMembers.userId }),
           );
           yield* run(db.delete(pageProgress).where(and(eq(pageProgress.pathId, pathId), whose(pageProgress.userId))));
+          yield* run(db.delete(activityProgress).where(and(eq(activityProgress.pathId, pathId), whose(activityProgress.userId))));
           yield* run(db.delete(pageNotes).where(and(eq(pageNotes.pathId, pathId), whose(pageNotes.userId))));
           return gone.map((m) => UserId.make(m.userId));
         }),

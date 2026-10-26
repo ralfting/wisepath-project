@@ -3,11 +3,12 @@ import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import type { UserId } from '@wisepath/domain/auth';
 import type { Page, PageNote, PathId } from '@wisepath/domain/paths';
 import type { Database } from '../../shared/infrastructure/database/Database';
-import { pageNotes, pageProgress } from '../../shared/infrastructure/database/schema';
+import { activityProgress, pageNotes, pageProgress } from '../../shared/infrastructure/database/schema';
 
 /**
- * What each reader keeps of a map's pages for themselves: their studied marks (page_progress) and their notes
- * (page_notes). Read and written for that reader only; with no reader (a public link, the catalog) a page has none.
+ * What each reader keeps of a map's pages for themselves: their studied marks (page_progress), the activities they
+ * ticked done (activity_progress) and their notes (page_notes). Read and written for that reader only; with no reader
+ * (a public link, the catalog) a page has none.
  */
 
 type NoteRow = typeof pageNotes.$inferSelect;
@@ -19,11 +20,17 @@ export const readersOwnRows = (reader: UserId | null) => ({
     where: reader === null ? sql`false` : eq(pageNotes.userId, reader),
     orderBy: [asc(pageNotes.createdAt), asc(pageNotes.id)],
   },
+  done: {
+    columns: { activityId: true as const },
+    where: reader === null ? sql`false` : eq(activityProgress.userId, reader),
+    orderBy: [asc(activityProgress.doneAt), asc(activityProgress.activityId)],
+  },
 });
 
 export type ReadersOwnRows = {
   readonly progress: ReadonlyArray<unknown>;
   readonly notes: ReadonlyArray<NoteRow>;
+  readonly done: ReadonlyArray<{ readonly activityId: string }>;
 };
 
 /** A note as the domain has it; a quote is its three columns together */
@@ -38,6 +45,7 @@ const toNote = (row: NoteRow) => ({
 /** The page's fields that are its reader's, as the domain has them */
 export const readersOwnFields = (page: ReadersOwnRows) => ({
   studied: page.progress.length > 0,
+  ...(page.done.length > 0 ? { done: page.done.map((row) => row.activityId) } : {}),
   ...(page.notes.length > 0 ? { notes: page.notes.map(toNote) } : {}),
 });
 
@@ -55,7 +63,7 @@ const toRow = (userId: UserId, pathId: PathId, pageId: string, note: PageNote) =
   updatedAt: new Date(note.updatedAt),
 });
 
-/** Writes the reader's marks and notes that differ between two versions of a map; its pages already stored */
+/** Writes the reader's marks, ticks and notes that differ between two versions of a map; its pages already stored */
 export const saveReadersOwn =
   ({ db, run }: Pick<Database['Service'], 'db' | 'run'>) =>
   (readerId: UserId, pathId: PathId, before: ReadonlyArray<Page>, after: ReadonlyArray<Page>) =>
@@ -74,6 +82,31 @@ export const saveReadersOwn =
             .delete(pageProgress)
             .where(and(eq(pageProgress.userId, readerId), eq(pageProgress.pathId, pathId), inArray(pageProgress.pageId, unmarked))),
         );
+      }
+
+      for (const page of after) {
+        const ticked = new Set(was.get(page.id)?.done ?? []);
+        const ticks = new Set(page.done ?? []);
+        const added = [...ticks].filter((id) => !ticked.has(id));
+        const removed = [...ticked].filter((id) => !ticks.has(id));
+        if (added.length > 0) {
+          const rows = added.map((activityId) => ({ userId: readerId, pathId, pageId: page.id, activityId }));
+          yield* run(db.insert(activityProgress).values(rows).onConflictDoNothing());
+        }
+        if (removed.length > 0) {
+          yield* run(
+            db
+              .delete(activityProgress)
+              .where(
+                and(
+                  eq(activityProgress.userId, readerId),
+                  eq(activityProgress.pathId, pathId),
+                  eq(activityProgress.pageId, page.id),
+                  inArray(activityProgress.activityId, removed),
+                ),
+              ),
+          );
+        }
       }
 
       // The domain returns a note it did not change as the same object, so identity tells what was written

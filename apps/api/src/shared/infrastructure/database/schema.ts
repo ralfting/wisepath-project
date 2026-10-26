@@ -278,6 +278,33 @@ export const pageNotes = pgTable(
 );
 
 /**
+ * The activities of a page a reader ticked done (docs/plans/22-page-activities.md): each reader's own, like their
+ * marks. An activity is read from the page's text and named by a hash of its path, page and words, so a tick
+ * outlives a rewording of its activity (and is ignored) but goes with its page.
+ */
+export const activityProgress = pgTable(
+  'activity_progress',
+  {
+    userId: text('user_id').notNull(),
+    pathId: text('path_id').notNull(),
+    pageId: text('page_id').notNull(),
+    activityId: text('activity_id').notNull(),
+    doneAt: timestamp('done_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    primaryKey({ name: 'activity_progress_pkey', columns: [t.userId, t.pathId, t.pageId, t.activityId] }),
+    foreignKey({ name: 'activity_progress_user_id_fkey', columns: [t.userId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({ name: 'activity_progress_page_fkey', columns: [t.pathId, t.pageId], foreignColumns: [pages.pathId, pages.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
  * Where each card stands in the learner's spaced review. Cards themselves are
  * read from the pages (`::` and ==cloze== lines); a card's id is a hash of
  * its path, page and question. A state outlives its card's line, in case the
@@ -364,6 +391,7 @@ export const pagesRelations = relations(pages, ({ one, many }) => ({
   path: one(paths, { fields: [pages.pathId], references: [paths.id] }),
   progress: many(pageProgress),
   notes: many(pageNotes),
+  done: many(activityProgress),
 }));
 
 export const pageProgressRelations = relations(pageProgress, ({ one }) => ({
@@ -372,4 +400,8 @@ export const pageProgressRelations = relations(pageProgress, ({ one }) => ({
 
 export const pageNotesRelations = relations(pageNotes, ({ one }) => ({
   page: one(pages, { fields: [pageNotes.pathId, pageNotes.pageId], references: [pages.pathId, pages.id] }),
+}));
+
+export const activityProgressRelations = relations(activityProgress, ({ one }) => ({
+  page: one(pages, { fields: [activityProgress.pathId, activityProgress.pageId], references: [pages.pathId, pages.id] }),
 }));
