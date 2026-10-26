@@ -139,6 +139,8 @@ export const page = {
     edit: 'Edit note',
     card: 'Note',
     delete: 'Delete note',
+    close: 'Close note',
+    done: 'Done',
   },
   delete: {
     title: 'Delete page?',

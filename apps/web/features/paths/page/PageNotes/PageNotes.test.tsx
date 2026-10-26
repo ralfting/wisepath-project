@@ -82,15 +82,8 @@ const readPage = (notes: ReadonlyArray<PageNote>, surface: Surface = 'drawer') =
   return spies;
 };
 
-/**
- * The open note's card. happy-dom lays nothing out, so the card takes its passage for scrolled away and hides
- * itself: found hidden, and its parts by their labels, since a hidden element has no accessible name
- */
-const openCard = async () => {
-  const card = await screen.findByRole('dialog', { hidden: true });
-  expect(card.getAttribute('aria-label')).toBe('Note');
-  return card;
-};
+/** The open note's card beside the page */
+const openCard = () => screen.findByRole('dialog', { name: 'Note' });
 
 const notesTab = async (user: ReturnType<typeof userEvent.setup>, count: number) => {
   await user.click(screen.getByRole('tab', { name: `My notes (${count})` }));
@@ -105,8 +98,9 @@ const goToPassage = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.click(within(tab).getByRole('button', { name: 'Go to the passage: shared ones' }));
 
   expect(screen.getByRole('tab', { name: 'Content' }).getAttribute('aria-selected')).toBe('true');
-  const field = await within(await openCard()).findByLabelText('Note');
-  expect(field.textContent).toBe('Many readers');
+  const card = await openCard();
+  expect(within(card).getByText('Many readers')).toBeTruthy();
+  expect(document.activeElement).toBe(within(card).getByRole('button', { name: 'Edit note' }));
 };
 
 const borrowingNotes = [
@@ -117,22 +111,45 @@ const borrowingNotes = [
 ];
 
 describe("a reader's notes on a page they may only read", () => {
-  it('highlights the passage of a note and opens the note from it, to edit or delete', async () => {
+  it('opens a note from its passage to read, then to edit or delete', async () => {
     const user = userEvent.setup();
     const { writeNote, removeNote } = readPage([aNote('n1', 'Why only one?', { exact: 'mutable reference', prefix: 'One ', suffix: ' or many' })]);
 
     await user.click(await screen.findByText('mutable reference', { selector: '.wp-page-note' }));
-    const field = await within(await openCard()).findByLabelText('Note');
+    const card = await openCard();
+    expect(within(card).getByText('Why only one?')).toBeTruthy();
+    expect(within(card).queryByLabelText('Note')).toBeNull();
+
+    await user.click(within(card).getByRole('button', { name: 'Edit note' }));
+    const field = await within(card).findByLabelText('Note');
     expect(field.textContent).toBe('Why only one?');
     await user.type(field, '!');
     expect(writeNote).toHaveBeenLastCalledWith('borrowing', 'n1', {
       quote: { exact: 'mutable reference', prefix: 'One ', suffix: ' or many' },
       body: 'Why only one?!',
     });
+    await user.click(within(card).getByRole('button', { name: 'Done' }));
+    expect(within(card).queryByLabelText('Note')).toBeNull();
+    expect(within(card).getByText('Why only one?!')).toBeTruthy();
 
-    await user.click(within(await openCard()).getByLabelText('Delete note'));
+    await user.click(within(card).getByRole('button', { name: 'Delete note' }));
     expect(removeNote).toHaveBeenCalledWith('borrowing', 'n1');
-    expect(screen.queryByRole('dialog', { hidden: true })).toBeNull();
+    expect(screen.queryByRole('dialog', { name: 'Note' })).toBeNull();
+  });
+
+  it('closes the card on Esc, leaving the editor first', async () => {
+    const user = userEvent.setup();
+    readPage([aNote('n1', 'Why only one?', { exact: 'mutable reference', prefix: 'One ', suffix: ' or many' })]);
+    await user.click(await screen.findByText('mutable reference', { selector: '.wp-page-note' }));
+    const card = await openCard();
+    await user.click(within(card).getByRole('button', { name: 'Edit note' }));
+    await within(card).findByLabelText('Note');
+
+    await user.keyboard('{Escape}');
+    expect(within(card).queryByLabelText('Note')).toBeNull();
+    expect(within(card).getByText('Why only one?')).toBeTruthy();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Note' })).toBeNull();
   });
 
   it('writes a new note on the selected words once it says something', async () => {
@@ -143,7 +160,9 @@ describe("a reader's notes on a page they may only read", () => {
     document.getSelection()!.setBaseAndExtent(text, 4, text, 11);
     document.dispatchEvent(new Event('selectionchange'));
     await user.click(await screen.findByRole('button', { name: 'Note', hidden: true }));
-    const field = await within(await openCard()).findByLabelText('Note');
+    const card = await openCard();
+    const field = await within(card).findByLabelText('Note');
+    expect(within(card).queryByRole('button', { name: 'Edit note' })).toBeNull();
     expect(writeNote).not.toHaveBeenCalled();
     await user.type(field, 'Hm');
 

@@ -1,10 +1,16 @@
-/* Where a note's card points: never in the way of the text under it */
-.spot {
-  pointer-events: none;
+/* Beside the page, over whatever is there, placed at runtime; as tall as its note up to a limit, then it scrolls */
+.card {
+  position: fixed;
+  z-index: var(--mantine-z-index-popover);
+  display: flex;
+  flex-direction: column;
+  width: min(20rem, calc(100vw - 2 * var(--mantine-spacing-md)));
+  max-height: min(28rem, calc(100dvh - 2 * var(--mantine-spacing-md)));
 }
 
-.card {
-  width: min(22rem, calc(100vw - 2 * var(--mantine-spacing-md)));
+.cardBody {
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* The words a note is on, quoted as Docs does: a bar on the left, the passage's highlight */

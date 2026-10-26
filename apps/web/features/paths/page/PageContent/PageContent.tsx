@@ -57,7 +57,7 @@ export function PageContent({
   const take = useTakeFromInbox();
 
   return (
-    <Box ref={notes.box} pos="relative">
+    <Box ref={notes.box}>
       <Stack gap="md">
         {showTitle && (
           <PageTitleInput
@@ -88,7 +88,7 @@ export function PageContent({
         />
         <PagePager path={path} page={page} onOpen={actions.openPage} />
       </Stack>
-      {notes.card && <NoteCard card={notes.card} path={path} page={page} actions={actions} />}
+      {notes.card && <NoteCard card={notes.card} box={notes.box} path={path} page={page} actions={actions} />}
     </Box>
   );
 }

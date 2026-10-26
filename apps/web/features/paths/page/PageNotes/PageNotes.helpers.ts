@@ -18,13 +18,6 @@ export function notesInTextOrder(notes: ReadonlyArray<PageNote>, found: Readonly
   return [...located, ...others].map((note) => ({ note, removed: found !== null && note.quote !== undefined && !at.has(note.id) }));
 }
 
-/** Where something on screen is inside a box, for a card to point at it as the box scrolls */
-export interface Spot {
-  readonly top: number;
-  readonly left: number;
-  readonly width: number;
-  readonly height: number;
-}
 
 /** What a passage's card is placed by, all in window coordinates */
 export interface CardRoom {

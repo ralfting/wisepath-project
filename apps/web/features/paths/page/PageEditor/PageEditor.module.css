@@ -11,6 +11,15 @@
 
   /* A card clips by default, which would stop the editor's toolbar from sticking while the text scrolls */
   overflow: visible;
+
+  /* Moved left while a note's card needs the room beside it; set by the card. Not a transform, which would hold the
+     editor's fixed layers (a video's notes) inside the page */
+  left: calc(-1 * var(--note-shift, 0px));
+  transition: left 200ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .header {

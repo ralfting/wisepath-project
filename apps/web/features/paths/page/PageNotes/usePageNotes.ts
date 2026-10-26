@@ -7,26 +7,37 @@ import type { EditorNotes, NoteRect } from '@/features/paths/editor';
 import { newNoteId } from '@/useCases/paths';
 import type { PageActions } from '../PageContent/PageContent.helpers';
 import { notesInTextOrder } from './PageNotes.helpers';
-import type { Spot } from './PageNotes.helpers';
 
-/** The note being written: in a card by its passage, pointing at `spot`, or in its place in the Notes tab */
-type OpenNote = {
-  readonly noteId: NoteId;
-  readonly quote?: TextQuote;
-  /** Its field takes the cursor: a new note, or one gone to from the Notes tab */
-  readonly focus: boolean;
-} & ({ readonly where: 'card'; readonly spot: Spot } | { readonly where: 'list' });
+/** The note open: in a card by its passage, read or written there, or written in its place in the Notes tab */
+type OpenNote = { readonly noteId: NoteId; readonly quote?: TextQuote } & (
+  | { readonly where: 'card'; readonly at: NoteRect; readonly mode: CardMode; readonly focus: boolean }
+  | { readonly where: 'list' }
+);
+
+/** A note's card shows it, or its editor; a new note starts in the editor */
+export type CardMode = 'read' | 'write';
 
 /** One note open to write, whichever view shows it; `saved` once it has been written */
 export interface NoteWriting {
   readonly noteId: NoteId;
   readonly quote?: TextQuote;
-  readonly focus: boolean;
   readonly body: string;
   readonly saved: boolean;
   readonly write: (body: string) => void;
   readonly remove: () => void;
   readonly close: () => void;
+}
+
+/** The card open by a passage, beside the page */
+export interface NoteCardState extends NoteWriting {
+  /** Where the passage was when the card opened, until the card finds it in the text */
+  readonly at: NoteRect;
+  readonly mode: CardMode;
+  /** Opened from the Notes tab, whose button had the focus and is now hidden: the card takes it */
+  readonly focus: boolean;
+  readonly edit: () => void;
+  /** Leaves the editor for the note as it reads; a note left blank closes, as on close */
+  readonly done: () => void;
 }
 
 /**
@@ -52,13 +63,9 @@ export function usePageNotes(page: Page, actions: Pick<PageActions, 'writeNote' 
     setOpen(next);
   };
 
-  const spotOf = (rect: NoteRect): Spot => {
-    const origin = box.current?.getBoundingClientRect() ?? { top: 0, left: 0 };
-    return { top: rect.top - origin.top, left: rect.left - origin.left, width: rect.right - rect.left, height: rect.bottom - rect.top };
-  };
-  const openCard = (noteId: NoteId, rect: NoteRect, { draft, focus = false }: { draft?: TextQuote; focus?: boolean } = {}) =>
-    openNote({ noteId, quote: draft ?? noteOf(noteId)?.quote, focus: focus || !noteOf(noteId), where: 'card', spot: spotOf(rect) });
-  const openInList = (noteId: NoteId) => openNote({ noteId, quote: noteOf(noteId)?.quote, focus: true, where: 'list' });
+  const openCard = (noteId: NoteId, at: NoteRect, { draft, focus = false }: { draft?: TextQuote; focus?: boolean } = {}) =>
+    openNote({ noteId, quote: draft ?? noteOf(noteId)?.quote, where: 'card', at, mode: noteOf(noteId) ? 'read' : 'write', focus });
+  const openInList = (noteId: NoteId) => openNote({ noteId, quote: noteOf(noteId)?.quote, where: 'list' });
 
   // A new note on a passage shows its highlight while it is written, before it is saved
   const items = useMemo(
@@ -76,7 +83,7 @@ export function usePageNotes(page: Page, actions: Pick<PageActions, 'writeNote' 
     onFound: setFound,
   };
 
-  /** From the Notes tab: to its passage on the Content tab, its card open there; a note on no passage opens in place */
+  /** From the Notes tab: to its passage on the Content tab, its card open there; a note on no passage is written in place */
   const show = (noteId: NoteId) => {
     const passage = [...(box.current?.querySelectorAll('[data-page-note]') ?? [])].find((el) => el.getAttribute('data-page-note') === noteId);
     if (!passage) return openInList(noteId);
@@ -102,7 +109,6 @@ export function usePageNotes(page: Page, actions: Pick<PageActions, 'writeNote' 
   const writing: NoteWriting | null = open && {
     noteId: open.noteId,
     quote: open.quote,
-    focus: open.focus,
     body: notes.find((note) => note.id === open.noteId)?.body ?? '',
     saved: notes.some((note) => note.id === open.noteId),
     write,
@@ -110,8 +116,20 @@ export function usePageNotes(page: Page, actions: Pick<PageActions, 'writeNote' 
     close,
   };
 
+  const card: NoteCardState | null =
+    open?.where === 'card' && writing
+      ? {
+          ...writing,
+          at: open.at,
+          mode: open.mode,
+          focus: open.focus,
+          edit: () => setOpen({ ...open, mode: 'write' }),
+          done: () => (noteOf(open.noteId)?.body.trim() ? setOpen({ ...open, mode: 'read', focus: false }) : close()),
+        }
+      : null;
+
   return {
-    text: { box, editorNotes, card: open?.where === 'card' && writing ? { ...writing, spot: open.spot } : null },
+    text: { box, editorNotes, card },
     list: {
       notes: notesInTextOrder(notes, found),
       writing: open?.where === 'list' ? writing : null,

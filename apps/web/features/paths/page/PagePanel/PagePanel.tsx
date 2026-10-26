@@ -59,6 +59,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
       data-compact={state.compact || undefined}
       aria-label={t('page.panel.label')}
       component="aside"
+      data-note-frame="window"
     >
       <Group justify="space-between" wrap="nowrap" px="lg" pt="md" gap="xs">
         <Group gap={4} wrap="nowrap" miw={0}>
