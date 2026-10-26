@@ -2,14 +2,16 @@ import type { ReactNode } from 'react';
 import { Alert } from '@mantine/core';
 import { IconAlertOctagon, IconAlertTriangle, IconInfoCircle } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
-import type { CalloutKind } from '@/shared/callouts';
 import classes from './Callout.module.css';
 
-const LOOKS: Record<CalloutKind, { color: string; icon: Icon }> = {
+const LOOKS = {
   info: { color: 'blue', icon: IconInfoCircle },
   warning: { color: 'yellow', icon: IconAlertTriangle },
   danger: { color: 'red', icon: IconAlertOctagon },
-};
+} satisfies Record<string, { color: string; icon: Icon }>;
+
+/** The boxes this draws; the domain's callout kinds name them */
+type CalloutKind = keyof typeof LOOKS;
 
 /** A kind's colour and icon, for what draws one beside a callout (the editor's kind menu) */
 export const calloutLook = (kind: CalloutKind) => LOOKS[kind];

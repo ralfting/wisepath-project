@@ -1,4 +1,4 @@
-import { readCalloutMarker } from '@/shared/callouts';
+import { readCalloutMarker } from '@wisepath/domain/paths';
 
 /**
  * A remark plugin turning a quote that opens with a callout marker (> [!warning]) into a callout: an <aside> with the

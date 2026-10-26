@@ -3,7 +3,7 @@ import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Anchor, TypographyStylesProvider } from '@mantine/core';
 import type { Translate } from '@/i18n/I18nProvider';
-import { CALLOUT_KINDS } from '@/shared/callouts';
+import { CALLOUT_KINDS } from '@wisepath/domain/paths';
 import { Callout } from '@/ui/Callout/Callout';
 import { remarkCallouts } from './remarkCallouts';
 import { remarkWikiLinks } from './remarkWikiLinks';

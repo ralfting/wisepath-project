@@ -1,12 +1,12 @@
 import { Node, wrappingInputRule } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
-import { calloutMarker, readCalloutMarker } from '@/shared/callouts';
-import type { CalloutKind } from '@/shared/callouts';
+import { calloutMarker, readCalloutMarker } from '@wisepath/domain/paths';
+import type { CalloutKind } from '@wisepath/domain/paths';
 import type { MarkdownState } from './markdown';
 
 /**
  * Callouts in the editor: a block holding other blocks, written to markdown as
- * a quote whose first line is its kind's marker (shared/callouts.ts), so the
+ * a quote whose first line is its kind's marker (callouts.ts in the domain), so the
  * text reads the same in Obsidian and in the catalog.
  */
 export const CalloutBlock = Node.create({

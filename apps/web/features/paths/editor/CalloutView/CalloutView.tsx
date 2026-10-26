@@ -5,8 +5,8 @@ import type { NodeViewProps } from '@tiptap/react';
 import { ActionIcon, Menu } from '@mantine/core';
 import { IconBoxOff } from '@tabler/icons-react';
 import { useT } from '@/i18n/I18nProvider';
-import { CALLOUT_KINDS } from '@/shared/callouts';
-import type { CalloutKind } from '@/shared/callouts';
+import { CALLOUT_KINDS } from '@wisepath/domain/paths';
+import type { CalloutKind } from '@wisepath/domain/paths';
 import { Callout, calloutLook } from '@/ui/Callout/Callout';
 
 /**
