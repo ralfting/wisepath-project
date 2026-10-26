@@ -77,7 +77,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
 
   return (
     <div ref={wrapper} className={classes.wrapper} onMouseOver={card.over} onMouseOut={card.out}>
-      {editor && !lean && headings.length >= 2 && <Outline editor={editor} headings={headings} />}
+      {editor && !lean && headings.length >= 2 && <Outline editor={editor} headings={headings} noteOpen={!!props.notes?.openId} />}
       <RichTextEditor
         editor={editor}
         variant="subtle"

@@ -247,6 +247,16 @@
   width: 16px;
   z-index: 3;
   pointer-events: none;
+
+  /* Past the full page's edge, in the window's margin, still level with the text */
+  &[data-place='margin'] {
+    right: calc(-1 * var(--mantine-spacing-lg) - var(--mantine-spacing-md) - 16px);
+  }
+
+  &[data-place='list'] {
+    width: 14rem;
+    right: calc(-1 * var(--mantine-spacing-lg) - var(--mantine-spacing-xl) - 14rem);
+  }
 }
 
 .outline {
@@ -289,6 +299,14 @@
   &[data-active] {
     background: var(--mantine-color-blue-6);
   }
+}
+
+/* Listed beside the page: no panel, its guide line runs down from level with the text */
+.outlineListed {
+  width: 100%;
+  max-height: calc(100dvh - 8rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 /* Opens just left of the rail, top-aligned with it, so it reads as the rail unfolding (Notion).
