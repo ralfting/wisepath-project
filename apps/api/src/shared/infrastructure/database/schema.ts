@@ -249,6 +249,30 @@ export const pageProgress = pgTable(
 );
 
 /**
+ * What a reader wrote for themselves on a page (docs/plans/21-page-notes.md): each reader's own, like their marks,
+ * never sent to anyone else. Blank notes are no row.
+ */
+export const pageNotes = pgTable(
+  'page_notes',
+  {
+    userId: text('user_id').notNull(),
+    pathId: text('path_id').notNull(),
+    pageId: text('page_id').notNull(),
+    content: text().notNull(),
+    updatedAt: timestamp('updated_at', { precision: 3, withTimezone: true }).notNull(),
+  },
+  (t) => [
+    primaryKey({ name: 'page_notes_pkey', columns: [t.userId, t.pathId, t.pageId] }),
+    foreignKey({ name: 'page_notes_user_id_fkey', columns: [t.userId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({ name: 'page_notes_page_fkey', columns: [t.pathId, t.pageId], foreignColumns: [pages.pathId, pages.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
  * Where each card stands in the learner's spaced review. Cards themselves are
  * read from the pages (`::` and ==cloze== lines); a card's id is a hash of
  * its path, page and question. A state outlives its card's line, in case the
@@ -334,8 +358,13 @@ export const pathMembersRelations = relations(pathMembers, ({ one }) => ({
 export const pagesRelations = relations(pages, ({ one, many }) => ({
   path: one(paths, { fields: [pages.pathId], references: [paths.id] }),
   progress: many(pageProgress),
+  notes: many(pageNotes),
 }));
 
 export const pageProgressRelations = relations(pageProgress, ({ one }) => ({
   page: one(pages, { fields: [pageProgress.pathId, pageProgress.pageId], references: [pages.pathId, pages.id] }),
+}));
+
+export const pageNotesRelations = relations(pageNotes, ({ one }) => ({
+  page: one(pages, { fields: [pageNotes.pathId, pageNotes.pageId], references: [pages.pathId, pages.id] }),
 }));

@@ -36,7 +36,7 @@ export class PathStore extends Context.Service<
     /** Every published map as the catalog lists it, oldest first: read without its pages' text */
     readonly listCatalog: () => Effect.Effect<ReadonlyArray<CatalogEntry>>;
 
-    /** Stores a new map in a project, its studied pages as the learner's marks; false when its id is already used */
+    /** Stores a new map in a project, its pages' marks and notes as the learner's; false when its id is already used */
     readonly insert: (learnerId: UserId, projectId: ProjectId, path: Path) => Effect.Effect<boolean>;
 
     readonly setVisibility: (id: PathId, visibility: PathVisibility) => Effect.Effect<void>;
@@ -44,7 +44,7 @@ export class PathStore extends Context.Service<
     /** Files the map in another project */
     readonly move: (id: PathId, projectId: ProjectId) => Effect.Effect<void>;
 
-    /** Writes what changed between two versions of a map; changed studied marks are the learner's */
+    /** Writes what changed between two versions of a map; changed marks and notes are the learner's */
     readonly save: (learnerId: UserId, before: Path, after: Path) => Effect.Effect<void>;
 
     readonly remove: (ownerId: UserId, id: PathId) => Effect.Effect<void>;

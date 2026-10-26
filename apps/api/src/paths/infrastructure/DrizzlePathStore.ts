@@ -5,15 +5,17 @@ import type { Page, PathVisibility } from '@wisepath/domain/paths';
 import { UserId } from '@wisepath/domain/auth';
 import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
-import { pageProgress, pages, pathMembers, paths, projects } from '../../shared/infrastructure/database/schema';
+import { pages, pathMembers, paths, projects } from '../../shared/infrastructure/database/schema';
 import { PathStore } from '../application/PathStore';
+import { readersOwnFields, readersOwnRows, saveReadersOwn } from './readersOwn';
+import type { ReadersOwnRows } from './readersOwn';
 
 /**
  * Paths in Postgres through Drizzle. What comes back is decoded with the
  * domain's Path schema, so a row the domain would not accept fails loudly.
  */
 
-type PageRow = typeof pages.$inferSelect & { readonly progress: ReadonlyArray<unknown> };
+type PageRow = typeof pages.$inferSelect & ReadersOwnRows;
 type PathRow = typeof paths.$inferSelect & {
   readonly pages: ReadonlyArray<PageRow>;
   readonly project: { readonly ownerId: string; readonly owner: { readonly name: string | null } };
@@ -33,7 +35,7 @@ const accessFor = (row: PathRow, reader: UserId | null) =>
     reader,
   );
 
-/** The map as the domain sees it, as its reader may use it and with their marks: no nulls, ISO dates */
+/** The map as the domain sees it, as its reader may use it and with their marks and notes: no nulls, ISO dates */
 const toDomain = (row: PathRow, reader: UserId | null) => {
   const access = accessFor(row, reader);
   return Schema.decodeUnknownEffect(Path)({
@@ -53,7 +55,7 @@ const toDomain = (row: PathRow, reader: UserId | null) => {
       id: page.id,
       title: page.title,
       content: page.content,
-      studied: page.progress.length > 0,
+      ...readersOwnFields(page),
       updatedAt: page.updatedAt.toISOString(),
       ...(page.module !== null ? { module: page.module } : {}),
       ...(page.color !== null ? { color: page.color } : {}),
@@ -65,7 +67,7 @@ const toDomain = (row: PathRow, reader: UserId | null) => {
 /** Keeps titles unique per map in the database too; untitled pages don't count */
 const titleKey = (title: string) => title.trim().toLowerCase() || null;
 
-/** A page's columns, except the keys and its position; studied is the learner's, in page_progress */
+/** A page's columns, except the keys and its position; its reader's marks and notes are in readersOwn */
 const pageColumns = (page: Page) => ({
   title: page.title,
   titleKey: titleKey(page.title),
@@ -86,27 +88,21 @@ const samePage = (a: Page, b: Page) =>
     a.icon === b.icon);
 
 /**
- * What a map is read with: its pages in the order they were added, each with the reader's mark when they studied
- * it, the owner, and the reader's membership. No reader (a public link opened logged out): no marks, no membership.
+ * What a map is read with: its pages in the order they were added, each with the reader's mark and notes, the
+ * owner, and the reader's membership. No reader (a public link opened logged out): no marks, no notes, no membership.
  */
-const readFor = (reader: UserId | null) => {
-  const theirs = (column: typeof pageProgress.userId | typeof pathMembers.userId) =>
-    reader === null ? sql`false` : eq(column, reader);
-  return {
-    pages: {
-      orderBy: [asc(pages.position), asc(pages.id)],
-      with: { progress: { columns: { pageId: true as const }, where: theirs(pageProgress.userId) } },
-    },
-    project: { columns: { ownerId: true as const }, with: { owner: { columns: { name: true as const } } } },
-    members: { where: theirs(pathMembers.userId) },
-    publication: { columns: { status: true as const } },
-  };
-};
+const readFor = (reader: UserId | null) => ({
+  pages: { orderBy: [asc(pages.position), asc(pages.id)], with: readersOwnRows(reader) },
+  project: { columns: { ownerId: true as const }, with: { owner: { columns: { name: true as const } } } },
+  members: { where: reader === null ? sql`false` : eq(pathMembers.userId, reader) },
+  publication: { columns: { status: true as const } },
+});
 
 export const DrizzlePathStore = Layer.effect(
   PathStore,
   Effect.gen(function* () {
     const { db, run, transaction } = yield* Database;
+    const saveReaders = saveReadersOwn({ db, run });
 
     const insertPages = (pathId: PathId, added: ReadonlyArray<Page>, from: number) => {
       if (added.length === 0) return Effect.void;
@@ -114,28 +110,6 @@ export const DrizzlePathStore = Layer.effect(
       const rows = added.map((page, i) => ({ pathId, id: page.id, position: from + i, ...pageColumns(page) }));
       return run(db.insert(pages).values(rows));
     };
-
-    /** Writes the learner's marks that differ between two versions of a map; its pages already stored */
-    const saveProgress = (learnerId: UserId, pathId: PathId, before: ReadonlyArray<Page>, after: ReadonlyArray<Page>) =>
-      Effect.gen(function* () {
-        const was = new Set(before.filter((p) => p.studied).map((p) => p.id));
-        const marked = after.filter((p) => p.studied && !was.has(p.id)).map((p) => p.id);
-        const unmarked = after.filter((p) => !p.studied && was.has(p.id)).map((p) => p.id);
-
-        if (marked.length > 0) {
-          const rows = marked.map((pageId) => ({ userId: learnerId, pathId, pageId }));
-          yield* run(db.insert(pageProgress).values(rows).onConflictDoNothing());
-        }
-        if (unmarked.length > 0) {
-          yield* run(
-            db
-              .delete(pageProgress)
-              .where(
-                and(eq(pageProgress.userId, learnerId), eq(pageProgress.pathId, pathId), inArray(pageProgress.pageId, unmarked)),
-              ),
-          );
-        }
-      });
 
     /** A path is the owner's when its project is */
     const ownedBy = (ownerId: UserId) =>
@@ -243,7 +217,7 @@ export const DrizzlePathStore = Layer.effect(
           if (created.length === 0) return false;
 
           yield* insertPages(path.id, path.pages, 0);
-          yield* saveProgress(learnerId, path.id, [], path.pages);
+          yield* saveReaders(learnerId, path.id, [], path.pages);
           return true;
         }),
       );
@@ -292,7 +266,7 @@ export const DrizzlePathStore = Layer.effect(
             yield* insertPages(after.id, added, next);
           }
 
-          yield* saveProgress(learnerId, after.id, before.pages, after.pages);
+          yield* saveReaders(learnerId, after.id, before.pages, after.pages);
         }),
       );
     });

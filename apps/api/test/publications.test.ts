@@ -1,7 +1,6 @@
 import { assert, describe, it } from '@effect/vitest';
 import { Effect } from 'effect';
-import { Email } from '@wisepath/domain/auth';
-import { outcomes, ownedMap, useApp } from './app';
+import { adminOf, outcomes, ownedMap, useApp } from './app';
 import type { OwnedMap } from './app';
 
 /**
@@ -11,15 +10,7 @@ import type { OwnedMap } from './app';
 
 const { makeClient, signedIn } = useApp();
 
-/** The administrator's session; the account is made once and logged into after that */
-const admin = Effect.gen(function* () {
-  const client = yield* makeClient;
-  const credentials = { email: Email.make('admin@wisepath.test'), password: 'long-enough' };
-  yield* client.auth.signup({ payload: { name: 'Admin', ...credentials } }).pipe(
-    Effect.catchTag('EmailAlreadyRegistered', () => client.auth.login({ payload: credentials })),
-  );
-  return client;
-});
+const admin = adminOf(makeClient);
 
 const request = { description: 'Testing React by behaviour', audience: 'Frontend developers', language: 'pt-BR' } as const;
 

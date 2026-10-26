@@ -99,6 +99,13 @@
       "when": 1792343992615,
       "tag": "0013_path_slug",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793016677770,
+      "tag": "0014_page_notes",
+      "breakpoints": true
     }
   ]
 }

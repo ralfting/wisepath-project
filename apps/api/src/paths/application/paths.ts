@@ -122,7 +122,7 @@ export const createPage = Effect.fn('paths.createPage')(function* (id: PathId, c
   return path.pages.find((p) => p.id === command.id)!;
 });
 
-/** A studied mark is the reader's own; renaming the root is the owner's; an edit with both is refused whole */
+/** A studied mark and notes are the reader's own; renaming the root is the owner's; an edit with both is refused whole */
 export const updatePage = Effect.fn('paths.updatePage')(function* (id: PathId, pageId: PageId, edit: PageEdit) {
   yield* change(id, (path) => mayEditPage(path, pageId, edit), (path) => editPage(path, pageId, edit));
 });

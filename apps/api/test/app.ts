@@ -59,7 +59,19 @@ export function useApp() {
 }
 
 export type Client = Effect.Success<ReturnType<typeof useApp>['makeClient']>;
+type MakeClient = ReturnType<typeof useApp>['makeClient'];
 type SignedIn = ReturnType<typeof useApp>['signedIn'];
+
+/** The administrator's session (ADMIN_EMAILS, set in vitest.config.mts); the account is made once and logged into after that */
+export const adminOf = (makeClient: MakeClient) =>
+  Effect.gen(function* () {
+    const client = yield* makeClient;
+    const credentials = { email: Email.make('admin@wisepath.test'), password: 'long-enough' };
+    yield* client.auth.signup({ payload: { name: 'Admin', ...credentials } }).pipe(
+      Effect.catchTag('EmailAlreadyRegistered', () => client.auth.login({ payload: credentials })),
+    );
+    return client;
+  });
 
 /** The account's default project, where its paths go unless told otherwise */
 export const generalOf = (client: Client) => Effect.map(client.projects.list(), (projects) => projects[0].id);
