@@ -68,7 +68,7 @@ The map is a reading of the links, never stored on its own.
 - **Outline.** With two headings or more, a rail of dashes on the right edge; hovering it lists the headings ("On this page"), and it works from the keyboard.
 - **Previous and Next** at the end of every page lead to the pages before and after it in the map's reading order, the one Continue studying follows: down into the page's first branch, else on to the next branch beside it, else back up to the next branch beside the page above. An unlinked page has neither.
 - **Delete** from the page's ⋯ menu: links to it become plain text, and pages only it reached end up unlinked, off the map.
-- **My notes** under every page's text, in the drawer and on the full page, marked "Only you see these": markdown of your own, like your studied marks. Empty, it is one **Add a note** button that opens the field; once written, the notes show as they are, editable in place. Anyone who can read the path writes their own, a reader of someone else's path included, and nobody sees anyone else's, the owner and editors included. Writing them never changes the page or its edited date. The field is the editor without its toolbar, outline, videos or ways to make pages; `/` commands and markdown work. Notes go with their page, and when you lose the path. A public link and the catalog never show notes; search, the Markdown download and review cards leave them out.
+- **My notes**, each reader's own and private, like the studied marks. **On a passage:** select words in a page (in the drawer or on the full page) and choose **Note** in the bubble over them (⌘⌥M / Ctrl+Alt+M); a reader who may not edit the text gets the bubble with Note alone. A small card opens by the words to write the note, with markdown and `/` commands; it is saved as you type, a note left blank is not kept, and Esc or a click outside closes it. From then on the words are highlighted; clicking them opens the card again, to read, edit or delete the note. A note holds its words and a little text on each side, not a place: the owner may keep writing around it and the highlight follows its words; when they are gone, the note stays, marked **Passage removed**. **Under the text,** **My notes** ("Only you see these") lists every note in the order of the text, each with its words quoted (a click scrolls to them and opens the card) and what it says, then **Add a note** for one on the whole page. Anyone who can read the path writes their own, a reader of someone else's path included, and nobody sees anyone else's, the owner and editors included. Writing one never changes the page or its edited date. Notes go with their page, and when you lose the path. A public link and the catalog never show notes; search, the Markdown download and review cards leave them out.
 
 ## Writing
 
@@ -126,6 +126,7 @@ Write it down now, sort it later: capturing never asks where something goes.
 | Text | `[[` | Pick or create a page to link |
 | Text | `/` | Commands |
 | Text | ⌘K / Ctrl K | With text selected, make it a link; otherwise search |
+| Text | ⌘⌥M / Ctrl+Alt+M | With text selected, write a note on it |
 | Title | Enter | On to the text |
 | Text | ⌘↵ / Ctrl+Enter | Play the time on the line, or open its link |
 | Text | ⇧⌘↵ / Shift+Ctrl+Enter | Play the time on the line in fullscreen |
