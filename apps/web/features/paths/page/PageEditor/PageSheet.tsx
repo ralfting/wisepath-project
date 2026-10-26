@@ -3,13 +3,13 @@
 import { ActionIcon, Box, Card, Group, Menu, Tooltip } from '@mantine/core';
 import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash, IconViewportNarrow, IconViewportWide } from '@tabler/icons-react';
 import Link from 'next/link';
-import { branchProgress, canEdit, pathProgress } from '@wisepath/domain/paths';
+import { branchProgress, canEdit } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import { SaveStatus } from '@/features/paths/path';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
 import { DeletePageModal } from '../DeletePageModal';
-import { StudiedToggle } from '../StudiedToggle';
+import { StudiedToggle } from '../StudiedToggle/StudiedToggle';
 import { PageLook } from '../PageLook/PageLook';
 import { moduleLook } from '../PageLook/PageLook.helpers';
 import classes from './PageEditor.module.css';
@@ -69,9 +69,10 @@ export function PageSheet({
           {/* A study has nothing to mark as studied */}
           {path.kind === 'learningPath' && (
             <StudiedToggle
-              studied={page.studied}
+              path={path}
+              page={page}
               onChange={(studied) => store.updatePage(page.id, { studied })}
-              progress={{ map: path.title, ...pathProgress(path) }}
+              onShowText={() => operations.showTab('content')}
             />
           )}
           <Tooltip label={t('page.seeOnMap')}>

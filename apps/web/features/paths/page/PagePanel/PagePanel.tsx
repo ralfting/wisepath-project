@@ -3,7 +3,7 @@
 import { ActionIcon, Anchor, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
 import { IconArrowLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
-import { canEdit, pathProgress } from '@wisepath/domain/paths';
+import { canEdit } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
 import { PageContent } from '../PageContent/PageContent';
@@ -13,7 +13,7 @@ import { usePageNotes } from '../PageNotes/usePageNotes';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
 import type { EditorFocus } from '@/features/paths/editor';
 import { DeletePageModal } from '../DeletePageModal';
-import { StudiedToggle } from '../StudiedToggle';
+import { StudiedToggle } from '../StudiedToggle/StudiedToggle';
 import { PageLook } from '../PageLook/PageLook';
 import { moduleLook } from '../PageLook/PageLook.helpers';
 import { useT } from '@/i18n/I18nProvider';
@@ -164,9 +164,10 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
         {progress && (
           <Group gap="xs" px="lg" pt="md">
             <StudiedToggle
-              studied={page.studied}
+              path={path}
+              page={page}
               onChange={(studied) => store.updatePage(page.id, { studied })}
-              progress={{ map: path.title, ...pathProgress(path) }}
+              onShowText={() => operations.showTab('content')}
             />
           </Group>
         )}

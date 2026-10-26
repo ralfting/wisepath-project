@@ -128,7 +128,6 @@ export const page = {
   studied: {
     on: 'Studied',
     off: "I've studied this",
-    effect: 'Studied pages count toward the path’s progress.',
     effectWithProgress: "Studied pages count toward {map}'s progress: {studied} of {total} so far.",
     unmark: '{effect} Click to mark it as not studied yet.',
     mark: "Tick it once you've learned what this page covers. {effect}",
