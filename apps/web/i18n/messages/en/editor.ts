@@ -5,8 +5,9 @@ export const editor = {
     placeholder: 'Write here, or type / for commands',
   },
   notes: {
-    label: 'My notes',
+    label: 'Note',
     placeholder: 'Write what you want to remember, or type / for commands',
+    add: 'Note',
   },
   toolbar: {
     heading: 'Heading',

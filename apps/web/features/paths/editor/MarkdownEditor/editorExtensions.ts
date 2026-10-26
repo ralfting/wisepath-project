@@ -21,6 +21,8 @@ import type { PageLinkItem, PageLinkPickerState, SlashMenuState } from '../menus
 import { WikiLink } from '../wikiLink';
 import { YouTubeVideo } from '../youtube';
 import { LinkTitles } from '../linkTitles';
+import { NoteHighlights } from '../noteHighlights';
+import type { EditorNotes } from '../noteHighlights';
 import { CodeBlockView } from '../CodeBlockView/CodeBlockView';
 import { CalloutBlock } from '../callout';
 import { CalloutView } from '../CalloutView/CalloutView';
@@ -37,6 +39,7 @@ export interface EditorContext {
   onLinkPage: (pageId: string) => void;
   onCreatePageHere: (title: string) => void;
   inbox?: { items: ReadonlyArray<InboxItem> | null };
+  notes?: EditorNotes;
   variant?: EditorVariant;
   t: Translate;
   loadPreview: (url: string) => Promise<Preview | null>;
@@ -46,7 +49,8 @@ export interface EditorContext {
  * Our Tiptap setup: markdown in and out, code with syntax colours, links (web and [[Page]]), checklists, callouts, tables kept
  * plain so they save as markdown, YouTube videos to take notes on, the [[ picker and the / commands. The page
  * prompts and link cards are the editor component's; these say when to show them. A lean editor (the reader's
- * notes) has no videos, no [[ picker and no / commands that make or link pages.
+ * notes) has no videos, no [[ picker and no / commands that make or link pages. The reader's notes on passages are
+ * drawn over the text, when the editor is given them.
  */
 export function editorExtensions({
   context,
@@ -113,6 +117,7 @@ export function editorExtensions({
       onOpen: (link, element) => (link.kind === 'web' ? openUrl(link.href) : element && openWikiLink(link.title, element)),
     }),
     Markdown.configure({ html: false, linkify: false, tightLists: true, transformPastedText: true }),
+    NoteHighlights.configure({ notes: () => context().notes }),
     ...(variant.lean
       ? []
       : [

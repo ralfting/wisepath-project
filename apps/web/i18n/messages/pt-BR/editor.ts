@@ -8,8 +8,9 @@ export const editor = {
     placeholder: 'Escreva aqui, ou digite / para ver os comandos',
   },
   notes: {
-    label: 'Minhas notas',
+    label: 'Nota',
     placeholder: 'Escreva o que quer lembrar, ou digite / para ver os comandos',
+    add: 'Nota',
   },
   toolbar: {
     heading: 'Título',

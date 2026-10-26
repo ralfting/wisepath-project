@@ -1,0 +1,10 @@
+/* A passage the reader has a note on; stronger while its note is open */
+.highlights :global(.wp-page-note) {
+  background: var(--mantine-color-yellow-light);
+  cursor: pointer;
+}
+
+.highlights :global(.wp-page-note-open) {
+  background: var(--mantine-color-yellow-light-hover);
+  text-decoration: underline var(--mantine-color-yellow-filled);
+}

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { MemoryAuth } from '@/infrastructure/auth/MemoryAuth';
 import { renderWithLayers } from '@/test/render';
+import type { EditorNotes } from '../noteHighlights';
 import { MarkdownEditor } from './MarkdownEditor';
 
 const noop = () => {};
@@ -21,6 +22,27 @@ const editor = (content: string, onChange = noop) =>
     />,
     MemoryAuth(),
   );
+
+/** A read-only text with the reader's notes, as someone else's page shows it to them */
+const readOnlyWithNotes = (content: string, items: EditorNotes['items']) => {
+  const notes = { items, openId: null, onOpen: vi.fn(), onSelection: vi.fn(), onFound: vi.fn() };
+  renderWithLayers(
+    <MarkdownEditor
+      content={content}
+      onChange={noop}
+      pages={[]}
+      currentPageId="page"
+      onOpenPage={noop}
+      onLinkPage={noop}
+      onCreatePage={noop}
+      onCreatePageHere={noop}
+      readOnly
+      notes={notes}
+    />,
+    MemoryAuth(),
+  );
+  return notes;
+};
 
 describe('MarkdownEditor', () => {
   it('saves nothing when a page is only opened', async () => {
@@ -69,5 +91,37 @@ describe('MarkdownEditor', () => {
     editor('> [!note]\n> GitHub kind\n\n> Said once');
     expect(await screen.findByText(/GitHub kind/)).toBeTruthy();
     expect(screen.queryByRole('note')).toBeNull();
+  });
+
+  describe("with the reader's notes", () => {
+    it('highlights the passage a note is on, finds it, and opens the note from it', async () => {
+      const user = userEvent.setup();
+      const quote = { exact: 'borrow', prefix: 'mutable ', suffix: ' at a time' };
+      const notes = readOnlyWithNotes('One borrow or another.\n\nOne mutable **borrow** at a time.', [
+        { id: 'on-passage', quote },
+        { id: 'gone', quote: { exact: 'lifetime', prefix: '', suffix: '' } },
+        { id: 'on-page' },
+      ]);
+
+      const passage = await screen.findByText('borrow', { selector: '.wp-page-note' });
+      expect(passage.getAttribute('data-page-note')).toBe('on-passage');
+      expect(notes.onFound).toHaveBeenLastCalledWith(['on-passage']);
+      await user.click(passage);
+      expect(notes.onOpen).toHaveBeenCalledWith('on-passage', expect.objectContaining({ top: expect.any(Number) }));
+    });
+
+    it('offers Note on words selected in a text the reader may not edit, quoting them', async () => {
+      const user = userEvent.setup();
+      const notes = readOnlyWithNotes('Two shared borrows may overlap.', []);
+      const text = (await screen.findByText('Two shared borrows may overlap.')).firstChild!;
+
+      const selection = document.getSelection()!;
+      selection.setBaseAndExtent(text, 4, text, 10);
+      document.dispatchEvent(new Event('selectionchange'));
+      await user.click(await screen.findByRole('button', { name: 'Note', hidden: true }));
+
+      expect(notes.onSelection).toHaveBeenCalledWith({ exact: 'shared', prefix: 'Two ', suffix: ' borrows may overlap.' }, expect.anything());
+      expect(screen.queryByRole('button', { name: 'Bold', hidden: true })).toBeNull();
+    });
   });
 });

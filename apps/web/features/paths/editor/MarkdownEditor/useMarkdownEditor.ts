@@ -8,6 +8,7 @@ import type { InboxItem } from '@wisepath/domain/inbox';
 import { useLinkPreviewLoader } from '@/useCases/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { insertPageLink } from '../menus';
+import { noteSelection, refreshNoteHighlights } from '../noteHighlights';
 import type { PageLinkPickerState, SlashMenuState } from '../menus';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import { headingsOf, sameHeadings } from './Outline/Outline.helpers';
@@ -26,7 +27,7 @@ import type { MarkdownEditorProps } from './MarkdownEditor';
  * prompts, the link card, and putting the cursor in the text when asked
  */
 export function useMarkdownEditor(props: MarkdownEditorProps) {
-  const { content, pages, focusSignal = 0, focusOnOpen = null, readOnly = false, inbox } = props;
+  const { content, pages, focusSignal = 0, focusOnOpen = null, readOnly = false, inbox, notes } = props;
   const t = useT();
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
   const [headings, setHeadings] = useState<ReadonlyArray<Heading>>([]);
@@ -119,6 +120,13 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     if (editor && !editor.isDestroyed) editor.view.dispatch(editor.state.tr.setMeta('wikiLinkRefresh', true));
   }, [editor, pages, t]);
 
+  // The notes come in through the context, which the highlights only read when the text changes
+  const noteItems = notes?.items;
+  const openNote = notes?.openId;
+  useEffect(() => {
+    if (editor && !editor.isDestroyed) refreshNoteHighlights(editor);
+  }, [editor, noteItems, openNote]);
+
   useEffect(() => {
     if (editor && focusSignal > 0) editor.commands.focus('end');
   }, [editor, focusSignal]);
@@ -157,11 +165,13 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     editor.commands.focus(inboxPrompt.at);
   };
 
+  const noteSelectionNow = () => void (editor && noteSelection(editor, latest.current.props.notes));
+
   return {
     editor,
     wrapper,
     card,
     state: { headings, picker, slash, prompt, inboxPrompt },
-    operations: { submitPageName, cancelPageName, pickInboxItem, cancelInboxItem },
+    operations: { submitPageName, cancelPageName, pickInboxItem, cancelInboxItem, noteSelection: noteSelectionNow },
   };
 }

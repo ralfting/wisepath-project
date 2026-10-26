@@ -5,8 +5,10 @@ import { RichTextEditor } from '@mantine/tiptap';
 import type { InboxItem } from '@wisepath/domain/inbox';
 import { useT } from '@/i18n/I18nProvider';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
+import type { EditorNotes } from '../noteHighlights';
 import classes from './MarkdownEditor.module.css';
 import blocks from './MarkdownBlocks.module.css';
+import noteClasses from './NoteHighlights.module.css';
 import { EditorToolbar } from './EditorToolbar';
 import { InboxItemPrompt } from './InboxItemPrompt/InboxItemPrompt';
 import { LinkCard } from './LinkCard';
@@ -47,6 +49,8 @@ export interface MarkdownEditorProps {
   inbox?: { items: ReadonlyArray<InboxItem> | null; onTaken: (item: InboxItem) => void };
   /** The page's text (the default), or the reader's notes on it in a lean editor */
   variant?: EditorVariant;
+  /** The reader's notes on passages of the text: drawn over them, and Note on a selection makes one */
+  notes?: EditorNotes;
 }
 
 /** Where the cursor goes when the text opens: at a position, its start or its end */
@@ -61,12 +65,14 @@ export type EditorFocus = number | 'start' | 'end';
  * / opens a list of commands; its Page command asks for a name, then Enter
  * links that page and goes straight to it, creating it when it does not exist.
  * Its Inbox item command puts something waiting in the Inbox where / was typed.
+ * Given the reader's notes, it highlights their passages and offers Note on a selection, read-only text included.
  */
 export function MarkdownEditor(props: MarkdownEditorProps) {
   const { pages, currentPageId, toolbarOffset = 0, readOnly = false, inbox, variant = 'page' } = props;
   const { lean } = EDITOR_VARIANTS[variant];
   const t = useT();
   const { editor, wrapper, card, state, operations } = useMarkdownEditor(props);
+  const canNote = !!props.notes;
   const { headings, picker, slash, prompt, inboxPrompt } = state;
 
   return (
@@ -75,7 +81,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       <RichTextEditor
         editor={editor}
         variant="subtle"
-        classNames={{ root: classes.root, content: `${classes.content} ${blocks.blocks}${lean ? ` ${classes.lean}` : ''}` }}
+        classNames={{ root: classes.root, content: `${classes.content} ${blocks.blocks} ${noteClasses.highlights}${lean ? ` ${classes.lean}` : ''}` }}
         labels={{
           h2ControlLabel: t('editor.toolbar.heading'),
           h3ControlLabel: t('editor.toolbar.subheading'),
@@ -99,7 +105,9 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
         }}
       >
         {!readOnly && !lean && <EditorToolbar editor={editor} offset={toolbarOffset} />}
-        {editor && !readOnly && <SelectionBubble editor={editor} />}
+        {editor && (!readOnly || canNote) && (
+          <SelectionBubble editor={editor} format={!readOnly} onNote={canNote ? operations.noteSelection : undefined} />
+        )}
         <RichTextEditor.Content />
       </RichTextEditor>
 

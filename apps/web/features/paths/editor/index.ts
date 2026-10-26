@@ -1,3 +1,4 @@
 export { MarkdownEditor } from './MarkdownEditor/MarkdownEditor';
 export type { EditorFocus } from './MarkdownEditor/MarkdownEditor';
+export type { EditorNotes, NoteRect } from './noteHighlights';
 export { OPEN_SEARCH_EVENT } from './keys';
