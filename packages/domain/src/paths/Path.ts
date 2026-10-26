@@ -66,6 +66,8 @@ export const Page = Schema.Struct({
   /** Free-form markdown: explanations, notes, links, YouTube URLs on their own line */
   content: Schema.String,
   studied: Schema.Boolean,
+  /** The reader's own markdown on the page, never anyone else's; absent when they wrote none or nobody reads */
+  notes: Schema.optional(Schema.String),
   /** ISO date of the last edit to the title or text */
   updatedAt: Schema.String,
   /** Drawn as a module on the map; nothing else changes */
@@ -87,7 +89,7 @@ export const Path = Schema.Struct({
   /** The single page at the centre of the map */
   rootPageId: PageId,
   visibility: PathVisibility,
-  /** What whoever reads it may do with it; its pages' studied marks are that reader's too */
+  /** What whoever reads it may do with it; its pages' studied marks and notes are that reader's too */
   access: PathAccess,
   /** Who the path is for, in one line, as the owner told the catalog */
   audience: Schema.optional(Schema.String),

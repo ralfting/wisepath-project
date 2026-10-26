@@ -54,6 +54,8 @@ export const PageEdit = Schema.Struct({
   title: Schema.optional(PageTitle),
   content: Schema.optional(Schema.String),
   studied: Schema.optional(Schema.Boolean),
+  /** The reader's own notes on the page; empty removes them */
+  notes: Schema.optional(Schema.String),
   module: Schema.optional(Schema.Boolean),
   color: Schema.optional(PageColor),
   icon: Schema.optional(PageIcon),
@@ -130,7 +132,7 @@ export const addBranch = Effect.fnUntraced(function*(path: Path, parentId: PageI
 })
 
 /**
- * Edits a page: its text, whether it was studied, how it shows on the map,
+ * Edits a page: its text, whether it was studied, the reader's notes, how it shows on the map,
  * and, after a rename, the [[links]] that used its old title.
  */
 export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, edit: PageEdit, now = new Date()) {
@@ -138,8 +140,8 @@ export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, 
   if (!page) return yield* new PageNotFound({ pageId })
   if (edit.title !== undefined && titleTaken(path, pageId, edit.title)) return yield* new TitleTaken({ title: edit.title })
 
-  const { title, content, studied, module, color, icon, previousTitle } = edit
-  const text = defined({ title, content, studied })
+  const { title, content, studied, notes, module, color, icon, previousTitle } = edit
+  const text = defined({ title, content, studied, notes })
   const look = defined({ module, color, icon })
 
   let next = updatePage(path, pageId, text, now)

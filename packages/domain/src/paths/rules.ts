@@ -69,14 +69,14 @@ export function createPage(path: Path, title: string, id: PageId, now = new Date
 export function updatePage(
   path: Path,
   pageId: PageId,
-  patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>,
+  patch: Partial<Pick<Page, 'title' | 'content' | 'studied' | 'notes'>>,
   now = new Date(),
 ): Path {
   if (patch.title !== undefined && titleTaken(path, pageId, patch.title)) return path;
   if (Object.keys(patch).length === 0) return path;
   const pages = path.pages.map((p) => {
     if (p.id !== pageId) return p;
-    // Toggling studied is not an edit of the page
+    // A studied mark or notes are the reader's, not an edit of the page
     const edited = patch.title !== undefined || patch.content !== undefined;
     return { ...p, ...patch, updatedAt: edited ? now.toISOString() : p.updatedAt };
   });
