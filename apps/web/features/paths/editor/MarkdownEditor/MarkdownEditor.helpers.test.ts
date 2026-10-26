@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pageLinkItems, savedMarkdown, webAddress } from './MarkdownEditor.helpers';
+import { notesInMargin, pageLinkItems, savedMarkdown, webAddress } from './MarkdownEditor.helpers';
 
 const page = (id: string, title: string) => ({ id, title, content: '' });
 const pages = [page('here', 'Fibers'), page('a', 'Fiber pools'), page('b', 'Scheduler'), page('c', '   ')];
@@ -40,5 +40,16 @@ describe('a web link\'s address', () => {
     expect(webAddress('mailto:ada@example.com')).toBeNull();
     expect(webAddress('javascript:alert(1)')).toBeNull();
     expect(webAddress('notes')).toBeNull();
+  });
+});
+
+describe('notesInMargin', () => {
+  it('puts the note bubbles in the margin when the full page has room on its left', () => {
+    expect(notesInMargin({ left: 4, right: 0 })).toBe(true);
+  });
+
+  it('keeps them at the end of their words in a narrow window or outside a full page', () => {
+    expect(notesInMargin({ left: 3.9, right: 40 })).toBe(false);
+    expect(notesInMargin(null)).toBe(false);
   });
 });

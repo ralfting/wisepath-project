@@ -3,17 +3,16 @@
 import type { Editor } from '@tiptap/react';
 import { useEffect, useRef, useState } from 'react';
 import type { FocusEvent, KeyboardEvent, MouseEvent } from 'react';
-import { outlinePlace, scrollerOf } from './Outline.helpers';
-import type { Heading, OutlinePlace } from './Outline.helpers';
+import { scrollerOf } from './Outline.helpers';
+import type { Heading } from './Outline.helpers';
 
 /**
  * The outline's view model: whether its panel is open, the heading being read (the last whose top has passed below
  * the toolbar), the keys that move through it, and going to a heading
  */
-export function useOutline({ editor, headings, noteOpen }: { editor: Editor; headings: ReadonlyArray<Heading>; noteOpen: boolean }) {
+export function useOutline({ editor, headings }: { editor: Editor; headings: ReadonlyArray<Heading> }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
-  const [place, setPlace] = useState<OutlinePlace>('inside');
   const railRef = useRef<HTMLElement>(null);
   const dashesRef = useRef<HTMLButtonElement>(null);
   const openBefore = useRef(false);
@@ -45,24 +44,6 @@ export function useOutline({ editor, headings, noteOpen }: { editor: Editor; hea
       cancelAnimationFrame(frame);
     };
   }, [editor, headings]);
-
-  // The room right of the full page, measured again when the window or the page changes width, and once the page has
-  // slid back from beside a note's card. The drawer is no full page: its outline stays inside its edge
-  useEffect(() => {
-    const frame = railRef.current?.closest<HTMLElement>('[data-note-frame="column"]');
-    if (!frame) return;
-    const measure = () => setPlace(outlinePlace(document.documentElement.clientWidth - frame.getBoundingClientRect().right, noteOpen));
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(frame);
-    window.addEventListener('resize', measure);
-    frame.addEventListener('transitionend', measure);
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', measure);
-      frame.removeEventListener('transitionend', measure);
-    };
-  }, [noteOpen]);
 
   // From the keyboard: Enter or ↓ on the dashes goes into the list, at the heading being read; ↑ ↓ Home End move
   // through it, Esc closes it and leaves the focus on the dashes
@@ -110,7 +91,7 @@ export function useOutline({ editor, headings, noteOpen }: { editor: Editor; hea
   return {
     railRef,
     dashesRef,
-    state: { open, active, place, top: Math.min(...headings.map((h) => h.level)) },
+    state: { open, active, top: Math.min(...headings.map((h) => h.level)) },
     operations: {
       open: () => setOpen(true),
       close: () => setOpen(false),

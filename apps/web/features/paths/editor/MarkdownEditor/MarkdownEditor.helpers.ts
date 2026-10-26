@@ -9,6 +9,7 @@ import type { PageLinkItem } from '../menus';
 import { setCallout } from '../callout';
 import type { PreviewPage, PreviewTarget } from '../LinkPreview/LinkPreview';
 import type { PagePrompt } from './PageNamePrompt';
+import type { FrameRoom } from './useFrameRoom';
 
 /**
  * Syntax colours for code blocks: the common languages (TypeScript, JavaScript, JSON, CSS, HTML, SQL,
@@ -35,6 +36,12 @@ export const EDITOR_VARIANTS = {
   notes: { label: 'editor.notes.label', placeholder: 'editor.notes.placeholder', lean: true },
 } as const satisfies Record<string, { label: TranslationKey; placeholder: TranslationKey; lean: boolean }>;
 export type EditorVariant = keyof typeof EDITOR_VARIANTS;
+
+/** The rem left of the full page its note bubbles need in the margin: two of them and a gap (NoteHighlights.module.css) */
+const NOTE_MARGIN_ROOM = 4;
+
+/** Whether the note bubbles go out in the margin left of the text, or stay at the end of their words */
+export const notesInMargin = (room: FrameRoom | null): boolean => room !== null && room.left >= NOTE_MARGIN_ROOM;
 
 /**
  * The / commands; Page is handled by the editor, since it asks for a name first. The hint beside the label is

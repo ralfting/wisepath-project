@@ -44,12 +44,13 @@ export function scrollerOf(el: HTMLElement): HTMLElement | Window {
  */
 export type OutlinePlace = 'list' | 'margin' | 'inside';
 
-/** The room right of the page, in px, the list (its width and the gaps around it) and the dashes need */
-const LIST_ROOM = 288;
-const MARGIN_ROOM = 56;
+/** The room right of the page, in rem, the list and the dashes need: their width in Outline.module.css and the gaps */
+const LIST_ROOM = 18;
+const MARGIN_ROOM = 3.5;
 
-export const outlinePlace = (room: number, noteOpen: boolean): OutlinePlace =>
-  noteOpen ? 'inside' : room >= LIST_ROOM ? 'list' : room >= MARGIN_ROOM ? 'margin' : 'inside';
+/** `room` is the rem right of the full page; null outside one */
+export const outlinePlace = (room: number | null, noteOpen: boolean): OutlinePlace =>
+  room === null || noteOpen ? 'inside' : room >= LIST_ROOM ? 'list' : room >= MARGIN_ROOM ? 'margin' : 'inside';
 
 /** The outline's panel grows out of the rail: a short fade with a nudge from the right */
 export const unfold: MantineTransition = {

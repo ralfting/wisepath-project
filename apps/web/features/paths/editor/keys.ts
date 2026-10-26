@@ -270,8 +270,9 @@ export const ActiveBlockRail = Extension.create({
             });
             const hint = hasTime && videoAbove(editor, $from.pos) ? `\u25B6\uFE0E ${key}` : lineLink($from) ? `\u2197 ${key}` : null;
             line = hint ? { block, hint } : null;
-            // The tag goes past the line's note bubbles, out in the margin beside a full page
-            const marks = block.querySelectorAll('.wp-page-note-mark').length;
+            // The tag goes past the bubbles of the line's own block when they are out in the margin
+            const own = $from.depth > 0 ? view.nodeDOM($from.before($from.depth)) : null;
+            const marks = own instanceof HTMLElement ? [...own.querySelectorAll('.wp-page-note-mark')].filter((mark) => getComputedStyle(mark).position === 'absolute').length : 0;
             rail.style.setProperty('--wp-line-marks', String(marks));
             rail.toggleAttribute('data-marks', marks > 0);
             placeTag();

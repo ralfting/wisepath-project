@@ -1,4 +1,5 @@
-/* The page's outline: a rail of dashes on the right edge that follows the scroll, Notion-style */
+/* The page's outline: its headings listed beside the full page when there is room, else a rail of dashes on the right
+   edge (Notion-style); either follows the scroll */
 .outlineTrack {
   position: absolute;
   /* Below the toolbar, which sits first in the editor */

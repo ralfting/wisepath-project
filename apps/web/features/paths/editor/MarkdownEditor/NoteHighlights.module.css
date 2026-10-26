@@ -29,7 +29,7 @@
 /* Where the margin's marks start left of the text, and the room each takes: the bubbles below, then the rail's
    play or open tag past them (MarkdownEditor.module.css) */
 .highlights {
-  --wp-gutter-start: calc(var(--mantine-spacing-lg) + 0.375rem);
+  --wp-gutter-start: calc(var(--mantine-spacing-lg) + var(--mantine-spacing-xs) / 2);
   --wp-gutter-step: 1.375rem;
 }
 
@@ -68,10 +68,11 @@
   }
 }
 
-/* Beside a full page the bubble leaves the line for the margin left of the text, past the page's edge, level with
-   the passage's last line; a second one in the same block sits further out. In the drawer, whose box would cut it
-   off, it stays at the end of the passage */
-:global([data-note-frame='column']) .highlights :global(.wp-page-note-mark) {
+/* Beside a full page with room on its left (data-note-margin, measured by the editor), the bubble leaves the line for
+   the margin, past the page's edge, level with the passage's last line; a second one in the same block sits further
+   out. Only for the text's own paragraphs, headings and lists: a table cell or a callout is a box of its own, which
+   would place it inside or cut it off. In the drawer it stays at the end of the passage */
+:global([data-note-margin]) .highlights :global(.ProseMirror > :is(p, h1, h2, h3, h4, h5, h6, ul, ol) .wp-page-note-mark) {
   position: absolute;
   left: calc(-1 * var(--wp-gutter-start) - (var(--wp-mark-nth, 0) + 1) * var(--wp-gutter-step));
   width: 1.15rem;

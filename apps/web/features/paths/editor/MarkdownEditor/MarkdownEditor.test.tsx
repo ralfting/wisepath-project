@@ -123,6 +123,19 @@ describe('MarkdownEditor', () => {
       expect(notes.onOpen).toHaveBeenCalledWith('on-passage', expect.objectContaining({ top: expect.any(Number) }));
     });
 
+    it('numbers the bubbles of each block, so a second note in a paragraph sits beside the first in the margin', async () => {
+      const quote = (exact: string) => ({ exact, prefix: '', suffix: '' });
+      withNotes('Shared borrows overlap.\n\nA mutable borrow is alone.', [
+        { id: 'shared', quote: quote('Shared') },
+        { id: 'overlap', quote: quote('overlap') },
+        { id: 'alone', quote: quote('alone') },
+      ]);
+
+      await screen.findByText('alone', { selector: '.wp-page-note' });
+      const nth = (id: string) => (document.querySelector(`.wp-page-note-mark[data-page-note="${id}"]`) as HTMLElement).style.getPropertyValue('--wp-mark-nth');
+      expect([nth('shared'), nth('overlap'), nth('alone')]).toEqual(['0', '1', '0']);
+    });
+
     it('offers Note on words selected in a text the reader may not edit, quoting them', async () => {
       const user = userEvent.setup();
       const notes = withNotes('Two shared borrows may overlap.', []);

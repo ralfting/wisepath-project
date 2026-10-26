@@ -5,7 +5,7 @@ import { Paper, Text, Transition, UnstyledButton } from '@mantine/core';
 import { useReducedMotion } from '@mantine/hooks';
 import classes from './Outline.module.css';
 import { useT } from '@/i18n/I18nProvider';
-import { unfold } from './Outline.helpers';
+import { outlinePlace, unfold } from './Outline.helpers';
 import type { Heading } from './Outline.helpers';
 import { useOutline } from './useOutline';
 
@@ -16,11 +16,12 @@ import { useOutline } from './useOutline';
  * A click on a name scrolls to its heading and puts the cursor at its end. From the keyboard, Enter or ↓ on the
  * dashes goes into the list.
  */
-export function Outline({ editor, headings, noteOpen }: { editor: Editor; headings: ReadonlyArray<Heading>; noteOpen: boolean }) {
+export function Outline({ editor, headings, room, noteOpen }: { editor: Editor; headings: ReadonlyArray<Heading>; room: number | null; noteOpen: boolean }) {
   const t = useT();
   const reduceMotion = useReducedMotion();
-  const { railRef, dashesRef, state, operations } = useOutline({ editor, headings, noteOpen });
-  const listed = state.place === 'list';
+  const place = outlinePlace(room, noteOpen);
+  const { railRef, dashesRef, state, operations } = useOutline({ editor, headings });
+  const listed = place === 'list';
 
   const list = (
     <>
@@ -38,6 +39,8 @@ export function Outline({ editor, headings, noteOpen }: { editor: Editor; headin
               data-level={Math.min(h.level - state.top, 2)}
               data-active={i === state.active || undefined}
               aria-current={i === state.active ? 'location' : undefined}
+              // Listed, the headings are one stop for Tab, at the one being read; ↑ ↓ move between them
+              tabIndex={listed && i !== state.active ? -1 : 0}
               title={h.text}
             >
               <span className={classes.outlineText}>{h.text}</span>
@@ -49,7 +52,7 @@ export function Outline({ editor, headings, noteOpen }: { editor: Editor; headin
   );
 
   return (
-    <div className={classes.outlineTrack} data-place={state.place} aria-hidden={false}>
+    <div className={classes.outlineTrack} data-place={place} aria-hidden={false}>
       {listed ? (
         <nav ref={railRef} aria-label={t('editor.outline.label')} className={classes.outline} onKeyDown={operations.keyDown}>
           <div className={classes.outlineListed}>{list}</div>

@@ -17,8 +17,9 @@ import { PageLinkPicker } from './PageLinkPicker';
 import { PageNamePrompt, placeNear } from './PageNamePrompt';
 import { SelectionBubble } from './SelectionBubble';
 import { SlashMenu } from './SlashMenu';
-import { EDITOR_VARIANTS } from './MarkdownEditor.helpers';
+import { EDITOR_VARIANTS, notesInMargin } from './MarkdownEditor.helpers';
 import type { EditorVariant } from './MarkdownEditor.helpers';
+import { useFrameRoom } from './useFrameRoom';
 import { useMarkdownEditor } from './useMarkdownEditor';
 
 /** What the editor shows and how it tells its page what happened */
@@ -72,12 +73,19 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
   const { lean } = EDITOR_VARIANTS[variant];
   const t = useT();
   const { editor, wrapper, card, state, operations } = useMarkdownEditor(props);
+  const room = useFrameRoom(wrapper);
   const canNote = !!props.notes;
   const { headings, picker, slash, prompt, inboxPrompt } = state;
 
   return (
-    <div ref={wrapper} className={classes.wrapper} onMouseOver={card.over} onMouseOut={card.out}>
-      {editor && !lean && headings.length >= 2 && <Outline editor={editor} headings={headings} noteOpen={!!props.notes?.openId} />}
+    <div
+      ref={wrapper}
+      className={classes.wrapper}
+      data-note-margin={notesInMargin(room) || undefined}
+      onMouseOver={card.over}
+      onMouseOut={card.out}
+    >
+      {editor && !lean && headings.length >= 2 && <Outline editor={editor} headings={headings} room={room?.right ?? null} noteOpen={!!props.notes?.openId} />}
       <RichTextEditor
         editor={editor}
         variant="subtle"
