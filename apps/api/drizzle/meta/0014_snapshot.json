@@ -1,5 +1,5 @@
 {
-  "id": "09df2868-71ec-4737-a88b-b869a82dd737",
+  "id": "be658226-d2af-4265-a8e6-c3713883a228",
   "prevId": "22c7a2b3-3212-4917-b6a8-6c79cf1c4097",
   "version": "7",
   "dialect": "postgresql",
@@ -198,9 +198,39 @@
           "primaryKey": false,
           "notNull": true
         },
-        "content": {
-          "name": "content",
+        "id": {
+          "name": "id",
           "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "quote_exact": {
+          "name": "quote_exact",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quote_prefix": {
+          "name": "quote_prefix",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quote_suffix": {
+          "name": "quote_suffix",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp (3) with time zone",
           "primaryKey": false,
           "notNull": true
         },
@@ -248,7 +278,8 @@
           "columns": [
             "user_id",
             "path_id",
-            "page_id"
+            "page_id",
+            "id"
           ]
         }
       },

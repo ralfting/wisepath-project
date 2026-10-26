@@ -67,7 +67,7 @@ export const Page = Schema.Struct({
   /** Free-form markdown: explanations, notes, links, YouTube URLs on their own line */
   content: Schema.String,
   studied: Schema.Boolean,
-  /** The reader's own notes on the page, oldest first, never anyone else's; absent when nobody reads */
+  /** The reader's own notes on the page, oldest first, never anyone else's; absent when they have none */
   notes: Schema.optional(Schema.Array(PageNote)),
   /** ISO date of the last edit to the title or text */
   updatedAt: Schema.String,

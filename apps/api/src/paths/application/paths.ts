@@ -8,11 +8,14 @@ import {
   editPage,
   editPath,
   mayEditPage,
+  mayWriteNotes,
+  removeNote,
   removePage,
   startPath,
   summarize,
+  writeNote,
 } from '@wisepath/domain/paths';
-import type { NewPage, NewPath, PageEdit, PageId, Path, PathEdit, PathId } from '@wisepath/domain/paths';
+import type { NewPage, NewPath, PageEdit, PageId, Path, PathEdit, PathId, RemoveNote, WriteNote } from '@wisepath/domain/paths';
 import { ownProject } from '../../projects/application/projects';
 import { CurrentUser } from './CurrentUser';
 import { MemberStore } from './MemberStore';
@@ -122,11 +125,21 @@ export const createPage = Effect.fn('paths.createPage')(function* (id: PathId, c
   return path.pages.find((p) => p.id === command.id)!;
 });
 
-/** A studied mark and notes are the reader's own; renaming the root is the owner's; an edit with both is refused whole */
+/** A studied mark is the reader's own; renaming the root is the owner's; an edit with both is refused whole */
 export const updatePage = Effect.fn('paths.updatePage')(function* (id: PathId, pageId: PageId, edit: PageEdit) {
   yield* change(id, (path) => mayEditPage(path, pageId, edit), (path) => editPage(path, pageId, edit));
 });
 
 export const deletePage = Effect.fn('paths.deletePage')(function* (id: PathId, pageId: PageId) {
   yield* change(id, edits, (path) => removePage(path, pageId));
+});
+
+/** A note is the reader's own: reading the map is enough, and the page stays as it was */
+export const putNote = Effect.fn('paths.putNote')(function* (id: PathId, command: WriteNote) {
+  yield* change(id, mayWriteNotes, (path) => writeNote(path, command));
+});
+
+/** Deleting a note already gone changes nothing (a retry) */
+export const deleteNote = Effect.fn('paths.deleteNote')(function* (id: PathId, command: RemoveNote) {
+  yield* change(id, mayWriteNotes, (path) => Effect.succeed(removeNote(path, command)));
 });

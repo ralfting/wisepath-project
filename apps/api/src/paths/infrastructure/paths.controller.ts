@@ -4,6 +4,8 @@ import { Effect, Schema } from 'effect';
 import {
   NewPage,
   NewPath,
+  NoteId,
+  NoteText,
   Page,
   PageEdit,
   PageId,
@@ -43,6 +45,7 @@ const asUser = (req: Request) => Effect.provideService(CurrentUser, { id: req.us
 const pathId = new SchemaPipe(PathId);
 const pageId = new SchemaPipe(PageId);
 const userId = new SchemaPipe(UserId);
+const noteId = new SchemaPipe(NoteId);
 
 @Controller('paths')
 @UseGuards(JwtAuthGuard)
@@ -125,6 +128,29 @@ export class PathsController {
     @Param('pageId', pageId) page: PageId,
   ) {
     await this.effect.run(paths.deletePage(id, page).pipe(asUser(req)));
+  }
+
+  @Put(':pathId/pages/:pageId/notes/:noteId')
+  @HttpCode(204)
+  async writeNote(
+    @Req() req: Request,
+    @Param('pathId', pathId) id: PathId,
+    @Param('pageId', pageId) page: PageId,
+    @Param('noteId', noteId) note: NoteId,
+    @Body(new SchemaPipe(NoteText)) text: NoteText,
+  ) {
+    await this.effect.run(paths.putNote(id, { pageId: page, note: { id: note, ...text } }).pipe(asUser(req)));
+  }
+
+  @Delete(':pathId/pages/:pageId/notes/:noteId')
+  @HttpCode(204)
+  async removeNote(
+    @Req() req: Request,
+    @Param('pathId', pathId) id: PathId,
+    @Param('pageId', pageId) page: PageId,
+    @Param('noteId', noteId) note: NoteId,
+  ) {
+    await this.effect.run(paths.deleteNote(id, { pageId: page, noteId: note }).pipe(asUser(req)));
   }
 
   @Get(':pathId/shares')

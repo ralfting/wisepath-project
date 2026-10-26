@@ -249,8 +249,8 @@ export const pageProgress = pgTable(
 );
 
 /**
- * What a reader wrote for themselves on a page (docs/plans/21-page-notes.md): each reader's own, like their marks,
- * never sent to anyone else. Blank notes are no row.
+ * What a reader writes for themselves on a page (docs/plans/21-page-notes.md): each reader's own, like their marks,
+ * never sent to anyone else. A note on a passage holds its quote in the three quote columns, all set or all null.
  */
 export const pageNotes = pgTable(
   'page_notes',
@@ -258,11 +258,16 @@ export const pageNotes = pgTable(
     userId: text('user_id').notNull(),
     pathId: text('path_id').notNull(),
     pageId: text('page_id').notNull(),
-    content: text().notNull(),
+    id: text().notNull(),
+    quoteExact: text('quote_exact'),
+    quotePrefix: text('quote_prefix'),
+    quoteSuffix: text('quote_suffix'),
+    body: text().notNull(),
+    createdAt: timestamp('created_at', { precision: 3, withTimezone: true }).notNull(),
     updatedAt: timestamp('updated_at', { precision: 3, withTimezone: true }).notNull(),
   },
   (t) => [
-    primaryKey({ name: 'page_notes_pkey', columns: [t.userId, t.pathId, t.pageId] }),
+    primaryKey({ name: 'page_notes_pkey', columns: [t.userId, t.pathId, t.pageId, t.id] }),
     foreignKey({ name: 'page_notes_user_id_fkey', columns: [t.userId], foreignColumns: [users.id] })
       .onDelete('cascade')
       .onUpdate('cascade'),

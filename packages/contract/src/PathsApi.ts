@@ -7,6 +7,8 @@ import {
   CatalogFilter,
   NewPage,
   NewPath,
+  NoteId,
+  NoteText,
   Page,
   PageEdit,
   PageId,
@@ -47,6 +49,7 @@ const SessionRequired = NotAuthenticated
 
 const path = { pathId: PathId }
 const page = { pathId: PathId, pageId: PageId }
+const note = { pathId: PathId, pageId: PageId, noteId: NoteId }
 const member = { pathId: PathId, userId: UserId }
 
 /** A download of Markdown files, zipped */
@@ -107,6 +110,17 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
     HttpApiEndpoint.delete("removePage", "/:pathId/pages/:pageId", {
       params: page,
       error: [SessionRequired, PathNotFound, RootPageProtected]
+    }),
+    /** Writes the reader's own note on a page, new or rewritten; reading the map is enough, and the page stays as it was */
+    HttpApiEndpoint.put("writeNote", "/:pathId/pages/:pageId/notes/:noteId", {
+      params: note,
+      payload: NoteText,
+      error: [SessionRequired, InvalidRequest, PathNotFound, PageNotFound]
+    }),
+    /** Removes the reader's own note; one already gone changes nothing */
+    HttpApiEndpoint.delete("removeNote", "/:pathId/pages/:pageId/notes/:noteId", {
+      params: note,
+      error: [SessionRequired, PathNotFound]
     }),
     /** The people the owner invited and the emails waiting for a sign up, for the owner only; takers are never listed */
     HttpApiEndpoint.get("shares", "/:pathId/shares", {
