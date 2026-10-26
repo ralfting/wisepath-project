@@ -1,6 +1,7 @@
 import { Schema } from "effect"
 import { PathAccess, PathLanguage, PathVisibility, PublicationStatus } from "./access"
 import { PageNote } from "./notes"
+import { ActivityId } from "./activities"
 
 /**
  * A path is a map of what someone is learning: pages of free markdown that
@@ -69,6 +70,8 @@ export const Page = Schema.Struct({
   studied: Schema.Boolean,
   /** The reader's own notes on the page, oldest first, never anyone else's; absent when they have none */
   notes: Schema.optional(Schema.Array(PageNote)),
+  /** The activities in its text the reader ticked done, never anyone else's; absent when they have none */
+  done: Schema.optional(Schema.Array(ActivityId)),
   /** ISO date of the last edit to the title or text */
   updatedAt: Schema.String,
   /** Drawn as a module on the map; nothing else changes */
@@ -90,7 +93,7 @@ export const Path = Schema.Struct({
   /** The single page at the centre of the map */
   rootPageId: PageId,
   visibility: PathVisibility,
-  /** What whoever reads it may do with it; its pages' studied marks and notes are that reader's too */
+  /** What whoever reads it may do with it; its pages' studied marks, ticks and notes are that reader's too */
   access: PathAccess,
   /** Who the path is for, in one line, as the owner told the catalog */
   audience: Schema.optional(Schema.String),

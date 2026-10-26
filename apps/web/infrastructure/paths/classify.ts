@@ -1,7 +1,7 @@
 import { Effect, Predicate } from "effect"
 import { HttpClientError } from "effect/http"
 import { PathsUnavailable } from "@wisepath/domain/paths"
-import type { CannotShareWithSelf, NotAdmin, PageNotFound, PathNotFound, RootPageProtected, TitleTaken } from "@wisepath/domain/paths"
+import type { ActivitiesOpen, CannotShareWithSelf, NotAdmin, PageNotFound, PathNotFound, RootPageProtected, TitleTaken } from "@wisepath/domain/paths"
 import type { ProjectNotFound } from "@wisepath/domain/projects"
 
 /**
@@ -12,7 +12,15 @@ import type { ProjectNotFound } from "@wisepath/domain/projects"
  * malformed, is a bug and becomes a defect.
  */
 
-type DomainError = PathNotFound | PageNotFound | TitleTaken | RootPageProtected | ProjectNotFound | CannotShareWithSelf | NotAdmin
+type DomainError =
+  | PathNotFound
+  | PageNotFound
+  | TitleTaken
+  | RootPageProtected
+  | ProjectNotFound
+  | CannotShareWithSelf
+  | NotAdmin
+  | ActivitiesOpen
 const domainTags: ReadonlyArray<string> = [
   "PathNotFound",
   "PageNotFound",
@@ -20,7 +28,8 @@ const domainTags: ReadonlyArray<string> = [
   "RootPageProtected",
   "ProjectNotFound",
   "CannotShareWithSelf",
-  "NotAdmin"
+  "NotAdmin",
+  "ActivitiesOpen"
 ]
 const isDomainError = (error: unknown): error is DomainError =>
   Predicate.hasProperty(error, "_tag") && domainTags.includes(String(error._tag))

@@ -25,6 +25,11 @@ export class RootPageProtected extends Schema.TaggedError<RootPageProtected>()("
   pageId: Schema.String
 }, { httpApiStatus: 422 }) {}
 
+/** A page of a learning path is studied once its activities are done; this one still has some open */
+export class ActivitiesOpen extends Schema.TaggedError<ActivitiesOpen>()("ActivitiesOpen", {
+  pageId: Schema.String
+}, { httpApiStatus: 422 }) {}
+
 /** The owner tried to share a path with themselves */
 export class CannotShareWithSelf extends Schema.TaggedError<CannotShareWithSelf>()("CannotShareWithSelf", {}, {
   httpApiStatus: 422

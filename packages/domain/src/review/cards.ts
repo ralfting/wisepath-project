@@ -1,6 +1,7 @@
 import { Schema } from "effect"
 import { PageId, PathId } from "../paths/Path"
 import type { Page, Path } from "../paths/Path"
+import { normalize, textHash, withoutCode } from "../paths/markdown"
 
 /**
  * Cards
@@ -41,38 +42,12 @@ export const BLANK = "____"
 /** List markers, a checkbox, a heading or a quote at the start of a line: not part of the question */
 const LINE_PREFIX = /^\s*(?:>\s*)*(?:#{1,6}\s+|[-*+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+(?:\[[ xX]\]\s+)?)?/
 
-/** The markdown with code blocks and inline code blanked out, keeping the lines where they were */
-function withoutCode(markdown: string): string {
-  return markdown
-    .replace(/^(\s*)(```|~~~)[^\n]*\n[\s\S]*?(?:^\s*\2[^\n]*$|(?![\s\S]))/gm, (block) => block.replace(/[^\n]/g, " "))
-    .replace(/`[^`\n]*`/g, (code) => " ".repeat(code.length))
-}
-
-/**
- * A short, stable hash (cyrb53) as hex. Not for security: it only names a
- * card, the same way in the browser and on the server.
- */
-function hash(text: string): string {
-  let h1 = 0xdeadbeef
-  let h2 = 0x41c6ce57
-  for (let i = 0; i < text.length; i++) {
-    const ch = text.charCodeAt(i)
-    h1 = Math.imul(h1 ^ ch, 2654435761)
-    h2 = Math.imul(h2 ^ ch, 1597334677)
-  }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
-  return (h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0")
-}
-
-const normalize = (text: string) => text.trim().replace(/\s+/g, " ")
-
 /**
  * A card's identity: its path, its page and its question. Editing the answer
  * keeps the card (and its history); editing the question makes a new one.
  */
 export function cardId(pathId: PathId, pageId: PageId, question: string): CardId {
-  return CardId.make(hash(`${pathId}\n${pageId}\n${normalize(question)}`))
+  return CardId.make(textHash(`${pathId}\n${pageId}\n${normalize(question)}`))
 }
 
 /** True when a line of text reads as a `Question :: Answer` card */

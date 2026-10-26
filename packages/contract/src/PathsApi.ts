@@ -2,6 +2,7 @@ import { Schema } from "effect"
 import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema } from "effect/http-api"
 import { NotAuthenticated, UserId } from "@wisepath/domain/auth"
 import {
+  ActivitiesOpen,
   CannotShareWithSelf,
   CatalogEntry,
   CatalogFilter,
@@ -34,7 +35,7 @@ import { InvalidRequest } from "./InvalidRequest"
 /**
  * The learner's maps and their pages (under /api/paths). Every endpoint
  * needs the session cookie. A map answers with what its reader may do with it
- * (its `access`): reading includes marking pages studied, which are the
+ * (its `access`): reading includes marking pages studied and ticking their activities, which are the
  * reader's own marks; editing pages needs an editor; the rest needs the owner.
  * Without the access needed a map answers PathNotFound, as if it did not exist.
  *
@@ -105,7 +106,7 @@ export class PathsApiGroup extends HttpApiGroup.make("paths")
     HttpApiEndpoint.patch("updatePage", "/:pathId/pages/:pageId", {
       params: page,
       payload: PageEdit,
-      error: [SessionRequired, InvalidRequest, PathNotFound, PageNotFound, TitleTaken]
+      error: [SessionRequired, InvalidRequest, PathNotFound, PageNotFound, TitleTaken, ActivitiesOpen]
     }),
     HttpApiEndpoint.delete("removePage", "/:pathId/pages/:pageId", {
       params: page,

@@ -1,7 +1,7 @@
 import type { Effect } from "effect"
 import { Context } from "effect"
 import type { NewPage, NewPath, PageEdit, PathEdit, PathSummary, RemoveNote, WriteNote } from "./commands"
-import type { PageNotFound, PathNotFound, PathsUnavailable, RootPageProtected, TitleTaken } from "./errors"
+import type { ActivitiesOpen, PageNotFound, PathNotFound, PathsUnavailable, RootPageProtected, TitleTaken } from "./errors"
 import type { Page, PageId, Path, PathId } from "./Path"
 import type { ProjectNotFound } from "../projects/errors"
 
@@ -24,11 +24,12 @@ export class PathRepository extends Context.Service<PathRepository, {
     id: PathId,
     command: NewPage
   ) => Effect.Effect<Page, PathNotFound | TitleTaken | PathsUnavailable>
+  /** ActivitiesOpen when marking a learning path's page studied before its activities are done */
   readonly updatePage: (
     id: PathId,
     pageId: PageId,
     edit: PageEdit
-  ) => Effect.Effect<void, PathNotFound | PageNotFound | TitleTaken | PathsUnavailable>
+  ) => Effect.Effect<void, PathNotFound | PageNotFound | TitleTaken | ActivitiesOpen | PathsUnavailable>
   readonly removePage: (
     id: PathId,
     pageId: PageId

@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { PageNotFound, RootPageProtected, TitleTaken } from "./errors"
+import { ActivitiesOpen, PageNotFound, RootPageProtected, TitleTaken } from "./errors"
 import { PageColor, PageIcon, PageId, PathId, PathKind } from "./Path"
 import type { Page, Path } from "./Path"
 import { createPage, deletePage, findPageByTitle, newPath, renameLinks, setDescription, setKind, setLook, titleTaken, updatePage } from "./rules"
@@ -7,6 +7,7 @@ import { lookOf, mapTree, nextPage, pathProgress } from "./tree"
 import { linksOf, withLinkTo } from "./links"
 import { PathAccess, PathVisibility } from "./access"
 import { NoteId, PageNote, TextQuote } from "./notes"
+import { ActivityId, activitiesIn } from "./activities"
 import { ProjectId } from "../projects/Project"
 
 /**
@@ -55,6 +56,8 @@ export const PageEdit = Schema.Struct({
   title: Schema.optional(PageTitle),
   content: Schema.optional(Schema.String),
   studied: Schema.optional(Schema.Boolean),
+  /** Every activity of the page the reader has ticked done, the whole set: sending it twice changes nothing */
+  done: Schema.optional(Schema.Array(ActivityId)),
   module: Schema.optional(Schema.Boolean),
   color: Schema.optional(PageColor),
   icon: Schema.optional(PageIcon),
@@ -151,22 +154,53 @@ export const addBranch = Effect.fnUntraced(function*(path: Path, parentId: PageI
 })
 
 /**
- * Edits a page: its text, whether it was studied, how it shows on the map,
- * and, after a rename, the [[links]] that used its old title.
+ * Edits a page: its text, whether it was studied and which of its activities
+ * are done, how it shows on the map, and, after a rename, the [[links]] that
+ * used its old title.
  */
 export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, edit: PageEdit, now = new Date()) {
   const page = path.pages.find((p) => p.id === pageId)
   if (!page) return yield* new PageNotFound({ pageId })
   if (edit.title !== undefined && titleTaken(path, pageId, edit.title)) return yield* new TitleTaken({ title: edit.title })
 
-  const { title, content, studied, module, color, icon, previousTitle } = edit
-  const text = defined({ title, content, studied })
+  const { title, content, studied, done, module, color, icon, previousTitle } = edit
+  const text = defined({ title, content })
   const look = defined({ module, color, icon })
 
   let next = updatePage(path, pageId, text, now)
+  if (studied !== undefined || done !== undefined) next = yield* setProgress(next, pageId, studied, done)
   if (Object.keys(look).length > 0) next = setLook(next, pageId, look)
   if (previousTitle !== undefined) next = renameLinks(next, previousTitle, title ?? page.title)
   return next
+})
+
+/**
+ * The reader's progress on a page: their ticks, then their studied mark. In a learning path a page is studied once
+ * its activities are done, so marking it with some open is refused, and unticking one unmarks it. An activity added
+ * to a page already studied leaves the mark: the condition holds when marking. Neither is an edit of the page.
+ */
+const setProgress = Effect.fnUntraced(function*(
+  path: Path,
+  pageId: PageId,
+  studied: boolean | undefined,
+  done: ReadonlyArray<ActivityId> | undefined
+) {
+  const page = path.pages.find((p) => p.id === pageId)!
+  const was = new Set(page.done ?? [])
+  const ticks = done === undefined ? was : new Set(done)
+  // A study has no progress to hold back
+  const activities = path.kind === "learningPath" ? activitiesIn(path.id, page) : []
+
+  const open = activities.some((activity) => !ticks.has(activity.id))
+  if (studied === true && !page.studied && open) return yield* new ActivitiesOpen({ pageId })
+  const unticked = activities.some((activity) => was.has(activity.id) && !ticks.has(activity.id))
+  const nextStudied = unticked ? false : studied ?? page.studied
+
+  const sameTicks = ticks.size === was.size && [...ticks].every((id) => was.has(id))
+  if (sameTicks && nextStudied === page.studied) return path
+  const { done: _done, ...rest } = page
+  const next: Page = { ...rest, studied: nextStudied, ...(ticks.size > 0 ? { done: [...ticks] } : {}) }
+  return { ...path, pages: path.pages.map((p) => (p.id === pageId ? next : p)) }
 })
 
 /** The fields that were given; an edit leaves the others as they are */

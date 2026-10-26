@@ -1,4 +1,5 @@
 export * from "./access"
+export * from "./activities"
 export * from "./branches"
 export * from "./callouts"
 export * from "./commands"

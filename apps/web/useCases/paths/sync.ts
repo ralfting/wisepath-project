@@ -14,6 +14,7 @@ import {
   writeNote
 } from "@wisepath/domain/paths"
 import type {
+  ActivitiesOpen,
   NewPage,
   PageEdit,
   PageId,
@@ -79,7 +80,10 @@ export const SEND_AFTER = Duration.millis(400)
 const reconnect = Schedule.min([Schedule.exponential("500 millis"), Schedule.spaced("10 seconds")])
 
 /** A command applied to a map, as the API will apply it */
-export const applyCommand = (path: Path, command: Command): Effect.Effect<Path, PageNotFound | TitleTaken | RootPageProtected> => {
+export const applyCommand = (
+  path: Path,
+  command: Command
+): Effect.Effect<Path, PageNotFound | TitleTaken | RootPageProtected | ActivitiesOpen> => {
   switch (command._tag) {
     case "UpdatePath":
       return Effect.succeed(editPath(path, command.edit))
@@ -119,7 +123,7 @@ const applied = (path: Path, command: Command): Path | undefined => {
 }
 
 /** Every way the API can refuse a change to an open map (ProjectNotFound only when one moves it, which these don't) */
-type SendError = PathNotFound | PageNotFound | TitleTaken | RootPageProtected | ProjectNotFound | PathsUnavailable
+type SendError = PathNotFound | PageNotFound | TitleTaken | RootPageProtected | ActivitiesOpen | ProjectNotFound | PathsUnavailable
 
 const send = (repo: PathRepository["Service"], pathId: PathId, command: Command): Effect.Effect<unknown, SendError> => {
   switch (command._tag) {
