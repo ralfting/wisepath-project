@@ -140,7 +140,7 @@ describe("path sync", () => {
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 
-  it.live("lets a reader mark pages studied and nothing else", () =>
+  it.live("lets a reader mark pages studied and write their notes, and nothing else", () =>
     Effect.gen(function*() {
       const { api, layer } = yield* memoryApi({ ...samplePath, access: "viewer" })
       yield* Effect.gen(function*() {
@@ -150,12 +150,17 @@ describe("path sync", () => {
           session.dispatch({ _tag: "CreatePage", page: { id: PageId.make("new"), title: "New" } }),
           session.dispatch({ _tag: "RemovePage", pageId: PageId.make("guards") }),
           session.dispatch({ _tag: "UpdatePath", edit: { kind: "learningPath" } }),
-          session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("scopes"), edit: { studied: true } })
+          session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("scopes"), edit: { studied: true } }),
+          session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("guards"), edit: { notes: "W" } })
         ]
-        assert.deepStrictEqual(tried, [false, false, false, false, true])
+        assert.deepStrictEqual(tried, [false, false, false, false, true, true])
+        // Notes are typed like the text: a burst goes as one edit after the pause
+        yield* Effect.sleep("50 millis")
+        session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("guards"), edit: { notes: "Why" } })
         yield* settled(session.state)
-        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:studied"])
-        assert.strictEqual(page((yield* SubscriptionRef.get(session.state)).path, "guards")?.content, page(samplePath, "guards")?.content)
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:studied", "updatePage:notes"])
+        const shown = page((yield* SubscriptionRef.get(session.state)).path, "guards")
+        assert.deepStrictEqual([shown?.content, shown?.notes], [page(samplePath, "guards")?.content, "Why"])
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 

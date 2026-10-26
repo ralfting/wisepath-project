@@ -15,7 +15,7 @@ import type { Heading } from './Outline/Outline.helpers';
 import type { PagePrompt } from './PageNamePrompt';
 import { editorExtensions } from './editorExtensions';
 import type { EditorContext } from './editorExtensions';
-import { openInNewTab, savedMarkdown } from './MarkdownEditor.helpers';
+import { EDITOR_VARIANTS, openInNewTab, savedMarkdown } from './MarkdownEditor.helpers';
 import type { InboxPrompt } from './MarkdownEditor.helpers';
 import { useLinkCard } from './useLinkCard';
 import type { MarkdownEditorProps } from './MarkdownEditor';
@@ -46,7 +46,7 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     pages: () => latest.current.props.pages,
     onOpenPage: (pageId, alternate) => latest.current.props.onOpenPage(pageId, alternate),
     onCreatePage: (title) => latest.current.props.onCreatePage(title),
-    canCreate: () => !latest.current.props.readOnly,
+    canCreate: () => !latest.current.props.readOnly && !EDITOR_VARIANTS[latest.current.props.variant ?? 'page'].lean,
   });
 
   const anchorAt = (e: Editor) => {
@@ -74,7 +74,7 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
         class: 'wp-editor',
         role: 'textbox',
         'aria-multiline': 'true',
-        'aria-label': latest.current.t('editor.content.label'),
+        'aria-label': latest.current.t(EDITOR_VARIANTS[latest.current.props.variant ?? 'page'].label),
         ...(latest.current.props.readOnly ? { 'aria-readonly': 'true' } : {}),
       }),
       handleDOMEvents: {

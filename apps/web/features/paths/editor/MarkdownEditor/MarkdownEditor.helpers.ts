@@ -27,8 +27,19 @@ export type InboxPrompt = PagePrompt;
 export type SlashMessage = Exclude<keyof typeof editorMessages.slash, 'list'>;
 
 /**
+ * What the editor holds: a page's text, or the reader's notes on it. Notes are lean: no toolbar, outline, videos,
+ * nor ways to make or link pages, and their own label and placeholder
+ */
+export const EDITOR_VARIANTS = {
+  page: { label: 'editor.content.label', placeholder: 'editor.content.placeholder', lean: false },
+  notes: { label: 'editor.notes.label', placeholder: 'editor.notes.placeholder', lean: true },
+} as const satisfies Record<string, { label: TranslationKey; placeholder: TranslationKey; lean: boolean }>;
+export type EditorVariant = keyof typeof EDITOR_VARIANTS;
+
+/**
  * The / commands; Page is handled by the editor, since it asks for a name first. The hint beside the label is
- * either the markdown that does the same (syntax, not translated) or a message saying what it does
+ * either the markdown that does the same (syntax, not translated) or a message saying what it does. `pages`: it
+ * makes or links a page, which a lean editor leaves out
  */
 export const SLASH_COMMANDS: ReadonlyArray<{
   id: string;
@@ -36,14 +47,16 @@ export const SLASH_COMMANDS: ReadonlyArray<{
   hint: { syntax: string } | { message: TranslationKey };
   icon: Icon;
   run?: (editor: Editor) => void;
+  pages?: true;
 }> = [
-  { id: 'page', message: 'page', hint: { message: 'editor.slash.page.hint' }, icon: IconFilePlus },
+  { id: 'page', message: 'page', hint: { message: 'editor.slash.page.hint' }, icon: IconFilePlus, pages: true },
   {
     id: 'link',
     message: 'link',
     hint: { message: 'editor.slash.link.hint' },
     icon: IconBrackets,
     run: (e) => e.chain().focus().insertContent('[[').run(),
+    pages: true,
   },
   { id: 'h2', message: 'heading', hint: { syntax: '##' }, icon: IconH2, run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
   {

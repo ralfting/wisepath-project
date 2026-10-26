@@ -4,6 +4,10 @@ export const editor = {
     label: 'Page content',
     placeholder: 'Write here, or type / for commands',
   },
+  notes: {
+    label: 'My notes',
+    placeholder: 'Write what you want to remember, or type / for commands',
+  },
   toolbar: {
     heading: 'Heading',
     subheading: 'Subheading',

@@ -45,7 +45,7 @@ const loadingState: Atom.Atom<{ readonly path: Path | null } & Omit<SyncState, "
 /** Page ids come in as plain strings (from the URL or the map) and are branded here */
 export interface PathActions {
   /** Edits a page; a title another page has is ignored, so check titleTaken first */
-  updatePage: (pageId: string, patch: Partial<Pick<Page, "title" | "content" | "studied">>) => void
+  updatePage: (pageId: string, patch: Partial<Pick<Page, "title" | "content" | "studied" | "notes">>) => void
   /** A page's title starts being edited: its links show the new title as it is typed */
   beginRename: (pageId: string) => void
   /** After a page was renamed to newTitle: rewrites the [[oldTitle]] links across the map, ending the rename */

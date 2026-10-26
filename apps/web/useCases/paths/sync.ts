@@ -76,7 +76,7 @@ export const applyCommand = (path: Path, command: Command): Effect.Effect<Path, 
   }
 }
 
-/** Whether the map's reader may make this change: a reader only marks pages studied */
+/** Whether the map's reader may make this change: a reader only marks pages studied and writes their notes */
 const mayApply = (path: Path, command: Command) => {
   switch (command._tag) {
     case "UpdatePath":
@@ -145,9 +145,10 @@ const merge = (last: Entry, command: Command): boolean => {
   return true
 }
 
-/** Edits of the text wait for a pause in typing; everything else goes at once */
+/** Edits of the text and notes wait for a pause in typing; everything else goes at once */
 const waitsForPause = (command: Command) =>
-  command._tag === "UpdatePage" && (command.edit.content !== undefined || command.edit.title !== undefined)
+  command._tag === "UpdatePage" &&
+  (command.edit.content !== undefined || command.edit.title !== undefined || command.edit.notes !== undefined)
 
 /**
  * Opens a map for editing: reads it, then keeps sending its changes for as

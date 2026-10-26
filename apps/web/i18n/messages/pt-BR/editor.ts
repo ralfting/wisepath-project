@@ -7,6 +7,10 @@ export const editor = {
     label: 'Conteúdo da página',
     placeholder: 'Escreva aqui, ou digite / para ver os comandos',
   },
+  notes: {
+    label: 'Minhas notas',
+    placeholder: 'Escreva o que quer lembrar, ou digite / para ver os comandos',
+  },
   toolbar: {
     heading: 'Título',
     subheading: 'Subtítulo',

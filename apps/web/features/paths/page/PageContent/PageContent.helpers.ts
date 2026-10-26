@@ -3,7 +3,7 @@ import type { PathActions } from '@/useCases/paths';
 
 /** What the page's title and text editors can do */
 export interface PageActions {
-  updatePage: (pageId: string, patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>) => void;
+  updatePage: (pageId: string, patch: Partial<Pick<Page, 'title' | 'content' | 'studied' | 'notes'>>) => void;
   /** A title starts being edited: links to the page follow it as it is typed */
   beginRename: (pageId: string) => void;
   /** Rewrites [[Old]] links across the path after a rename, ending it */

@@ -15,6 +15,8 @@ import { PageLinkPicker } from './PageLinkPicker';
 import { PageNamePrompt, placeNear } from './PageNamePrompt';
 import { SelectionBubble } from './SelectionBubble';
 import { SlashMenu } from './SlashMenu';
+import { EDITOR_VARIANTS } from './MarkdownEditor.helpers';
+import type { EditorVariant } from './MarkdownEditor.helpers';
 import { useMarkdownEditor } from './useMarkdownEditor';
 
 /** What the editor shows and how it tells its page what happened */
@@ -43,6 +45,8 @@ export interface MarkdownEditorProps {
   readOnly?: boolean;
   /** What waits in the Inbox (null while it loads), for the / command that brings an item in; without it, no command */
   inbox?: { items: ReadonlyArray<InboxItem> | null; onTaken: (item: InboxItem) => void };
+  /** The page's text (the default), or the reader's notes on it in a lean editor */
+  variant?: EditorVariant;
 }
 
 /** Where the cursor goes when the text opens: at a position, its start or its end */
@@ -59,14 +63,15 @@ export type EditorFocus = number | 'start' | 'end';
  * Its Inbox item command puts something waiting in the Inbox where / was typed.
  */
 export function MarkdownEditor(props: MarkdownEditorProps) {
-  const { pages, currentPageId, toolbarOffset = 0, readOnly = false, inbox } = props;
+  const { pages, currentPageId, toolbarOffset = 0, readOnly = false, inbox, variant = 'page' } = props;
+  const { lean } = EDITOR_VARIANTS[variant];
   const t = useT();
   const { editor, wrapper, card, state, operations } = useMarkdownEditor(props);
   const { headings, picker, slash, prompt, inboxPrompt } = state;
 
   return (
     <div ref={wrapper} className={classes.wrapper} onMouseOver={card.over} onMouseOut={card.out}>
-      {editor && headings.length >= 2 && <Outline editor={editor} headings={headings} />}
+      {editor && !lean && headings.length >= 2 && <Outline editor={editor} headings={headings} />}
       <RichTextEditor
         editor={editor}
         variant="subtle"
@@ -93,7 +98,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           linkEditorSave: t('common.actions.save'),
         }}
       >
-        {!readOnly && <EditorToolbar editor={editor} offset={toolbarOffset} />}
+        {!readOnly && !lean && <EditorToolbar editor={editor} offset={toolbarOffset} />}
         {editor && !readOnly && <SelectionBubble editor={editor} />}
         <RichTextEditor.Content />
       </RichTextEditor>
