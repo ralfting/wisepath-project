@@ -101,6 +101,8 @@ export function noteSelection(editor: Editor, notes: EditorNotes | undefined): b
   const start = editor.view.coordsAtPos(editor.state.selection.from);
   const end = editor.view.coordsAtPos(editor.state.selection.to);
   notes.onSelection(quote, { top: start.top, bottom: end.bottom, left: start.left, right: Math.max(start.left, end.right) });
+  // The words are the note's now, highlighted: the selection, and the bubble over it, would only stand in the way
+  editor.commands.setTextSelection(editor.state.selection.to);
   return true;
 }
 

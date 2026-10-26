@@ -135,6 +135,11 @@ export const page = {
     title: 'Minhas notas',
     private: 'Só você vê',
     add: 'Adicionar uma nota',
+    removed: 'Trecho removido',
+    toPassage: 'Ir ao trecho: {quote}',
+    edit: 'Editar nota',
+    card: 'Nota',
+    delete: 'Excluir nota',
   },
   delete: {
     title: 'Excluir página?',

@@ -38,9 +38,9 @@ const components = (t: Translate): Components => ({
 });
 
 /**
- * A page's markdown as HTML, rendered on the server with no HTML of the author's let through: [[Title]] links to the
- * page by that title when the path has one, tables and task lists as GitHub writes them, callouts as the editor
- * draws them.
+ * Markdown as HTML, read without an editor (on the server for the catalog, under a page for the reader's notes), with
+ * no HTML of the author's let through: [[Title]] links to the page by that title when the path has one, tables and
+ * task lists as GitHub writes them, callouts as the editor draws them.
  */
 export function MarkdownText({ content, hrefOf, t }: { content: string; hrefOf: (title: string) => string | null; t: Translate }) {
   return (

@@ -5,8 +5,11 @@ import type { Page, Path } from '@wisepath/domain/paths';
 import { canEdit } from '@wisepath/domain/paths';
 import { MarkdownEditor } from '@/features/paths/editor';
 import type { EditorFocus } from '@/features/paths/editor';
-import { Stack } from '@mantine/core';
+import { Box, Stack } from '@mantine/core';
 import { useInbox, useTakeFromInbox } from '@/useCases/inbox';
+import { NoteCard } from '../PageNotes/NoteCard';
+import { PageNotes } from '../PageNotes/PageNotes';
+import { usePageNotes } from '../PageNotes/usePageNotes';
 import { PagePager } from './PagePager';
 import { PageTitleInput } from './PageTitleInput';
 import type { PageActions } from './PageContent.helpers';
@@ -14,7 +17,8 @@ import type { PageActions } from './PageContent.helpers';
 /**
  * PageContent
  * One page's title and markdown, edited in place, or read by someone who may
- * not edit them. Used by the map's side panel and by the full-screen page.
+ * not edit them, with the reader's own notes on its passages and under it.
+ * Used by the map's side panel and by the full-screen page.
  */
 
 interface PageContentProps {
@@ -49,36 +53,53 @@ export function PageContent({
   // The / command's Inbox items: one put in the text leaves the Inbox once this map is saved
   const waiting = useInbox();
   const take = useTakeFromInbox();
+  const notes = usePageNotes(page, actions);
 
   return (
-    <Stack gap="md">
-      {showTitle && (
-        <PageTitleInput
+    <Box ref={notes.box} pos="relative">
+      <Stack gap="md">
+        {showTitle && (
+          <PageTitleInput
+            path={path}
+            page={page}
+            actions={actions}
+            size={titleSize}
+            onEnter={() => setFocusSignal((n) => n + 1)}
+          />
+        )}
+        <MarkdownEditor
+          key={page.id}
+          content={page.content}
+          onChange={(content) => actions.updatePage(page.id, { content })}
+          pages={path.pages}
+          currentPageId={page.id}
+          onOpenPage={actions.openPage}
+          onLinkPage={() => {}}
+          onCreatePage={actions.createLinkedPage}
+          onCreatePageHere={actions.createPage}
+          focusSignal={focusSignal + outsideFocusSignal}
+          toolbarOffset={toolbarOffset}
+          focusOnOpen={focusEditor}
+          onCursor={onCursor}
+          readOnly={!canEdit(path.access)}
+          inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, path.id) }}
+          notes={notes.editorNotes}
+        />
+        <PageNotes notes={notes.list.notes} onShow={notes.list.show} onAdd={notes.list.addOnPage} />
+        <PagePager path={path} page={page} onOpen={actions.openPage} />
+      </Stack>
+      {notes.card && (
+        <NoteCard
+          open={notes.card.open}
+          body={notes.card.body}
           path={path}
           page={page}
           actions={actions}
-          size={titleSize}
-          onEnter={() => setFocusSignal((n) => n + 1)}
+          onWrite={notes.card.write}
+          onDelete={notes.card.remove}
+          onClose={notes.card.close}
         />
       )}
-      <MarkdownEditor
-        key={page.id}
-        content={page.content}
-        onChange={(content) => actions.updatePage(page.id, { content })}
-        pages={path.pages}
-        currentPageId={page.id}
-        onOpenPage={actions.openPage}
-        onLinkPage={() => {}}
-        onCreatePage={actions.createLinkedPage}
-        onCreatePageHere={actions.createPage}
-        focusSignal={focusSignal + outsideFocusSignal}
-        toolbarOffset={toolbarOffset}
-        focusOnOpen={focusEditor}
-        onCursor={onCursor}
-        readOnly={!canEdit(path.access)}
-        inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, path.id) }}
-      />
-      <PagePager path={path} page={page} onOpen={actions.openPage} />
-    </Stack>
+    </Box>
   );
 }

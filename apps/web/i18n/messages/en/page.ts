@@ -133,6 +133,11 @@ export const page = {
     title: 'My notes',
     private: 'Only you see these',
     add: 'Add a note',
+    removed: 'Passage removed',
+    toPassage: 'Go to the passage: {quote}',
+    edit: 'Edit note',
+    card: 'Note',
+    delete: 'Delete note',
   },
   delete: {
     title: 'Delete page?',
