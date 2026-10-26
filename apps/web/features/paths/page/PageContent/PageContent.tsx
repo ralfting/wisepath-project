@@ -80,7 +80,7 @@ export function PageContent({
         readOnly={!canEdit(path.access)}
         inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, path.id) }}
       />
-      <PageNotes key={page.id} path={path} page={page} actions={actions} />
+      <PageNotes path={path} page={page} actions={actions} />
       <PagePager path={path} page={page} onOpen={actions.openPage} />
     </Stack>
   );
