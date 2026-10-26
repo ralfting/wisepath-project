@@ -64,10 +64,16 @@ export interface MindLayout {
  * Rough rendered size of a node, from its title. Up to a maximum width the
  * node grows with its title; past it the title wraps onto a second line.
  */
-export function nodeSize(title: string, module: boolean, hasCounter: boolean): { w: number; h: number; lines: 1 | 2 } {
-  // Icon, padding and the studied check on a module; status icon, padding and counter chip on a page
+export function nodeSize(
+  title: string,
+  module: boolean,
+  hasCounter: boolean,
+  hasActivities = false,
+): { w: number; h: number; lines: 1 | 2 } {
+  // Icon, padding and the studied check on a module; status icon, padding and counter chip on a page; either's activity badge
   const counter = hasCounter && !module ? 50 : 0;
-  const [min, max, chrome, perChar] = module ? [170, 280, 118, 8.8] : [112, 270, 50 + counter, 7.3];
+  const badge = hasActivities ? 22 : 0;
+  const [min, max, chrome, perChar] = module ? [170, 280, 118 + badge, 8.8] : [112, 270, 50 + counter + badge, 7.3];
   const oneLine = chrome + title.length * perChar;
   const lines = oneLine > max ? 2 : 1;
   const base = module ? MODULE_H : NODE_H;
@@ -108,14 +114,19 @@ const curve = (a: Point, b: Point) => {
 const centreOf = (n: PlacedNode): Point => ({ x: n.inner.x + (n.side * n.w) / 2, y: n.inner.y });
 const outerOf = (n: PlacedNode): Point => ({ x: n.inner.x + n.side * n.w, y: n.inner.y });
 
-export function layoutMind(tree: MapTree, root: RootShape = rootShape(tree.root.page.title)): MindLayout {
+/** `withActivities`: the pages that show an activity badge after their title, which takes room */
+export function layoutMind(
+  tree: MapTree,
+  root: RootShape = rootShape(tree.root.page.title),
+  withActivities: ReadonlySet<string> = new Set(),
+): MindLayout {
   const minX = root.w / 2 + 40;
   const radiusX = Math.max(RADIUS_X, root.w / 2 + 118);
   const reach = Math.max(root.w, root.h) / 2;
   const sizes = new Map<PageId, { w: number; h: number; lines: 1 | 2 }>();
   const heights = new Map<PageId, number>();
   const measure = (node: MapNode): number => {
-    const size = nodeSize(node.page.title, !!node.page.module, node.children.length > 0);
+    const size = nodeSize(node.page.title, !!node.page.module, node.children.length > 0, withActivities.has(node.page.id));
     sizes.set(node.page.id, size);
     const kids = node.children.map(measure);
     const stacked = kids.reduce((a, h) => a + h, 0) + SIBLING_GAP * Math.max(kids.length - 1, 0);

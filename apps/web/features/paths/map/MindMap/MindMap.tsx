@@ -165,6 +165,7 @@ export function MindMap({
                   counter={counter}
                   countText={mind.countText}
                   label={mind.labelOf(n, status, counter)}
+                  activity={mind.activityOf(n.page)}
                   progress={progress}
                   selected={selectedId === n.page.id}
                   dimmed={highlights.dimmed(n.page.id)}

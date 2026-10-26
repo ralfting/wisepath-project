@@ -5,6 +5,7 @@ import type { Page, Path } from '@wisepath/domain/paths';
 import { mapTree, trailTo } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
+import { ActivityBadge, activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge';
 import { StatusIcon } from '../StatusIcon';
 import { PageIcon } from '../PageIcon';
 import classes from './MapSearchResults.module.css';
@@ -59,31 +60,35 @@ export function MapSearchResults({
       {results.length > 0 && (
         <ScrollArea.Autosize mah={300} type="auto">
           <div id={SEARCH_RESULTS_ID} role="listbox" aria-label={t('map.results.label')} className={classes.list}>
-            {results.map((page, i) => (
-              <UnstyledButton
-                key={page.id}
-                id={`${SEARCH_RESULTS_ID}-${i}`}
-                role="option"
-                aria-selected={i === active}
-                className={classes.row}
-                data-active={i === active || undefined}
-                data-open={page.id === selectedId || undefined}
-                // Keeps the cursor in the search, so typing and the arrows go on working
-                onMouseDown={(event) => event.preventDefault()}
-                onMouseEnter={() => onActive(i)}
-                onClick={() => onSelect(page.id)}
-              >
-                {progress ? <StatusIcon status={page.studied ? 'done' : page.id === currentId ? 'current' : 'todo'} size={16} /> : <PageIcon size={16} />}
-                <span className={classes.text}>
-                  <Highlight highlight={query.trim()} size="sm" fw={500} truncate>
-                    {displayTitle(page)}
-                  </Highlight>
-                  <Text size="xs" c="dimmed" truncate>
-                    {where(page)}
-                  </Text>
-                </span>
-              </UnstyledButton>
-            ))}
+            {results.map((page, i) => {
+              const activity = activityMarkOf(path, page);
+              return (
+                <UnstyledButton
+                  key={page.id}
+                  id={`${SEARCH_RESULTS_ID}-${i}`}
+                  role="option"
+                  aria-selected={i === active}
+                  className={classes.row}
+                  data-active={i === active || undefined}
+                  data-open={page.id === selectedId || undefined}
+                  // Keeps the cursor in the search, so typing and the arrows go on working
+                  onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => onActive(i)}
+                  onClick={() => onSelect(page.id)}
+                >
+                  {progress ? <StatusIcon status={page.studied ? 'done' : page.id === currentId ? 'current' : 'todo'} size={16} /> : <PageIcon size={16} />}
+                  <span className={classes.text}>
+                    <Highlight highlight={query.trim()} size="sm" fw={500} truncate>
+                      {displayTitle(page)}
+                    </Highlight>
+                    <Text size="xs" c="dimmed" truncate>
+                      {where(page)}
+                    </Text>
+                  </span>
+                  {activity && <ActivityBadge mark={activity} label={activityMarkLabel(t, activity)} />}
+                </UnstyledButton>
+              );
+            })}
           </div>
         </ScrollArea.Autosize>
       )}

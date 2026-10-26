@@ -1,0 +1,4 @@
+/* After a title that may be cut short: the badge itself never is */
+.badge {
+  flex-shrink: 0;
+}

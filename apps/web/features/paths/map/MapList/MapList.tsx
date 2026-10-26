@@ -9,6 +9,7 @@ import { displayTitle } from '@/i18n/title';
 import { PageGlyph } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import { isGhost, withGhosts } from '../ghosts';
+import { ActivityBadge, activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge';
 import { StatusIcon } from '../StatusIcon';
 import { PageIcon } from '../PageIcon';
 import classes from './MapList.module.css';
@@ -16,7 +17,7 @@ import classes from './MapList.module.css';
 /**
  * MapList
  * The map as an indented list, branch by branch in map order, with each
- * page's studied state and, for pages with branches, how many below are
+ * page's studied state, its activities and, for pages with branches, how many below are
  * studied; in a study, just the pages and how many are below. Orphans close
  * the list. Each row's + (or N on it) adds a page branching from it; the row at
  * the end adds one to the path's main page.
@@ -70,6 +71,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
     const real = tree.nodes.get(node.page.id);
     const below = real && real.children.length ? progressOf(descendants(real)) : null;
     const status = node.page.studied ? 'done' : node.page.id === currentId ? 'current' : 'todo';
+    const activity = activityMarkOf(path, node.page);
     return (
       <li key={node.page.id} className={classes.item}>
         <UnstyledButton
@@ -98,6 +100,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
           <Text size="sm" fw={node.page.module ? 700 : 400} truncate style={{ flex: 1 }}>
             {displayTitle(node.page)}
           </Text>
+          {activity && <ActivityBadge mark={activity} label={activityMarkLabel(t, activity)} />}
           {below && (
             <Text size="xs" c="dimmed">
               {progress ? `${below.studied}/${below.total}` : t('map.pages', { count: below.total })}

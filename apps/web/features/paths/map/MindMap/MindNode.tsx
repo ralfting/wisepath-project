@@ -9,6 +9,8 @@ import { useT } from '@/i18n/I18nProvider';
 import { PageGlyph } from '@/features/paths/path';
 import type { PlacedNode } from '../mindLayout';
 import { PageIcon } from '../PageIcon';
+import { ActivityBadge } from '../ActivityBadge/ActivityBadge';
+import type { ActivityMark } from '../ActivityBadge/ActivityBadge';
 import { STATUS_KEY, StatusIcon } from '../StatusIcon';
 import type { TopicStatus } from '../StatusIcon';
 import classes from './MindMap.module.css';
@@ -25,6 +27,7 @@ export function MindNode({
   counter,
   countText,
   label,
+  activity,
   progress,
   selected,
   dimmed,
@@ -41,6 +44,8 @@ export function MindNode({
   counter: { studied: number; total: number } | null;
   countText: (counter: { studied: number; total: number }) => string;
   label: string;
+  /** Its activities, shown after the title; the label says them */
+  activity: ActivityMark | null;
   progress: boolean;
   selected: boolean;
   dimmed: boolean;
@@ -80,6 +85,7 @@ export function MindNode({
           <span className={classes.moduleTitle}>{title}</span>
           {(counter || progress) && <span className={classes.count}>{counter ? countText(counter) : t(STATUS_KEY[status])}</span>}
         </span>
+        {activity && <ActivityBadge mark={activity} size={18} />}
         {progress && node.page.studied && <IconCircleCheckFilled size={18} color="var(--mantine-color-teal-6)" className={classes.moduleCheck} aria-hidden="true" />}
       </UnstyledButton>
     );
@@ -88,6 +94,7 @@ export function MindNode({
     <UnstyledButton className={classes.topic} {...shared}>
       {progress ? <StatusIcon status={status} /> : <PageIcon />}
       <span className={classes.topicTitle}>{title}</span>
+      {activity && <ActivityBadge mark={activity} />}
       {counter && <span className={classes.chip}>{progress ? `${counter.studied}/${counter.total}` : counter.total}</span>}
     </UnstyledButton>
   );

@@ -6,6 +6,7 @@ import type { Path } from '@wisepath/domain/paths';
 import { mapTree } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
+import { ActivityBadge, activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge';
 import { StatusIcon } from '../StatusIcon';
 import classes from './MapOrphans.module.css';
 
@@ -45,19 +46,23 @@ export function MapOrphans({
           {t('map.orphans.hint', { count, title: displayTitle(tree.root.page) })}
         </Text>
         <ScrollArea.Autosize mah={260}>
-          {tree.orphans.map((p) => (
-            <UnstyledButton
-              key={p.id}
-              className={classes.orphan}
-              data-selected={selectedId === p.id || undefined}
-              onClick={() => onSelect(p.id)}
-            >
-              <StatusIcon status={p.studied ? 'done' : 'todo'} size={16} />
-              <Text size="sm" truncate>
-                {displayTitle(p)}
-              </Text>
-            </UnstyledButton>
-          ))}
+          {tree.orphans.map((p) => {
+            const activity = activityMarkOf(path, p);
+            return (
+              <UnstyledButton
+                key={p.id}
+                className={classes.orphan}
+                data-selected={selectedId === p.id || undefined}
+                onClick={() => onSelect(p.id)}
+              >
+                <StatusIcon status={p.studied ? 'done' : 'todo'} size={16} />
+                <Text size="sm" truncate>
+                  {displayTitle(p)}
+                </Text>
+                {activity && <ActivityBadge mark={activity} label={activityMarkLabel(t, activity)} />}
+              </UnstyledButton>
+            );
+          })}
         </ScrollArea.Autosize>
       </Popover.Dropdown>
     </Popover>
