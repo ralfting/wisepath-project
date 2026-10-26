@@ -5,7 +5,8 @@ import type { Page, Path } from '@wisepath/domain/paths';
 import { mapTree, trailTo } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
-import { ActivityBadge, activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge';
+import { ActivityBadge } from '../ActivityBadge/ActivityBadge';
+import { activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge.helpers';
 import { StatusIcon } from '../StatusIcon';
 import { PageIcon } from '../PageIcon';
 import classes from './MapSearchResults.module.css';
@@ -61,7 +62,7 @@ export function MapSearchResults({
         <ScrollArea.Autosize mah={300} type="auto">
           <div id={SEARCH_RESULTS_ID} role="listbox" aria-label={t('map.results.label')} className={classes.list}>
             {results.map((page, i) => {
-              const activity = activityMarkOf(path, page);
+              const activity = activityMarkOf(path, page, progress);
               return (
                 <UnstyledButton
                   key={page.id}

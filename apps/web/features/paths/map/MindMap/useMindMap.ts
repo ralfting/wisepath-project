@@ -5,7 +5,7 @@ import type { Page, Path } from '@wisepath/domain/paths';
 import { descendants, lookOf, mapTree, pathProgress, progressOf } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
-import { activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge';
+import { activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge.helpers';
 import { withGhosts } from '../ghosts';
 import { layoutMind, rootShape } from '../mindLayout';
 import type { PlacedNode } from '../mindLayout';
@@ -52,7 +52,10 @@ export function useMindMap({
   // What is drawn adds the pages named but not made; counts and progress keep reading the real tree
   const drawn = useMemo(() => withGhosts(path, tree), [path, tree]);
   const root = useMemo(() => rootShape(displayTitle(tree.root.page)), [tree]);
-  const activities = useMemo(() => new Map(path.pages.map((page) => [page.id as string, activityMarkOf(path, page)])), [path]);
+  const activities = useMemo(
+    () => new Map(path.pages.map((page) => [page.id as string, activityMarkOf(path, page, progress)])),
+    [path, progress],
+  );
   const withActivities = useMemo(() => new Set([...activities].filter(([, mark]) => mark).map(([id]) => id)), [activities]);
   const layout = useMemo(() => layoutMind(drawn, root, withActivities), [drawn, root, withActivities]);
   const rootId = tree.root.page.id;

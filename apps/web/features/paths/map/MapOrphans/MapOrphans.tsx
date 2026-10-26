@@ -6,7 +6,8 @@ import type { Path } from '@wisepath/domain/paths';
 import { mapTree } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
-import { ActivityBadge, activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge';
+import { ActivityBadge } from '../ActivityBadge/ActivityBadge';
+import { activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge.helpers';
 import { StatusIcon } from '../StatusIcon';
 import classes from './MapOrphans.module.css';
 
@@ -47,7 +48,7 @@ export function MapOrphans({
         </Text>
         <ScrollArea.Autosize mah={260}>
           {tree.orphans.map((p) => {
-            const activity = activityMarkOf(path, p);
+            const activity = activityMarkOf(path, p, path.kind === 'learningPath');
             return (
               <UnstyledButton
                 key={p.id}

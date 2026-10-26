@@ -10,7 +10,7 @@ import { PageGlyph } from '@/features/paths/path';
 import type { PlacedNode } from '../mindLayout';
 import { PageIcon } from '../PageIcon';
 import { ActivityBadge } from '../ActivityBadge/ActivityBadge';
-import type { ActivityMark } from '../ActivityBadge/ActivityBadge';
+import type { ActivityMark } from '../ActivityBadge/ActivityBadge.helpers';
 import { STATUS_KEY, StatusIcon } from '../StatusIcon';
 import type { TopicStatus } from '../StatusIcon';
 import classes from './MindMap.module.css';

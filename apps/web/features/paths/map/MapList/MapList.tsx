@@ -9,7 +9,8 @@ import { displayTitle } from '@/i18n/title';
 import { PageGlyph } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import { isGhost, withGhosts } from '../ghosts';
-import { ActivityBadge, activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge';
+import { ActivityBadge } from '../ActivityBadge/ActivityBadge';
+import { activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge.helpers';
 import { StatusIcon } from '../StatusIcon';
 import { PageIcon } from '../PageIcon';
 import classes from './MapList.module.css';
@@ -71,7 +72,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
     const real = tree.nodes.get(node.page.id);
     const below = real && real.children.length ? progressOf(descendants(real)) : null;
     const status = node.page.studied ? 'done' : node.page.id === currentId ? 'current' : 'todo';
-    const activity = activityMarkOf(path, node.page);
+    const activity = activityMarkOf(path, node.page, progress);
     return (
       <li key={node.page.id} className={classes.item}>
         <UnstyledButton
