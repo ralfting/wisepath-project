@@ -8,10 +8,19 @@
   background: transparent;
 }
 
+/* On the ground of the surface it sits on (--wp-surface, set by that surface), so it reads as part of the page and
+   not as a band across it: a card is lighter than the body in dark */
 .toolbar {
   padding-inline: 0;
-  background: var(--mantine-color-body);
+  border-radius: 0;
+  background: var(--wp-surface, var(--mantine-color-body));
   border-bottom: 1px solid var(--mantine-color-default-border);
+
+  /* Mantine paints groups the body's colour and subtle controls dark 7 in dark: blocks on a lighter card */
+  & :global(.mantine-RichTextEditor-controlsGroup),
+  & :global(.mantine-RichTextEditor-control):not([data-active], :hover) {
+    background: transparent;
+  }
 }
 
 .content {

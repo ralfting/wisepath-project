@@ -34,6 +34,7 @@
     border-radius: 0;
     box-shadow: none;
     background: var(--wp-ground);
+    --wp-surface: var(--wp-ground);
   }
 
   @media (prefers-reduced-motion: reduce) {
