@@ -29,5 +29,7 @@ describe('callouts in markdown', () => {
     expect(markdownOf(e)).toBe('> [!info]\n> Mind the gap.');
     setCallout(e, 'danger');
     expect(markdownOf(e)).toBe('> [!danger]\n> Mind the gap.');
+    setCallout(e, 'activity');
+    expect(markdownOf(e)).toBe('> [!activity]\n> Mind the gap.');
   });
 });

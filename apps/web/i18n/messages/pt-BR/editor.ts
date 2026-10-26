@@ -65,6 +65,7 @@ export const editor = {
     info: { label: 'Destaque de informação', keywords: 'callout info nota caixa dica' },
     warning: { label: 'Destaque de atenção', keywords: 'callout warning aviso caixa cuidado' },
     danger: { label: 'Destaque de perigo', keywords: 'callout danger erro caixa alerta' },
+    activity: { label: 'Atividade', keywords: 'activity exercício tarefa fazer prática' },
   },
   inbox: {
     label: 'Item da Caixa de entrada',
@@ -107,7 +108,7 @@ export const editor = {
     title: 'Nesta página',
   },
   callout: {
-    kinds: { info: 'Informação', warning: 'Atenção', danger: 'Perigo' },
+    kinds: { info: 'Informação', warning: 'Atenção', danger: 'Perigo', activity: 'Atividade' },
     change: '{kind}: mudar o destaque',
     remove: 'Tirar a caixa, manter o texto',
   },
@@ -137,6 +138,7 @@ export const editor = {
       task: 'Um item de lista de tarefas; - [x] é um item feito',
       quote: 'Uma citação, para algo que você leu ou ouviu',
       callout: 'Uma nota numa caixa colorida: [!info], [!warning] ou [!danger], depois um espaço. /info, /warning e /danger também',
+      activity: 'Algo que a página pede para fazer; numa trilha guiada, ela é marcada como feita antes de a página contar como estudada. /atividade também',
       codeBlock: 'Um bloco de código: digite isso e depois o código; ``` de novo fecha o bloco',
       pageLink: 'Cria um link para outra página desta trilha; escolher um nome novo na lista cria essa página. Cmd/Ctrl+Enter abre o link da linha do cursor',
       slash: 'Lista os comandos. Página pede um nome; Enter cria o link para essa página e vai até ela, criando a página se preciso; Cmd/Ctrl+Enter fica aqui. Item da Caixa de entrada traz para cá algo que está esperando nela',

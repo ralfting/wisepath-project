@@ -1,6 +1,6 @@
 import { Node, wrappingInputRule } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
-import { calloutMarker, readCalloutMarker } from '@wisepath/domain/paths';
+import { CALLOUT_KINDS, calloutMarker, readCalloutMarker } from '@wisepath/domain/paths';
 import type { CalloutKind } from '@wisepath/domain/paths';
 import type { MarkdownState } from './markdown';
 
@@ -38,7 +38,7 @@ export const CalloutBlock = Node.create({
   addInputRules() {
     return [
       wrappingInputRule({
-        find: /^\[!(info|warning|danger)\]\s$/i,
+        find: new RegExp(String.raw`^\[!(${CALLOUT_KINDS.join('|')})\]\s$`, 'i'),
         type: this.type,
         getAttributes: (match) => ({ kind: match[1].toLowerCase() }),
       }),

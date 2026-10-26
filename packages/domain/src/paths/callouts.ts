@@ -6,10 +6,10 @@
  *   > [!warning]
  *   > Back up the database first.
  *
- * The editor and the catalog both read it from here.
+ * The editor, the catalog and a page's activities (activities.ts) all read it from here.
  */
 
-export const CALLOUT_KINDS = ["info", "warning", "danger"] as const
+export const CALLOUT_KINDS = ["info", "warning", "danger", "activity"] as const
 export type CalloutKind = (typeof CALLOUT_KINDS)[number]
 
 const MARKER = new RegExp(String.raw`^[ \t]*\[!(${CALLOUT_KINDS.join("|")})\][ \t]*(?:\r?\n|$)`, "i")

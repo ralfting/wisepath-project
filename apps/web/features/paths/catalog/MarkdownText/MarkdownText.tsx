@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { Anchor, TypographyStylesProvider } from '@mantine/core';
 import type { Translate } from '@/i18n/I18nProvider';
 import { CALLOUT_KINDS } from '@wisepath/domain/paths';
+import { ActivityBlock } from '@/ui/ActivityBlock/ActivityBlock';
 import { Callout } from '@/ui/Callout/Callout';
 import { remarkCallouts } from './remarkCallouts';
 import { remarkWikiLinks } from './remarkWikiLinks';
@@ -27,12 +28,17 @@ const components = (t: Translate): Components => ({
   // Only remarkCallouts makes asides, since the author's own HTML is never let through
   aside: ({ node, children }) => {
     const kind = CALLOUT_KINDS.find((k) => k === node?.properties.dataCallout);
-    return kind ? (
-      <Callout kind={kind} label={t(`editor.callout.kinds.${kind}`)}>
+    if (!kind) return <aside>{children}</aside>;
+    const label = t(`editor.callout.kinds.${kind}`);
+    // Read without a reader's ticks: an activity shows what it asks, with nothing to tick
+    return kind === 'activity' ? (
+      <ActivityBlock label={label} done={false}>
+        {children}
+      </ActivityBlock>
+    ) : (
+      <Callout kind={kind} label={label}>
         {children}
       </Callout>
-    ) : (
-      <aside>{children}</aside>
     );
   },
 });
@@ -40,7 +46,7 @@ const components = (t: Translate): Components => ({
 /**
  * Markdown as HTML, read without an editor (on the server for the catalog, under a page for the reader's notes), with
  * no HTML of the author's let through: [[Title]] links to the page by that title when the path has one, tables and
- * task lists as GitHub writes them, callouts as the editor draws them.
+ * task lists as GitHub writes them, callouts and activities as the editor draws them.
  */
 export function MarkdownText({ content, hrefOf, t }: { content: string; hrefOf: (title: string) => string | null; t: Translate }) {
   return (

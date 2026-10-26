@@ -6,6 +6,7 @@ describe("reading a callout marker", () => {
     ["[!warning]\nBack up first.", { kind: "warning", rest: "Back up first." }],
     ["  [!DANGER]  ", { kind: "danger", rest: "" }],
     ["[!info]\r\nLine", { kind: "info", rest: "Line" }],
+    ["[!Activity]\nWrite it down", { kind: "activity", rest: "Write it down" }],
     ["[!note]\nGitHub kind", null],
     ["Just a quote [!info]", null]
   ])("%j", (text, expected) => {

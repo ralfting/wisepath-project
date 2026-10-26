@@ -35,6 +35,7 @@ const SYNTAX: { group: keyof typeof messages.help.groups; rows: { type: string; 
       { type: '- [ ] task', does: 'task' },
       { type: '> quote', does: 'quote' },
       { type: '> [!warning]', does: 'callout' },
+      { type: '> [!activity]', does: 'activity' },
       { type: '```', does: 'codeBlock' },
     ],
   },

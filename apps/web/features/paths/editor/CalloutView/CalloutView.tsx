@@ -7,6 +7,7 @@ import { IconBoxOff } from '@tabler/icons-react';
 import { useT } from '@/i18n/I18nProvider';
 import { CALLOUT_KINDS } from '@wisepath/domain/paths';
 import type { CalloutKind } from '@wisepath/domain/paths';
+import { ActivityBlock } from '@/ui/ActivityBlock/ActivityBlock';
 import { Callout, calloutLook } from '@/ui/Callout/Callout';
 
 /**
@@ -61,9 +62,15 @@ export function CalloutView({ node, editor, getPos, updateAttributes }: NodeView
 
   return (
     <NodeViewWrapper>
-      <Callout kind={kind} label={label} marker={marker}>
-        <NodeViewContent />
-      </Callout>
+      {kind === 'activity' ? (
+        <ActivityBlock label={label} done={false} marker={marker}>
+          <NodeViewContent />
+        </ActivityBlock>
+      ) : (
+        <Callout kind={kind} label={label} marker={marker}>
+          <NodeViewContent />
+        </Callout>
+      )}
     </NodeViewWrapper>
   );
 }

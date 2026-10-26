@@ -87,6 +87,20 @@ describe('MarkdownEditor', () => {
     expect(await screen.findByRole('note', { name: 'Danger' })).toBeTruthy();
   });
 
+  it('shows a [!activity] quote as an activity, which the kind menu turns into a callout and back', async () => {
+    const user = userEvent.setup();
+    editor('> [!activity]\n> Write two things you like.');
+
+    const activity = await screen.findByRole('note', { name: 'Activity' });
+    expect(within(activity).getByText('Write two things you like.')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Activity: change the callout' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Info', hidden: true }));
+    await user.click(await screen.findByRole('button', { name: 'Info: change the callout' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Activity', hidden: true }));
+
+    expect(await screen.findByRole('note', { name: 'Activity' })).toBeTruthy();
+  });
+
   it('keeps a quote of another kind, or with no marker, a plain quote', async () => {
     editor('> [!note]\n> GitHub kind\n\n> Said once');
     expect(await screen.findByText(/GitHub kind/)).toBeTruthy();
