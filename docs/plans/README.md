@@ -22,7 +22,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 18 | [Delete my account](18-delete-account.md) | From the account menu, with the password, after offering the download |
 | 19 | [Publish a path to the catalog](19-publish-to-the-catalog.md) | The owner asks from the Share dialog; an administrator approves at /admin/publications |
 | 20 | [Published paths as pages a search engine can read](20-published-pages.md) | `/p/<path>/<page>`, rendered on the server, with real links between pages |
-| 21 | [My notes on a page](21-page-notes.md) | Each reader's own notes under a page's text, never shown to anyone else or on public pages |
+| 21 | [My notes on a page](21-page-notes.md) | Notes of your own on a passage or a page, highlighted in the text like Google Docs comments, never shown to anyone else |
 
 AI (10) comes last, once these exist to build on.
 
