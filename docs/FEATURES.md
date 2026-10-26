@@ -68,6 +68,7 @@ The map is a reading of the links, never stored on its own.
 - **Outline.** With two headings or more, a rail of dashes on the right edge; hovering it lists the headings ("On this page"), and it works from the keyboard.
 - **Previous and Next** at the end of every page lead to the pages before and after it in the map's reading order, the one Continue studying follows: down into the page's first branch, else on to the next branch beside it, else back up to the next branch beside the page above. An unlinked page has neither.
 - **Delete** from the page's ⋯ menu: links to it become plain text, and pages only it reached end up unlinked, off the map.
+- **My notes** under every page's text, in the drawer and on the full page, marked "Only you see these": markdown of your own, like your studied marks. Empty, it is one **Add a note** button that opens the field; once written, the notes show as they are, editable in place. Anyone who can read the path writes their own, a reader of someone else's path included, and nobody sees anyone else's, the owner and editors included. Writing them never changes the page or its edited date. The field is the editor without its toolbar, outline, videos or ways to make pages; `/` commands and markdown work. Notes go with their page, and when you lose the path. A public link and the catalog never show notes; search, the Markdown download and review cards leave them out.
 
 ## Writing
 
