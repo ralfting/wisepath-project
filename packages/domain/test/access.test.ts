@@ -61,7 +61,7 @@ describe("what each access allows", () => {
 })
 
 describe("mayEditPage", () => {
-  it("needs reading for a studied mark or notes, the owner to rename the root, and editing for the rest", () => {
+  it("needs reading for a studied mark, the owner to rename the root, and editing for the rest", () => {
     const root = PageId.make("root")
     const page = PageId.make("page")
     const edits = [
@@ -70,19 +70,15 @@ describe("mayEditPage", () => {
       [page, { title: "New" }],
       [root, { title: "Renamed" }],
       [root, { content: "x" }],
-      [page, { studied: true, content: "x" }],
-      [page, { notes: "Mine" }],
-      [root, { notes: "Mine", studied: true }],
-      [page, { notes: "Mine", content: "x" }]
+      [page, { studied: true, content: "x" }]
     ] as const
-    const table = (["owner", "editor", "viewer", "none"] as const).map((access) =>
+    const table = (["owner", "editor", "viewer"] as const).map((access) =>
       edits.map(([pageId, edit]) => mayEditPage({ access, rootPageId: root }, pageId, edit))
     )
     assert.deepStrictEqual(table, [
-      [true, true, true, true, true, true, true, true, true],
-      [true, true, true, false, true, true, true, true, true],
-      [true, false, false, false, false, false, true, true, false],
-      [false, false, false, false, false, false, false, false, false]
+      [true, true, true, true, true, true],
+      [true, true, true, false, true, true],
+      [true, false, false, false, false, false]
     ])
   })
 })

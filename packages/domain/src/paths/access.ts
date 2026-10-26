@@ -101,6 +101,9 @@ export function accessOf(path: AccessFacts, viewer: UserId | null): PathAccess {
 /** Reading a path includes studying it: marking its pages and writing notes on them, which are the reader's own */
 export const canRead = (access: PathAccess) => access !== "none"
 
+/** Writing and removing notes on a path's pages: they are the reader's own, so reading it is enough */
+export const mayWriteNotes = (path: Pick<Path, "access">) => canRead(path.access)
+
 /** Adding, editing and removing pages */
 export const canEdit = (access: PathAccess) => access === "owner" || access === "editor"
 
@@ -108,13 +111,12 @@ export const canEdit = (access: PathAccess) => access === "owner" || access === 
 export const canManage = (access: PathAccess) => access === "owner"
 
 /**
- * Whether the path's reader may make this edit of a page. Their studied mark and their notes are their own, so
- * reading is enough for an edit of only those; renaming the root renames the path, which is its owner's; anything
- * else edits the page.
+ * Whether the path's reader may make this edit of a page. A studied mark alone is their own progress, so reading is
+ * enough; renaming the root renames the path, which is its owner's; anything else edits the page.
  */
 export function mayEditPage(path: Pick<Path, "access" | "rootPageId">, pageId: PageId, edit: PageEdit): boolean {
-  const { studied: _studied, notes: _notes, ...ofThePage } = edit
-  if (Object.values(ofThePage).every((value) => value === undefined)) return canRead(path.access)
+  const { studied: _studied, ...rest } = edit
+  if (Object.values(rest).every((value) => value === undefined)) return canRead(path.access)
   return pageId === path.rootPageId && edit.title !== undefined ? canManage(path.access) : canEdit(path.access)
 }
 

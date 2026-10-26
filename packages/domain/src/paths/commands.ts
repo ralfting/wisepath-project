@@ -6,6 +6,7 @@ import { createPage, deletePage, findPageByTitle, newPath, renameLinks, setDescr
 import { lookOf, mapTree, nextPage, pathProgress } from "./tree"
 import { linksOf, withLinkTo } from "./links"
 import { PathAccess, PathVisibility } from "./access"
+import { NoteId, PageNote, TextQuote } from "./notes"
 import { ProjectId } from "../projects/Project"
 
 /**
@@ -54,8 +55,6 @@ export const PageEdit = Schema.Struct({
   title: Schema.optional(PageTitle),
   content: Schema.optional(Schema.String),
   studied: Schema.optional(Schema.Boolean),
-  /** The reader's own notes on the page; empty removes them */
-  notes: Schema.optional(Schema.String),
   module: Schema.optional(Schema.Boolean),
   color: Schema.optional(PageColor),
   icon: Schema.optional(PageIcon),
@@ -64,6 +63,26 @@ export const PageEdit = Schema.Struct({
   previousTitle: Schema.optional(Title)
 })
 export type PageEdit = typeof PageEdit.Type
+
+/** What a note says and the passage it is on; its id and page are where it is written */
+export const NoteText = Schema.Struct({
+  quote: Schema.optional(TextQuote),
+  body: PageNote.fields.body
+})
+export type NoteText = typeof NoteText.Type
+
+/** Writes the reader's note on a page: a new one, or the one with this id rewritten */
+export const WriteNote = Schema.Struct({
+  pageId: PageId,
+  note: Schema.Struct({ id: NoteId, ...NoteText.fields })
+})
+export type WriteNote = typeof WriteNote.Type
+
+export const RemoveNote = Schema.Struct({
+  pageId: PageId,
+  noteId: NoteId
+})
+export type RemoveNote = typeof RemoveNote.Type
 
 /** A map as the list of maps shows it */
 export const PathSummary = Schema.Struct({
@@ -132,7 +151,7 @@ export const addBranch = Effect.fnUntraced(function*(path: Path, parentId: PageI
 })
 
 /**
- * Edits a page: its text, whether it was studied, the reader's notes, how it shows on the map,
+ * Edits a page: its text, whether it was studied, how it shows on the map,
  * and, after a rename, the [[links]] that used its old title.
  */
 export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, edit: PageEdit, now = new Date()) {
@@ -140,8 +159,8 @@ export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, 
   if (!page) return yield* new PageNotFound({ pageId })
   if (edit.title !== undefined && titleTaken(path, pageId, edit.title)) return yield* new TitleTaken({ title: edit.title })
 
-  const { title, content, studied, notes, module, color, icon, previousTitle } = edit
-  const text = defined({ title, content, studied, notes })
+  const { title, content, studied, module, color, icon, previousTitle } = edit
+  const text = defined({ title, content, studied })
   const look = defined({ module, color, icon })
 
   let next = updatePage(path, pageId, text, now)
@@ -159,6 +178,39 @@ export const removePage = Effect.fnUntraced(function*(path: Path, pageId: PageId
   if (pageId === path.rootPageId) return yield* new RootPageProtected({ pageId })
   return path.pages.some((p) => p.id === pageId) ? deletePage(path, pageId) : path
 })
+
+/** The path with a page's notes replaced */
+const withNotes = (path: Path, pageId: PageId, notes: ReadonlyArray<PageNote>): Path => ({
+  ...path,
+  pages: path.pages.map((p) => (p.id === pageId ? { ...p, notes } : p))
+})
+
+/**
+ * Writes the reader's note: rewriting one keeps when it was made. Writing the same words again (a retry) changes
+ * nothing. Notes are the reader's, so the page's edited date stays.
+ */
+export const writeNote = Effect.fnUntraced(function*(path: Path, command: WriteNote, now = new Date()) {
+  const page = path.pages.find((p) => p.id === command.pageId)
+  if (!page) return yield* new PageNotFound({ pageId: command.pageId })
+  const { id, quote, body } = command.note
+  const notes = page.notes ?? []
+  const was = notes.find((n) => n.id === id)
+  if (was && was.body === body && sameQuote(was.quote, quote)) return path
+
+  const at = now.toISOString()
+  const note: PageNote = { id, ...(quote ? { quote } : {}), body, createdAt: was?.createdAt ?? at, updatedAt: at }
+  return withNotes(path, page.id, was ? notes.map((n) => (n.id === id ? note : n)) : [...notes, note])
+})
+
+const sameQuote = (a: TextQuote | undefined, b: TextQuote | undefined) =>
+  a === b || (a !== undefined && b !== undefined && a.exact === b.exact && a.prefix === b.prefix && a.suffix === b.suffix)
+
+/** Removes the reader's note; one already gone, or on a page already gone (a retry), changes nothing */
+export function removeNote(path: Path, command: RemoveNote): Path {
+  const notes = path.pages.find((p) => p.id === command.pageId)?.notes ?? []
+  if (!notes.some((n) => n.id === command.noteId)) return path
+  return withNotes(path, command.pageId, notes.filter((n) => n.id !== command.noteId))
+}
 
 /** The map as its card and the sidebar show it */
 export function summarize(path: Path, projectId: ProjectId | null, ownerName: string | null): PathSummary {

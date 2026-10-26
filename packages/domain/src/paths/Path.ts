@@ -1,5 +1,6 @@
 import { Schema } from "effect"
 import { PathAccess, PathLanguage, PathVisibility, PublicationStatus } from "./access"
+import { PageNote } from "./notes"
 
 /**
  * A path is a map of what someone is learning: pages of free markdown that
@@ -66,8 +67,8 @@ export const Page = Schema.Struct({
   /** Free-form markdown: explanations, notes, links, YouTube URLs on their own line */
   content: Schema.String,
   studied: Schema.Boolean,
-  /** The reader's own markdown on the page, never anyone else's; absent when they wrote none or nobody reads */
-  notes: Schema.optional(Schema.String),
+  /** The reader's own notes on the page, oldest first, never anyone else's; absent when nobody reads */
+  notes: Schema.optional(Schema.Array(PageNote)),
   /** ISO date of the last edit to the title or text */
   updatedAt: Schema.String,
   /** Drawn as a module on the map; nothing else changes */

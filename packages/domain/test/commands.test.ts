@@ -83,14 +83,6 @@ describe("page commands", () => {
       assert.deepStrictEqual([page.content, page.module, page.color], ["Hi", true, "green"])
     }))
 
-  it.effect("keeps the reader's notes on a page without counting them as an edit of it", () =>
-    Effect.gen(function*() {
-      const before = samplePath.pages.find((p) => p.id === "guards")!
-      const p = yield* editPage(samplePath, id("guards"), { notes: "Ask why guards run before pipes" }, new Date("2030-01-01"))
-      const page = p.pages.find((x) => x.id === "guards")!
-      assert.deepStrictEqual([page.notes, page.content, page.updatedAt], ["Ask why guards run before pipes", before.content, before.updatedAt])
-    }))
-
   it.effect("protects the root and reports pages that are gone", () =>
     Effect.gen(function*() {
       const studied = yield* editPage(samplePath, rootId, { studied: true })
