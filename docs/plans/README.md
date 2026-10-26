@@ -23,6 +23,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 19 | [Publish a path to the catalog](19-publish-to-the-catalog.md) | The owner asks from the Share dialog; an administrator approves at /admin/publications |
 | 20 | [Published paths as pages a search engine can read](20-published-pages.md) | `/p/<path>/<page>`, rendered on the server, with real links between pages |
 | 21 | [My notes on a page](21-page-notes.md) | Notes of your own on a passage or a page, highlighted in the text like Google Docs comments, never shown to anyone else |
+| 22 | [Activities on a page](22-page-activities.md) | `> [!activity]` blocks a learner ticks; in a learning path the page is studied once they are done |
 
 AI (10) comes last, once these exist to build on.
 
