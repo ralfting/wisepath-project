@@ -12,8 +12,12 @@ goes public with the path. And a note is most useful next to the words it is abo
 ## The experience
 
 - **On a passage.** Selecting text in a page, in the drawer or on the full page, shows **Note** in the selection
-  bubble (also for a reader who may not edit the text). It opens a small card by the passage to write the note. From
-  then on the passage is highlighted; clicking it opens the card again, to read, edit or delete the note.
+  bubble (also for a reader who may not edit the text). It opens a card in the margin, as a comment in Docs, to write
+  the note. From then on the passage is highlighted; clicking it opens the card again, showing the note as it reads,
+  with Edit, Delete and Close. The card sits beside the page, its top on the passage's, never over the text: right of
+  the full page (which slides left when its margin is short), left of the drawer over the map, and under the passage
+  only when the window has room for neither. It is 20rem wide, follows the passage as the page scrolls, and stays in
+  the window. Edit swaps in the lean editor; Done, Esc or a click outside goes back to reading, then closes the card.
 - **On the page.** A tab of its own, **My notes** with a lock and the number of notes (the drawer's third tab, after
   Related; on the full page, a second tab beside Content), marked "Only you see these", lists every note of the page
   in the order of the text: each with the passage it is on, quoted (clicking the quote shows the Content tab, scrolls
