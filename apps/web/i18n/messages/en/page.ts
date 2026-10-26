@@ -49,6 +49,7 @@ export const page = {
   tabs: {
     content: 'Content',
     related: 'Related ({count})',
+    notes: 'My notes ({count})',
   },
   pager: {
     label: 'Previous and next page',
@@ -130,8 +131,8 @@ export const page = {
     mark: "Tick it once you've learned what this page covers. {effect}",
   },
   notes: {
-    title: 'My notes',
     private: 'Only you see these',
+    empty: 'Notes you make on selected words, or here, show up in this tab.',
     add: 'Add a note',
     removed: 'Passage removed',
     toPassage: 'Go to the passage: {quote}',

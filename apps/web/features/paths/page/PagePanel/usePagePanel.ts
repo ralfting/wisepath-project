@@ -10,8 +10,8 @@ import { useT } from '@/i18n/I18nProvider';
 import { pointAtRelated } from '@/features/paths/path';
 import { pageActionsFor } from '../PageContent/PageContent.helpers';
 
-/** The panel's tabs: the page's text, or the pages related to it */
-export type PanelTab = 'content' | 'related';
+/** The panel's tabs: the page's text, the pages related to it, or the reader's own notes on it */
+export type PanelTab = 'content' | 'related' | 'notes';
 
 /** Scrolled this far down, the header folds; back above COMPACT_LEAVE, it unfolds */
 const COMPACT_ENTER = 40;

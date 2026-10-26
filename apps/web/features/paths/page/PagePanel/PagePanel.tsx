@@ -7,6 +7,9 @@ import { canEdit, pathProgress } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
 import { PageContent } from '../PageContent/PageContent';
+import { NotesTab } from '../PageNotes/NotesTab';
+import { PageNotes } from '../PageNotes/PageNotes';
+import { usePageNotes } from '../PageNotes/usePageNotes';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
 import type { EditorFocus } from '@/features/paths/editor';
 import { DeletePageModal } from '../DeletePageModal';
@@ -21,7 +24,7 @@ import type { PanelTab } from './usePagePanel';
 
 /**
  * The selected page beside the map: where it sits, its title and markdown,
- * the pages related to it, and how it shows on the map.
+ * the pages related to it, the reader's own notes on it, and how it shows on the map.
  */
 
 interface PagePanelProps {
@@ -47,6 +50,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
   const t = useT();
   const { state, operations } = usePagePanel({ path, page, store, onSelect });
   const { isRoot, isOrphan, tree, trail, below, progress, related, subtitle } = state;
+  const notes = usePageNotes(page, state.actions, () => operations.showTab('content'));
 
   return (
     <Card
@@ -171,6 +175,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
         <Tabs.List px="lg">
           <Tabs.Tab value="content">{t('page.tabs.content')}</Tabs.Tab>
           <Tabs.Tab value="related">{t('page.tabs.related', { count: related.length })}</Tabs.Tab>
+          <NotesTab count={notes.list.notes.length} />
         </Tabs.List>
 
         <Tabs.Panel value="content" className={classes.body} onScroll={operations.scroll}>
@@ -179,6 +184,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             path={path}
             page={page}
             actions={state.actions}
+            notes={notes.text}
             showTitle={false}
             focusEditor={focusEditor}
             onCursor={onCursor}
@@ -198,6 +204,9 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
           <RelatedPages path={path} page={page} tree={tree} related={related} store={store} onSelect={onSelect} />
         </Tabs.Panel>
 
+        <Tabs.Panel value="notes" className={classes.body} onScroll={operations.scroll}>
+          <PageNotes list={notes.list} path={path} page={page} actions={state.actions} />
+        </Tabs.Panel>
       </Tabs>
     </Card>
   );

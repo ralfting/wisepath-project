@@ -51,6 +51,7 @@ export const page = {
   tabs: {
     content: 'Conteúdo',
     related: 'Relacionadas ({count})',
+    notes: 'Notas ({count})',
   },
   pager: {
     label: 'Página anterior e próxima',
@@ -132,8 +133,8 @@ export const page = {
     mark: 'Marque quando tiver aprendido o que esta página cobre. {effect}',
   },
   notes: {
-    title: 'Minhas notas',
     private: 'Só você vê',
+    empty: 'As notas que você fizer em palavras selecionadas, ou aqui, aparecem nesta aba.',
     add: 'Adicionar uma nota',
     removed: 'Trecho removido',
     toPassage: 'Ir ao trecho: {quote}',

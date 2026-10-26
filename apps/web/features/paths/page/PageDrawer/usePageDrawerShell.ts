@@ -53,6 +53,8 @@ export function usePageDrawerShell({ ownContentClass }: { ownContentClass: strin
     // Only one on screen counts: a closed Select (a code block's language) keeps its dropdown in the page, hidden
     const open = [...document.querySelectorAll('.mantine-Popover-dropdown, [role=menu]')].some((el) => el.getClientRects().length > 0);
     if (open) return;
+    // A note written in place, in the Notes tab, closes on Esc instead
+    if (document.activeElement?.closest('[data-note-writing]')) return;
     // Another drawer or dialog over this one (Help) takes the Esc
     const over = [...document.querySelectorAll('.mantine-Drawer-content, .mantine-Modal-content')].some(
       (el) => !el.classList.contains(ownContentClass) && el.getClientRects().length > 0,
