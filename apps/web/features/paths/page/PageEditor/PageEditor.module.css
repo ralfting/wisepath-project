@@ -6,10 +6,6 @@
   flex: 1;
   width: calc(100% - 2 * var(--mantine-spacing-md));
   max-width: calc(var(--wp-page-width) + 2 * var(--mantine-spacing-lg));
-
-  &[data-wide] {
-    --wp-page-width: var(--wp-page-width-wide);
-  }
   margin-inline: auto;
 
   @media (min-width: $mantine-breakpoint-sm) {
@@ -26,6 +22,10 @@
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
+  }
+
+  &[data-wide] {
+    --wp-page-width: var(--wp-page-width-wide);
   }
 }
 

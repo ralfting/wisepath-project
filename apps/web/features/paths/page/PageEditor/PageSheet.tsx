@@ -92,7 +92,9 @@ export function PageSheet({
               </ActionIcon>
             </Menu.Target>
             <Menu.Dropdown>
+              {/* On a phone the page is the screen's width already */}
               <Menu.Item
+                visibleFrom="sm"
                 leftSection={state.wide ? <IconViewportNarrow size={15} /> : <IconViewportWide size={15} />}
                 onClick={operations.toggleWide}
               >
