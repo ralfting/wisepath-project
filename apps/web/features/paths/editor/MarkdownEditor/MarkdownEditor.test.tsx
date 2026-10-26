@@ -1,6 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { PageId, PathId, activitiesIn } from '@wisepath/domain/paths';
 import { MemoryAuth } from '@/infrastructure/auth/MemoryAuth';
 import { renderWithLayers } from '@/test/render';
 import type { EditorNotes } from '../noteHighlights';
@@ -99,6 +100,22 @@ describe('MarkdownEditor', () => {
     await user.click(await screen.findByRole('menuitem', { name: 'Activity', hidden: true }));
 
     expect(await screen.findByRole('note', { name: 'Activity' })).toBeTruthy();
+  });
+
+  it("lets a reader tick each activity of a learning path's page, by the domain's name for it", async () => {
+    const user = userEvent.setup();
+    const content = '> [!activity]\n> Write **two** things.\n\nBetween.\n\n> [!activity]\n> Copy a sentence.';
+    const [first, second] = activitiesIn(PathId.make('journal'), { id: PageId.make('page'), content }).map((a) => a.id);
+    const onToggle = vi.fn();
+    const props = { content, onChange: noop, pages: [], currentPageId: 'page', onOpenPage: noop, onLinkPage: noop, onCreatePage: noop, onCreatePageHere: noop };
+    const view = renderWithLayers(<MarkdownEditor {...props} readOnly activities={{ ids: [first, second], done: [first], onToggle }} />, MemoryAuth());
+
+    expect(await screen.findByRole('switch', { name: 'Done', checked: true })).toBeTruthy();
+    await user.click(screen.getByRole('switch', { name: 'Mark as done', checked: false }));
+    expect(onToggle).toHaveBeenCalledWith(second);
+
+    view.rerender(<MarkdownEditor {...props} readOnly activities={{ ids: [first, second], done: [first, second], onToggle }} />);
+    expect(await screen.findAllByRole('switch', { name: 'Done', checked: true })).toHaveLength(2);
   });
 
   it('keeps a quote of another kind, or with no marker, a plain quote', async () => {

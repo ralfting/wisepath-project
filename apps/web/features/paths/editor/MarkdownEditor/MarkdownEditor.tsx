@@ -6,6 +6,8 @@ import type { InboxItem } from '@wisepath/domain/inbox';
 import { useT } from '@/i18n/I18nProvider';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import type { EditorNotes } from '../noteHighlights';
+import { EditorActivitiesContext } from '../activities';
+import type { EditorActivities } from '../activities';
 import classes from './MarkdownEditor.module.css';
 import blocks from './MarkdownBlocks.module.css';
 import noteClasses from './NoteHighlights.module.css';
@@ -52,6 +54,8 @@ export interface MarkdownEditorProps {
   variant?: EditorVariant;
   /** The reader's notes on passages of the text: drawn over them, and Note on a selection makes one */
   notes?: EditorNotes;
+  /** In a learning path, the page's activities and the reader's ticks: each activity can be ticked done */
+  activities?: EditorActivities;
 }
 
 /** Where the cursor goes when the text opens: at a position, its start or its end */
@@ -116,7 +120,9 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
         {editor && (!readOnly || canNote) && (
           <SelectionBubble editor={editor} format={!readOnly} onNote={canNote ? operations.noteSelection : undefined} />
         )}
-        <RichTextEditor.Content />
+        <EditorActivitiesContext.Provider value={props.activities ?? null}>
+          <RichTextEditor.Content />
+        </EditorActivitiesContext.Provider>
       </RichTextEditor>
 
       {card.card && <LinkCard card={card.card} onAct={card.act} onClose={card.close} />}
