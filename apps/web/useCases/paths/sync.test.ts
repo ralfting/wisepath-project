@@ -190,13 +190,15 @@ describe("path sync", () => {
         const tried = [
           session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { studied: true } }),
           session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { done: [activity.id] } }),
-          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { studied: true } })
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { studied: true } }),
+          // Unticked before any of it is sent: the API must see the mark before the untick, as the screen did
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { done: [] } })
         ]
-        assert.deepStrictEqual(tried, [false, true, true])
+        assert.deepStrictEqual(tried, [false, true, true, true])
         yield* settled(session.state)
-        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:done,studied"])
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:done,studied", "updatePage:done"])
         const stored = page(yield* Ref.get(api.path), "guards")
-        assert.deepStrictEqual([stored?.studied, stored?.done], [true, [activity.id]])
+        assert.deepStrictEqual([stored?.studied, stored?.done, (yield* SubscriptionRef.get(session.state)).notice], [false, undefined, null])
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 

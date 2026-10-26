@@ -174,6 +174,8 @@ const merge = (last: Entry, command: Command): boolean => {
   }
   if (last.command._tag !== "UpdatePage" || command._tag !== "UpdatePage") return false
   if (last.command.pageId !== command.pageId) return false
+  // editPage applies ticks before the studied mark: a mark then a tick merged would run the other way round
+  if (last.command.edit.studied !== undefined && command.edit.done !== undefined) return false
   const previousTitle = last.command.edit.previousTitle ?? command.edit.previousTitle
   last.command = {
     ...last.command,
