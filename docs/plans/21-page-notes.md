@@ -14,9 +14,12 @@ goes public with the path. And a note is most useful next to the words it is abo
 - **On a passage.** Selecting text in a page, in the drawer or on the full page, shows **Note** in the selection
   bubble (also for a reader who may not edit the text). It opens a small card by the passage to write the note. From
   then on the passage is highlighted; clicking it opens the card again, to read, edit or delete the note.
-- **On the page.** Under the text, **My notes**, marked "Only you see these", lists every note of the page in the
-  order of the text: each with the passage it is on, quoted (clicking the quote scrolls to the passage and opens its
-  card), then the note. **Add a note** adds one on the whole page, with no passage.
+- **On the page.** A tab of its own, **My notes** with a lock and the number of notes (the drawer's third tab, after
+  Related; on the full page, a second tab beside Content), marked "Only you see these", lists every note of the page
+  in the order of the text: each with the passage it is on, quoted (clicking the quote shows the Content tab, scrolls
+  to the passage and opens its card), then the note. The pencil writes a note in place, no card, with Delete, one at
+  a time. **Add a note** adds one on the whole page, with no passage, written the same way; left blank, it is not
+  kept. With no notes, the tab says where they come from.
 - **When the text changes.** A note holds the words it was made on, with a few words on each side, not a position:
   the owner may keep writing and the note stays on its words. When those words are gone, the note stays in the list
   marked "Passage removed", with the quote as it was.
@@ -44,7 +47,8 @@ goes public with the path. And a note is most useful next to the words it is abo
 - **Web**: the sync session sends the two commands like any other, a burst of typing in one note as one write. The
   editor gets a `NoteHighlights` extension: decorations over each located quote, recomputed as the text changes, in
   a read-only editor too, with a click that opens the note's card. The quote is taken from the editor's text (what
-  the reader sees), not the markdown. `features/paths/page/PageNotes/` holds the list and the card.
+  the reader sees), not the markdown. `features/paths/page/PageNotes/` holds the Notes tab, the card and `usePageNotes`,
+  which the drawer's panel and the full page call once for both tabs.
 
 ## Checks
 
