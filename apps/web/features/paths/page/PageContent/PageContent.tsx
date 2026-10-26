@@ -7,7 +7,6 @@ import { MarkdownEditor } from '@/features/paths/editor';
 import type { EditorFocus } from '@/features/paths/editor';
 import { Stack } from '@mantine/core';
 import { useInbox, useTakeFromInbox } from '@/useCases/inbox';
-import { PageNotes } from '../PageNotes/PageNotes';
 import { PagePager } from './PagePager';
 import { PageTitleInput } from './PageTitleInput';
 import type { PageActions } from './PageContent.helpers';
@@ -15,8 +14,7 @@ import type { PageActions } from './PageContent.helpers';
 /**
  * PageContent
  * One page's title and markdown, edited in place, or read by someone who may
- * not edit them, and the reader's own notes under them. Used by the map's side
- * panel and by the full-screen page.
+ * not edit them. Used by the map's side panel and by the full-screen page.
  */
 
 interface PageContentProps {
@@ -80,7 +78,6 @@ export function PageContent({
         readOnly={!canEdit(path.access)}
         inbox={{ items: waiting.status === 'ready' ? waiting.items : null, onTaken: (item) => void take(item, path.id) }}
       />
-      <PageNotes path={path} page={page} actions={actions} />
       <PagePager path={path} page={page} onOpen={actions.openPage} />
     </Stack>
   );

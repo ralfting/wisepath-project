@@ -5,7 +5,7 @@ import { Cause, Effect, Exit, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomValue } from "@effect/atom-react"
 import { PageId, PathId, addBranch, findPageByTitle, moveBranch, renameLinks, unlinkPages } from "@wisepath/domain/paths"
-import type { Page, PageColor, PageIcon, Path, PathKind } from "@wisepath/domain/paths"
+import type { NoteId, NoteText, Page, PageColor, PageIcon, Path, PathKind } from "@wisepath/domain/paths"
 import { useT } from "@/i18n/I18nProvider"
 import { useHydrated } from "../useHydrated"
 import * as programs from "./programs"
@@ -45,7 +45,10 @@ const loadingState: Atom.Atom<{ readonly path: Path | null } & Omit<SyncState, "
 /** Page ids come in as plain strings (from the URL or the map) and are branded here */
 export interface PathActions {
   /** Edits a page; a title another page has is ignored, so check titleTaken first */
-  updatePage: (pageId: string, patch: Partial<Pick<Page, "title" | "content" | "studied" | "notes">>) => void
+  updatePage: (pageId: string, patch: Partial<Pick<Page, "title" | "content" | "studied">>) => void
+  /** Writes the reader's own note on a page, new or rewritten; make a new one's id with newNoteId */
+  writeNote: (pageId: string, noteId: NoteId, text: NoteText) => void
+  removeNote: (pageId: string, noteId: NoteId) => void
   /** A page's title starts being edited: its links show the new title as it is typed */
   beginRename: (pageId: string) => void
   /** After a page was renamed to newTitle: rewrites the [[oldTitle]] links across the map, ending the rename */
@@ -106,6 +109,8 @@ export function usePath(pathId: string): { state: PathState; save: SaveState; ac
 
   const actions: PathActions = {
     updatePage: (pageId, patch) => dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: patch }),
+    writeNote: (pageId, noteId, text) => dispatch({ _tag: "WriteNote", pageId: PageId.make(pageId), note: { id: noteId, ...text } }),
+    removeNote: (pageId, noteId) => dispatch({ _tag: "RemoveNote", pageId: PageId.make(pageId), noteId }),
     beginRename: (pageId) => {
       const page = current()?.pages.find((p) => p.id === pageId)
       if (page) registry.set(renamingAtom(id), { pageId: page.id, from: page.title })

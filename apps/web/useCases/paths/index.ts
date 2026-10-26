@@ -5,7 +5,7 @@ export { useLinkPreview, useLinkPreviewLoader } from "./links"
 export type { LinkPreviewState } from "./links"
 export { useOpenPath } from "./openPath"
 export type { OpenPath } from "./openPath"
-export { newPageId } from "./programs"
+export { newNoteId, newPageId } from "./programs"
 export { allPathsDownloadHref, pathDownloadHref } from "./downloads"
 export type { Command } from "./sync"
 export {

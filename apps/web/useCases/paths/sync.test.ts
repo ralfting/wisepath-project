@@ -1,6 +1,7 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect, Layer, Ref, SubscriptionRef } from "effect"
 import {
+  NoteId,
   PageId,
   PathNotFound,
   PathRepository,
@@ -8,9 +9,11 @@ import {
   addPage,
   editPage,
   editPath,
+  removeNote,
   removePage,
   samplePath,
-  summarize
+  summarize,
+  writeNote
 } from "@wisepath/domain/paths"
 import type { Path } from "@wisepath/domain/paths"
 import { ProjectId } from "@wisepath/domain/projects"
@@ -61,7 +64,10 @@ const memoryApi = (start: Path) => Effect.gen(function*() {
     updatePage: (_id, pageId, edit) =>
       call(`updatePage:${Object.keys(edit).sort().join(",")}`, (p) => editPage(p, pageId, edit).pipe(Effect.map((n) => [undefined, n] as const))),
     removePage: (_id, pageId) =>
-      call("removePage", (p) => removePage(p, pageId).pipe(Effect.map((n) => [undefined, n] as const)))
+      call("removePage", (p) => removePage(p, pageId).pipe(Effect.map((n) => [undefined, n] as const))),
+    writeNote: (_id, command) =>
+      call(`writeNote:${command.note.body}`, (p) => writeNote(p, command).pipe(Effect.map((n) => [undefined, n] as const))),
+    removeNote: (_id, command) => call("removeNote", (p) => Effect.succeed([undefined, removeNote(p, command)] as const))
   }))
   return { api, layer }
 })
@@ -140,9 +146,10 @@ describe("path sync", () => {
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 
-  it.live("lets a reader mark pages studied and write their notes, and nothing else", () =>
+  it.live("lets a reader mark pages studied and keep their notes, and nothing else", () =>
     Effect.gen(function*() {
       const { api, layer } = yield* memoryApi({ ...samplePath, access: "viewer" })
+      const [guards, kept, dropped] = [PageId.make("guards"), NoteId.make("kept"), NoteId.make("dropped")]
       yield* Effect.gen(function*() {
         const session = yield* openPathSession(samplePath.id)
         const tried = [
@@ -151,16 +158,22 @@ describe("path sync", () => {
           session.dispatch({ _tag: "RemovePage", pageId: PageId.make("guards") }),
           session.dispatch({ _tag: "UpdatePath", edit: { kind: "learningPath" } }),
           session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("scopes"), edit: { studied: true } }),
-          session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("guards"), edit: { notes: "W" } })
+          session.dispatch({ _tag: "WriteNote", pageId: guards, note: { id: kept, body: "W" } }),
+          session.dispatch({ _tag: "WriteNote", pageId: guards, note: { id: dropped, body: "Typo" } }),
+          session.dispatch({ _tag: "RemoveNote", pageId: guards, noteId: dropped })
         ]
-        assert.deepStrictEqual(tried, [false, false, false, false, true, true])
-        // Notes are typed like the text: a burst goes as one edit after the pause
+        assert.deepStrictEqual(tried, [false, false, false, false, true, true, true, true])
+        // A note is typed like the text: a burst goes as one write after the pause
         yield* Effect.sleep("50 millis")
-        session.dispatch({ _tag: "UpdatePage", pageId: PageId.make("guards"), edit: { notes: "Why" } })
+        session.dispatch({ _tag: "WriteNote", pageId: guards, note: { id: kept, body: "Wh" } })
+        session.dispatch({ _tag: "WriteNote", pageId: guards, note: { id: kept, body: "Why" } })
         yield* settled(session.state)
-        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:studied", "updatePage:notes"])
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:studied", "writeNote:W", "writeNote:Typo", "removeNote", "writeNote:Why"])
         const shown = page((yield* SubscriptionRef.get(session.state)).path, "guards")
-        assert.deepStrictEqual([shown?.content, shown?.notes], [page(samplePath, "guards")?.content, "Why"])
+        assert.deepStrictEqual(
+          [shown?.content, shown?.updatedAt, shown?.notes?.map((n) => n.body)],
+          [page(samplePath, "guards")?.content, page(samplePath, "guards")?.updatedAt, ["Why"]]
+        )
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 

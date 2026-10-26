@@ -26,7 +26,13 @@ const make = (reads: typeof inBrowser) =>
             Effect.withSpan("PathRepository.updatePage")
           ),
         removePage: (pathId, pageId) =>
-          classify(api.removePage({ params: { pathId, pageId } })).pipe(Effect.withSpan("PathRepository.removePage"))
+          classify(api.removePage({ params: { pathId, pageId } })).pipe(Effect.withSpan("PathRepository.removePage")),
+        writeNote: (pathId, { pageId, note: { id: noteId, ...text } }) =>
+          classify(api.writeNote({ params: { pathId, pageId, noteId }, payload: text })).pipe(
+            Effect.withSpan("PathRepository.writeNote")
+          ),
+        removeNote: (pathId, { pageId, noteId }) =>
+          classify(api.removeNote({ params: { pathId, pageId, noteId } })).pipe(Effect.withSpan("PathRepository.removeNote"))
       })
     })
   )

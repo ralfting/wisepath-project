@@ -1,6 +1,6 @@
 import type { Effect } from "effect"
 import { Context } from "effect"
-import type { NewPage, NewPath, PageEdit, PathEdit, PathSummary } from "./commands"
+import type { NewPage, NewPath, PageEdit, PathEdit, PathSummary, RemoveNote, WriteNote } from "./commands"
 import type { PageNotFound, PathNotFound, PathsUnavailable, RootPageProtected, TitleTaken } from "./errors"
 import type { Page, PageId, Path, PathId } from "./Path"
 import type { ProjectNotFound } from "../projects/errors"
@@ -33,4 +33,7 @@ export class PathRepository extends Context.Service<PathRepository, {
     id: PathId,
     pageId: PageId
   ) => Effect.Effect<void, PathNotFound | RootPageProtected | PathsUnavailable>
+  /** The reader's own note on a page, new or rewritten */
+  readonly writeNote: (id: PathId, command: WriteNote) => Effect.Effect<void, PathNotFound | PageNotFound | PathsUnavailable>
+  readonly removeNote: (id: PathId, command: RemoveNote) => Effect.Effect<void, PathNotFound | PathsUnavailable>
 }>()("@wisepath/domain/paths/PathRepository") {}

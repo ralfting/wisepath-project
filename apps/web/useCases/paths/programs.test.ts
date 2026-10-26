@@ -17,7 +17,9 @@ const recording = Effect.gen(function*() {
     takeSample: Effect.die("not used"),
     createPage: () => Effect.die("not used"),
     updatePage: () => Effect.die("not used"),
-    removePage: () => Effect.die("not used")
+    removePage: () => Effect.die("not used"),
+    writeNote: () => Effect.die("not used"),
+    removeNote: () => Effect.die("not used")
   }))
   return { sent, layer }
 })

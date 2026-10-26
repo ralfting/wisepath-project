@@ -1,6 +1,18 @@
 import { Duration, Effect, Exit, Queue, Schedule, SubscriptionRef } from "effect"
 import type { Scope } from "effect"
-import { PathRepository, addPage, canEdit, canManage, editPage, editPath, mayEditPage, removePage } from "@wisepath/domain/paths"
+import {
+  PathRepository,
+  addPage,
+  canEdit,
+  canManage,
+  editPage,
+  editPath,
+  mayEditPage,
+  mayWriteNotes,
+  removeNote,
+  removePage,
+  writeNote
+} from "@wisepath/domain/paths"
 import type {
   NewPage,
   PageEdit,
@@ -11,8 +23,10 @@ import type {
   PageNotFound,
   PathNotFound,
   PathsUnavailable,
+  RemoveNote,
   RootPageProtected,
-  TitleTaken
+  TitleTaken,
+  WriteNote
 } from "@wisepath/domain/paths"
 import type { ProjectNotFound } from "@wisepath/domain/projects"
 
@@ -22,8 +36,8 @@ import type { ProjectNotFound } from "@wisepath/domain/projects"
  * command is applied to the map on screen with the same domain function the
  * API runs, then sent in the background, one command at a time, in order.
  *
- * - Typing in one page merges into a single command, sent once the typing
- *   pauses (SEND_AFTER).
+ * - Typing in one page, or in one note, merges into a single command, sent
+ *   once the typing pauses (SEND_AFTER).
  * - No connection or a server error: the command waits and is sent again,
  *   more slowly each time; nothing typed is lost while the tab stays open.
  * - A change the reader's access does not allow (a reader editing text) is
@@ -38,6 +52,8 @@ export type Command =
   | { readonly _tag: "CreatePage"; readonly page: NewPage }
   | { readonly _tag: "UpdatePage"; readonly pageId: PageId; readonly edit: PageEdit }
   | { readonly _tag: "RemovePage"; readonly pageId: PageId }
+  | ({ readonly _tag: "WriteNote" } & WriteNote)
+  | ({ readonly _tag: "RemoveNote" } & RemoveNote)
 
 /** Why a change was undone; the words are in the messages (home.save.notice) */
 export type Notice = "titleTaken" | "pageDeleted" | "rootProtected" | "notSaved"
@@ -73,10 +89,14 @@ export const applyCommand = (path: Path, command: Command): Effect.Effect<Path, 
       return editPage(path, command.pageId, command.edit)
     case "RemovePage":
       return removePage(path, command.pageId)
+    case "WriteNote":
+      return writeNote(path, command)
+    case "RemoveNote":
+      return Effect.succeed(removeNote(path, command))
   }
 }
 
-/** Whether the map's reader may make this change: a reader only marks pages studied and writes their notes */
+/** Whether the map's reader may make this change: a reader only marks pages studied and keeps their notes */
 const mayApply = (path: Path, command: Command) => {
   switch (command._tag) {
     case "UpdatePath":
@@ -86,6 +106,9 @@ const mayApply = (path: Path, command: Command) => {
       return canEdit(path.access)
     case "UpdatePage":
       return mayEditPage(path, command.pageId, command.edit)
+    case "WriteNote":
+    case "RemoveNote":
+      return mayWriteNotes(path)
   }
 }
 
@@ -108,6 +131,10 @@ const send = (repo: PathRepository["Service"], pathId: PathId, command: Command)
       return repo.updatePage(pathId, command.pageId, command.edit)
     case "RemovePage":
       return repo.removePage(pathId, command.pageId)
+    case "WriteNote":
+      return repo.writeNote(pathId, command)
+    case "RemoveNote":
+      return repo.removeNote(pathId, command)
   }
 }
 
@@ -133,9 +160,15 @@ interface Entry {
   sending: boolean
 }
 
-/** Typing edits one page at a time: consecutive edits of a page become one */
+/** Typing edits one page or note at a time: consecutive edits of a page, or writes of a note, become one */
 const merge = (last: Entry, command: Command): boolean => {
-  if (last.sending || last.command._tag !== "UpdatePage" || command._tag !== "UpdatePage") return false
+  if (last.sending) return false
+  if (last.command._tag === "WriteNote" && command._tag === "WriteNote") {
+    if (last.command.note.id !== command.note.id) return false
+    last.command = command
+    return true
+  }
+  if (last.command._tag !== "UpdatePage" || command._tag !== "UpdatePage") return false
   if (last.command.pageId !== command.pageId) return false
   const previousTitle = last.command.edit.previousTitle ?? command.edit.previousTitle
   last.command = {
@@ -145,10 +178,10 @@ const merge = (last: Entry, command: Command): boolean => {
   return true
 }
 
-/** Edits of the text and notes wait for a pause in typing; everything else goes at once */
+/** Edits of the text and writes of a note wait for a pause in typing; everything else goes at once */
 const waitsForPause = (command: Command) =>
-  command._tag === "UpdatePage" &&
-  (command.edit.content !== undefined || command.edit.title !== undefined || command.edit.notes !== undefined)
+  command._tag === "WriteNote" ||
+  (command._tag === "UpdatePage" && (command.edit.content !== undefined || command.edit.title !== undefined))
 
 /**
  * Opens a map for editing: reads it, then keeps sending its changes for as

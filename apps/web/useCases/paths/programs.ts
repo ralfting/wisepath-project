@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { AccessNotices, LinkPreviews, NewPath, NoticeId, PageId, PathId, CatalogFilter, PathKind, PathRepository, PathSharing, LinkVisibility, PublicationRequest, PublicationReview, ShareEdit } from "@wisepath/domain/paths"
+import { AccessNotices, LinkPreviews, NewPath, NoteId, NoticeId, PageId, PathId, CatalogFilter, PathKind, PathRepository, PathSharing, LinkVisibility, PublicationRequest, PublicationReview, ShareEdit } from "@wisepath/domain/paths"
 import { UserId } from "@wisepath/domain/auth"
 import { ProjectId } from "@wisepath/domain/projects"
 
@@ -14,6 +14,8 @@ export const newId = (): string =>
   typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `id-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
 
 export const newPageId = (): PageId => PageId.make(newId())
+
+export const newNoteId = (): NoteId => NoteId.make(newId())
 
 /** Every map the learner has, as their cards show them */
 export const listPaths = PathRepository.use((repo) => repo.list).pipe(Effect.withSpan("useCases.paths.list"))
