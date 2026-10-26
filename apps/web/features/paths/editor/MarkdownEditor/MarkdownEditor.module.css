@@ -93,6 +93,12 @@
       white-space: nowrap;
     }
 
+    /* Past the line's note bubbles, out in the margin beside a full page (ActiveBlockRail counts them); the rail's
+       own right edge is 0.5rem left of the text */
+    &[data-hint][data-marks]::after {
+      right: calc(var(--wp-gutter-start) + var(--wp-line-marks) * var(--wp-gutter-step) - 0.25rem);
+    }
+
     @media (prefers-reduced-motion: reduce) {
       transition: opacity 160ms ease;
     }
