@@ -6,6 +6,7 @@ import {
   PathNotFound,
   PathRepository,
   PathsUnavailable,
+  activitiesIn,
   addPage,
   editPage,
   editPath,
@@ -174,6 +175,28 @@ describe("path sync", () => {
           [shown?.content, shown?.updatedAt, shown?.notes?.map((n) => n.body)],
           [page(samplePath, "guards")?.content, page(samplePath, "guards")?.updatedAt, ["Why"]]
         )
+      }).pipe(Effect.scoped, Effect.provide(layer))
+    }))
+
+  it.live("lets a reader tick a page's activities, and mark it studied only once they are done", () =>
+    Effect.gen(function*() {
+      const guards = PageId.make("guards")
+      const content = "> [!activity]\n> Write a guard that checks a role."
+      const start = { ...(yield* editPage(samplePath, guards, { content })), kind: "learningPath" as const, access: "viewer" as const }
+      const [activity] = activitiesIn(samplePath.id, { id: guards, content })
+      const { api, layer } = yield* memoryApi(start)
+      yield* Effect.gen(function*() {
+        const session = yield* openPathSession(samplePath.id)
+        const tried = [
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { studied: true } }),
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { done: [activity.id] } }),
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { studied: true } })
+        ]
+        assert.deepStrictEqual(tried, [false, true, true])
+        yield* settled(session.state)
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:done,studied"])
+        const stored = page(yield* Ref.get(api.path), "guards")
+        assert.deepStrictEqual([stored?.studied, stored?.done], [true, [activity.id]])
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 

@@ -52,6 +52,7 @@ const notesStore = (setPage: (change: (page: Page) => Page) => void, spies: Pick
     spies.removeNote(pageId, noteId);
     setPage((page) => ({ ...page, notes: (page.notes ?? []).filter((note) => note.id !== noteId) }));
   },
+  toggleActivity: vi.fn(),
   beginRename: vi.fn(),
   renameLinks: vi.fn(),
   createPage: vi.fn(),

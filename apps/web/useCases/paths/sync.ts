@@ -100,7 +100,7 @@ export const applyCommand = (
   }
 }
 
-/** Whether the map's reader may make this change: a reader only marks pages studied and keeps their notes */
+/** Whether the map's reader may make this change: a reader only marks pages studied, ticks activities and keeps notes */
 const mayApply = (path: Path, command: Command) => {
   switch (command._tag) {
     case "UpdatePath":
