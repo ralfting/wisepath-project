@@ -1,10 +1,62 @@
-/* A passage the reader has a note on; stronger while its note is open */
+/* A passage the reader has a note on: a marker stroke behind the lower part of the line, the whole line while its
+   note is open. A background size so the stroke can grow; cloned so each wrapped line gets its own round ends */
 .highlights :global(.wp-page-note) {
-  background: var(--mantine-color-yellow-light);
+  --wp-note-strength: light-dark(30%, 22%);
+  --wp-note-stroke: color-mix(in srgb, var(--mantine-color-yellow-filled) var(--wp-note-strength), transparent);
+  margin-inline: -0.1em;
+  padding-inline: 0.1em;
+  border-radius: 0.25em;
+  background: linear-gradient(var(--wp-note-stroke), var(--wp-note-stroke)) left bottom / 100% 60% no-repeat;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
   cursor: pointer;
+  transition: background-size 160ms ease-out;
+
+  &:hover {
+    --wp-note-strength: light-dark(40%, 30%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
-.highlights :global(.wp-page-note-open) {
+.highlights :global(.wp-page-note.wp-page-note-open) {
+  --wp-note-strength: light-dark(40%, 32%);
+  background-size: 100% 100%;
+}
+
+/* The speech bubble at the end of the passage; filled while its note is open */
+.highlights :global(.wp-page-note-mark) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  margin-inline-start: 0.2em;
+  vertical-align: -0.15em;
+  border-radius: 50%;
   background: var(--mantine-color-yellow-light-hover);
-  text-decoration: underline var(--mantine-color-yellow-filled);
+  color: var(--mantine-color-yellow-light-color);
+  cursor: pointer;
+  user-select: none;
+
+  & svg {
+    width: 0.75em;
+    height: 0.75em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, var(--mantine-color-yellow-filled) 35%, transparent);
+  }
+
+  &:global(.wp-page-note-open) {
+    background: var(--mantine-color-yellow-filled);
+    color: var(--mantine-color-black);
+  }
 }

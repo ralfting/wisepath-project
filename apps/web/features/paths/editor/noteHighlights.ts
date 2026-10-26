@@ -66,6 +66,24 @@ function quoteOfSelection(state: EditorState): TextQuote | null {
   return start < 0 ? null : quoteAt(text, start, end);
 }
 
+const SVG = 'http://www.w3.org/2000/svg';
+
+/** The speech bubble after a noted passage: a way in when the band alone is easy to miss. Not text, so never copied */
+function noteMark(id: string, open: boolean): HTMLElement {
+  const mark = document.createElement('span');
+  mark.className = open ? 'wp-page-note-mark wp-page-note-open' : 'wp-page-note-mark';
+  mark.setAttribute('data-page-note', id);
+  mark.setAttribute('aria-hidden', 'true');
+  mark.contentEditable = 'false';
+  const icon = document.createElementNS(SVG, 'svg');
+  icon.setAttribute('viewBox', '0 0 24 24');
+  const path = document.createElementNS(SVG, 'path');
+  path.setAttribute('d', 'M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12');
+  icon.append(path);
+  mark.append(icon);
+  return mark;
+}
+
 interface Highlights {
   readonly decorations: DecorationSet;
   readonly found: ReadonlyArray<string>;
@@ -80,12 +98,15 @@ function highlights(doc: ProseMirrorNode, notes: EditorNotes | undefined): Highl
       return at ? [{ id: note.id, ...at }] : [];
     })
     .sort((a, b) => a.start - b.start);
-  const decorations = located.map(({ id, start, end }) =>
-    Decoration.inline(positions[start], positions[end - 1] + 1, {
-      class: id === notes.openId ? 'wp-page-note wp-page-note-open' : 'wp-page-note',
-      'data-page-note': id,
-    }),
-  );
+  const decorations = located.flatMap(({ id, start, end }) => {
+    const open = id === notes.openId;
+    const to = positions[end - 1] + 1;
+    return [
+      Decoration.inline(positions[start], to, { class: open ? 'wp-page-note wp-page-note-open' : 'wp-page-note', 'data-page-note': id }),
+      // Keyed by note and state, so the mark is drawn again only when its note opens or closes
+      Decoration.widget(to, () => noteMark(id, open), { side: 1, marks: [], ignoreSelection: true, key: open ? `${id}:open` : id }),
+    ];
+  });
   return { decorations: DecorationSet.create(doc, decorations), found: located.map((note) => note.id) };
 }
 

@@ -110,6 +110,19 @@ describe('MarkdownEditor', () => {
       expect(notes.onOpen).toHaveBeenCalledWith('on-passage', expect.objectContaining({ top: expect.any(Number) }));
     });
 
+    it('marks the end of a noted passage with a speech bubble that opens the note too, and is not text', async () => {
+      const user = userEvent.setup();
+      const quote = { exact: 'mutable borrow', prefix: 'One ', suffix: ' at a time' };
+      const notes = withNotes('One mutable borrow at a time.', [{ id: 'on-passage', quote }]);
+
+      const passage = await screen.findByText('mutable borrow', { selector: '.wp-page-note' });
+      const mark = document.querySelector('.wp-page-note-mark[data-page-note="on-passage"]')!;
+      expect(mark.textContent).toBe('');
+      expect(passage.closest('p')!.textContent).toBe('One mutable borrow at a time.');
+      await user.click(mark);
+      expect(notes.onOpen).toHaveBeenCalledWith('on-passage', expect.objectContaining({ top: expect.any(Number) }));
+    });
+
     it('offers Note on words selected in a text the reader may not edit, quoting them', async () => {
       const user = userEvent.setup();
       const notes = withNotes('Two shared borrows may overlap.', []);
