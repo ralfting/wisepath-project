@@ -26,6 +26,7 @@ const EVERY_BLOCK = [
   '> [!info]\n> The borrow checker runs at compile time.',
   '> [!warning]\n> A reference never outlives its owner.',
   '> [!danger]\n> `unsafe` turns the checks off.',
+  '> [!activity]\n> Write a function that borrows twice.',
   '```rust\nfn first(words: &str) -> &str {\n    let count = 1;\n    &words[..count]\n}\n```',
   '| Kind | Many at once |\n| --- | --- |\n| `&T` | yes |\n| `&mut T` | no |',
   '- [x] Read the chapter\n- [ ] Write the exercises',

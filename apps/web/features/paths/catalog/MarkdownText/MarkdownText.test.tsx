@@ -41,4 +41,11 @@ describe('MarkdownText', () => {
     expect(screen.getAllByRole('note')).toHaveLength(1);
     expect(screen.getByText(/Plain/).closest('blockquote')).toBeTruthy();
   });
+
+  it('draws an activity as its box with nothing to tick: the catalog has no reader', () => {
+    renderWithLayers(<MarkdownText content={'> [!activity]\n> Write two things you like.'} hrefOf={hrefOf} t={t} />, Layer.empty);
+    const activity = screen.getByRole('note', { name: 'Activity' });
+    expect(activity.textContent).toContain('Write two things you like.');
+    expect(screen.queryByRole('switch')).toBeNull();
+  });
 });
