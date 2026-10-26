@@ -40,7 +40,10 @@ const en: Seed = {
       text: 'Writing a few lines after reading fixes what you understood, and shows what you missed.',
       module: { color: 'orange', icon: 'route' },
       next: [
-        { title: 'A reading journal', text: 'After each session: one passage you marked, one question, one connection to something else you read.' },
+        {
+          title: 'A reading journal',
+          text: 'After each session: one passage you marked, one question, one connection to something else you read.\n\n> [!activity]\n> Write two things you like doing when you read.',
+        },
         { title: 'A short review', text: 'What the book tries to do, how well it does it, and who you would give it to. Use [[Theme]] and [[Character]].' },
       ],
     },
@@ -78,7 +81,10 @@ const ptBR: Seed = {
       text: 'Escrever algumas linhas depois de ler fixa o que você entendeu, e mostra o que passou despercebido.',
       module: { color: 'orange', icon: 'route' },
       next: [
-        { title: 'Um diário de leitura', text: 'Depois de cada leitura: um trecho que você marcou, uma pergunta, uma ligação com outra coisa que você leu.' },
+        {
+          title: 'Um diário de leitura',
+          text: 'Depois de cada leitura: um trecho que você marcou, uma pergunta, uma ligação com outra coisa que você leu.\n\n> [!activity]\n> Escreva duas coisas que você gosta de fazer quando lê.',
+        },
         { title: 'Uma resenha curta', text: 'O que o livro tenta fazer, se consegue, e para quem você o daria. Use [[Tema]] e [[Personagem]].' },
       ],
     },
