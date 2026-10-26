@@ -39,6 +39,15 @@ export const help = {
       },
       tip: 'Clique no **ícone** da caixa para mudar o tipo, ou para tirar a caixa e manter o texto.',
     },
+    activity: {
+      title: 'Pedir algo para fazer na página',
+      steps: {
+        a: 'Numa linha nova, digite `/` e escolha **Atividade**, ou digite `[!activity]` e um espaço',
+        b: 'Escreva o que fazer dentro da caixa: uma linha, uma lista, uma pergunta para responder',
+        c: 'Numa trilha guiada cada leitor marca **Marcar como feita**; a página conta como estudada quando as atividades estão feitas',
+      },
+      tip: 'Cada leitor marca as suas. Desmarcar uma numa página estudada desmarca a página; o mapa mostra uma prancheta nas páginas com atividades.',
+    },
     moveBranch: {
       title: 'Mudar uma página de ramo',
       steps: {

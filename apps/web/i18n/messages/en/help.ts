@@ -42,6 +42,15 @@ export const help = {
       },
       tip: 'Click the box’s **icon** to change its kind, or to remove the box and keep the text.',
     },
+    activity: {
+      title: 'Ask the learner to do something',
+      steps: {
+        a: 'On a new line, type `/` and choose **Activity**, or type `[!activity]` and a space',
+        b: 'Write what to do inside the box: a line, a list, a question to answer',
+        c: 'In a learning path each reader ticks **Mark as done**; the page counts as studied once its activities are done',
+      },
+      tip: 'Ticks are each reader’s own. Unticking one on a studied page unmarks the page; the map shows a clipboard on pages with activities.',
+    },
     moveBranch: {
       title: 'Move a page to another branch',
       steps: {
