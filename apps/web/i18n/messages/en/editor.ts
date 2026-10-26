@@ -8,6 +8,7 @@ export const editor = {
     label: 'Note',
     placeholder: 'Write what you want to remember, or type / for commands',
     add: 'Note',
+    addHint: 'Note on the selected words ({keys})',
   },
   toolbar: {
     heading: 'Heading',

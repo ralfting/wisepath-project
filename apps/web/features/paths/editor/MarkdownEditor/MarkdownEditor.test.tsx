@@ -23,8 +23,8 @@ const editor = (content: string, onChange = noop) =>
     MemoryAuth(),
   );
 
-/** A read-only text with the reader's notes, as someone else's page shows it to them */
-const readOnlyWithNotes = (content: string, items: EditorNotes['items']) => {
+/** A text with the reader's notes; read-only as someone else's page shows it to them */
+const withNotes = (content: string, items: EditorNotes['items'], readOnly = true) => {
   const notes = { items, openId: null, onOpen: vi.fn(), onSelection: vi.fn(), onFound: vi.fn() };
   renderWithLayers(
     <MarkdownEditor
@@ -36,7 +36,7 @@ const readOnlyWithNotes = (content: string, items: EditorNotes['items']) => {
       onLinkPage={noop}
       onCreatePage={noop}
       onCreatePageHere={noop}
-      readOnly
+      readOnly={readOnly}
       notes={notes}
     />,
     MemoryAuth(),
@@ -97,7 +97,7 @@ describe('MarkdownEditor', () => {
     it('highlights the passage a note is on, finds it, and opens the note from it', async () => {
       const user = userEvent.setup();
       const quote = { exact: 'borrow', prefix: 'mutable ', suffix: ' at a time' };
-      const notes = readOnlyWithNotes('One borrow or another.\n\nOne mutable **borrow** at a time.', [
+      const notes = withNotes('One borrow or another.\n\nOne mutable **borrow** at a time.', [
         { id: 'on-passage', quote },
         { id: 'gone', quote: { exact: 'lifetime', prefix: '', suffix: '' } },
         { id: 'on-page' },
@@ -112,7 +112,7 @@ describe('MarkdownEditor', () => {
 
     it('offers Note on words selected in a text the reader may not edit, quoting them', async () => {
       const user = userEvent.setup();
-      const notes = readOnlyWithNotes('Two shared borrows may overlap.', []);
+      const notes = withNotes('Two shared borrows may overlap.', []);
       const text = (await screen.findByText('Two shared borrows may overlap.')).firstChild!;
 
       const selection = document.getSelection()!;
@@ -122,6 +122,20 @@ describe('MarkdownEditor', () => {
 
       expect(notes.onSelection).toHaveBeenCalledWith({ exact: 'shared', prefix: 'Two ', suffix: ' borrows may overlap.' }, expect.anything());
       expect(screen.queryByRole('button', { name: 'Bold', hidden: true })).toBeNull();
+    });
+
+    it('offers Note beside the formatting to someone who may edit the text', async () => {
+      const user = userEvent.setup();
+      const notes = withNotes('Two shared borrows may overlap.', [], false);
+      const text = (await screen.findByText('Two shared borrows may overlap.')).firstChild!;
+      (text.parentElement!.closest('[contenteditable]') as HTMLElement).focus();
+
+      document.getSelection()!.setBaseAndExtent(text, 4, text, 10);
+      document.dispatchEvent(new Event('selectionchange'));
+      expect(await screen.findByRole('button', { name: 'Bold', hidden: true })).toBeTruthy();
+      await user.click(screen.getByRole('button', { name: 'Note', hidden: true }));
+
+      expect(notes.onSelection).toHaveBeenCalledWith({ exact: 'shared', prefix: 'Two ', suffix: ' borrows may overlap.' }, expect.anything());
     });
   });
 });

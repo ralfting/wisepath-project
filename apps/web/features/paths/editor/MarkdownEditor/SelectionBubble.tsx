@@ -2,9 +2,11 @@
 
 import { BubbleMenu } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
+import { Button, Divider, Group } from '@mantine/core';
 import { RichTextEditor } from '@mantine/tiptap';
 import { IconMessagePlus } from '@tabler/icons-react';
 import { useT } from '@/i18n/I18nProvider';
+import { useIsMac } from '@/ui/platform';
 import classes from './MarkdownEditor.module.css';
 
 interface SelectionBubbleProps {
@@ -17,10 +19,11 @@ interface SelectionBubbleProps {
 
 /**
  * Over selected text (not over a video or a [[link]]): inline formatting (bold, italic, strike, code, link) for
- * someone who may edit it, and Note for a note of the reader's own on those words
+ * someone who may edit it, and apart from it, in the notes' yellow, Note for a note of the reader's own on those words
  */
 export function SelectionBubble({ editor, format, onNote }: SelectionBubbleProps) {
   const t = useT();
+  const keys = useIsMac() ? '⌘⌥M' : 'Ctrl+Alt+M';
   return (
     <BubbleMenu
       editor={editor}
@@ -28,23 +31,31 @@ export function SelectionBubble({ editor, format, onNote }: SelectionBubbleProps
       tippyOptions={{ duration: 120, placement: 'top', aria: { content: null, expanded: false } }}
       shouldShow={({ editor: e, from, to }) => !e.isActive('youtube') && !e.isActive('wikiLink') && from !== to}
     >
-      <RichTextEditor.ControlsGroup className={classes.bubble}>
+      <Group gap="xs" wrap="nowrap" className={classes.bubble}>
         {format && (
-          <>
+          <RichTextEditor.ControlsGroup>
             <RichTextEditor.Bold />
             <RichTextEditor.Italic />
             <RichTextEditor.Strikethrough />
             <RichTextEditor.Code />
             <RichTextEditor.Link />
             <RichTextEditor.Unlink />
-          </>
+          </RichTextEditor.ControlsGroup>
         )}
+        {format && onNote && <Divider orientation="vertical" />}
         {onNote && (
-          <RichTextEditor.Control onClick={onNote} aria-label={t('editor.notes.add')} title={t('editor.notes.add')}>
-            <IconMessagePlus size={16} stroke={1.5} />
-          </RichTextEditor.Control>
+          <Button
+            size="compact-sm"
+            variant="light"
+            color="yellow"
+            leftSection={<IconMessagePlus size={16} stroke={1.5} />}
+            onClick={onNote}
+            title={t('editor.notes.addHint', { keys })}
+          >
+            {t('editor.notes.add')}
+          </Button>
         )}
-      </RichTextEditor.ControlsGroup>
+      </Group>
     </BubbleMenu>
   );
 }

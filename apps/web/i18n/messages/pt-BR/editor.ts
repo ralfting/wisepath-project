@@ -11,6 +11,7 @@ export const editor = {
     label: 'Nota',
     placeholder: 'Escreva o que quer lembrar, ou digite / para ver os comandos',
     add: 'Nota',
+    addHint: 'Nota sobre as palavras selecionadas ({keys})',
   },
   toolbar: {
     heading: 'Título',
