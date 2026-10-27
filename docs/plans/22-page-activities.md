@@ -56,8 +56,10 @@ a page studied, never a second count. The map's progress still counts pages.
   `{ id, text }[]` in text order, code blocks skipped, the marker read as `apps/web/shared/callouts.ts` reads it (the
   domain cannot import the web, so the marker rule moves to the domain and the web imports it from there),
   `openActivities(path, page)`. `Page.done`:
-  optional array of `ActivityId`, the reader's ticks, absent with no reader. `PageEdit.done`: the full set of ticks
-  for the page (idempotent; the sync merges as for `studied`). `editPage`, in a learning path, refuses `studied: true`
+  optional array of `ActivityId`, the reader's ticks, absent with no reader. `PageEdit.ticks`: changes, each an
+  activity ticked done or undone, applied in order to the reader's ticks (sending one twice changes nothing; the
+  sync joins queued ones). Changes, not the whole set: a device that read the page before a tick made on another
+  would otherwise write its old set over it (changed 2026-10-26, after the first release sent the set). `editPage`, in a learning path, refuses `studied: true`
   while activities are open, and sets `studied: false` when a tick is removed from a studied page. `mayEditPage`
   lets an edit of only `studied` and `done` through with read access. Neither changes `updatedAt`.
 - **Database**: `activity_progress` (`user_id`, `path_id`, `page_id`, `activity_id`, `done_at`), primary key on the

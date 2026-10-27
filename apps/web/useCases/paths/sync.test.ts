@@ -189,16 +189,36 @@ describe("path sync", () => {
         const session = yield* openPathSession(samplePath.id)
         const tried = [
           session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { studied: true } }),
-          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { done: [activity.id] } }),
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { ticks: [{ activity: activity.id, done: true }] } }),
           session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { studied: true } }),
           // Unticked before any of it is sent: the API must see the mark before the untick, as the screen did
-          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { done: [] } })
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { ticks: [{ activity: activity.id, done: false }] } })
         ]
         assert.deepStrictEqual(tried, [false, true, true, true])
         yield* settled(session.state)
-        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:done,studied", "updatePage:done"])
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:studied,ticks", "updatePage:ticks"])
         const stored = page(yield* Ref.get(api.path), "guards")
         assert.deepStrictEqual([stored?.studied, stored?.done, (yield* SubscriptionRef.get(session.state)).notice], [false, undefined, null])
+      }).pipe(Effect.scoped, Effect.provide(layer))
+    }))
+
+  it.live("sends ticks queued together as one change, keeping each in the order it was made", () =>
+    Effect.gen(function*() {
+      const guards = PageId.make("guards")
+      const content = "> [!activity]\n> Write a guard.\n\n> [!activity]\n> Test it."
+      const start = { ...(yield* editPage(samplePath, guards, { content })), kind: "learningPath" as const }
+      const [first, second] = activitiesIn(samplePath.id, { id: guards, content })
+      const { api, layer } = yield* memoryApi(start)
+      yield* Effect.gen(function*() {
+        const session = yield* openPathSession(samplePath.id)
+        const tick = (activity: typeof first, done: boolean) =>
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { ticks: [{ activity: activity.id, done }] } })
+        tick(first, true)
+        tick(second, true)
+        tick(first, false)
+        yield* settled(session.state)
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:ticks"])
+        assert.deepStrictEqual(page(yield* Ref.get(api.path), "guards")?.done, [second.id])
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 

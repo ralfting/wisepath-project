@@ -72,6 +72,9 @@ describe("activitiesIn", () => {
   })
 })
 
+/** Ticks these activities done, or undone */
+const tick = (activities: ReadonlyArray<ActivityId>, done = true) => activities.map((activity) => ({ activity, done }))
+
 describe("progress on a page with activities", () => {
   it.effect("refuses to mark a learning path's page studied while an activity is open, and marks it once all are done", () =>
     Effect.gen(function*() {
@@ -80,7 +83,7 @@ describe("progress on a page with activities", () => {
       assert.strictEqual(error._tag, "ActivitiesOpen")
 
       const done = ids(twoActivities)
-      const studied = yield* editPage(path, pageId, { done, studied: true }, new Date("2031-01-01"))
+      const studied = yield* editPage(path, pageId, { ticks: tick(done), studied: true }, new Date("2031-01-01"))
       assert.deepStrictEqual([rootOf(studied).studied, rootOf(studied).done], [true, done])
       assert.strictEqual(rootOf(studied).updatedAt, rootOf(path).updatedAt)
     }))
@@ -94,31 +97,39 @@ describe("progress on a page with activities", () => {
   it.effect("unmarks a studied page when one of its activities is unticked", () =>
     Effect.gen(function*() {
       const [first, second] = ids(twoActivities)
-      const studied = yield* editPage(yield* pathWith(twoActivities), pageId, { done: [first, second], studied: true })
-      const unticked = yield* editPage(studied, pageId, { done: [second] })
+      const studied = yield* editPage(yield* pathWith(twoActivities), pageId, { ticks: tick([first, second]), studied: true })
+      const unticked = yield* editPage(studied, pageId, { ticks: tick([first], false) })
       assert.deepStrictEqual([rootOf(unticked).studied, rootOf(unticked).done], [false, [second]])
     }))
 
   it.effect("keeps a page studied when an activity is added to it, and changes nothing when the same ticks come again", () =>
     Effect.gen(function*() {
       const done = ids(twoActivities)
-      const studied = yield* editPage(yield* pathWith(twoActivities), pageId, { done, studied: true })
+      const studied = yield* editPage(yield* pathWith(twoActivities), pageId, { ticks: tick(done), studied: true })
       const added = yield* editPage(studied, pageId, { content: `${twoActivities}\n\n> [!activity]\n> One more` })
       assert.isTrue(rootOf(added).studied)
-      assert.strictEqual(yield* editPage(added, pageId, { done: [...done].reverse(), studied: true }), added)
+      assert.strictEqual(yield* editPage(added, pageId, { ticks: tick([...done].reverse()), studied: true }), added)
     }))
 
   it.effect("keeps only ticks of activities the page has", () =>
     Effect.gen(function*() {
       const [first] = ids(twoActivities)
-      const ticked = yield* editPage(yield* pathWith(twoActivities), pageId, { done: [first, ActivityId.make("made-up")] })
+      const ticked = yield* editPage(yield* pathWith(twoActivities), pageId, { ticks: tick([first, ActivityId.make("made-up")]) })
       assert.deepStrictEqual(rootOf(ticked).done, [first])
+    }))
+
+  it.effect("keeps a tick made on another device when this one, read before it, ticks another activity", () =>
+    Effect.gen(function*() {
+      const [first, second] = ids(twoActivities)
+      const onPhone = yield* editPage(yield* pathWith(twoActivities), pageId, { ticks: tick([first]) })
+      const fromLaptop = yield* editPage(onPhone, pageId, { ticks: tick([second]) })
+      assert.deepStrictEqual(rootOf(fromLaptop).done, [first, second])
     }))
 
   it("lets a reader tick activities, as they mark pages studied, and nothing else", () => {
     const reader = { access: "viewer" as const, rootPageId: PageId.make("root") }
     assert.deepStrictEqual(
-      [mayEditPage(reader, pageId, { done: ids(twoActivities), studied: true }), mayEditPage(reader, pageId, { done: [], content: "x" })],
+      [mayEditPage(reader, pageId, { ticks: tick(ids(twoActivities)), studied: true }), mayEditPage(reader, pageId, { ticks: [], content: "x" })],
       [true, false]
     )
   })

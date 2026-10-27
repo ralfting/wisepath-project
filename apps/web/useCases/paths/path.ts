@@ -115,8 +115,8 @@ export function usePath(pathId: string): { state: PathState; save: SaveState; ac
     removeNote: (pageId, noteId) => dispatch({ _tag: "RemoveNote", pageId: PageId.make(pageId), noteId }),
     toggleActivity: (pageId, activityId) => {
       const done = current()?.pages.find((p) => p.id === pageId)?.done ?? []
-      const next = done.includes(activityId) ? done.filter((id) => id !== activityId) : [...done, activityId]
-      dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: { done: next } })
+      const tick = { activity: activityId, done: !done.includes(activityId) }
+      dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: { ticks: [tick] } })
     },
     beginRename: (pageId) => {
       const page = current()?.pages.find((p) => p.id === pageId)

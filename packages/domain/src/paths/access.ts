@@ -116,7 +116,7 @@ export const canManage = (access: PathAccess) => access === "owner"
  * page.
  */
 export function mayEditPage(path: Pick<Path, "access" | "rootPageId">, pageId: PageId, edit: PageEdit): boolean {
-  const { studied: _studied, done: _done, ...rest } = edit
+  const { studied: _studied, ticks: _ticks, ...rest } = edit
   if (Object.values(rest).every((value) => value === undefined)) return canRead(path.access)
   return pageId === path.rootPageId && edit.title !== undefined ? canManage(path.access) : canEdit(path.access)
 }

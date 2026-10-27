@@ -50,6 +50,9 @@ const storedTicks = (pathId: PathId) =>
     return rows.length;
   });
 
+/** Ticks these activities done, or undone */
+const tick = (activities: ReadonlyArray<ActivityId>, done = true) => activities.map((activity) => ({ activity, done }));
+
 const progressOf = (page: { readonly studied: boolean; readonly done?: ReadonlyArray<ActivityId> }) => [page.studied, page.done];
 
 layer(TestDatabase)('activities on a page', (it) => {
@@ -59,15 +62,15 @@ layer(TestDatabase)('activities on a page', (it) => {
       const before = yield* pageIn(map.owner, map);
 
       assert.deepStrictEqual(yield* outcomes([edit(taker, map, { studied: true })]), ['ActivitiesOpen']);
-      yield* edit(taker, map, { done: [first] });
+      yield* edit(taker, map, { ticks: tick([first]) });
       assert.deepStrictEqual(progressOf(yield* pageIn(taker, map)), [false, [first]]);
       assert.deepStrictEqual(progressOf(yield* pageIn(map.owner, map)), [false, undefined]);
 
-      yield* edit(taker, map, { done: [first, second], studied: true });
-      yield* edit(taker, map, { done: [first, second], studied: true });
+      yield* edit(taker, map, { ticks: tick([first, second]), studied: true });
+      yield* edit(taker, map, { ticks: tick([first, second]), studied: true });
       assert.deepStrictEqual(progressOf(yield* pageIn(taker, map)), [true, [first, second]]);
 
-      yield* edit(taker, map, { done: [second] });
+      yield* edit(taker, map, { ticks: tick([first], false) });
       const after = yield* pageIn(taker, map);
       assert.deepStrictEqual(progressOf(after), [false, [second]]);
       assert.deepStrictEqual([after.content, after.updatedAt], [before.content, before.updatedAt]);
@@ -78,7 +81,7 @@ layer(TestDatabase)('activities on a page', (it) => {
     Effect.gen(function* () {
       const { map, first, second } = yield* mapWithActivities;
       const params = { pathId: map.pathId };
-      yield* edit(map.owner, map, { done: [first, second] });
+      yield* edit(map.owner, map, { ticks: tick([first, second]) });
       yield* map.owner.paths.requestPublication({
         params,
         payload: { description: 'Rust by its borrow checker', audience: 'Rust beginners', language: 'en' },
@@ -102,9 +105,9 @@ layer(TestDatabase)('activities on a page', (it) => {
       const { client: invited, email } = yield* signedIn('Cy');
       const params = { pathId: map.pathId };
       yield* map.owner.paths.share({ params, payload: { email, role: 'viewer' } });
-      yield* edit(map.owner, map, { done: [first] });
-      yield* edit(taker, map, { done: [first] });
-      yield* edit(invited, map, { done: [first] });
+      yield* edit(map.owner, map, { ticks: tick([first]) });
+      yield* edit(taker, map, { ticks: tick([first]) });
+      yield* edit(invited, map, { ticks: tick([first]) });
 
       yield* invited.paths.leave({ params });
       assert.strictEqual(yield* storedTicks(map.pathId), 2);
@@ -121,7 +124,7 @@ layer(TestDatabase)('activities on a page', (it) => {
     Effect.gen(function* () {
       const { map, first } = yield* mapWithActivities;
       const { client: stranger } = yield* signedIn('Eve');
-      assert.deepStrictEqual(yield* outcomes([edit(stranger, map, { done: [first] })]), ['PathNotFound']);
+      assert.deepStrictEqual(yield* outcomes([edit(stranger, map, { ticks: tick([first]) })]), ['PathNotFound']);
     }),
   );
 });
