@@ -22,6 +22,7 @@ export const TOPICS: Record<Screen, { intro: TranslationKey; topics: ReadonlyArr
       { base: 'help.page.videoNotes', steps: 4, clip: 'video-notes' },
       { base: 'help.page.callout', steps: 3 },
       { base: 'help.page.activity', steps: 3 },
+      { base: 'help.page.cite', steps: 3 },
       { base: 'help.page.moveBranch', steps: 3 },
     ],
   },

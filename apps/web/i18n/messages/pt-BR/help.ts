@@ -48,6 +48,15 @@ export const help = {
       },
       tip: 'Cada leitor marca as suas. Desmarcar uma numa página estudada desmarca a página; o mapa mostra uma prancheta nas páginas com atividades.',
     },
+    cite: {
+      title: 'Citar uma página sem colocá-la no mapa',
+      steps: {
+        a: 'Digite `@[[` e escolha a página, ou `/` e escolha **Citar uma página**',
+        b: 'A citação aparece mais discreta que um link: esmaecida, pontilhada, com aspas',
+        c: 'Para trocar um link por uma citação, aponte para ele e use o botão do cartão, ou ponha o cursor nele e aperte <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>L</kbd> (<kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>L</kbd>)',
+      },
+      tip: 'Só links colocam páginas no mapa. Uma citação desenha uma linha cinza tracejada entre páginas que já estão nele, e uma página só citada fica com as páginas soltas.',
+    },
     moveBranch: {
       title: 'Mudar uma página de ramo',
       steps: {

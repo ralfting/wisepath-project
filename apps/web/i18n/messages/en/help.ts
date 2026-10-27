@@ -51,6 +51,15 @@ export const help = {
       },
       tip: 'Ticks are each reader’s own. Unticking one on a studied page unmarks the page; the map shows a clipboard on pages with activities.',
     },
+    cite: {
+      title: 'Cite a page without placing it',
+      steps: {
+        a: 'Type `@[[` and pick the page, or `/` and choose **Cite a page**',
+        b: 'The citation reads quieter than a link: dimmed, dotted, with a quote mark',
+        c: 'To switch a link and a citation, point at it and use the button on its card, or put the cursor on it and press <kbd>⌘</kbd> <kbd>⇧</kbd> <kbd>L</kbd> (<kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>L</kbd>)',
+      },
+      tip: 'Only links place pages on the map. A citation draws a dashed grey line between pages already on it, and a page only cited stays with the unlinked pages.',
+    },
     moveBranch: {
       title: 'Move a page to another branch',
       steps: {
