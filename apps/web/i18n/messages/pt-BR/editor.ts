@@ -67,6 +67,7 @@ export const editor = {
     warning: { label: 'Destaque de atenção', keywords: 'callout warning aviso caixa cuidado' },
     danger: { label: 'Destaque de perigo', keywords: 'callout danger erro caixa alerta' },
     activity: { label: 'Atividade', keywords: 'activity exercício tarefa fazer prática' },
+    question: { label: 'Pergunta', keywords: 'question perguntar resposta responder reflexão' },
   },
   inbox: {
     label: 'Item da Caixa de entrada',
@@ -112,7 +113,7 @@ export const editor = {
     title: 'Nesta página',
   },
   callout: {
-    kinds: { info: 'Informação', warning: 'Atenção', danger: 'Perigo', activity: 'Atividade' },
+    kinds: { info: 'Informação', warning: 'Atenção', danger: 'Perigo', activity: 'Atividade', question: 'Pergunta' },
     change: '{kind}: mudar o destaque',
     remove: 'Tirar a caixa, manter o texto',
   },
@@ -143,6 +144,7 @@ export const editor = {
       quote: 'Uma citação, para algo que você leu ou ouviu',
       callout: 'Uma nota numa caixa colorida: [!info], [!warning] ou [!danger], depois um espaço. /info, /warning e /danger também',
       activity: 'Algo que a página pede para fazer; numa trilha guiada, ela é marcada como feita antes de a página contar como estudada. /atividade também',
+      question: 'Uma pergunta para quem lê, com um campo embaixo para a resposta de cada um; numa trilha guiada, ela é respondida antes de a página contar como estudada. /pergunta também',
       codeBlock: 'Um bloco de código: digite isso e depois o código; ``` de novo fecha o bloco',
       pageLink: 'Cria um link para outra página desta trilha; escolher um nome novo na lista cria essa página. Cmd/Ctrl+Enter abre o link da linha do cursor',
       citation: 'Cita outra página: aponta para ela sem colocá-la no mapa. Cmd/Ctrl+Shift+L num link ou numa citação troca um pelo outro. /citar também',

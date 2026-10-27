@@ -32,6 +32,8 @@ describe('callouts in markdown', () => {
     expect(markdownOf(e)).toBe('> [!danger]\n> Mind the gap.');
     setCallout(e, 'activity');
     expect(markdownOf(e)).toBe('> [!activity]\n> Mind the gap.');
+    setCallout(e, 'question');
+    expect(markdownOf(e)).toBe('> [!question]\n> Mind the gap.');
   });
 
   // The editor gives the nth activity block the domain's nth id, so both must find the same blocks

@@ -8,8 +8,10 @@ import { IconCheck, IconClipboardCheck, IconSquare } from '@tabler/icons-react';
 import type { CalloutKind } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { ActivityBlock } from '@/ui/ActivityBlock/ActivityBlock';
+import { QuestionBlock } from '@/ui/QuestionBlock/QuestionBlock';
 import { Callout, calloutLook } from '@/ui/Callout/Callout';
-import { EditorActivitiesContext, activitiesBefore } from '../activities';
+import { EditorActivitiesContext } from '../activities';
+import { calloutsBefore } from '../callout';
 import { KindMenu } from './KindMenu';
 
 /**
@@ -33,6 +35,16 @@ export function CalloutView({ node, editor, getPos, updateAttributes }: NodeView
   const menu = (look: ReturnType<typeof calloutLook>) =>
     editor.isEditable ? <KindMenu kind={kind} label={label} look={look} onPick={(k) => updateAttributes({ kind: k })} onRemove={unwrap} /> : undefined;
 
+  if (kind === 'question') {
+    return (
+      <NodeViewWrapper>
+        <QuestionBlock label={label} answered={false} marker={menu(calloutLook(kind))}>
+          <NodeViewContent />
+        </QuestionBlock>
+      </NodeViewWrapper>
+    );
+  }
+
   if (kind !== 'activity') {
     return (
       <NodeViewWrapper>
@@ -44,7 +56,7 @@ export function CalloutView({ node, editor, getPos, updateAttributes }: NodeView
   }
 
   const at = getPos();
-  const id = activities && typeof at === 'number' ? activities.ids[activitiesBefore(editor.state.doc, at)] : undefined;
+  const id = activities && typeof at === 'number' ? activities.ids[calloutsBefore(editor.state.doc, at, 'activity')] : undefined;
   const done = id !== undefined && !!activities?.done.includes(id);
   const tick =
     activities && id !== undefined ? (

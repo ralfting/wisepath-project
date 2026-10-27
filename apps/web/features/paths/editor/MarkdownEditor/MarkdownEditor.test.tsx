@@ -102,6 +102,17 @@ describe('MarkdownEditor', () => {
     expect(await screen.findByRole('note', { name: 'Activity' })).toBeTruthy();
   });
 
+  it('shows a [!question] quote as a question, which the kind menu turns into a callout', async () => {
+    const user = userEvent.setup();
+    editor('> [!question]\n> What makes a habit last?');
+
+    const question = await screen.findByRole('note', { name: 'Question' });
+    expect(within(question).getByText('What makes a habit last?')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'Question: change the callout' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Info', hidden: true }));
+    expect(await screen.findByRole('note', { name: 'Info' })).toBeTruthy();
+  });
+
   it("lets a reader tick each activity of a learning path's page, by the domain's name for it", async () => {
     const user = userEvent.setup();
     const content = '> [!activity]\n> Write **two** things.\n\nBetween.\n\n> [!activity]\n> Copy a sentence.';

@@ -64,6 +64,7 @@ export const editor = {
     warning: { label: 'Warning callout', keywords: 'callout caution box alert' },
     danger: { label: 'Danger callout', keywords: 'callout error box alert' },
     activity: { label: 'Activity', keywords: 'exercise task todo do practice' },
+    question: { label: 'Question', keywords: 'ask answer quiz reflect' },
   },
   inbox: {
     label: 'Inbox item',
@@ -109,7 +110,7 @@ export const editor = {
     title: 'On this page',
   },
   callout: {
-    kinds: { info: 'Info', warning: 'Warning', danger: 'Danger', activity: 'Activity' },
+    kinds: { info: 'Info', warning: 'Warning', danger: 'Danger', activity: 'Activity', question: 'Question' },
     change: '{kind}: change the callout',
     remove: 'Remove the box, keep the text',
   },
@@ -140,6 +141,7 @@ export const editor = {
       quote: 'A quote, for something you read or were told',
       callout: 'A note in a coloured box: [!info], [!warning] or [!danger], then a space. /info, /warning and /danger too',
       activity: 'Something the page asks the learner to do; in a learning path it is ticked done before the page is studied. /activity too',
+      question: 'A question for the reader, with a field under it for their own answer; in a learning path it is answered before the page is studied. /question too',
       codeBlock: 'A code block: type it, then the code; ``` again closes it',
       pageLink: "Links another page of this path; picking a new name from the list creates that page. Cmd/Ctrl+Enter opens the cursor's line's link",
       citation: 'Cites another page: points at it without placing it on the map. Cmd/Ctrl+Shift+L on a link or a citation turns one into the other. /cite too',

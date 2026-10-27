@@ -14,6 +14,7 @@ import {
   IconList,
   IconListCheck,
   IconListNumbers,
+  IconMessageQuestion,
   IconQuote,
   IconTable,
 } from '@tabler/icons-react';
@@ -135,6 +136,13 @@ export const SLASH_COMMANDS: ReadonlyArray<{
     hint: { syntax: '> [!activity]' },
     icon: IconClipboardText,
     run: (e) => setCallout(e, 'activity'),
+  },
+  {
+    id: 'question',
+    message: 'question',
+    hint: { syntax: '> [!question]' },
+    icon: IconMessageQuestion,
+    run: (e) => setCallout(e, 'question'),
   },
 ];
 

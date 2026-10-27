@@ -57,4 +57,10 @@ describe('MarkdownText', () => {
     expect(activity.textContent).toContain('Write two things you like.');
     expect(screen.queryByRole('switch')).toBeNull();
   });
+
+  it('draws a question as its box with no answer field', () => {
+    renderWithLayers(<MarkdownText content={'> [!question]\n> What makes a habit last?'} hrefOf={hrefOf} t={t} />, Layer.empty);
+    expect(screen.getByRole('note', { name: 'Question' }).textContent).toContain('What makes a habit last?');
+    expect(screen.queryByRole('textbox')).toBeNull();
+  });
 });

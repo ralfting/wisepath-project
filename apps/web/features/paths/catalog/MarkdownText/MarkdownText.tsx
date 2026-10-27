@@ -6,6 +6,7 @@ import type { Translate } from '@/i18n/I18nProvider';
 import { CALLOUT_KINDS } from '@wisepath/domain/paths';
 import { ActivityBlock } from '@/ui/ActivityBlock/ActivityBlock';
 import { Callout } from '@/ui/Callout/Callout';
+import { QuestionBlock } from '@/ui/QuestionBlock/QuestionBlock';
 import { remarkCallouts } from './remarkCallouts';
 import { remarkWikiLinks } from './remarkWikiLinks';
 import classes from './MarkdownText.module.css';
@@ -33,12 +34,22 @@ const components = (t: Translate): Components => ({
     const kind = CALLOUT_KINDS.find((k) => k === node?.properties.dataCallout);
     if (!kind) return <aside>{children}</aside>;
     const label = t(`editor.callout.kinds.${kind}`);
-    // Read without a reader's ticks: an activity shows what it asks, with nothing to tick
-    return kind === 'activity' ? (
-      <ActivityBlock label={label} done={false}>
-        {children}
-      </ActivityBlock>
-    ) : (
+    // Read without a reader: an activity shows what it asks with nothing to tick, a question with no answer field
+    if (kind === 'activity') {
+      return (
+        <ActivityBlock label={label} done={false}>
+          {children}
+        </ActivityBlock>
+      );
+    }
+    if (kind === 'question') {
+      return (
+        <QuestionBlock label={label} answered={false}>
+          {children}
+        </QuestionBlock>
+      );
+    }
+    return (
       <Callout kind={kind} label={label}>
         {children}
       </Callout>
@@ -49,8 +60,8 @@ const components = (t: Translate): Components => ({
 /**
  * Markdown as HTML, read without an editor (on the server for the catalog, under a page for the reader's notes), with
  * no HTML of the author's let through: [[Title]] links to the page by that title when the path has one (@[[Title]]
- * cites it, a quieter link), tables and task lists as GitHub writes them, callouts and activities as the editor draws
- * them.
+ * cites it, a quieter link), tables and task lists as GitHub writes them, callouts, activities and questions as the editor
+ * draws them.
  */
 export function MarkdownText({ content, hrefOf, t }: { content: string; hrefOf: (title: string) => string | null; t: Translate }) {
   return (

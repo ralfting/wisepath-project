@@ -36,6 +36,7 @@ const SYNTAX: { group: keyof typeof messages.help.groups; rows: { type: string; 
       { type: '> quote', does: 'quote' },
       { type: '> [!warning]', does: 'callout' },
       { type: '> [!activity]', does: 'activity' },
+      { type: '> [!question]', does: 'question' },
       { type: '```', does: 'codeBlock' },
     ],
   },

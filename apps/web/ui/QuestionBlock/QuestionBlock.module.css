@@ -1,0 +1,48 @@
+/* As an activity: a grey box with a bar down its side, a task for the reader and not news */
+.root {
+  margin-block: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border: 1px solid var(--wp-line);
+  border-inline-start: 0.1875rem solid light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+  border-radius: var(--mantine-radius-md);
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+  outline: 0.1875rem solid transparent;
+  outline-offset: 0.125rem;
+  transition: outline-color 200ms ease;
+
+  /* Pointed at by the studied control: a ring that says "this one" */
+  &[data-pointed] {
+    outline-color: var(--mantine-color-blue-filled);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.header {
+  min-height: 1.75rem;
+  margin-bottom: var(--mantine-spacing-xs);
+}
+
+.icon,
+.label {
+  color: var(--mantine-color-dimmed);
+}
+
+/* The words inside read like the rest of the page, flush with the box */
+.body {
+  & > :first-child,
+  & [data-node-view-content-react] > :first-child {
+    margin-top: 0;
+  }
+
+  & > :last-child,
+  & [data-node-view-content-react] > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+.answer {
+  margin-top: var(--mantine-spacing-sm);
+}

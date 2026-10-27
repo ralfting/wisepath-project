@@ -1,5 +1,6 @@
 import { Node, wrappingInputRule } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
+import type { Node as DocNode } from '@tiptap/pm/model';
 import { CALLOUT_KINDS, calloutMarker, readCalloutMarker } from '@wisepath/domain/paths';
 import type { CalloutKind } from '@wisepath/domain/paths';
 import type { MarkdownState } from './markdown';
@@ -89,4 +90,18 @@ export const CalloutBlock = Node.create({
 export function setCallout(editor: Editor, kind: CalloutKind) {
   if (editor.isActive('callout')) editor.chain().focus().updateAttributes('callout', { kind }).run();
   else editor.chain().focus().wrapIn('callout', { kind }).run();
+}
+
+/**
+ * How many callouts of a kind come before a position in the text. The editor never hashes an activity's or a
+ * question's words: the nth block takes the domain's nth id, so formatting inside one can't make the two disagree
+ */
+export function calloutsBefore(doc: DocNode, pos: number, kind: CalloutKind): number {
+  let count = 0;
+  doc.descendants((node, at) => {
+    if (at >= pos) return false;
+    if (node.type.name === 'callout' && node.attrs.kind === kind) count++;
+    return true;
+  });
+  return count;
 }
