@@ -80,6 +80,16 @@ describe("answers on a page", () => {
       assert.deepStrictEqual(rootOf(answered).answers?.map((a) => a.question), [first])
     }))
 
+  it.effect("keeps the answer to a deleted question while the reader answers another, and shows it again with its words", () =>
+    Effect.gen(function*() {
+      const [first, second] = ids(twoQuestions)
+      const answered = yield* editPage(yield* pathWith(twoQuestions), pageId, { answers: answer([first]) })
+      const deleted = yield* editPage(answered, pageId, { content: question("Which one will you keep?") })
+      const other = yield* editPage(deleted, pageId, { answers: answer([second], "Reading.") })
+      const restored = yield* editPage(other, pageId, { content: twoQuestions })
+      assert.deepStrictEqual(openTasks(restored, rootOf(restored)), [])
+    }))
+
   it.effect("moves the reader's answer to a question reworded in the text", () =>
     Effect.gen(function*() {
       const [first] = ids(twoQuestions)

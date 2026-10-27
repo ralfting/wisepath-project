@@ -33,8 +33,8 @@ export const Ticks = Schema.Array(Tick).check(Schema.isMaxLength(MAX_CHANGES))
 export const AnswerEdits = Schema.Array(AnswerEdit).check(Schema.isMaxLength(MAX_CHANGES))
 
 /**
- * The reader's progress on a page: their ticks and answers, then their studied mark. Both are kept only for what the
- * page asks now, so a tick or an answer on something reworded since drops out. In a learning path a page is studied
+ * The reader's progress on a page: their ticks and answers, then their studied mark. Changes count only for what the
+ * page asks now, and a tick on an activity reworded since drops out. In a learning path a page is studied
  * once nothing it asks is open, so marking it with something open is refused, and unticking an activity or clearing
  * an answer unmarks it. Something added to a page already studied leaves the mark: the condition holds when marking.
  * None of it is an edit of the page.
@@ -58,7 +58,8 @@ export const setProgress = Effect.fnUntraced(function*(
   }
 
   const wasAnswered = new Map<QuestionId, Answer>((page.answers ?? []).map((answer) => [answer.question, answer]))
-  const answered = new Map([...wasAnswered].filter(([id]) => questions.has(id)))
+  // Unlike a tick, an answer to a question gone from the text is kept: it is the reader's writing, back with the words
+  const answered = new Map(wasAnswered)
   for (const change of answers) {
     if (!questions.has(change.question)) continue
     if (change.body.trim() === "") answered.delete(change.question)
