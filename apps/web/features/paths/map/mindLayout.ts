@@ -206,6 +206,8 @@ export function layoutMind(
 
   // Arrows and citations bow gently; one that would cross the root sweeps around it
   const edgeToward = (id: PageId, toward: Point): Point => {
+    // The root is not among the placed pages: a citation to or from it leaves its box facing the other end
+    if (id === tree.root.page.id) return rootEdge(root, toward);
     const n = byId.get(id)!;
     const c = centreOf(n);
     const dx = toward.x - c.x;
@@ -221,13 +223,13 @@ export function layoutMind(
   };
   const across = (pairs: MapTree['arrows'], prefix: string): Line[] =>
     pairs
-      .filter((r) => byId.has(r.from) && byId.has(r.to))
+      .filter((r) => centres.has(r.from) && centres.has(r.to))
       .map((r) => {
         const a0 = centres.get(r.from)!;
         const b0 = centres.get(r.to)!;
         let c1: Point;
         let c2: Point;
-        if (passesRoot(a0, b0)) {
+        if (r.from !== tree.root.page.id && r.to !== tree.root.page.id && passesRoot(a0, b0)) {
           // Below the root when the pages sit lower, above otherwise
           const sweep = (a0.y + b0.y >= 0 ? 1 : -1) * (reach + 70);
           c1 = { x: a0.x * 0.45, y: sweep };
