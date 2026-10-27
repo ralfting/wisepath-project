@@ -12,6 +12,7 @@ import { isGhost, withGhosts } from '../ghosts';
 import { ActivityBadge } from '../ActivityBadge/ActivityBadge';
 import { activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge.helpers';
 import { StatusIcon } from '../StatusIcon';
+import { OrphanTitle } from '../OrphanTitle';
 import { PageIcon } from '../PageIcon';
 import classes from './MapList.module.css';
 
@@ -178,9 +179,7 @@ export function MapList({ header, path, selectedId, currentId, progress, matchId
                     style={{ '--depth': 0 } as CSSProperties}
                   >
                     {progress ? <StatusIcon status={p.studied ? 'done' : 'todo'} /> : <PageIcon />}
-                    <Text size="sm" truncate>
-                      {displayTitle(p)}
-                    </Text>
+                    <OrphanTitle path={path} page={p} />
                   </UnstyledButton>
                 </li>
               ))}

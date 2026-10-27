@@ -87,6 +87,7 @@ export const map = {
     orphansHeading: 'Soltas · nenhuma página tem link para elas',
   },
   orphans: {
+    citedBy: 'Citada por {titles}',
     count: { one: '{count} página fora do mapa', other: '{count} páginas fora do mapa' },
     hint: {
       one: 'Nenhum link chega a ela a partir de {title}. Ligue-a com [[Title]] em qualquer página da trilha.',

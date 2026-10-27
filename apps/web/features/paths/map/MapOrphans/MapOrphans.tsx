@@ -8,13 +8,15 @@ import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import { ActivityBadge } from '../ActivityBadge/ActivityBadge';
 import { activityMarkLabel, activityMarkOf } from '../ActivityBadge/ActivityBadge.helpers';
+import { OrphanTitle } from '../OrphanTitle';
 import { StatusIcon } from '../StatusIcon';
 import classes from './MapOrphans.module.css';
 
 /**
  * MapOrphans
  * How many pages no link reaches, under the map's view toggle and search.
- * Opens the list of those pages. Renders nothing when every page is linked.
+ * Opens the list of those pages, each with the pages citing it. Renders
+ * nothing when every page is linked.
  */
 export function MapOrphans({
   path,
@@ -57,9 +59,7 @@ export function MapOrphans({
                 onClick={() => onSelect(p.id)}
               >
                 <StatusIcon status={p.studied ? 'done' : 'todo'} size={16} />
-                <Text size="sm" truncate>
-                  {displayTitle(p)}
-                </Text>
+                <OrphanTitle path={path} page={p} />
                 {activity && <ActivityBadge mark={activity} label={activityMarkLabel(t, activity)} />}
               </UnstyledButton>
             );

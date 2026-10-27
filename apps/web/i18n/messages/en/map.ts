@@ -87,6 +87,7 @@ export const map = {
     orphansHeading: 'Unlinked · no page links to them',
   },
   orphans: {
+    citedBy: 'Cited by {titles}',
     count: { one: "{count} page isn't on the map", other: "{count} pages aren't on the map" },
     hint: {
       one: 'No link reaches it from {title}. Link it with [[Title]] in any page of the path.',
