@@ -46,6 +46,8 @@ paths:
   specificity or use `!important` to beat Mantine. **Why:** loading order once flipped and Mantine won (fix "the
   app's styles outrank Mantine's again").
 - Use nesting, `&[data-*]` for state, and `@media (prefers-reduced-motion: reduce)` on every transition or animation.
+- `light-dark()` compiles into one rule per scheme, one attribute more specific: on a property a modifier class
+  overrides, set it in a variable on the container and read the variable (BUG-008).
 - No animation library (Framer Motion, `motion`, GSAP): Mantine's transitions and CSS cover what the app needs
   (decided 2026-10-18). **Why:** the app is read and written in many times a day, where motion mostly adds
   latency, and a library adds weight to the public pages.
