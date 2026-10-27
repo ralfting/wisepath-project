@@ -5,7 +5,7 @@ import { Cause, Effect, Exit, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
 import { RegistryContext, useAtomValue } from "@effect/atom-react"
 import { PageId, PathId, addBranch, findPageByTitle, moveBranch, renameLinks, unlinkPages } from "@wisepath/domain/paths"
-import type { ActivityId, NoteId, NoteText, Page, PageColor, PageIcon, Path, PathKind } from "@wisepath/domain/paths"
+import type { ActivityId, NoteId, QuestionId, NoteText, Page, PageColor, PageIcon, Path, PathKind } from "@wisepath/domain/paths"
 import { useT } from "@/i18n/I18nProvider"
 import { useHydrated } from "../useHydrated"
 import * as programs from "./programs"
@@ -51,6 +51,8 @@ export interface PathActions {
   removeNote: (pageId: string, noteId: NoteId) => void
   /** Ticks one of a page's activities done, or unticks it, for the reader; unticking unmarks a studied page */
   toggleActivity: (pageId: string, activityId: ActivityId) => void
+  /** Writes the reader's answer to one of a page's questions; a blank one takes it away, and unmarks a studied page */
+  answerQuestion: (pageId: string, questionId: QuestionId, body: string) => void
   /** A page's title starts being edited: its links show the new title as it is typed */
   beginRename: (pageId: string) => void
   /** After a page was renamed to newTitle: rewrites the [[oldTitle]] links across the map, ending the rename */
@@ -118,6 +120,8 @@ export function usePath(pathId: string): { state: PathState; save: SaveState; ac
       const tick = { activity: activityId, done: !done.includes(activityId) }
       dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: { ticks: [tick] } })
     },
+    answerQuestion: (pageId, questionId, body) =>
+      dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: { answers: [{ question: questionId, body }] } }),
     beginRename: (pageId) => {
       const page = current()?.pages.find((p) => p.id === pageId)
       if (page) registry.set(renamingAtom(id), { pageId: page.id, from: page.title })

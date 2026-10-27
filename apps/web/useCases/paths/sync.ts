@@ -15,6 +15,7 @@ import {
 } from "@wisepath/domain/paths"
 import type {
   ActivitiesOpen,
+  AnswerEdit,
   NewPage,
   PageEdit,
   PageId,
@@ -100,7 +101,7 @@ export const applyCommand = (
   }
 }
 
-/** Whether the map's reader may make this change: a reader only marks pages studied, ticks activities and keeps notes */
+/** Whether the map's reader may make this change: a reader only marks pages studied, ticks activities, answers and keeps notes */
 const mayApply = (path: Path, command: Command) => {
   switch (command._tag) {
     case "UpdatePath":
@@ -164,6 +165,10 @@ interface Entry {
   sending: boolean
 }
 
+/** Answers are changes too, but only the last one written to a question still says anything */
+const lastPerQuestion = (answers: ReadonlyArray<AnswerEdit>): ReadonlyArray<AnswerEdit> =>
+  [...new Map(answers.map((answer) => [answer.question, answer])).values()]
+
 /** Typing edits one page or note at a time: consecutive edits of a page, or writes of a note, become one */
 const merge = (last: Entry, command: Command): boolean => {
   if (last.sending) return false
@@ -174,18 +179,20 @@ const merge = (last: Entry, command: Command): boolean => {
   }
   if (last.command._tag !== "UpdatePage" || command._tag !== "UpdatePage") return false
   if (last.command.pageId !== command.pageId) return false
-  // editPage applies ticks before the studied mark: a mark then a tick merged would run the other way round
-  if (last.command.edit.studied !== undefined && command.edit.ticks !== undefined) return false
+  // editPage applies ticks and answers before the studied mark: a mark then a tick merged would run the other way round
+  if (last.command.edit.studied !== undefined && (command.edit.ticks !== undefined || command.edit.answers !== undefined)) return false
   const previousTitle = last.command.edit.previousTitle ?? command.edit.previousTitle
   // Ticks are changes, so both commands' are kept, in the order they were made
   const ticks = last.command.edit.ticks && command.edit.ticks ? [...last.command.edit.ticks, ...command.edit.ticks] : undefined
+  const answers = last.command.edit.answers && command.edit.answers ? lastPerQuestion([...last.command.edit.answers, ...command.edit.answers]) : undefined
   last.command = {
     ...last.command,
     edit: {
       ...last.command.edit,
       ...command.edit,
       ...(previousTitle !== undefined ? { previousTitle } : {}),
-      ...(ticks !== undefined ? { ticks } : {})
+      ...(ticks !== undefined ? { ticks } : {}),
+      ...(answers !== undefined ? { answers } : {})
     }
   }
   return true

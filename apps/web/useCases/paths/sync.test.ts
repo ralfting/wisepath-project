@@ -7,6 +7,7 @@ import {
   PathRepository,
   PathsUnavailable,
   activitiesIn,
+  questionsIn,
   addPage,
   editPage,
   editPath,
@@ -219,6 +220,27 @@ describe("path sync", () => {
         yield* settled(session.state)
         assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:ticks"])
         assert.deepStrictEqual(page(yield* Ref.get(api.path), "guards")?.done, [second.id])
+      }).pipe(Effect.scoped, Effect.provide(layer))
+    }))
+
+  it.live("lets a reader answer a study's questions, sent as one change where the last answer to each wins", () =>
+    Effect.gen(function*() {
+      const guards = PageId.make("guards")
+      const content = "> [!question]\n> Why guard a route?\n\n> [!question]\n> Where does the role come from?"
+      const start = { ...(yield* editPage(samplePath, guards, { content })), access: "viewer" as const }
+      const [first, second] = questionsIn(samplePath.id, { id: guards, content })
+      const { api, layer } = yield* memoryApi(start)
+      yield* Effect.gen(function*() {
+        const session = yield* openPathSession(samplePath.id)
+        const answer = (question: typeof first, body: string) =>
+          session.dispatch({ _tag: "UpdatePage", pageId: guards, edit: { answers: [{ question: question.id, body }] } })
+        answer(first, "To keep")
+        answer(second, "The token")
+        answer(first, "To keep strangers out")
+        answer(second, "")
+        yield* settled(session.state)
+        assert.deepStrictEqual(yield* Ref.get(api.calls), ["updatePage:answers"])
+        assert.deepStrictEqual(page(yield* Ref.get(api.path), "guards")?.answers, [{ question: first.id, body: "To keep strangers out" }])
       }).pipe(Effect.scoped, Effect.provide(layer))
     }))
 

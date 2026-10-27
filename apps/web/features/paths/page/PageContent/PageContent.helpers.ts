@@ -1,12 +1,13 @@
 import type { Page } from '@wisepath/domain/paths';
 import type { PathActions } from '@/useCases/paths';
 
-/** What the page's title and text editors, the reader's notes and their ticked activities can do */
+/** What the page's title and text editors, the reader's notes, ticked activities and answers can do */
 export interface PageActions {
   updatePage: (pageId: string, patch: Partial<Pick<Page, 'title' | 'content' | 'studied'>>) => void;
   writeNote: PathActions['writeNote'];
   removeNote: PathActions['removeNote'];
   toggleActivity: PathActions['toggleActivity'];
+  answerQuestion: PathActions['answerQuestion'];
   /** A title starts being edited: links to the page follow it as it is typed */
   beginRename: (pageId: string) => void;
   /** Rewrites [[Old]] links across the path after a rename, ending it */
@@ -25,6 +26,7 @@ export const pageActionsFor = (store: PathActions, open: (pageId: string, altern
   writeNote: store.writeNote,
   removeNote: store.removeNote,
   toggleActivity: store.toggleActivity,
+  answerQuestion: store.answerQuestion,
   beginRename: store.beginRename,
   renameLinks: store.renameLinks,
   openPage: open,

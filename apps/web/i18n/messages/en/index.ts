@@ -9,11 +9,12 @@ import { home } from '@/i18n/messages/en/home';
 import { inbox } from '@/i18n/messages/en/inbox';
 import { map } from '@/i18n/messages/en/map';
 import { page } from '@/i18n/messages/en/page';
+import { question } from '@/i18n/messages/en/question';
 import { search } from '@/i18n/messages/en/search';
 import { share } from '@/i18n/messages/en/share';
 import { shell } from '@/i18n/messages/en/shell';
 import { video } from '@/i18n/messages/en/video';
 
 /** Every message in English, by area. The keys here are the ones every language has */
-export const en = { common, auth, shell, home, map, page, editor, video, search, inbox, help, share, admin, catalog, activity } as const;
+export const en = { common, auth, shell, home, map, page, editor, video, search, inbox, help, share, admin, catalog, activity, question } as const;
 export type Messages = typeof en;

@@ -8,6 +8,8 @@ import type { PreviewPage } from '../LinkPreview/LinkPreview';
 import type { EditorNotes } from '../noteHighlights';
 import { EditorActivitiesContext } from '../activities';
 import type { EditorActivities } from '../activities';
+import { EditorQuestionsContext } from '../questions';
+import type { EditorQuestions } from '../questions';
 import classes from './MarkdownEditor.module.css';
 import blocks from './MarkdownBlocks.module.css';
 import noteClasses from './NoteHighlights.module.css';
@@ -57,6 +59,8 @@ export interface MarkdownEditorProps {
   notes?: EditorNotes;
   /** In a learning path, the page's activities and the reader's ticks: each activity can be ticked done */
   activities?: EditorActivities;
+  /** For a signed-in reader, the page's questions and their answers: each question has an answer field */
+  questions?: EditorQuestions;
 }
 
 /** Where the cursor goes when the text opens: at a position, its start or its end */
@@ -122,7 +126,9 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
           <SelectionBubble editor={editor} format={!readOnly} onNote={canNote ? operations.noteSelection : undefined} />
         )}
         <EditorActivitiesContext.Provider value={props.activities ?? null}>
-          <RichTextEditor.Content />
+          <EditorQuestionsContext.Provider value={props.questions ?? null}>
+            <RichTextEditor.Content />
+          </EditorQuestionsContext.Provider>
         </EditorActivitiesContext.Provider>
       </RichTextEditor>
 

@@ -1,7 +1,7 @@
 import { fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { PageId, PathId, activitiesIn } from '@wisepath/domain/paths';
+import { PageId, PathId, activitiesIn, questionsIn } from '@wisepath/domain/paths';
 import { MemoryAuth } from '@/infrastructure/auth/MemoryAuth';
 import { renderWithLayers } from '@/test/render';
 import type { EditorNotes } from '../noteHighlights';
@@ -127,6 +127,30 @@ describe('MarkdownEditor', () => {
 
     view.rerender(<MarkdownEditor {...props} readOnly activities={{ ids: [first, second], done: [first, second], onToggle }} />);
     expect(await screen.findAllByRole('switch', { name: 'Done', checked: true })).toHaveLength(2);
+  });
+
+  it("gives each question its reader's own answer field, saved as they leave it, in a page they may only read", async () => {
+    const user = userEvent.setup();
+    const content = '> [!question]\n> What makes a habit last?\n\n> [!question]\n> Which one will you keep?';
+    const [first, second] = questionsIn(PathId.make('habits'), { id: PageId.make('page'), content }).map((q) => q.id);
+    const onAnswer = vi.fn();
+    const onChange = vi.fn();
+    const props = { content, onChange, pages: [], currentPageId: 'page', onOpenPage: noop, onLinkPage: noop, onCreatePage: noop, onCreatePageHere: noop };
+    const questions = { ids: [first, second], answers: [{ question: first, body: 'Cues.' }], onAnswer };
+    renderWithLayers(<MarkdownEditor {...props} readOnly questions={questions} />, MemoryAuth());
+
+    const fields = await screen.findAllByRole('textbox', { name: 'Your answer' });
+    expect(fields.map((field) => (field as HTMLTextAreaElement).value)).toEqual(['Cues.', '']);
+    await user.type(fields[1], 'Reading every day');
+    await user.tab();
+    expect(onAnswer).toHaveBeenCalledWith(second, 'Reading every day');
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('draws a question with no answer field when nobody is reading', async () => {
+    editor('> [!question]\n> What makes a habit last?');
+    expect(await screen.findByRole('note', { name: 'Question' })).toBeTruthy();
+    expect(screen.queryByRole('textbox', { name: 'Your answer' })).toBeNull();
   });
 
   it('keeps a quote of another kind, or with no marker, a plain quote', async () => {

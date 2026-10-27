@@ -12,6 +12,8 @@ import { QuestionBlock } from '@/ui/QuestionBlock/QuestionBlock';
 import { Callout, calloutLook } from '@/ui/Callout/Callout';
 import { EditorActivitiesContext } from '../activities';
 import { calloutsBefore } from '../callout';
+import { EditorQuestionsContext } from '../questions';
+import { AnswerField } from './AnswerField';
 import { KindMenu } from './KindMenu';
 
 /**
@@ -20,10 +22,12 @@ import { KindMenu } from './KindMenu';
  * and its icon a menu that changes its kind or takes the box away, leaving
  * the text where it was. An activity, in a learning path, has Mark as done in
  * its header: the reader's own tick, there in a page they may only read too.
+ * A question has the reader's own answer under it, in a study as in a path.
  */
 export function CalloutView({ node, editor, getPos, updateAttributes }: NodeViewProps) {
   const t = useT();
   const activities = useContext(EditorActivitiesContext);
+  const questions = useContext(EditorQuestionsContext);
   const kind = node.attrs.kind as CalloutKind; // set only from CALLOUT_KINDS, by the parser and the commands
   const label = t(`editor.callout.kinds.${kind}`);
 
@@ -36,9 +40,13 @@ export function CalloutView({ node, editor, getPos, updateAttributes }: NodeView
     editor.isEditable ? <KindMenu kind={kind} label={label} look={look} onPick={(k) => updateAttributes({ kind: k })} onRemove={unwrap} /> : undefined;
 
   if (kind === 'question') {
+    const at = getPos();
+    const id = questions && typeof at === 'number' ? questions.ids[calloutsBefore(editor.state.doc, at, 'question')] : undefined;
+    const saved = questions?.answers.find((answer) => answer.question === id)?.body ?? '';
+    const answer = questions && id !== undefined ? <AnswerField id={id} saved={saved} onAnswer={questions.onAnswer} /> : undefined;
     return (
       <NodeViewWrapper>
-        <QuestionBlock label={label} answered={false} marker={menu(calloutLook(kind))}>
+        <QuestionBlock label={label} answered={saved !== ''} marker={menu(calloutLook(kind))} answer={answer}>
           <NodeViewContent />
         </QuestionBlock>
       </NodeViewWrapper>
