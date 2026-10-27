@@ -1,5 +1,5 @@
 import { Effect, Schema } from "effect"
-import { ActivitiesOpen, PageNotFound, RootPageProtected, TitleTaken } from "./errors"
+import { PageNotFound, RootPageProtected, TitleTaken } from "./errors"
 import { PageColor, PageIcon, PageId, PathId, PathKind } from "./Path"
 import type { Page, Path } from "./Path"
 import { createPage, deletePage, findPageByTitle, newPath, renameLinks, setDescription, setKind, setLook, titleTaken, updatePage } from "./rules"
@@ -7,7 +7,7 @@ import { lookOf, mapTree, nextPage, pathProgress } from "./tree"
 import { linksOf, withLinkTo } from "./links"
 import { PathAccess, PathVisibility } from "./access"
 import { NoteId, PageNote, TextQuote } from "./notes"
-import { ActivityId, activitiesIn } from "./activities"
+import { AnswerEdits, Ticks, setProgress, withRewordedAnswers } from "./progress"
 import { ProjectId } from "../projects/Project"
 
 /**
@@ -51,23 +51,15 @@ export const NewPage = Schema.Struct({
 })
 export type NewPage = typeof NewPage.Type
 
-/** More ticks than a page could hold activities: no learner sends them, and the cap keeps anyone from filling the table */
-const MAX_TICKS = 500
-
-/**
- * One activity ticked done or unticked. A change, not the whole set: a device that read the page a while ago adds
- * its tick to what the reader ticked elsewhere since, instead of writing its old set over it
- */
-export const Tick = Schema.Struct({ activity: ActivityId, done: Schema.Boolean })
-export type Tick = typeof Tick.Type
-
 /** Any edit to one page; fields left out stay as they are */
 export const PageEdit = Schema.Struct({
   title: Schema.optional(PageTitle),
   content: Schema.optional(Schema.String),
   studied: Schema.optional(Schema.Boolean),
   /** The reader's ticks on the page's activities, applied in order; sending one twice changes nothing */
-  ticks: Schema.optional(Schema.Array(Tick).check(Schema.isMaxLength(MAX_TICKS))),
+  ticks: Schema.optional(Ticks),
+  /** The reader's answers to the page's questions, applied in order; a blank one takes the answer away */
+  answers: Schema.optional(AnswerEdits),
   module: Schema.optional(Schema.Boolean),
   color: Schema.optional(PageColor),
   icon: Schema.optional(PageIcon),
@@ -164,62 +156,27 @@ export const addBranch = Effect.fnUntraced(function*(path: Path, parentId: PageI
 })
 
 /**
- * Edits a page: its text, whether it was studied and which of its activities
- * are done, how it shows on the map, and, after a rename, the [[links]] that
- * used its old title.
+ * Edits a page: its text, whether it was studied, which of its activities
+ * are done and what its questions were answered, how it shows on the map,
+ * and, after a rename, the [[links]] that used its old title. A question
+ * reworded in the text keeps the reader's answer (withRewordedAnswers).
  */
 export const editPage = Effect.fnUntraced(function*(path: Path, pageId: PageId, edit: PageEdit, now = new Date()) {
   const page = path.pages.find((p) => p.id === pageId)
   if (!page) return yield* new PageNotFound({ pageId })
   if (edit.title !== undefined && titleTaken(path, pageId, edit.title)) return yield* new TitleTaken({ title: edit.title })
 
-  const { title, content, studied, ticks, module, color, icon, previousTitle } = edit
+  const { title, content, studied, ticks, answers, module, color, icon, previousTitle } = edit
   const text = defined({ title, content })
   const look = defined({ module, color, icon })
 
-  let next = updatePage(path, pageId, text, now)
-  if (studied !== undefined || ticks !== undefined) {
-    next = yield* setProgress(next, next.pages.find((p) => p.id === pageId) ?? page, studied, ticks ?? [])
+  let next = withRewordedAnswers(updatePage(path, pageId, text, now), page)
+  if (studied !== undefined || ticks !== undefined || answers !== undefined) {
+    next = yield* setProgress(next, next.pages.find((p) => p.id === pageId) ?? page, studied, ticks ?? [], answers ?? [])
   }
   if (Object.keys(look).length > 0) next = setLook(next, pageId, look)
   if (previousTitle !== undefined) next = renameLinks(next, previousTitle, title ?? page.title)
   return next
-})
-
-/**
- * The reader's progress on a page: their ticks, then their studied mark. Ticks are kept only for activities the page
- * has, so one on an activity reworded since drops out. In a learning path a page is studied once its activities are done, so marking it with some open is refused,
- * and unticking one unmarks it. An activity added to a page already studied leaves the mark: the condition holds
- * when marking. Neither is an edit of the page.
- */
-const setProgress = Effect.fnUntraced(function*(
-  path: Path,
-  page: Page,
-  studied: boolean | undefined,
-  changes: ReadonlyArray<Tick>
-) {
-  const activities = activitiesIn(path.id, page)
-  const ids = new Set(activities.map((activity) => activity.id))
-  const was = new Set(page.done ?? [])
-  const ticks = new Set([...was].filter((id) => ids.has(id)))
-  for (const change of changes) {
-    if (!ids.has(change.activity)) continue
-    if (change.done) ticks.add(change.activity)
-    else ticks.delete(change.activity)
-  }
-  // A study has no progress to hold back
-  const gated = path.kind === "learningPath" ? activities : []
-
-  const open = gated.some((activity) => !ticks.has(activity.id))
-  if (studied === true && !page.studied && open) return yield* new ActivitiesOpen({ pageId: page.id })
-  const unticked = gated.some((activity) => was.has(activity.id) && !ticks.has(activity.id))
-  const nextStudied = unticked ? false : studied ?? page.studied
-
-  const sameTicks = ticks.size === was.size && [...ticks].every((id) => was.has(id))
-  if (sameTicks && nextStudied === page.studied) return path
-  const { done: _done, ...rest } = page
-  const next: Page = { ...rest, studied: nextStudied, ...(ticks.size > 0 ? { done: [...ticks] } : {}) }
-  return { ...path, pages: path.pages.map((p) => (p.id === page.id ? next : p)) }
 })
 
 /** The fields that were given; an edit leaves the others as they are */

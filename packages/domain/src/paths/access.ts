@@ -111,12 +111,12 @@ export const canEdit = (access: PathAccess) => access === "owner" || access === 
 export const canManage = (access: PathAccess) => access === "owner"
 
 /**
- * Whether the path's reader may make this edit of a page. A studied mark and ticked activities alone are their own
- * progress, so reading is enough; renaming the root renames the path, which is its owner's; anything else edits the
+ * Whether the path's reader may make this edit of a page. A studied mark, ticked activities and answers alone are
+ * their own progress, so reading is enough; renaming the root renames the path, which is its owner's; anything else edits the
  * page.
  */
 export function mayEditPage(path: Pick<Path, "access" | "rootPageId">, pageId: PageId, edit: PageEdit): boolean {
-  const { studied: _studied, ticks: _ticks, ...rest } = edit
+  const { studied: _studied, ticks: _ticks, answers: _answers, ...rest } = edit
   if (Object.values(rest).every((value) => value === undefined)) return canRead(path.access)
   return pageId === path.rootPageId && edit.title !== undefined ? canManage(path.access) : canEdit(path.access)
 }

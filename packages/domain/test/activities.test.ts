@@ -1,6 +1,6 @@
 import { assert, describe, it } from "@effect/vitest"
 import { Effect } from "effect"
-import { ActivityId, PageId, PathId, activitiesIn, editPage, mayEditPage, newPath, openActivities } from "../src/paths/index"
+import { ActivityId, PageId, PathId, activitiesIn, editPage, mayEditPage, newPath, openTasks } from "../src/paths/index"
 import type { Path, PathKind } from "../src/paths/index"
 
 const pathId = PathId.make("journal")
@@ -68,7 +68,7 @@ describe("activitiesIn", () => {
 
   it("leaves open the ones the reader has not ticked", () => {
     const [first, second] = activitiesIn(pathId, page(twoActivities))
-    assert.deepStrictEqual(openActivities(pathId, { ...page(twoActivities), done: [first.id] }), [second])
+    assert.deepStrictEqual(openTasks({ id: pathId }, { ...page(twoActivities), done: [first.id] }), [{ kind: "activity", ...second }])
   })
 })
 
