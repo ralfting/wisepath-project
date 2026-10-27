@@ -2,6 +2,7 @@
 
 import { BubbleMenu } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
+import { NodeSelection } from '@tiptap/pm/state';
 import { Button, Divider, Group } from '@mantine/core';
 import { RichTextEditor } from '@mantine/tiptap';
 import { IconMessagePlus } from '@tabler/icons-react';
@@ -18,8 +19,9 @@ interface SelectionBubbleProps {
 }
 
 /**
- * Over selected text (not over a video or a [[link]]): inline formatting (bold, italic, strike, code, link) for
- * someone who may edit it, and apart from it, in the notes' yellow, Note for a note of the reader's own on those words
+ * Over selected text (not over a block picked whole, a video or a [[link]]): inline formatting (bold, italic, strike,
+ * code, link) for someone who may edit it, and apart from it, in the notes' yellow, Note for a note of the reader's own
+ * on those words
  */
 export function SelectionBubble({ editor, format, onNote }: SelectionBubbleProps) {
   const t = useT();
@@ -29,7 +31,7 @@ export function SelectionBubble({ editor, format, onNote }: SelectionBubbleProps
       editor={editor}
       // No ARIA from tippy: it would mark the text itself as expanded, which a text box cannot be
       tippyOptions={{ duration: 120, placement: 'top', aria: { content: null, expanded: false } }}
-      shouldShow={({ editor: e, from, to }) => !e.isActive('youtube') && !e.isActive('wikiLink') && from !== to}
+      shouldShow={({ editor: e, state, from, to }) => !(state.selection instanceof NodeSelection) && !e.isActive('youtube') && !e.isActive('wikiLink') && from !== to}
     >
       <Group gap="xs" wrap="nowrap" className={classes.bubble}>
         {format && (

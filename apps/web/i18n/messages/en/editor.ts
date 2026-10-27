@@ -113,6 +113,7 @@ export const editor = {
     kinds: { info: 'Info', warning: 'Warning', danger: 'Danger', activity: 'Activity', question: 'Question' },
     change: '{kind}: change the callout',
     remove: 'Remove the box, keep the text',
+    grip: 'Move or select the block',
   },
   codeBlock: {
     language: 'Code language',
@@ -139,7 +140,7 @@ export const editor = {
       numbers: 'A numbered list, for steps in order',
       task: 'A checklist item; - [x] is a done one',
       quote: 'A quote, for something you read or were told',
-      callout: 'A note in a coloured box: [!info], [!warning] or [!danger], then a space. /info, /warning and /danger too',
+      callout: 'A note in a coloured box: [!info], [!warning] or [!danger], then a space. /info, /warning and /danger too. Any box moves by the grip at its side (a click picks it, to copy or cut), or with Alt+Shift+Up/Down',
       activity: 'Something the page asks the learner to do; in a learning path it is ticked done before the page is studied. /activity too',
       question: 'A question for the reader, with a field under it for their own answer; in a learning path it is answered before the page is studied. /question too',
       codeBlock: 'A code block: type it, then the code; ``` again closes it',

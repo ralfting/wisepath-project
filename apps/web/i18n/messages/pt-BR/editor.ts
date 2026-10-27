@@ -116,6 +116,7 @@ export const editor = {
     kinds: { info: 'Informação', warning: 'Atenção', danger: 'Perigo', activity: 'Atividade', question: 'Pergunta' },
     change: '{kind}: mudar o destaque',
     remove: 'Tirar a caixa, manter o texto',
+    grip: 'Mover ou selecionar o bloco',
   },
   codeBlock: {
     language: 'Linguagem do código',
@@ -142,7 +143,7 @@ export const editor = {
       numbers: 'Uma lista numerada, para passos em ordem',
       task: 'Um item de lista de tarefas; - [x] é um item feito',
       quote: 'Uma citação, para algo que você leu ou ouviu',
-      callout: 'Uma nota numa caixa colorida: [!info], [!warning] ou [!danger], depois um espaço. /info, /warning e /danger também',
+      callout: 'Uma nota numa caixa colorida: [!info], [!warning] ou [!danger], depois um espaço. /info, /warning e /danger também. Qualquer caixa se move pela alça ao lado dela (um clique a seleciona, para copiar ou recortar), ou com Alt+Shift+Cima/Baixo',
       activity: 'Algo que a página pede para fazer; numa trilha guiada, ela é marcada como feita antes de a página contar como estudada. /atividade também',
       question: 'Uma pergunta para quem lê, com um campo embaixo para a resposta de cada um; numa trilha guiada, ela é respondida antes de a página contar como estudada. /pergunta também',
       codeBlock: 'Um bloco de código: digite isso e depois o código; ``` de novo fecha o bloco',

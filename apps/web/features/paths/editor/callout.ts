@@ -1,6 +1,7 @@
 import { Node, wrappingInputRule } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
 import type { Node as DocNode } from '@tiptap/pm/model';
+import { NodeSelection, Plugin, TextSelection } from '@tiptap/pm/state';
 import { CALLOUT_KINDS, calloutMarker, readCalloutMarker } from '@wisepath/domain/paths';
 import type { CalloutKind } from '@wisepath/domain/paths';
 import type { MarkdownState } from './markdown';
@@ -16,6 +17,8 @@ export const CalloutBlock = Node.create({
   content: 'block+',
   // Pasting into an empty callout keeps the callout
   defining: true,
+  // By its grip only (CalloutView): ProseMirror moves the whole block where it is dropped
+  draggable: true,
 
   addAttributes() {
     return {
@@ -42,6 +45,29 @@ export const CalloutBlock = Node.create({
         find: new RegExp(String.raw`^\[!(${CALLOUT_KINDS.join('|')})\]\s$`, 'i'),
         type: this.type,
         getAttributes: (match) => ({ kind: match[1].toLowerCase() }),
+      }),
+    ];
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      'Alt-Shift-ArrowUp': () => moveCallout(this.editor, -1),
+      'Alt-Shift-ArrowDown': () => moveCallout(this.editor, 1),
+    };
+  },
+
+  // A callout copied whole (picked by its grip) is its markdown as plain text, so it pastes as a callout anywhere;
+  // an empty string leaves any other copy to ProseMirror
+  addProseMirrorPlugins() {
+    const { editor, type } = this;
+    return [
+      new Plugin({
+        props: {
+          clipboardTextSerializer: (slice) =>
+            slice.content.childCount === 1 && slice.content.firstChild?.type === type
+              ? (editor.storage.markdown as { serializer: { serialize: (content: typeof slice.content) => string } }).serializer.serialize(slice.content)
+              : '',
+        },
       }),
     ];
   },
@@ -90,6 +116,34 @@ export const CalloutBlock = Node.create({
 export function setCallout(editor: Editor, kind: CalloutKind) {
   if (editor.isActive('callout')) editor.chain().focus().updateAttributes('callout', { kind }).run();
   else editor.chain().focus().wrapIn('callout', { kind }).run();
+}
+
+/**
+ * Moves the callout picked whole, or the one the cursor is in, past the block above (-1) or below (1) it, keeping
+ * what was selected in it. At the top or the bottom it stays where it is.
+ */
+export function moveCallout(editor: Editor, by: -1 | 1): boolean {
+  const { state } = editor;
+  const { selection } = state;
+  const picked = selection instanceof NodeSelection && selection.node.type.name === 'callout';
+  let at = picked ? selection.from : -1;
+  for (let depth = selection.$from.depth; at < 0 && depth > 0; depth--) {
+    if (selection.$from.node(depth).type.name === 'callout') at = selection.$from.before(depth);
+  }
+  if (at < 0) return false;
+  const $at = state.doc.resolve(at);
+  const callout = $at.nodeAfter;
+  if (!callout || selection.to > at + callout.nodeSize) return false;
+  const index = $at.index() + by;
+  if (index < 0 || index >= $at.parent.childCount) return true;
+  const sibling = $at.parent.child(index);
+  const from = by < 0 ? at - sibling.nodeSize : at;
+  const landed = by < 0 ? from : at + sibling.nodeSize;
+  const tr = state.tr.replaceWith(from, from + callout.nodeSize + sibling.nodeSize, by < 0 ? [callout, sibling] : [sibling, callout]);
+  const shift = landed - at;
+  tr.setSelection(picked ? NodeSelection.create(tr.doc, landed) : TextSelection.create(tr.doc, selection.from + shift, selection.to + shift));
+  editor.view.dispatch(tr.scrollIntoView());
+  return true;
 }
 
 /**

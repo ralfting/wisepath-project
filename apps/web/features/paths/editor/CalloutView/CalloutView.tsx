@@ -4,7 +4,7 @@ import { useContext } from 'react';
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
 import { Button } from '@mantine/core';
-import { IconCheck, IconClipboardCheck, IconSquare } from '@tabler/icons-react';
+import { IconCheck, IconClipboardCheck, IconGripVertical, IconSquare } from '@tabler/icons-react';
 import type { CalloutKind } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { ActivityBlock } from '@/ui/ActivityBlock/ActivityBlock';
@@ -15,6 +15,7 @@ import { calloutsBefore } from '../callout';
 import { EditorQuestionsContext } from '../questions';
 import { AnswerField } from './AnswerField/AnswerField';
 import { KindMenu } from './KindMenu';
+import classes from './CalloutView.module.css';
 
 /**
  * CalloutView
@@ -23,8 +24,40 @@ import { KindMenu } from './KindMenu';
  * the text where it was. An activity, in a learning path, has Mark as done in
  * its header: the reader's own tick, there in a page they may only read too.
  * A question has the reader's own answer under it, in a study as in a path.
+ * While the text is editable a grip in the margin picks the whole block, to
+ * copy, cut or delete it, and drags it elsewhere in the page.
  */
-export function CalloutView({ node, editor, getPos, updateAttributes }: NodeViewProps) {
+export function CalloutView(props: NodeViewProps) {
+  const { editor, getPos } = props;
+  const t = useT();
+  const pick = () => {
+    const at = getPos();
+    if (typeof at === 'number') editor.chain().focus().setNodeSelection(at).run();
+  };
+  return (
+    <NodeViewWrapper className={classes.block}>
+      {editor.isEditable ? (
+        // Not a <button>: Tiptap leaves a button's presses to it, and ProseMirror must see this one to drag the block
+        <div
+          role="button"
+          aria-label={t('editor.callout.grip')}
+          title={t('editor.callout.grip')}
+          className={classes.grip}
+          contentEditable={false}
+          draggable
+          data-drag-handle
+          onClick={pick}
+        >
+          <IconGripVertical size={16} aria-hidden />
+        </div>
+      ) : null}
+      <CalloutBlockView {...props} />
+    </NodeViewWrapper>
+  );
+}
+
+/** The block itself, by its kind */
+function CalloutBlockView({ node, editor, getPos, updateAttributes }: NodeViewProps) {
   const t = useT();
   const activities = useContext(EditorActivitiesContext);
   const questions = useContext(EditorQuestionsContext);
@@ -45,21 +78,17 @@ export function CalloutView({ node, editor, getPos, updateAttributes }: NodeView
     const saved = questions?.answers.find((answer) => answer.question === id)?.body ?? '';
     const answer = questions && id !== undefined ? <AnswerField id={id} saved={saved} onAnswer={questions.onAnswer} /> : undefined;
     return (
-      <NodeViewWrapper>
-        <QuestionBlock label={label} answered={saved !== ''} marker={menu(calloutLook(kind))} answer={answer}>
-          <NodeViewContent />
-        </QuestionBlock>
-      </NodeViewWrapper>
+      <QuestionBlock label={label} answered={saved !== ''} marker={menu(calloutLook(kind))} answer={answer}>
+        <NodeViewContent />
+      </QuestionBlock>
     );
   }
 
   if (kind !== 'activity') {
     return (
-      <NodeViewWrapper>
-        <Callout kind={kind} label={label} marker={menu(calloutLook(kind))}>
-          <NodeViewContent />
-        </Callout>
-      </NodeViewWrapper>
+      <Callout kind={kind} label={label} marker={menu(calloutLook(kind))}>
+        <NodeViewContent />
+      </Callout>
     );
   }
 
@@ -82,10 +111,8 @@ export function CalloutView({ node, editor, getPos, updateAttributes }: NodeView
     ) : undefined;
 
   return (
-    <NodeViewWrapper>
-      <ActivityBlock label={label} done={done} marker={menu(done ? { color: 'teal', icon: IconClipboardCheck } : calloutLook(kind))} action={tick}>
-        <NodeViewContent />
-      </ActivityBlock>
-    </NodeViewWrapper>
+    <ActivityBlock label={label} done={done} marker={menu(done ? { color: 'teal', icon: IconClipboardCheck } : calloutLook(kind))} action={tick}>
+      <NodeViewContent />
+    </ActivityBlock>
   );
 }

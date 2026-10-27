@@ -71,8 +71,9 @@ export function editorExtensions({
 }): Extensions {
   const variant = EDITOR_VARIANTS[context().variant ?? 'page'];
   return [
-    // The code block comes from CodeBlockLowlight instead, for syntax colours, with a language picker
-    StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false }),
+    // The code block comes from CodeBlockLowlight instead, for syntax colours, with a language picker. Where a dragged
+    // block will land shows as a line in the colour of actions
+    StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false, dropcursor: { color: 'var(--mantine-color-blue-filled)', width: 3 } }),
     CodeBlockLowlight.extend({ addNodeView: () => ReactNodeViewRenderer(CodeBlockView) }).configure({ lowlight }),
     // A link written to a bare host is read with https, so it opens the site and saves that way
     Link.extend({

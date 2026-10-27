@@ -1,0 +1,43 @@
+/* Over the rail, which the editor's styles put at z-index 2 like every div in it */
+.block {
+  position: relative;
+  z-index: 3;
+}
+
+/* In the page's padding beside the block's first line, over the rail that marks the cursor's block (the drawer has no
+   margin past it); shown while the block is pointed at, holds the cursor or is picked */
+.grip {
+  position: absolute;
+  top: var(--mantine-spacing-sm);
+  inset-inline-start: calc(-1 * var(--mantine-spacing-lg));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--mantine-spacing-md);
+  height: 1.75rem;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--wp-surface, var(--mantine-color-body));
+  color: var(--mantine-color-dimmed);
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 120ms ease;
+
+  &:hover {
+    background: var(--mantine-color-default-hover);
+    color: var(--mantine-color-text);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.block:hover .grip,
+.block:focus-within .grip,
+:global(.ProseMirror-selectednode) .grip {
+  opacity: 1;
+}
