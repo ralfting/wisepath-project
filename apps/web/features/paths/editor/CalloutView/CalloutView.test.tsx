@@ -83,3 +83,18 @@ describe('moving and picking a callout', () => {
     expect([answerIn(first), answerIn(second)]).toEqual(['', 'Cues.']);
   });
 });
+
+describe('a question', () => {
+  it('reads as the page text with the answer under it, and only whoever may edit gets its kind menu', async () => {
+    const view = renderWithLayers(<Page readOnly />, MemoryAuth());
+    const [first] = await screen.findAllByRole('note', { name: 'Question' });
+    expect(within(first).getByRole('textbox', { name: 'Your answer' })).toBeTruthy();
+    expect(screen.queryByText('Question')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Question: change the callout' })).toBeNull();
+
+    view.unmount();
+    renderWithLayers(<Page />, MemoryAuth());
+    expect(await screen.findAllByRole('button', { name: 'Question: change the callout' })).toHaveLength(2);
+    expect(screen.queryByText('Question')).toBeNull();
+  });
+});

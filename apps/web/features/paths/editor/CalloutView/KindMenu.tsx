@@ -16,10 +16,12 @@ interface KindMenuProps {
   readonly look: { readonly color: string; readonly icon: Icon };
   readonly onPick: (kind: CalloutKind) => void;
   readonly onRemove: () => void;
+  /** In the page's margin beside the grip (a question's, which has no box), as narrow as the grip */
+  readonly inMargin?: boolean;
 }
 
 /** A callout's icon as a menu, while the text is editable: another kind, or the box taken away with its text kept */
-export function KindMenu({ kind, label, look, onPick, onRemove }: KindMenuProps) {
+export function KindMenu({ kind, label, look, onPick, onRemove, inMargin = false }: KindMenuProps) {
   const t = useT();
   const { color, icon: Mark } = look;
   return (
@@ -27,8 +29,13 @@ export function KindMenu({ kind, label, look, onPick, onRemove }: KindMenuProps)
     <span contentEditable={false}>
       <Menu position="bottom-start">
         <Menu.Target>
-          <ActionIcon variant="subtle" color={color} size="sm" aria-label={t('editor.callout.change', { kind: label })}>
-            <Mark size={20} />
+          <ActionIcon
+            variant="subtle"
+            color={color}
+            size={inMargin ? 'var(--mantine-spacing-md)' : 'sm'}
+            aria-label={t('editor.callout.change', { kind: label })}
+          >
+            <Mark size={inMargin ? 16 : 20} />
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>

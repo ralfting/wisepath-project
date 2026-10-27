@@ -1,14 +1,13 @@
-/* As an activity: a bar down its side on a faint grey, a task for the reader and not news; square like a quote */
+/* No box: with no padding or border the words' own margins pass through it, so they sit as the page's blocks do. Its
+   own margin below keeps a paragraph's gap when there is no answer under it (the editor zeroes a last paragraph's) */
 .root {
-  margin-block: var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
-  border-inline-start: 0.1875rem solid light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
+  margin-bottom: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
   outline: 0.1875rem solid transparent;
-  outline-offset: 0.125rem;
+  outline-offset: var(--mantine-spacing-xs);
   transition: outline-color 200ms ease;
 
-  /* Pointed at by the studied control: a ring that says "this one" */
+  /* Pointed at by the studied control: a ring round the question and its answer that says "this one" */
   &[data-pointed] {
     outline-color: var(--mantine-color-blue-filled);
   }
@@ -18,29 +17,8 @@
   }
 }
 
-.header {
-  min-height: 1.75rem;
-  margin-bottom: var(--mantine-spacing-xs);
-}
-
-.icon,
-.label {
-  color: var(--mantine-color-dimmed);
-}
-
-/* The words inside read like the rest of the page, flush with the box */
-.body {
-  & > :first-child,
-  & [data-node-view-content-react] > :first-child {
-    margin-top: 0;
-  }
-
-  & > :last-child,
-  & [data-node-view-content-react] > :last-child {
-    margin-bottom: 0;
-  }
-}
-
+/* A paragraph's gap below the words; its margin bottom closes the block, as a paragraph's would */
 .answer {
   margin-top: var(--mantine-spacing-sm);
+  margin-bottom: var(--mantine-spacing-md);
 }

@@ -2,6 +2,7 @@ import { Node, wrappingInputRule } from '@tiptap/react';
 import type { Editor } from '@tiptap/react';
 import type { Node as DocNode } from '@tiptap/pm/model';
 import { NodeSelection, Plugin, TextSelection } from '@tiptap/pm/state';
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { CALLOUT_KINDS, calloutMarker, readCalloutMarker } from '@wisepath/domain/paths';
 import type { CalloutKind } from '@wisepath/domain/paths';
 import type { MarkdownState } from './markdown';
@@ -57,12 +58,21 @@ export const CalloutBlock = Node.create({
   },
 
   // A callout copied whole (picked by its grip) is its markdown as plain text, so it pastes as a callout anywhere;
-  // an empty string leaves any other copy to ProseMirror
+  // an empty string leaves any other copy to ProseMirror. The callout the cursor is in carries wp-cursor-in, for its
+  // grip to show: the focus stays on the editor, so :focus-within can't tell which block holds the cursor
   addProseMirrorPlugins() {
     const { editor, type } = this;
     return [
       new Plugin({
         props: {
+          decorations: ({ doc, selection: { $from } }) => {
+            for (let depth = $from.depth; depth > 0; depth--) {
+              if ($from.node(depth).type !== type) continue;
+              const at = $from.before(depth);
+              return DecorationSet.create(doc, [Decoration.node(at, at + $from.node(depth).nodeSize, { class: 'wp-cursor-in' })]);
+            }
+            return null;
+          },
           clipboardTextSerializer: (slice) =>
             slice.content.childCount === 1 && slice.content.firstChild?.type === type
               ? (editor.storage.markdown as { serializer: { serialize: (content: typeof slice.content) => string } }).serializer.serialize(slice.content)

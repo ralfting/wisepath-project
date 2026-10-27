@@ -1,5 +1,5 @@
-/* The reader's own words, as legible as the page's: its text size and colour, on the page's ground so the field stands
-   out of the question's grey */
+/* The reader's own words, as legible as the page's: its text size and colour. With no box round the question, the
+   field is what says it is one, so it keeps a border that reads as a place to write */
 .label {
   display: inline-flex;
   align-items: center;

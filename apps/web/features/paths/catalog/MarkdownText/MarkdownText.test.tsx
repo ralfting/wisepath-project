@@ -58,9 +58,11 @@ describe('MarkdownText', () => {
     expect(screen.queryByRole('switch')).toBeNull();
   });
 
-  it('draws a question as its box with no answer field', () => {
-    renderWithLayers(<MarkdownText content={'> [!question]\n> What makes a habit last?'} hrefOf={hrefOf} t={t} />, Layer.empty);
-    expect(screen.getByRole('note', { name: 'Question' }).textContent).toContain('What makes a habit last?');
+  it('draws a question as its own text, a heading kept a heading, with no label and no answer field', () => {
+    renderWithLayers(<MarkdownText content={'> [!question]\n> ### What makes a habit last?'} hrefOf={hrefOf} t={t} />, Layer.empty);
+    const question = screen.getByRole('note', { name: 'Question' });
+    expect(within(question).getByRole('heading', { level: 3, name: 'What makes a habit last?' })).toBeTruthy();
+    expect(screen.queryByText('Question')).toBeNull();
     expect(screen.queryByRole('textbox')).toBeNull();
   });
 });
