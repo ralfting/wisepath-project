@@ -25,6 +25,7 @@ Four features to make taking notes and reviewing them quicker, and WisePath part
 | 21 | [My notes on a page](21-page-notes.md) | Notes of your own on a passage or a page, highlighted in the text like Google Docs comments, never shown to anyone else |
 | 22 | [Activities on a page](22-page-activities.md) | `> [!activity]` blocks a learner ticks; in a learning path the page is studied once they are done |
 | 23 | [Citing a page, apart from linking it](23-citations.md) | `@[[Title]]` cites a page: a faint dashed line on the map, never a branch; only links shape the map |
+| 24 | [Questions on a page](24-page-questions.md) | `> [!question]` blocks each reader answers for themselves; in a learning path an unanswered one holds the page |
 
 AI (10) comes last, once these exist to build on.
 
