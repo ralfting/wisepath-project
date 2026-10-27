@@ -40,13 +40,13 @@ export const help = {
       tip: 'Clique no **ícone** da caixa para mudar o tipo, ou para tirar a caixa e manter o texto.',
     },
     activity: {
-      title: 'Pedir algo para fazer na página',
+      title: 'Pedir algo para fazer ou responder na página',
       steps: {
-        a: 'Numa linha nova, digite `/` e escolha **Atividade**, ou digite `[!activity]` e um espaço',
-        b: 'Escreva o que fazer dentro da caixa: uma linha, uma lista, uma pergunta para responder',
-        c: 'Numa trilha guiada cada leitor marca **Marcar como feita**; a página conta como estudada quando as atividades estão feitas',
+        a: 'Numa linha nova, digite `/` e escolha **Atividade** ou **Pergunta**, ou digite `[!activity]` ou `[!question]` e um espaço',
+        b: 'Escreva dentro da caixa o que fazer, ou o que responder; cada leitor escreve a resposta em **Sua resposta**, embaixo da pergunta',
+        c: 'Numa trilha guiada cada leitor marca **Marcar como feita** nas atividades e responde a cada pergunta; a página conta como estudada quando tudo está feito',
       },
-      tip: 'Cada leitor marca as suas. Desmarcar uma numa página estudada desmarca a página; o mapa mostra uma prancheta nas páginas com atividades.',
+      tip: 'Marcas e respostas são de cada leitor. Desmarcar uma, ou apagar uma resposta, numa página estudada a desmarca; o mapa mostra uma prancheta nas páginas que pedem uma ou outra.',
     },
     cite: {
       title: 'Citar uma página sem colocá-la no mapa',
