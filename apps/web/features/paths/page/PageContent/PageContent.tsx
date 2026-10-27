@@ -9,7 +9,7 @@ import { Box, Stack } from '@mantine/core';
 import { useInbox, useTakeFromInbox } from '@/useCases/inbox';
 import { NoteCard } from '../PageNotes/NoteCard';
 import type { PageNotesState } from '../PageNotes/usePageNotes';
-import { pageActivities } from '../pageActivities';
+import { pageActivities } from '../pageTasks';
 import { PagePager } from './PagePager';
 import { PageTitleInput } from './PageTitleInput';
 import type { PageActions } from './PageContent.helpers';

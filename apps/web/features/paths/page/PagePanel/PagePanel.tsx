@@ -3,7 +3,7 @@
 import { ActionIcon, Anchor, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
 import { IconArrowLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
-import { canEdit } from '@wisepath/domain/paths';
+import { canEdit, openTasks } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import type { PathActions } from '@/useCases/paths';
 import { PageContent } from '../PageContent/PageContent';
@@ -166,6 +166,7 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
             <StudiedToggle
               path={path}
               page={page}
+              open={openTasks(path, page)}
               onChange={(studied) => store.updatePage(page.id, { studied })}
               onShowText={() => operations.showTab('content')}
             />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PageId, PathId, activitiesIn } from '@wisepath/domain/paths';
-import type { ActivityId } from '@wisepath/domain/paths';
+import { PageId, PathId, activitiesIn, questionsIn } from '@wisepath/domain/paths';
+import type { ActivityId, Answer } from '@wisepath/domain/paths';
 import { nodeSize } from '../mindLayout';
 import { activityMarkOf } from './ActivityBadge.helpers';
 
@@ -17,6 +17,13 @@ describe('the activity badge on the map', () => {
     ['a learning path with all ticked', true, content, [first, second], { kind: 'done' }],
   ])('marks %s', (_, progress, text, done, expected) => {
     expect(activityMarkOf(path, { ...page, content: text, done }, progress)).toEqual(expected);
+  });
+
+  it('counts an unanswered question as open, and an answered one as done', () => {
+    const asked = { ...page, content: '> [!question]\n> Why read it twice?' };
+    const [question] = questionsIn(PathId.make('reading'), asked).map((q) => q.id);
+    const answers: ReadonlyArray<Answer> = [{ question, body: 'To see more.' }];
+    expect([activityMarkOf(path, asked, true), activityMarkOf(path, { ...asked, answers }, true)]).toEqual([{ kind: 'open', count: 1 }, { kind: 'done' }]);
   });
 
   it('makes room for itself beside the title', () => {

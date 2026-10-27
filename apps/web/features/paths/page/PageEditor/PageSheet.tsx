@@ -3,7 +3,7 @@
 import { ActionIcon, Box, Card, Group, Menu, Tooltip } from '@mantine/core';
 import { IconArrowLeft, IconBox, IconDotsVertical, IconSitemap, IconTrash, IconViewportNarrow, IconViewportWide } from '@tabler/icons-react';
 import Link from 'next/link';
-import { branchProgress, canEdit } from '@wisepath/domain/paths';
+import { branchProgress, canEdit, openTasks } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
 import { SaveStatus } from '@/features/paths/path';
@@ -71,6 +71,7 @@ export function PageSheet({
             <StudiedToggle
               path={path}
               page={page}
+              open={openTasks(path, page)}
               onChange={(studied) => store.updatePage(page.id, { studied })}
               onShowText={() => operations.showTab('content')}
             />
