@@ -1,0 +1,36 @@
+/* The reader's own words, as legible as the page's: its text size and colour, on the page's ground so the field stands
+   out of the question's grey */
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--mantine-spacing-xs) / 2);
+  margin-bottom: calc(var(--mantine-spacing-xs) / 2);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 400;
+  color: var(--mantine-color-text);
+}
+
+.input {
+  font-size: inherit;
+  line-height: inherit;
+  color: var(--mantine-color-text);
+  background: var(--mantine-color-body);
+  border-color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+
+  &::placeholder {
+    color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  }
+
+  &:focus {
+    border-color: var(--mantine-color-blue-filled);
+  }
+}
+
+/* Answered, the words lead: quieter chrome around them */
+.root[data-answered] .label {
+  color: var(--mantine-color-dimmed);
+}
+
+.root[data-answered] .input:not(:focus) {
+  border-color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4));
+}

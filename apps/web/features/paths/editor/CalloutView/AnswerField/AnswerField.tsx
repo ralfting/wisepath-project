@@ -4,9 +4,11 @@ import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Textarea } from '@mantine/core';
 import { useDebouncedCallback } from '@mantine/hooks';
+import { IconPencil } from '@tabler/icons-react';
 import { MAX_ANSWER } from '@wisepath/domain/paths';
 import type { QuestionId } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
+import classes from './AnswerField.module.css';
 
 /** Typing pauses this long before an answer is saved; leaving the field saves at once */
 const ANSWER_SAVE_MS = 600;
@@ -49,7 +51,12 @@ export function AnswerField({ id, saved, onAnswer }: AnswerFieldProps) {
 
   return (
     <Textarea
-      label={t('question.answer')}
+      label={
+        <>
+          <IconPencil size={14} aria-hidden />
+          {t('question.answer')}
+        </>
+      }
       placeholder={t('question.placeholder')}
       value={value}
       onChange={(event) => {
@@ -62,6 +69,8 @@ export function AnswerField({ id, saved, onAnswer }: AnswerFieldProps) {
         save.flush();
       }}
       onKeyDown={keepKeys}
+      classNames={classes}
+      mod={{ answered: saved !== '' }}
       autosize
       minRows={2}
       maxLength={MAX_ANSWER}

@@ -13,7 +13,7 @@ import { Callout, calloutLook } from '@/ui/Callout/Callout';
 import { EditorActivitiesContext } from '../activities';
 import { calloutsBefore } from '../callout';
 import { EditorQuestionsContext } from '../questions';
-import { AnswerField } from './AnswerField';
+import { AnswerField } from './AnswerField/AnswerField';
 import { KindMenu } from './KindMenu';
 
 /**
