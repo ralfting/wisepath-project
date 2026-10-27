@@ -55,6 +55,8 @@ export interface MindLayout {
   branches: Line[];
   /** The tree's arrows: other [[links]] between pages on the map */
   arrows: Line[];
+  /** The tree's citations: @[[citations]] between pages on the map, drawn the way arrows are */
+  citations: Line[];
   bounds: { minX: number; minY: number; maxX: number; maxY: number };
   /** Centre of every page on the map, for focusing the view */
   centres: Map<PageId, Point>;
@@ -202,7 +204,7 @@ export function layoutMind(
   const centres = new Map<PageId, Point>([[tree.root.page.id, { x: 0, y: 0 }]]);
   for (const n of nodes) centres.set(n.page.id, centreOf(n));
 
-  // Arrows bow gently; one that would cross the root sweeps around it
+  // Arrows and citations bow gently; one that would cross the root sweeps around it
   const edgeToward = (id: PageId, toward: Point): Point => {
     const n = byId.get(id)!;
     const c = centreOf(n);
@@ -217,29 +219,30 @@ export function layoutMind(
     const t = Math.max(0, Math.min(1, -(a.x * (b.x - a.x) + a.y * (b.y - a.y)) / len2));
     return Math.hypot(a.x + t * (b.x - a.x), a.y + t * (b.y - a.y)) < reach + 50;
   };
-  const arrows: Line[] = tree.arrows
-    .filter((r) => byId.has(r.from) && byId.has(r.to))
-    .map((r) => {
-      const a0 = centres.get(r.from)!;
-      const b0 = centres.get(r.to)!;
-      let c1: Point;
-      let c2: Point;
-      if (passesRoot(a0, b0)) {
-        // Below the root when the pages sit lower, above otherwise
-        const sweep = (a0.y + b0.y >= 0 ? 1 : -1) * (reach + 70);
-        c1 = { x: a0.x * 0.45, y: sweep };
-        c2 = { x: b0.x * 0.45, y: sweep };
-      } else {
-        const bow = 0.18;
-        const nx = -(b0.y - a0.y) * bow;
-        const ny = (b0.x - a0.x) * bow;
-        c1 = { x: a0.x + (b0.x - a0.x) / 3 + nx, y: a0.y + (b0.y - a0.y) / 3 + ny };
-        c2 = { x: a0.x + ((b0.x - a0.x) * 2) / 3 + nx, y: a0.y + ((b0.y - a0.y) * 2) / 3 + ny };
-      }
-      const a = edgeToward(r.from, c1);
-      const b = edgeToward(r.to, c2);
-      return { key: `x-${r.from}-${r.to}`, d: `M${a.x},${a.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${b.x},${b.y}`, from: r.from, to: r.to };
-    });
+  const across = (pairs: MapTree['arrows'], prefix: string): Line[] =>
+    pairs
+      .filter((r) => byId.has(r.from) && byId.has(r.to))
+      .map((r) => {
+        const a0 = centres.get(r.from)!;
+        const b0 = centres.get(r.to)!;
+        let c1: Point;
+        let c2: Point;
+        if (passesRoot(a0, b0)) {
+          // Below the root when the pages sit lower, above otherwise
+          const sweep = (a0.y + b0.y >= 0 ? 1 : -1) * (reach + 70);
+          c1 = { x: a0.x * 0.45, y: sweep };
+          c2 = { x: b0.x * 0.45, y: sweep };
+        } else {
+          const bow = 0.18;
+          const nx = -(b0.y - a0.y) * bow;
+          const ny = (b0.x - a0.x) * bow;
+          c1 = { x: a0.x + (b0.x - a0.x) / 3 + nx, y: a0.y + (b0.y - a0.y) / 3 + ny };
+          c2 = { x: a0.x + ((b0.x - a0.x) * 2) / 3 + nx, y: a0.y + ((b0.y - a0.y) * 2) / 3 + ny };
+        }
+        const a = edgeToward(r.from, c1);
+        const b = edgeToward(r.to, c2);
+        return { key: `${prefix}-${r.from}-${r.to}`, d: `M${a.x},${a.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${b.x},${b.y}`, from: r.from, to: r.to };
+      });
 
   const xs = [-root.w / 2, root.w / 2];
   const ys = [-root.h / 2, root.h / 2];
@@ -251,7 +254,8 @@ export function layoutMind(
   return {
     nodes,
     branches,
-    arrows,
+    arrows: across(tree.arrows, 'x'),
+    citations: across(tree.citations, 'c'),
     bounds: { minX: Math.min(...xs), minY: Math.min(...ys), maxX: Math.max(...xs), maxY: Math.max(...ys) },
     centres,
   };

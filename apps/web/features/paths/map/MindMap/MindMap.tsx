@@ -52,8 +52,9 @@ interface MindMapProps {
 
 /**
  * The path read from its [[links]]: root in the middle, branches level by
- * level outward, modules drawn larger, other links as blue arrows. Pages no
- * link reaches are not drawn (the header lists them, see MapOrphans). Drag or
+ * level outward, modules drawn larger, other links as blue arrows, citations
+ * as dashed grey lines. Pages no link reaches are not drawn (the header lists
+ * them, see MapOrphans). Drag or
  * scroll to pan, pinch or Ctrl/⌘ + scroll to zoom. Every page is a button.
  * Pointing at a page (or focusing it) shows a + on its outer edge that adds a
  * page branching from it; N does the same from the keyboard.

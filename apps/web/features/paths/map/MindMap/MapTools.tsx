@@ -2,7 +2,9 @@
 
 import { ActionIcon, Divider, Group, HoverCard, Stack, Text, Tooltip, UnstyledButton } from '@mantine/core';
 import { IconFocusCentered, IconInfoCircle, IconMinus, IconPlus } from '@tabler/icons-react';
+import { DEFAULT_COLOR } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
+import { shade } from '@/features/paths/path';
 import { STATUS_KEY, StatusIcon } from '../StatusIcon';
 import classes from './MindMap.module.css';
 
@@ -68,10 +70,22 @@ export function MapTools({
             ))}
             <Group gap={8} wrap="nowrap">
               <svg width="26" height="10" aria-hidden="true">
+                <path d="M1,5 L25,5" stroke={shade(DEFAULT_COLOR, 4)} strokeWidth="2.6" strokeLinecap="round" />
+              </svg>
+              <Text size="sm">{t('map.legend.branch')}</Text>
+            </Group>
+            <Group gap={8} wrap="nowrap">
+              <svg width="26" height="10" aria-hidden="true">
                 <path d="M1,5 L19,5" stroke="var(--mantine-color-blue-6)" strokeWidth="2.2" />
                 <path d="M17,1 L25,5 L17,9 z" fill="var(--mantine-color-blue-6)" />
               </svg>
               <Text size="sm">{t('map.legend.crossLink')}</Text>
+            </Group>
+            <Group gap={8} wrap="nowrap">
+              <svg width="26" height="10" aria-hidden="true">
+                <path d="M1,5 L25,5" stroke="var(--mantine-color-dimmed)" strokeWidth="1.6" strokeDasharray="5 4" strokeLinecap="round" />
+              </svg>
+              <Text size="sm">{t('map.legend.citation')}</Text>
             </Group>
             <Text size="xs" c="dimmed" maw={260}>
               {t('map.legend.keys')}

@@ -9,8 +9,9 @@ import classes from './MindMap.module.css';
 const PAD = 40;
 
 /**
- * The map's lines: each branch in its page's colour (thicker from the root, thickest for the related link pointed at),
- * and the other [[links]] as blue arrows, faint until they matter
+ * The map's lines, in three weights so the path reads first: each branch in its page's colour (thicker from the root,
+ * thickest for the related link pointed at), the other [[links]] as blue arrows, and @[[citations]] as thin dashed grey
+ * lines without a head; arrows and citations stay faint until they matter
  */
 export function MindLines({
   path,
@@ -53,6 +54,18 @@ export function MindLines({
           // A line to a page not made yet is dashed and faint, like the page
           strokeDasharray={isGhost(line.to) ? '4 4' : undefined}
           opacity={dimmed(line.to) ? 0.25 : isGhost(line.to) ? 0.5 : 0.9}
+        />
+      ))}
+      {layout.citations.map((line) => (
+        <path
+          key={line.key}
+          d={line.d}
+          fill="none"
+          stroke="var(--mantine-color-dimmed)"
+          strokeWidth={isPointedLink(line.from, line.to) ? 2.4 : arrowActive(line.from, line.to) ? 1.6 : 1.1}
+          strokeDasharray="5 4"
+          strokeLinecap="round"
+          opacity={arrowActive(line.from, line.to) ? 0.85 : 0.12}
         />
       ))}
       {layout.arrows.map((line) => (

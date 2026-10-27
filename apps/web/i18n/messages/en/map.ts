@@ -76,7 +76,9 @@ export const map = {
     listAdd: 'New page',
   },
   legend: {
+    branch: 'Branch: the link that places a page on the map',
     crossLink: 'Link between pages on different branches',
+    citation: 'Citation: a page pointing at another, without placing it',
     keys: 'Tab into the map, then the arrow keys move between pages, Enter opens one and N adds a page branching from it.',
   },
   list: {
