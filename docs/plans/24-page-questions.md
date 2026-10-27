@@ -22,9 +22,11 @@ the page asks, the reader answers, and in a learning path the page counts as stu
   > What makes a habit last?
   ```
 
-  It is a block with a question icon and the label **Question**; the text inside is the question, editable like any
-  callout's. Under it, outside the editable text, is **Your answer**: a plain textarea that grows with what is
-  written. A page may hold any number.
+  It has no box and no label: the question is part of the page, its words drawn as the page's own blocks (a heading
+  if written as one; `/question` starts a new one as a small heading). Under it, outside the editable text, is **Your
+  answer**: a plain textarea that grows with what is written, the one sign that it is a question. For the author, the
+  grip and the question's icon (the kind menu) show in the margin while the block is pointed at or holds the cursor.
+  A page may hold any number.
 - **Answering.** The textarea saves by itself as the reader types (debounced, and on blur), through the page sync,
   with the save status the page already shows. Plain text: markdown typed in it is kept as typed, not rendered.
   Clearing it removes the answer. The field is there in a study and in a learning path alike, for anyone signed in
@@ -36,7 +38,7 @@ the page asks, the reader answers, and in a learning path the page counts as stu
   - A question added to a page someone already studied leaves their mark.
   - On the map and in the list, the activity badge stands for both: it shows when a page has activities or questions,
     grey while any is open, teal with a check once all are done.
-- **Without a reader.** A visitor on the public link and the catalog see the block with the question and no field.
+- **Without a reader.** A visitor on the public link and the catalog see the question as text, with no field.
 - **Rewording.** The author fixing a question's words keeps every reader's answer with it (see Identity). Deleting the
   question hides its answers; restoring the same words brings them back.
 - Not in this plan: answers in the markdown export, answers as review cards, a list of all my answers.

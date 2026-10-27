@@ -46,7 +46,7 @@ export const help = {
       title: 'Ask the learner to do or answer something',
       steps: {
         a: 'On a new line, type `/` and choose **Activity** or **Question**, or type `[!activity]` or `[!question]` and a space',
-        b: 'Write inside the box what to do, or what to answer; each reader writes their answer in **Your answer** under a question',
+        b: 'Write inside the box what to do. A question has no box: write it as a heading or a line of text, and each reader answers in **Your answer** under it',
         c: 'In a learning path each reader ticks an activity’s **Mark as done** and answers each question; the page counts as studied once all are done',
       },
       tip: 'Ticks and answers are each reader’s own. Unticking one, or clearing an answer, on a studied page unmarks it; the map shows a clipboard on pages that ask for either.',

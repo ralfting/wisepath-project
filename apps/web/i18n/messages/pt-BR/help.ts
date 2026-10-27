@@ -43,7 +43,7 @@ export const help = {
       title: 'Pedir algo para fazer ou responder na página',
       steps: {
         a: 'Numa linha nova, digite `/` e escolha **Atividade** ou **Pergunta**, ou digite `[!activity]` ou `[!question]` e um espaço',
-        b: 'Escreva dentro da caixa o que fazer, ou o que responder; cada leitor escreve a resposta em **Sua resposta**, embaixo da pergunta',
+        b: 'Escreva dentro da caixa o que fazer. A pergunta não tem caixa: escreva-a como título ou como uma linha de texto, e cada leitor responde em **Sua resposta**, embaixo dela',
         c: 'Numa trilha guiada cada leitor marca **Marcar como feita** nas atividades e responde a cada pergunta; a página conta como estudada quando tudo está feito',
       },
       tip: 'Marcas e respostas são de cada leitor. Desmarcar uma, ou apagar uma resposta, numa página estudada a desmarca; o mapa mostra uma prancheta nas páginas que pedem uma ou outra.',
