@@ -1,12 +1,20 @@
-/* Mantine draws one fixed container per position and this class lands on all six. Only the top right
-   one moves down, below the page drawer's own buttons (expand, ⋯, close); a top on the bottom ones
-   would stretch them over the whole height and swallow every click. The containers let clicks through
-   and only the toast takes them */
+/* Mantine draws one fixed container per position and this class lands on all six. At the bottom, centred,
+   the toast stays clear of what the screen is working with: the top bar's actions, the page drawer's header
+   and buttons, where the pointer rests and would hold it open. The containers let clicks through and only
+   the toast takes them */
 .notifications {
   pointer-events: none;
 
-  &[data-position='top-right'] {
-    top: 64px;
+  /* Above the map's zoom bar in its bottom corner and clear of the frame's edge, as a snackbar rises over
+     controls at the bottom instead of covering them */
+  &[data-position='bottom-center'] {
+    bottom: calc(2 * var(--mantine-spacing-xl) + var(--mantine-spacing-xs));
+
+    /* Centred in the room the screen works in: right of the sidebar, left of the page drawer beside the map
+       (--wp-covered-right, set by the drawer). On a phone both cover the screen, and it centres on it */
+    @media (min-width: $mantine-breakpoint-sm) {
+      left: calc(50% + (var(--app-shell-navbar-offset, 0px) - var(--wp-covered-right, 0px)) / 2);
+    }
   }
 }
 

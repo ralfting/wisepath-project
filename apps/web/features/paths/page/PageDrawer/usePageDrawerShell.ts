@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '@mantine/hooks';
-import { LEAVE_MS, TABBABLE } from './PageDrawer.helpers';
+import { DRAWER_GAP, DRAWER_WIDTH, LEAVE_MS, TABBABLE } from './PageDrawer.helpers';
 import type { Trail } from './PageDrawer.helpers';
 import type { DrawerControls } from './PageDrawer.helpers';
 
@@ -24,6 +24,17 @@ export function usePageDrawerShell({ ownContentClass }: { ownContentClass: strin
   const [sidebarEdge, setSidebarEdge] = useState(0);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
+
+  // Beside the map, the drawer covers the screen's right side: the toast centres itself in what is left
+  // (Toast.module.css). Expanded, it covers the map, and the toast centres over the page as usual
+  useEffect(() => {
+    if (expanded) return;
+    const root = document.documentElement;
+    root.style.setProperty('--wp-covered-right', `${DRAWER_WIDTH + 2 * DRAWER_GAP}px`);
+    return () => {
+      root.style.removeProperty('--wp-covered-right');
+    };
+  }, [expanded]);
 
   const toggleExpanded = () => {
     setSidebarEdge(document.querySelector('.mantine-AppShell-navbar')?.getBoundingClientRect().right ?? 0);
