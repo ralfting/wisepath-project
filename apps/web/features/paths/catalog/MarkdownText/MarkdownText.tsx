@@ -16,9 +16,12 @@ const INTERNAL = '/';
 const components = (t: Translate): Components => ({
   // The page's title is the one top heading; the text's headings sit under it
   h1: ({ children }) => <h2>{children}</h2>,
-  a: ({ href, children }) =>
+  a: ({ node, href, children }) =>
     href?.startsWith(INTERNAL) ? (
-      <Anchor href={href}>{children}</Anchor>
+      // A citation (remarkWikiLinks marks it) is the same link, quieter, as the editor draws it
+      <Anchor href={href} className={node?.properties.dataCitation !== undefined ? classes.citation : undefined}>
+        {children}
+      </Anchor>
     ) : (
       // Written by the path's author, not vouched for by WisePath
       <Anchor href={href} target="_blank" rel="ugc nofollow noopener noreferrer">
@@ -45,8 +48,9 @@ const components = (t: Translate): Components => ({
 
 /**
  * Markdown as HTML, read without an editor (on the server for the catalog, under a page for the reader's notes), with
- * no HTML of the author's let through: [[Title]] links to the page by that title when the path has one, tables and
- * task lists as GitHub writes them, callouts and activities as the editor draws them.
+ * no HTML of the author's let through: [[Title]] links to the page by that title when the path has one (@[[Title]]
+ * cites it, a quieter link), tables and task lists as GitHub writes them, callouts and activities as the editor draws
+ * them.
  */
 export function MarkdownText({ content, hrefOf, t }: { content: string; hrefOf: (title: string) => string | null; t: Translate }) {
   return (

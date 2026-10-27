@@ -34,6 +34,11 @@ export function references(markdown: string): Reference[] {
   }));
 }
 
+/** A text with its [[Title]] links and @[[Title]] citations read as their titles, as a sentence says them */
+export function titlesAsWords(text: string): string {
+  return text.replace(new RegExp(REFERENCE.source, 'g'), (_, _at: string, title: string) => title.trim());
+}
+
 /**
  * The pages one page names, once each, in the reading order of the mention that counts: a page both linked and cited
  * is linked, from where its first link is. Missing pages and the page itself are skipped

@@ -4,3 +4,10 @@
   padding: 0;
   background: none;
 }
+
+/* A citation: a link to the page, quieter, with a dotted line, as the editor's citation chip */
+.citation {
+  color: var(--mantine-color-dimmed);
+  text-decoration: underline dotted;
+  text-underline-offset: 0.2em;
+}

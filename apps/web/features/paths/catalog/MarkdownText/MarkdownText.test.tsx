@@ -6,6 +6,7 @@ import type { Translate } from '@/i18n/I18nProvider';
 import { en } from '@/i18n/messages/en';
 import { renderWithLayers } from '@/test/render';
 import { MarkdownText } from './MarkdownText';
+import classes from './MarkdownText.module.css';
 
 const hrefOf = (title: string) => (title === 'Hooks' ? '/p/react/hooks' : null);
 const t: Translate = (key, values) => translate(en, en, 'en', key, values);
@@ -18,6 +19,14 @@ describe('MarkdownText', () => {
     expect(link.getAttribute('target')).toBeNull();
     expect(screen.getByText(/then Later\./)).toBeTruthy();
     expect(screen.getByText('[[Hooks]]').tagName).toBe('CODE');
+  });
+
+  it('links @[[Title]] to its page as a quieter link, and leaves a citation of a page not made yet as its title', () => {
+    renderWithLayers(<MarkdownText content={'As in @[[Hooks]] and [[Hooks]], see @[[Later]].'} hrefOf={hrefOf} t={t} />, Layer.empty);
+    const [citation, link] = screen.getAllByRole('link', { name: 'Hooks' });
+    expect([citation.getAttribute('href'), citation.classList.contains(classes.citation)]).toEqual(['/p/react/hooks', true]);
+    expect(link.classList.contains(classes.citation)).toBe(false);
+    expect(screen.getByText(/, see Later\.$/)).toBeTruthy();
   });
 
   it("opens web addresses in a new tab as the author's links, and drops a script address", () => {

@@ -56,6 +56,13 @@ describe("search", () => {
     assert.strictEqual(excerptOf("- [x] Revisar cartões", "cartoes")?.text, "Revisar cartões")
   })
 
+  it("reads a link or a citation in the excerpt as the title it names", () => {
+    assert.deepStrictEqual(excerptOf("As in @[[Market fit]], see [[Pricing]].", "market"), {
+      text: "As in Market fit, see Pricing.",
+      marks: [[6, 12]]
+    })
+  })
+
   it("cuts a long line around the match, at word boundaries", () => {
     const words = Array.from({ length: 40 }, (_, i) => `word${i}`)
     words[25] = "needle"

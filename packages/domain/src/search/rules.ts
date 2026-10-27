@@ -1,3 +1,4 @@
+import { titlesAsWords } from "../paths/links"
 import type { Excerpt, Mark } from "./Search"
 
 /**
@@ -98,11 +99,12 @@ const LEAD = 30
 /**
  * The line of the text where the query first appears, cut to about `width`
  * characters around it (about what one line of a result shows), with the
- * matches marked; null when the text doesn't contain any of its words.
+ * matches marked; null when the text doesn't contain any of its words. A
+ * link or a citation reads as the title it names.
  */
 export function excerptOf(content: string, query: string, width = 90): Excerpt | null {
   for (const raw of content.split("\n")) {
-    const line = raw.replace(LINE_MARKERS, "").trim()
+    const line = titlesAsWords(raw.replace(LINE_MARKERS, "")).trim()
     const marks = marksIn(line, query)
     if (marks.length === 0) continue
     if (line.length <= width) return { text: line, marks }
