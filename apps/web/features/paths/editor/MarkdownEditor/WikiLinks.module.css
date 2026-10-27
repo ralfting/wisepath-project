@@ -1,10 +1,16 @@
 /* Page links and citations in the text: chips drawn by the wikiLink node (wikiLink.ts) */
 
+/* light-dark() turns into a rule per scheme, more specific than one class, so it sets a variable here: written on the
+   chip itself, it outranked the quieter colour of citations and missing pages */
+.wikiLinks {
+  /* Dark enough to read as text (AA) on the page's white, light enough on dark */
+  --wp-link-chip: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-4));
+}
+
 /* [[Page]] links: a tinted chip; dashed when the page does not exist yet */
 .wikiLinks :global(.wikilink) {
   font-weight: 600;
-  /* Dark enough to read as text (AA) on the page's white, light enough on dark */
-  color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-4));
+  color: var(--wp-link-chip);
   text-decoration: underline;
   text-decoration-color: alpha(var(--mantine-color-blue-6), 0.35);
   text-underline-offset: 0.2em;
