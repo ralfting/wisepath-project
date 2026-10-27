@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { ActionIcon, Group, Paper, Text } from '@mantine/core';
+import { ActionIcon, Button, Group, Paper, Text } from '@mantine/core';
 import { IconTrash } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
@@ -20,8 +20,8 @@ interface NoteInlineProps {
 
 /**
  * NoteInline
- * A note written in its place in the Notes tab: the words it is on, then the lean editor and Delete; Esc or a click
- * outside the note closes it
+ * A note written in its place in the Notes tab: the words it is on, then the lean editor, Delete and Save. The note is
+ * written as it is typed; Save, Esc or a click outside the note closes it
  */
 export function NoteInline({ writing, path, page, actions }: NoteInlineProps) {
   const t = useT();
@@ -37,10 +37,13 @@ export function NoteInline({ writing, path, page, actions }: NoteInlineProps) {
         </Text>
       )}
       <NoteEditor writing={writing} path={path} page={page} actions={actions} />
-      <Group justify="flex-end" mt="xs">
+      <Group justify="flex-end" gap="xs" mt="xs">
         <ActionIcon variant="subtle" color="gray" aria-label={t('page.notes.delete')} title={t('page.notes.delete')} onClick={writing.remove}>
           <IconTrash size={16} stroke={1.5} />
         </ActionIcon>
+        <Button size="compact-sm" variant="light" onClick={writing.close}>
+          {t('page.notes.save')}
+        </Button>
       </Group>
     </Paper>
   );

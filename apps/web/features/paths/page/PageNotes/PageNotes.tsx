@@ -52,6 +52,7 @@ export function PageNotes({ list, path, page, actions }: PageNotesProps) {
               note={note}
               removed={removed}
               writing={list.writing?.noteId === note.id ? list.writing : null}
+              justSaved={list.justSaved === note.id}
               path={path}
               page={page}
               actions={actions}

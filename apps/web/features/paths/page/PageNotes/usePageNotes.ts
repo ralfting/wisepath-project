@@ -1,12 +1,15 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import type { NoteId, Page, TextQuote } from '@wisepath/domain/paths';
 import type { EditorNotes, NoteRect } from '@/features/paths/editor';
 import { newNoteId } from '@/useCases/paths';
 import type { PageActions } from '../PageContent/PageContent.helpers';
 import { notesInTextOrder } from './PageNotes.helpers';
+
+/** How long "Note saved" stays beside a note closed in the Notes tab */
+const SAVED_SHOWN_MS = 2500;
 
 /** The note open: in a card by its passage, read or written there, or written in its place in the Notes tab */
 type OpenNote = { readonly noteId: NoteId; readonly quote?: TextQuote } & (
@@ -49,6 +52,13 @@ export function usePageNotes(page: Page, actions: Pick<PageActions, 'writeNote' 
   const box = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<OpenNote | null>(null);
   const [found, setFound] = useState<ReadonlyArray<string> | null>(null);
+  // The note just closed in the Notes tab, for a moment: it was written as it was typed, and this says so
+  const [justSaved, setJustSaved] = useState<NoteId | null>(null);
+  useEffect(() => {
+    if (!justSaved) return;
+    const timer = setTimeout(() => setJustSaved(null), SAVED_SHOWN_MS);
+    return () => clearTimeout(timer);
+  }, [justSaved]);
   const notes = useMemo(() => page.notes ?? [], [page.notes]);
   const latest = useRef(notes);
   latest.current = notes;
@@ -104,6 +114,7 @@ export function usePageNotes(page: Page, actions: Pick<PageActions, 'writeNote' 
   };
   const close = () => {
     leave();
+    if (open?.where === 'list' && noteOf(open.noteId)?.body.trim()) setJustSaved(open.noteId);
     setOpen(null);
   };
   const writing: NoteWriting | null = open && {
@@ -133,6 +144,7 @@ export function usePageNotes(page: Page, actions: Pick<PageActions, 'writeNote' 
     list: {
       notes: notesInTextOrder(notes, found),
       writing: open?.where === 'list' ? writing : null,
+      justSaved,
       show,
       edit: openInList,
       add: () => openInList(newNoteId()),

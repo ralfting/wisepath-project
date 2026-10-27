@@ -143,6 +143,9 @@ export const page = {
     delete: 'Delete note',
     close: 'Close note',
     done: 'Done',
+    save: 'Save',
+    /** Under a note just closed in the Notes tab */
+    saved: 'Note saved',
   },
   delete: {
     title: 'Delete page?',

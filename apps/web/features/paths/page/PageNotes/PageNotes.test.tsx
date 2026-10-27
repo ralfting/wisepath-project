@@ -211,6 +211,22 @@ describe("a reader's notes on a page they may only read", () => {
     expect(screen.getByRole('tab', { name: 'My notes (3)' })).toBeTruthy();
   });
 
+  it('writes a note opened by a double click, and says it is saved when Save closes it', async () => {
+    const user = userEvent.setup();
+    const { writeNote } = readPage(borrowingNotes);
+    await screen.findByText('One mutable', { selector: '.wp-page-note' });
+    const tab = await notesTab(user, 4);
+    const [first] = within(tab).getAllByRole('listitem');
+
+    await user.dblClick(within(first).getByText('Exactly one'));
+    await user.type(await within(first).findByLabelText('Note'), '!');
+    await user.click(within(first).getByRole('button', { name: 'Save' }));
+
+    expect(within(first).queryByLabelText('Note')).toBeNull();
+    expect(writeNote).toHaveBeenLastCalledWith('borrowing', 'first', { quote: { exact: 'One mutable', prefix: '', suffix: ' reference' }, body: 'Exactly one!' });
+    expect(within(first).getByRole('status').textContent).toBe('Note saved');
+  });
+
   it('adds a note on the whole page there, and keeps none left blank', async () => {
     const user = userEvent.setup();
     const { writeNote } = readPage([]);

@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { ActionIcon, Badge, Box, Group, Stack, Text, UnstyledButton } from '@mantine/core';
-import { IconPencil } from '@tabler/icons-react';
+import { IconCheck, IconPencil } from '@tabler/icons-react';
 import type { NoteId, Page, PageNote, Path } from '@wisepath/domain/paths';
 import { MarkdownText } from '@/features/paths/catalog';
 import { useT } from '@/i18n/I18nProvider';
@@ -18,6 +18,8 @@ interface NoteItemProps {
   readonly removed: boolean;
   /** Set while this note is written in place */
   readonly writing: NoteWriting | null;
+  /** Just closed after writing it here: says, for a moment, that it is saved */
+  readonly justSaved: boolean;
   readonly path: Path;
   readonly page: Page;
   readonly actions: PageActions;
@@ -28,9 +30,9 @@ interface NoteItemProps {
 /**
  * NoteItem
  * One note in the Notes tab: the words it is on, quoted (a click goes to them in the text and opens the note there),
- * and what it says, read without an editor, with a button that writes it in place
+ * and what it says, read without an editor; the pencil or a double click writes it in place
  */
-export function NoteItem({ note, removed, writing, path, page, actions, onShow, onEdit }: NoteItemProps) {
+export function NoteItem({ note, removed, writing, justSaved, path, page, actions, onShow, onEdit }: NoteItemProps) {
   const t = useT();
   const edit = useRef<HTMLButtonElement>(null);
   useFocusBack(writing !== null, edit);
@@ -63,9 +65,19 @@ export function NoteItem({ note, removed, writing, path, page, actions, onShow, 
         </Group>
       )}
       <Group gap="xs" wrap="nowrap" align="flex-start">
-        <Box className={classes.body}>
+        {/* The pencil beside it is the way in from the keyboard */}
+        <Box className={classes.body} onDoubleClick={() => onEdit(note.id)}>
           <MarkdownText content={note.body} hrefOf={() => null} t={t} />
         </Box>
+        {/* Always there, empty until a note is closed, so a screen reader hears it when it says something */}
+        <Text component="span" role="status" size="xs" c="dimmed" className={classes.saved}>
+          {justSaved && (
+            <>
+              <IconCheck size={12} stroke={2} aria-hidden />
+              {t('page.notes.saved')}
+            </>
+          )}
+        </Text>
         <ActionIcon ref={edit} variant="subtle" color="gray" size="sm" aria-label={t('page.notes.edit')} title={t('page.notes.edit')} onClick={() => onEdit(note.id)}>
           <IconPencil size={14} stroke={1.5} />
         </ActionIcon>

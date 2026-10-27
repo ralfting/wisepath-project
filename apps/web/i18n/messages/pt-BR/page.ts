@@ -144,6 +144,8 @@ export const page = {
     delete: 'Excluir nota',
     close: 'Fechar nota',
     done: 'Concluir',
+    save: 'Salvar',
+    saved: 'Nota salva',
   },
   delete: {
     title: 'Excluir página?',
