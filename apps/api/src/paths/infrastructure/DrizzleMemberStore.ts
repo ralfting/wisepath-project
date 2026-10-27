@@ -14,6 +14,7 @@ import {
   pathMembers,
   paths,
   projects,
+  questionAnswers,
   users,
 } from '../../shared/infrastructure/database/schema';
 import { MemberStore } from '../application/MemberStore';
@@ -25,7 +26,7 @@ export const DrizzleMemberStore = Layer.effect(
     const { db, run, transaction } = yield* Database;
 
     /**
-     * Removes members of a path, then the marks, ticks and notes on it of everyone who may no longer study it (`whose`, over
+     * Removes members of a path, then the marks, ticks, answers and notes on it of everyone who may no longer study it (`whose`, over
      * the column of their id), in one transaction; the members removed
      */
     const removeWhere = (pathId: PathId, which: SQL, whose: (userId: PgColumn) => SQL) =>
@@ -39,6 +40,7 @@ export const DrizzleMemberStore = Layer.effect(
           );
           yield* run(db.delete(pageProgress).where(and(eq(pageProgress.pathId, pathId), whose(pageProgress.userId))));
           yield* run(db.delete(activityProgress).where(and(eq(activityProgress.pathId, pathId), whose(activityProgress.userId))));
+          yield* run(db.delete(questionAnswers).where(and(eq(questionAnswers.pathId, pathId), whose(questionAnswers.userId))));
           yield* run(db.delete(pageNotes).where(and(eq(pageNotes.pathId, pathId), whose(pageNotes.userId))));
           return gone.map((m) => UserId.make(m.userId));
         }),

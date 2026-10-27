@@ -7,7 +7,7 @@ import { ProjectId } from '@wisepath/domain/projects';
 import { Database } from '../../shared/infrastructure/database/Database';
 import { pages, pathMembers, paths, projects } from '../../shared/infrastructure/database/schema';
 import { PathStore } from '../application/PathStore';
-import { readersOwnFields, readersOwnRows, saveReadersOwn } from './readersOwn';
+import { moveRewordedAnswers, readersOwnFields, readersOwnRows, saveReadersOwn } from './readersOwn';
 import type { ReadersOwnRows } from './readersOwn';
 
 /**
@@ -103,6 +103,7 @@ export const DrizzlePathStore = Layer.effect(
   Effect.gen(function* () {
     const { db, run, transaction } = yield* Database;
     const saveReaders = saveReadersOwn({ db, run });
+    const moveAnswers = moveRewordedAnswers({ db, run });
 
     const insertPages = (pathId: PathId, added: ReadonlyArray<Page>, from: number) => {
       if (added.length === 0) return Effect.void;
@@ -253,6 +254,7 @@ export const DrizzlePathStore = Layer.effect(
                 .set(pageColumns(page))
                 .where(and(eq(pages.pathId, after.id), eq(pages.id, page.id))),
             );
+            if (was.content !== page.content) yield* moveAnswers(after.id, was, page);
           }
 
           const added = after.pages.filter((p) => !old.has(p.id));

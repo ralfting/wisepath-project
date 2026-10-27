@@ -305,6 +305,34 @@ export const activityProgress = pgTable(
 );
 
 /**
+ * A reader's answers to the questions of a page (docs/plans/24-page-questions.md): each reader's own, never in the
+ * page's text. A question is named as an activity is; when the author rewords one in place its answers are moved to
+ * the new name, and an answer to a question deleted stays, hidden, until the same words come back.
+ */
+export const questionAnswers = pgTable(
+  'question_answers',
+  {
+    userId: text('user_id').notNull(),
+    pathId: text('path_id').notNull(),
+    pageId: text('page_id').notNull(),
+    questionId: text('question_id').notNull(),
+    body: text('body').notNull(),
+    updatedAt: timestamp('updated_at', { precision: 3, withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    primaryKey({ name: 'question_answers_pkey', columns: [t.userId, t.pathId, t.pageId, t.questionId] }),
+    foreignKey({ name: 'question_answers_user_id_fkey', columns: [t.userId], foreignColumns: [users.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+    foreignKey({ name: 'question_answers_page_fkey', columns: [t.pathId, t.pageId], foreignColumns: [pages.pathId, pages.id] })
+      .onDelete('cascade')
+      .onUpdate('cascade'),
+  ],
+);
+
+/**
  * Where each card stands in the learner's spaced review. Cards themselves are
  * read from the pages (`::` and ==cloze== lines); a card's id is a hash of
  * its path, page and question. A state outlives its card's line, in case the
@@ -392,6 +420,7 @@ export const pagesRelations = relations(pages, ({ one, many }) => ({
   progress: many(pageProgress),
   notes: many(pageNotes),
   done: many(activityProgress),
+  answers: many(questionAnswers),
 }));
 
 export const pageProgressRelations = relations(pageProgress, ({ one }) => ({
@@ -404,4 +433,8 @@ export const pageNotesRelations = relations(pageNotes, ({ one }) => ({
 
 export const activityProgressRelations = relations(activityProgress, ({ one }) => ({
   page: one(pages, { fields: [activityProgress.pathId, activityProgress.pageId], references: [pages.pathId, pages.id] }),
+}));
+
+export const questionAnswersRelations = relations(questionAnswers, ({ one }) => ({
+  page: one(pages, { fields: [questionAnswers.pathId, questionAnswers.pageId], references: [pages.pathId, pages.id] }),
 }));
