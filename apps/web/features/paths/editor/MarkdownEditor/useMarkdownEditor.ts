@@ -8,6 +8,7 @@ import type { InboxItem } from '@wisepath/domain/inbox';
 import { useLinkPreviewLoader } from '@/useCases/paths';
 import { useT } from '@/i18n/I18nProvider';
 import { insertPageLink } from '../menus';
+import { chipOfElement, toggleCitation } from '../wikiLink';
 import { noteSelection, refreshNoteHighlights } from '../noteHighlights';
 import type { PageLinkPickerState, SlashMenuState } from '../menus';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
@@ -48,6 +49,9 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     onOpenPage: (pageId, alternate) => latest.current.props.onOpenPage(pageId, alternate),
     onCreatePage: (title) => latest.current.props.onCreatePage(title),
     canCreate: () => !latest.current.props.readOnly && !EDITOR_VARIANTS[latest.current.props.variant ?? 'page'].lean,
+    // The editor is made below; the card only asks once the pointer rests on a link in it
+    chipOf: (element) => (editor ? chipOfElement(editor, element) : null),
+    onToggleCitation: (pos) => void (editor && toggleCitation(editor, pos)),
   });
 
   const anchorAt = (e: Editor) => {

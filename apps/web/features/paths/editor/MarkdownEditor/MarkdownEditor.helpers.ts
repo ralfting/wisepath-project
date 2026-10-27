@@ -14,6 +14,7 @@ import {
   IconList,
   IconListCheck,
   IconListNumbers,
+  IconQuote,
   IconTable,
 } from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
@@ -21,6 +22,7 @@ import { asTitle, findPageByTitle } from '@wisepath/domain/paths';
 import type { TranslationKey } from '@/i18n/I18nProvider';
 import type { editor as editorMessages } from '@/i18n/messages/en/editor';
 import type { PageLinkItem } from '../menus';
+import type { Chip } from '../wikiLink';
 import { setCallout } from '../callout';
 import type { PreviewPage, PreviewTarget } from '../LinkPreview/LinkPreview';
 import type { PagePrompt } from './PageNamePrompt';
@@ -33,8 +35,11 @@ import type { FrameRoom } from './useFrameRoom';
  */
 export const lowlight = createLowlight(common);
 
-/** A link's card under it: what it points to, where it shows, and whether it asks to make a missing page */
-export type LinkCard = { target: PreviewTarget; top: number; left: number; confirmCreate?: boolean };
+/**
+ * A link's card under it: what it points to, where it shows, whether it asks to make a missing page, and the page
+ * link's chip when the text can be edited, so the card can turn it into a citation and back
+ */
+export type LinkCard = { target: PreviewTarget; top: number; left: number; confirmCreate?: boolean; chip?: Chip };
 
 /** The Inbox item command waiting for its item: where it goes, and where to show the search */
 export type InboxPrompt = PagePrompt;
@@ -78,6 +83,14 @@ export const SLASH_COMMANDS: ReadonlyArray<{
     hint: { message: 'editor.slash.link.hint' },
     icon: IconBrackets,
     run: (e) => e.chain().focus().insertContent('[[').run(),
+    pages: true,
+  },
+  {
+    id: 'cite',
+    message: 'cite',
+    hint: { message: 'editor.slash.cite.hint' },
+    icon: IconQuote,
+    run: (e) => e.chain().focus().insertContent('@[[').run(),
     pages: true,
   },
   { id: 'h2', message: 'heading', hint: { syntax: '##' }, icon: IconH2, run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },

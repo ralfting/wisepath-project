@@ -7,7 +7,7 @@ import classes from './MarkdownEditor.module.css';
 import { placeNear } from './PageNamePrompt';
 
 /**
- * The [[ picker under the cursor: pages to link, and a page of the typed name to make. In a portal: inside the drawer,
+ * The [[ (or @[[) picker under the cursor: pages to link (or cite), and a page of the typed name to make. In a portal: inside the drawer,
  * its transform would place a fixed popup off screen
  */
 export function PageLinkPicker({ picker }: { picker: PageLinkPickerState & { rect: NonNullable<PageLinkPickerState['rect']> } }) {
@@ -19,7 +19,7 @@ export function PageLinkPicker({ picker }: { picker: PageLinkPickerState & { rec
         shadow="md"
         py={4}
         role="listbox"
-        aria-label={t('editor.picker.list')}
+        aria-label={t(picker.kind === 'citation' ? 'editor.picker.citeList' : 'editor.picker.list')}
         className={classes.picker}
         style={placeNear(picker.rect, 256, picker.items.length * 34 + 10)}
       >

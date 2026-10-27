@@ -43,6 +43,7 @@ const SYNTAX: { group: keyof typeof messages.help.groups; rows: { type: string; 
     group: 'links',
     rows: [
       { type: '[[Page]]', does: 'pageLink' },
+      { type: '@[[Page]]', does: 'citation' },
       { type: '/', does: 'slash' },
       { type: 'https://…', does: 'webLink' },
       { type: 'https://youtu.be/…', does: 'youtube' },

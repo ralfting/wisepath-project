@@ -1,11 +1,54 @@
 import { InputRule, Node, mergeAttributes } from '@tiptap/react';
-import { Plugin, PluginKey } from '@tiptap/pm/state';
+import type { Editor } from '@tiptap/react';
+import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state';
+import type { EditorState } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import type { MarkdownState } from './markdown';
 
-/** Obsidian-style [[Page]] links: [[Title]] in the markdown, a link in the editor */
+/** Obsidian-style [[Page]] links: [[Title]] in the markdown, a link in the editor; @[[Title]], a citation of the page */
 
-const WIKILINK_TEXT = /\[\[([^[\]\n]+)\]\]/g;
+const WIKILINK_TEXT = /(@?)\[\[([^[\]\n]+)\]\]/g;
+
+/** The markdown a link or a citation is written as */
+const asMarkdown = (attrs: { title: string; citation: boolean }) => `${attrs.citation ? '@' : ''}[[${attrs.title}]]`;
+
+/** A link or citation chip in the text: where it starts and which of the two it is */
+export interface Chip {
+  pos: number;
+  citation: boolean;
+}
+
+const chipAt = (state: EditorState, pos: number): Chip | null => {
+  const node = pos >= 0 ? state.doc.nodeAt(pos) : null;
+  return node?.type.name === 'wikiLink' ? { pos, citation: !!node.attrs.citation } : null;
+};
+
+/** The chip the cursor is on: selected, or right before or after the cursor */
+function chipAtCursor(state: EditorState): Chip | null {
+  const { selection } = state;
+  if (selection instanceof NodeSelection) return chipAt(state, selection.from);
+  const { $from } = selection;
+  return chipAt(state, $from.pos - ($from.nodeBefore?.nodeSize ?? 0)) ?? chipAt(state, $from.pos);
+}
+
+/** The chip a link card is about, from the element drawn for it */
+export function chipOfElement(editor: Editor, element: Element): Chip | null {
+  const at = editor.view.posAtDOM(element, 0);
+  return chipAt(editor.state, at) ?? chipAt(editor.state, at - 1);
+}
+
+/** Turns the link at a position into a citation of the same page, or the citation into a link */
+export function toggleCitation(editor: Editor, pos: number): boolean {
+  const chip = chipAt(editor.state, pos);
+  if (!chip) return false;
+  return editor
+    .chain()
+    .command(({ tr }) => {
+      tr.setNodeAttribute(pos, 'citation', !chip.citation);
+      return true;
+    })
+    .run();
+}
 
 interface WikiLinkOptions {
   /** Whether a page with this title exists; missing links render dashed */
@@ -13,8 +56,8 @@ interface WikiLinkOptions {
 }
 
 /**
- * An Obsidian-style link to another page by title, stored in markdown as [[Title]].
- * It may point at a page that does not exist yet.
+ * An Obsidian-style link to another page by title, stored in markdown as [[Title]], or a citation of it, @[[Title]]:
+ * the same chip, quieter, that points at the page without placing it on the map. It may name a page not made yet.
  */
 export const WikiLink = Node.create<WikiLinkOptions>({
   name: 'wikiLink',
@@ -34,6 +77,11 @@ export const WikiLink = Node.create<WikiLinkOptions>({
         parseHTML: (el) => el.getAttribute('data-wikilink') ?? '',
         renderHTML: (attrs) => ({ 'data-wikilink': attrs.title }),
       },
+      citation: {
+        default: false,
+        parseHTML: (el) => el.hasAttribute('data-citation'),
+        renderHTML: (attrs) => (attrs.citation ? { 'data-citation': '' } : {}),
+      },
     };
   },
 
@@ -42,21 +90,22 @@ export const WikiLink = Node.create<WikiLinkOptions>({
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    return ['span', mergeAttributes(HTMLAttributes, { class: 'wikilink', role: 'link' }), node.attrs.title];
+    const look = node.attrs.citation ? 'wikilink wikilink-citation' : 'wikilink';
+    return ['span', mergeAttributes(HTMLAttributes, { class: look, role: 'link' }), node.attrs.title];
   },
 
   renderText({ node }) {
-    return `[[${node.attrs.title}]]`;
+    return asMarkdown({ title: node.attrs.title, citation: node.attrs.citation });
   },
 
   addStorage() {
     return {
       markdown: {
-        serialize(state: MarkdownState, node: { attrs: { title: string } }) {
-          state.write(`[[${node.attrs.title}]]`);
+        serialize(state: MarkdownState, node: { attrs: { title: string; citation: boolean } }) {
+          state.write(asMarkdown(node.attrs));
         },
         parse: {
-          // Turn [[Title]] text into link spans, leaving code untouched
+          // Turn [[Title]] and @[[Title]] text into link spans, leaving code untouched
           updateDOM(element: HTMLElement) {
             const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
             const targets: Text[] = [];
@@ -73,7 +122,8 @@ export const WikiLink = Node.create<WikiLinkOptions>({
                 const index = match.index ?? 0;
                 fragment.append(text.data.slice(last, index));
                 const span = document.createElement('span');
-                span.setAttribute('data-wikilink', match[1].trim());
+                span.setAttribute('data-wikilink', match[2].trim());
+                if (match[1]) span.setAttribute('data-citation', '');
                 fragment.append(span);
                 last = index + match[0].length;
               }
@@ -86,12 +136,22 @@ export const WikiLink = Node.create<WikiLinkOptions>({
     };
   },
 
+  addKeyboardShortcuts() {
+    return {
+      'Mod-Shift-l': ({ editor }) => {
+        const chip = chipAtCursor(editor.state);
+        return chip !== null && toggleCitation(editor, chip.pos);
+      },
+    };
+  },
+
   addInputRules() {
     return [
       new InputRule({
-        find: /\[\[([^[\]\n]+)\]\]$/,
+        find: /(@?)\[\[([^[\]\n]+)\]\]$/,
         handler: ({ range, match, chain }) => {
-          chain().deleteRange(range).insertContent({ type: this.name, attrs: { title: match[1].trim() } }).run();
+          const attrs = { title: match[2].trim(), citation: !!match[1] };
+          chain().deleteRange(range).insertContent({ type: this.name, attrs }).run();
         },
       }),
     ];

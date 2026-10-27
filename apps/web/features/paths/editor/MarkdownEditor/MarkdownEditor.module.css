@@ -147,6 +147,17 @@
   }
 }
 
+/* A page's preview opening it, in a card that also holds the switch between link and citation */
+.cardPage {
+  display: block;
+  width: 100%;
+  text-align: left;
+
+  &:hover > * > :first-child {
+    text-decoration: underline;
+  }
+}
+
 /* Says a site opens elsewhere */
 .cardOpens {
   position: absolute;
@@ -253,43 +264,6 @@
 }
 
 /* Our own nodes inside the editor */
-
-/* [[Page]] links: a tinted chip; dashed when the page does not exist yet */
-.content :global(.wikilink) {
-  font-weight: 600;
-  /* Dark enough to read as text (AA) on the page's white, light enough on dark */
-  color: light-dark(var(--mantine-color-blue-8), var(--mantine-color-blue-4));
-  text-decoration: underline;
-  text-decoration-color: alpha(var(--mantine-color-blue-6), 0.35);
-  text-underline-offset: 0.2em;
-  cursor: pointer;
-  /* Room for the icon, which never wraps away from the title */
-  position: relative;
-  padding-left: 1.05em;
-}
-
-/* The book pages wear on the map, before the title in the link's colour, marks a link to another page */
-.content :global(.wikilink)::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.2em;
-  width: 0.85em;
-  height: 0.85em;
-  background: currentColor;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0'/%3E%3Cpath d='M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0'/%3E%3Cpath d='M3 6l0 13'/%3E%3Cpath d='M12 6l0 13'/%3E%3Cpath d='M21 6l0 13'/%3E%3C/svg%3E")
-    center / contain no-repeat;
-}
-
-.content :global(.wikilink:hover) {
-  text-decoration-color: currentColor;
-}
-
-.content :global(.wikilink-missing) {
-  color: var(--mantine-color-dimmed);
-  text-decoration-style: dashed;
-  text-decoration-color: currentColor;
-}
 
 /* A whole block picked by Backspace, about to go (a picked table shows every cell selected instead) */
 .content :global(.ProseMirror-selectednode:is(pre, div[data-youtube-video])) {

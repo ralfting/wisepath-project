@@ -3,8 +3,9 @@ import type { Editor, Range } from '@tiptap/react';
 import Suggestion from '@tiptap/suggestion';
 import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion';
 import { PluginKey } from '@tiptap/pm/state';
+import type { ConnectionKind } from '@wisepath/domain/paths';
 
-/** The editor's popup menus: the [[ page picker and the / commands */
+/** The editor's popup menus: the [[ and @[[ page pickers and the / commands */
 
 export interface MenuState<Item> {
   items: Item[];
@@ -96,7 +97,8 @@ export interface PageLinkItem {
   title: string;
 }
 
-export type PageLinkPickerState = MenuState<PageLinkItem>;
+/** The page picker while open: pages to link after [[, or to cite after @[[ */
+export type PageLinkPickerState = MenuState<PageLinkItem> & { kind: ConnectionKind };
 
 interface PageLinkOptions {
   getItems: (query: string) => PageLinkItem[];
@@ -104,7 +106,7 @@ interface PageLinkOptions {
   onState: (state: PageLinkPickerState | null) => void;
 }
 
-/** Typing [[ opens a picker of the path's pages; choosing one inserts a [[Page]] link */
+/** Typing [[ (or @[[) opens a picker of the path's pages; choosing one inserts a [[Page]] link (or an @[[Page]] citation) */
 export const PageLinkSuggestion = Extension.create<PageLinkOptions>({
   name: 'pageLinkSuggestion',
 
@@ -114,31 +116,32 @@ export const PageLinkSuggestion = Extension.create<PageLinkOptions>({
 
   addProseMirrorPlugins() {
     const { getItems, onLink, onState } = this.options;
-    return [
+    // [[ after an @ is not a link's: only the citation's picker opens there
+    const picker = (kind: ConnectionKind, char: string) =>
       suggestionMenu<PageLinkItem>({
         editor: this.editor,
-        key: this.name,
-        char: '[[',
+        key: `${this.name}-${kind}`,
+        char,
         allowSpaces: true,
         getItems,
         choose: (editor, range, item) => {
           editor.chain().focus().deleteRange(range).run();
-          insertPageLink(editor, editor.state.selection.from, item.title);
+          insertPageLink(editor, editor.state.selection.from, item.title, kind === 'citation');
           onLink(item);
         },
-        onState,
-      }),
-    ];
+        onState: (state) => onState(state && { ...state, kind }),
+      });
+    return [picker('link', '[['), picker('citation', '@[[')];
   },
 });
 
-/** Puts a [[Title]] link and a space at a position in the text */
-export function insertPageLink(editor: Editor, at: number, title: string) {
+/** Puts a [[Title]] link (or an @[[Title]] citation) and a space at a position in the text */
+export function insertPageLink(editor: Editor, at: number, title: string, citation = false) {
   editor
     .chain()
     .focus()
     .insertContentAt(at, [
-      { type: 'wikiLink', attrs: { title } },
+      { type: 'wikiLink', attrs: { title, citation } },
       { type: 'text', text: ' ' },
     ])
     .run();

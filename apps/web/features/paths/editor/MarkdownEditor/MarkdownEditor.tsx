@@ -11,6 +11,7 @@ import type { EditorActivities } from '../activities';
 import classes from './MarkdownEditor.module.css';
 import blocks from './MarkdownBlocks.module.css';
 import noteClasses from './NoteHighlights.module.css';
+import wikiLinks from './WikiLinks.module.css';
 import { EditorToolbar } from './EditorToolbar';
 import { InboxItemPrompt } from './InboxItemPrompt/InboxItemPrompt';
 import { LinkCard } from './LinkCard';
@@ -93,7 +94,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       <RichTextEditor
         editor={editor}
         variant="subtle"
-        classNames={{ root: classes.root, content: `${classes.content} ${blocks.blocks} ${noteClasses.highlights}${lean ? ` ${classes.lean}` : ''}` }}
+        classNames={{ root: classes.root, content: `${classes.content} ${blocks.blocks} ${wikiLinks.wikiLinks} ${noteClasses.highlights}${lean ? ` ${classes.lean}` : ''}` }}
         labels={{
           h2ControlLabel: t('editor.toolbar.heading'),
           h3ControlLabel: t('editor.toolbar.subheading'),
@@ -125,7 +126,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
         </EditorActivitiesContext.Provider>
       </RichTextEditor>
 
-      {card.card && <LinkCard card={card.card} onAct={card.act} onClose={card.close} />}
+      {card.card && <LinkCard card={card.card} onAct={card.act} onClose={card.close} onToggleCitation={card.toggleCitation} />}
       {picker?.rect && <PageLinkPicker picker={{ ...picker, rect: picker.rect }} />}
       {slash?.rect && slash.items.length > 0 && <SlashMenu slash={{ ...slash, rect: slash.rect }} />}
       {inboxPrompt && editor && inbox && (

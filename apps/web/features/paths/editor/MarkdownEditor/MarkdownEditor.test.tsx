@@ -196,3 +196,42 @@ describe('MarkdownEditor', () => {
     });
   });
 });
+
+describe('citing a page', () => {
+  const pages = [
+    { id: 'market', title: 'Market', content: 'Who buys.' },
+    { id: 'basics', title: 'Basics', content: 'Where to start.' },
+  ];
+
+  it('turns a link into a citation from its card, and a citation back into a link, saving @[[ ]]', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderWithLayers(
+      <MarkdownEditor
+        content="As in @[[Market]], start with [[Basics]]."
+        onChange={onChange}
+        pages={pages}
+        currentPageId="page"
+        onOpenPage={noop}
+        onLinkPage={noop}
+        onCreatePage={noop}
+        onCreatePageHere={noop}
+      />,
+      MemoryAuth(),
+    );
+
+    const market = await screen.findByRole('link', { name: 'Market' });
+    expect(market.hasAttribute('data-citation')).toBe(true);
+    expect(screen.getByRole('link', { name: 'Basics' }).hasAttribute('data-citation')).toBe(false);
+
+    await user.hover(screen.getByRole('link', { name: 'Basics' }));
+    await user.click(await screen.findByRole('button', { name: 'Make it a citation' }));
+    expect(onChange).toHaveBeenLastCalledWith('As in @[[Market]], start with @[[Basics]].');
+    expect(screen.getByRole('button', { name: 'Make it a link' })).toBeTruthy();
+
+    await user.hover(screen.getByRole('link', { name: 'Market' }));
+    await screen.findByText('Who buys.');
+    await user.click(screen.getByRole('button', { name: 'Make it a link' }));
+    expect(onChange).toHaveBeenLastCalledWith('As in [[Market]], start with @[[Basics]].');
+  });
+});

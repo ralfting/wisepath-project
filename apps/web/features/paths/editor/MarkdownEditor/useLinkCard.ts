@@ -6,6 +6,7 @@ import { findPageByTitle } from '@wisepath/domain/paths';
 import type { PreviewPage, PreviewTarget } from '../LinkPreview/LinkPreview';
 import { openInNewTab, webAddress } from './MarkdownEditor.helpers';
 import type { LinkCard } from './MarkdownEditor.helpers';
+import type { Chip } from '../wikiLink';
 
 /**
  * The card under a link: shown after the pointer rests on it (a page's or a site's preview, the whole card opening
@@ -17,14 +18,19 @@ export function useLinkCard({
   onOpenPage,
   onCreatePage,
   canCreate,
+  chipOf,
+  onToggleCitation,
 }: {
   wrapper: RefObject<HTMLDivElement | null>;
   pages: () => ReadonlyArray<PreviewPage>;
   /** `alternate`: opened with Cmd/Ctrl, in the screen's other way (the full page, or the drawer) */
   onOpenPage: (pageId: string, alternate?: boolean) => void;
   onCreatePage: (title: string) => void;
-  /** Whether a link to a missing page may offer to make it (not for a reader) */
+  /** Whether a link to a missing page may offer to make it, and a link turn into a citation (not for a reader) */
   canCreate: () => boolean;
+  /** The chip drawn as this element, to turn it into a citation or a link */
+  chipOf: (element: Element) => Chip | null;
+  onToggleCitation: (pos: number) => void;
 }) {
   const [card, setCard] = useState<LinkCard | null>(null);
   const hoverTimer = useRef<number>(0);
@@ -66,7 +72,8 @@ export function useLinkCard({
         title !== null
           ? { kind: 'page', title, page: findPageByTitle(pages(), title) }
           : { kind: 'url', href: webAddress(el.getAttribute('href') ?? '') ?? el.getAttribute('href') ?? '' };
-      setCard({ target: linkTarget, ...placeBelow(el) });
+      const chip = title !== null && canCreate() ? chipOf(el) : null;
+      setCard({ target: linkTarget, ...placeBelow(el), ...(chip ? { chip } : {}) });
     }, 350);
   };
   const out = (event: MouseEvent) => {
@@ -86,5 +93,12 @@ export function useLinkCard({
     else onCreatePage(target.title);
   };
 
-  return { card, openWikiLink, over, out, act, close: () => setCard(null) };
+  /** Turns the card's link into a citation of its page, or back; the card stays, saying what it now is */
+  const toggleCitation = () => {
+    if (!card?.chip) return;
+    onToggleCitation(card.chip.pos);
+    setCard({ ...card, chip: { ...card.chip, citation: !card.chip.citation } });
+  };
+
+  return { card, openWikiLink, over, out, act, toggleCitation, close: () => setCard(null) };
 }

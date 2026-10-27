@@ -51,6 +51,7 @@ export const editor = {
     list: 'Commands',
     page: { label: 'Page', hint: 'Create a page and go to it', keywords: 'new create' },
     link: { label: 'Link to a page', hint: 'Same as [[', keywords: '[[ wiki' },
+    cite: { label: 'Cite a page', hint: 'Same as @[[', keywords: '@[[ citation reference mention' },
     heading: { label: 'Heading', keywords: 'h2 title' },
     subheading: { label: 'Subheading', keywords: 'h3 title' },
     bullets: { label: 'Bulleted list', keywords: 'ul' },
@@ -79,6 +80,7 @@ export const editor = {
   },
   picker: {
     list: 'Pages to link',
+    citeList: 'Pages to cite',
     empty: 'Type a page name.',
     create: 'Create page',
   },
@@ -94,6 +96,8 @@ export const editor = {
     create: 'Create page',
     openInNewTab: 'Open {href} in a new tab',
     newTabHint: '+ click on the link opens it in a new tab',
+    makeCitation: 'Make it a citation',
+    makeLink: 'Make it a link',
   },
   preview: {
     empty: 'Nothing written yet.',
@@ -138,6 +142,7 @@ export const editor = {
       activity: 'Something the page asks the learner to do; in a learning path it is ticked done before the page is studied. /activity too',
       codeBlock: 'A code block: type it, then the code; ``` again closes it',
       pageLink: "Links another page of this path; picking a new name from the list creates that page. Cmd/Ctrl+Enter opens the cursor's line's link",
+      citation: 'Cites another page: points at it without placing it on the map. Cmd/Ctrl+Shift+L on a link or a citation turns one into the other. /cite too',
       slash: 'Lists commands. Page asks for a name, then Enter links that page and goes to it, creating it if needed; Cmd/Ctrl+Enter stays here. Inbox item puts something waiting in the Inbox here',
       webLink:
         'A website address links itself; to link words, select them and use the link button (or paste [text](https://…)). Cmd/Ctrl+click or Cmd/Ctrl+Enter opens it',

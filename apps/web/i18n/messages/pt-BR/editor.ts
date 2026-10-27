@@ -54,6 +54,7 @@ export const editor = {
     list: 'Comandos',
     page: { label: 'Página', hint: 'Cria uma página e vai até ela', keywords: 'nova criar new create page' },
     link: { label: 'Link para uma página', hint: 'O mesmo que [[', keywords: '[[ wiki link' },
+    cite: { label: 'Citar uma página', hint: 'O mesmo que @[[', keywords: '@[[ citação referência menção cite' },
     heading: { label: 'Título', keywords: 'h2 cabeçalho heading' },
     subheading: { label: 'Subtítulo', keywords: 'h3 cabeçalho heading' },
     bullets: { label: 'Lista com marcadores', keywords: 'ul lista' },
@@ -82,6 +83,7 @@ export const editor = {
   },
   picker: {
     list: 'Páginas para linkar',
+    citeList: 'Páginas para citar',
     empty: 'Digite o nome de uma página.',
     create: 'Criar página',
   },
@@ -97,6 +99,8 @@ export const editor = {
     create: 'Criar página',
     openInNewTab: 'Abrir {href} em uma nova aba',
     newTabHint: '+ clique no link abre em outra aba',
+    makeCitation: 'Transformar em citação',
+    makeLink: 'Transformar em link',
   },
   preview: {
     empty: 'Nada escrito ainda.',
@@ -141,6 +145,7 @@ export const editor = {
       activity: 'Algo que a página pede para fazer; numa trilha guiada, ela é marcada como feita antes de a página contar como estudada. /atividade também',
       codeBlock: 'Um bloco de código: digite isso e depois o código; ``` de novo fecha o bloco',
       pageLink: 'Cria um link para outra página desta trilha; escolher um nome novo na lista cria essa página. Cmd/Ctrl+Enter abre o link da linha do cursor',
+      citation: 'Cita outra página: aponta para ela sem colocá-la no mapa. Cmd/Ctrl+Shift+L num link ou numa citação troca um pelo outro. /citar também',
       slash: 'Lista os comandos. Página pede um nome; Enter cria o link para essa página e vai até ela, criando a página se preciso; Cmd/Ctrl+Enter fica aqui. Item da Caixa de entrada traz para cá algo que está esperando nela',
       webLink:
         'O endereço de um site vira link sozinho; para linkar palavras, selecione e use o botão de link (ou cole [texto](https://…)). Cmd/Ctrl+clique ou Cmd/Ctrl+Enter abre o link',

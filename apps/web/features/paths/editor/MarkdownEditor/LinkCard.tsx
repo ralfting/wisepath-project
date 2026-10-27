@@ -1,18 +1,27 @@
 'use client';
 
-import { Box, Button, Group, Kbd, Paper, Text } from '@mantine/core';
+import { Box, Button, Group, Kbd, Paper, Text, UnstyledButton } from '@mantine/core';
 import { IconExternalLink } from '@tabler/icons-react';
 import { useT } from '@/i18n/I18nProvider';
 import { useHasKeyboard, useIsMac } from '@/ui/platform';
 import { LinkPreview } from '../LinkPreview/LinkPreview';
+import { CitationToggle } from './CitationToggle';
 import classes from './MarkdownEditor.module.css';
 import type { LinkCard as Card } from './MarkdownEditor.helpers';
 
+interface LinkCardProps {
+  card: Card;
+  onAct: () => void;
+  onClose: () => void;
+  onToggleCitation: () => void;
+}
+
 /**
  * A link's card under it: an existing page or a site, the whole card opening it (a site in a new tab); a page not
- * made yet, with the button that makes it (and Cancel, when following the link asked for it)
+ * made yet, with the button that makes it (and Cancel, when following the link asked for it). In text the learner
+ * edits, a page's card also turns its link into a citation and back
  */
-export function LinkCard({ card, onAct, onClose }: { card: Card; onAct: () => void; onClose: () => void }) {
+export function LinkCard({ card, onAct, onClose, onToggleCitation }: LinkCardProps) {
   const t = useT();
   const isMac = useIsMac();
   const hasKeyboard = useHasKeyboard();
@@ -50,9 +59,16 @@ export function LinkCard({ card, onAct, onClose }: { card: Card; onAct: () => vo
             </Group>
           )}
         </Paper>
-      ) : card.target.page ? (
+      ) : card.target.page && !card.chip ? (
         <Paper component="button" type="button" withBorder shadow="md" p="sm" className={classes.cardLink} onClick={onAct}>
           <LinkPreview target={card.target} />
+        </Paper>
+      ) : card.target.page ? (
+        <Paper withBorder shadow="md" p="sm">
+          <UnstyledButton className={classes.cardPage} onClick={onAct}>
+            <LinkPreview target={card.target} />
+          </UnstyledButton>
+          {card.chip && <CitationToggle citation={card.chip.citation} onToggle={onToggleCitation} />}
         </Paper>
       ) : (
         <Paper withBorder shadow="md" p="sm">
@@ -67,6 +83,7 @@ export function LinkCard({ card, onAct, onClose }: { card: Card; onAct: () => vo
               </Button>
             )}
           </Group>
+          {card.chip && <CitationToggle citation={card.chip.citation} onToggle={onToggleCitation} />}
         </Paper>
       )}
     </Box>
