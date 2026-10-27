@@ -111,26 +111,32 @@ export function deletePage(path: Path, pageId: PageId): Path {
   return { ...path, pages: path.pages.filter((p) => p.id !== pageId) };
 }
 
-/** A [[Title]] link to this page, any case, as a pattern */
+const escaped = (title: string) => title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** A [[Title]] link to this page, any case, as a pattern; an @[[Title]] citation is not one */
 export function linkPattern(title: string): RegExp {
-  return new RegExp(`\\[\\[\\s*${title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\]\\]`, 'gi');
+  return new RegExp(`(?<!@)\\[\\[\\s*${escaped(title)}\\s*\\]\\]`, 'gi');
 }
 
+/** A [[Title]] link or an @[[Title]] citation of this page, any case, the @ captured */
+const mentionPattern = (title: string) => new RegExp(`(@?)\\[\\[\\s*${escaped(title)}\\s*\\]\\]`, 'gi');
+
 /**
- * Turns [[Title]] links into plain text across the path, for a page about
- * to be deleted: the words stay where they were written, without pointing at
- * a page that is gone. Returns the pages whose text changed.
+ * Turns [[Title]] links and @[[Title]] citations into plain text across the
+ * path, for a page about to be deleted: the words stay where they were
+ * written, without the @ or pointing at a page that is gone. Returns the
+ * pages whose text changed.
  */
 export function unlinkPages(path: Path, title: string): Page[] {
   const name = title.trim();
   if (!name) return [];
   return path.pages.flatMap((p) => {
-    const content = p.content.replace(linkPattern(name), name);
+    const content = p.content.replace(mentionPattern(name), name);
     return content === p.content ? [] : [{ ...p, content }];
   });
 }
 
-/** Rewrites [[Old]] links to [[New]] across the path after a page is renamed */
+/** Rewrites [[Old]] links and @[[Old]] citations to the new title across the path after a page is renamed */
 export function renameLinks(path: Path, oldTitle: string, newTitle: string): Path {
   const from = oldTitle.trim();
   const to = newTitle.trim();
@@ -138,7 +144,7 @@ export function renameLinks(path: Path, oldTitle: string, newTitle: string): Pat
   return {
     ...path,
     pages: path.pages.map((p) => {
-      const content = p.content.replace(linkPattern(from), `[[${to}]]`);
+      const content = p.content.replace(mentionPattern(from), (_, at: string) => `${at}[[${to}]]`);
       return content === p.content ? p : { ...p, content };
     }),
   };

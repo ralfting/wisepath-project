@@ -79,6 +79,8 @@ export const page = {
     child: { label: 'Branches into', hint: 'Pages that grow out of this one on the map' },
     linksTo: { label: 'Links to', hint: 'Pages this page mentions with [[ ]]' },
     linkedFrom: { label: 'Linked from', hint: 'Pages that mention this one with [[ ]]' },
+    cites: { label: 'Cites', hint: 'Pages this page points at with @[[ ]], without placing them on the map' },
+    citedBy: { label: 'Cited by', hint: 'Pages that point at this one with @[[ ]]' },
   },
   title: {
     label: 'Page title',

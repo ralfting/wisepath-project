@@ -1,4 +1,4 @@
-import { linksOf, references } from "./links"
+import { citationsOf, connections, linksOf } from "./links"
 import type { Page, PageColor, PageIcon, PageId, Path } from "./Path"
 
 /**
@@ -8,8 +8,9 @@ import type { Page, PageColor, PageIcon, PageId, Path } from "./Path"
  * visited in the order they were reached, and each page's links in the order
  * they are written, so the learner orders branches by ordering links. Every
  * other link becomes an arrow, except links back to the root or to the
- * page's own ancestors, which only show as related pages. Pages no link
- * reaches are orphans.
+ * page's own ancestors, which only show as related pages. Citations never
+ * place a page: they cross the map between pages links put on it. Pages no
+ * link reaches are orphans, however often they are cited.
  */
 
 export interface MapNode {
@@ -29,6 +30,8 @@ export interface MapTree {
   readonly nodes: ReadonlyMap<PageId, MapNode>
   /** Links drawn as arrows: not a branch, not back to the root or an ancestor, one per pair */
   readonly arrows: ReadonlyArray<Arrow>
+  /** Citations between pages on the map, one per pair, none where a link already joins the two */
+  readonly citations: ReadonlyArray<Arrow>
   /** Pages no link reaches from the root, by title */
   readonly orphans: ReadonlyArray<Page>
 }
@@ -82,15 +85,28 @@ export function mapTree(path: Path): MapTree {
     for (let p = parentOf.get(of) ?? null; p !== null; p = parentOf.get(p) ?? null) if (p === ancestor) return true
     return false
   }
+  const pairOf = (from: PageId, to: PageId) => (from < to ? `${from}|${to}` : `${to}|${from}`)
   const pairs = new Set<string>()
   const arrows = candidates.filter(({ from, to }) => {
     if (to === root.id || isAncestor(to, from)) return false
     if (parentOf.get(from) === to || parentOf.get(to) === from) return false
-    const pair = from < to ? `${from}|${to}` : `${to}|${from}`
+    const pair = pairOf(from, to)
     if (pairs.has(pair)) return false
     pairs.add(pair)
     return true
   })
+
+  // A pair a link joins shows that link's line, or none when it leads back up: the stronger connection wins
+  const linked = new Set(order.flatMap((from) => linksOf(path, from).map((to) => pairOf(from, to))))
+  const cited = new Set<string>()
+  const citations = order.flatMap((from) =>
+    citationsOf(path, from).flatMap((to) => {
+      const pair = pairOf(from, to)
+      if (!parentOf.has(to) || linked.has(pair) || cited.has(pair)) return []
+      cited.add(pair)
+      return [{ from, to }]
+    })
+  )
 
   const nodes = new Map<PageId, MapNode>()
   const build = (id: PageId): MapNode => {
@@ -109,7 +125,7 @@ export function mapTree(path: Path): MapTree {
     .filter((p) => !parentOf.has(p.id))
     .sort((a, b) => a.title.localeCompare(b.title))
 
-  return { root: rootNode, nodes, arrows, orphans }
+  return { root: rootNode, nodes, arrows, citations, orphans }
 }
 
 /** Every page below a node, depth first in branch order */
@@ -187,7 +203,8 @@ export function lookOf(
   return { color: source?.color ?? DEFAULT_COLOR, icon: own?.icon ?? DEFAULT_ICON }
 }
 
-export type Relation = "parent" | "child" | "linksTo" | "linkedFrom"
+/** How a page relates to another, strongest first */
+export type Relation = "parent" | "child" | "linksTo" | "linkedFrom" | "cites" | "citedBy"
 
 export interface RelatedPage {
   readonly page: Page
@@ -196,8 +213,9 @@ export interface RelatedPage {
 
 /**
  * Pages related to one page: the page it branches from, its branches, then
- * the pages its [[links]] point to, then the pages linking to it. Each page
- * appears once, under its first relation.
+ * the pages its [[links]] point to, the pages linking to it, the pages it
+ * cites and the pages citing it. Each page appears once, under its strongest
+ * relation, so a page both linked and cited shows as linked.
  */
 export function relatedPages(path: Path, pageId: PageId): ReadonlyArray<RelatedPage> {
   const { nodes } = mapTree(path)
@@ -212,7 +230,10 @@ export function relatedPages(path: Path, pageId: PageId): ReadonlyArray<RelatedP
   }
   if (node?.parentId) push(byId.get(node.parentId), "parent")
   for (const c of node?.children ?? []) push(c.page, "child")
+  const toHere = connections(path).filter((c) => c.to === pageId)
   for (const to of linksOf(path, pageId)) push(byId.get(to), "linksTo")
-  for (const r of references(path)) if (r.to === pageId) push(byId.get(r.from), "linkedFrom")
+  for (const c of toHere) if (c.kind === "link") push(byId.get(c.from), "linkedFrom")
+  for (const to of citationsOf(path, pageId)) push(byId.get(to), "cites")
+  for (const c of toHere) if (c.kind === "citation") push(byId.get(c.from), "citedBy")
   return out
 }

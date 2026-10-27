@@ -80,6 +80,8 @@ export const page = {
     child: { label: 'Ramos', hint: 'Páginas que saem desta no mapa' },
     linksTo: { label: 'Links para', hint: 'Páginas que esta menciona com [[ ]]' },
     linkedFrom: { label: 'Links de', hint: 'Páginas que mencionam esta com [[ ]]' },
+    cites: { label: 'Cita', hint: 'Páginas que esta aponta com @[[ ]], sem colocá-las no mapa' },
+    citedBy: { label: 'Citada por', hint: 'Páginas que apontam para esta com @[[ ]]' },
   },
   title: {
     label: 'Título da página',

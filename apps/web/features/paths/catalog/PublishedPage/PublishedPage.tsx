@@ -15,6 +15,8 @@ const RELATION: Record<Relation, TranslationKey> = {
   child: 'page.related.child.label',
   linksTo: 'page.related.linksTo.label',
   linkedFrom: 'page.related.linkedFrom.label',
+  cites: 'page.related.cites.label',
+  citedBy: 'page.related.citedBy.label',
 };
 
 interface PublishedPageProps {

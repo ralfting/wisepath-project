@@ -2,7 +2,15 @@
 
 import { useState } from 'react';
 import { Button, Group, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
-import { IconArrowDownRight, IconArrowLeft, IconArrowRight, IconArrowUpLeft, IconChevronRight } from '@tabler/icons-react';
+import {
+  IconArrowDownRight,
+  IconArrowLeft,
+  IconArrowLeftDashed,
+  IconArrowRight,
+  IconArrowRightDashed,
+  IconArrowUpLeft,
+  IconChevronRight,
+} from '@tabler/icons-react';
 import type { Icon } from '@tabler/icons-react';
 import type { MapTree, Page, Path, Relation, RelatedPage } from '@wisepath/domain/paths';
 import { canEdit, lookOf } from '@wisepath/domain/paths';
@@ -15,7 +23,8 @@ import classes from './PagePanel.module.css';
 
 /**
  * The related pages, grouped by how they connect, in a fixed order: up the
- * branch, down it, then [[links]] out and in. Each arrow reads from this page,
+ * branch, down it, [[links]] out and in, then @[[citations]] out and in (dashed,
+ * as on the map). Each arrow reads from this page,
  * so a section says its direction once instead of every row repeating it.
  */
 const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
@@ -23,6 +32,8 @@ const RELATION_SECTIONS: ReadonlyArray<{ relation: Relation; icon: Icon }> = [
   { relation: 'child', icon: IconArrowDownRight },
   { relation: 'linksTo', icon: IconArrowRight },
   { relation: 'linkedFrom', icon: IconArrowLeft },
+  { relation: 'cites', icon: IconArrowRightDashed },
+  { relation: 'citedBy', icon: IconArrowLeftDashed },
 ];
 
 interface RelatedPagesProps {
