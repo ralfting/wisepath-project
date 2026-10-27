@@ -1,18 +1,16 @@
-/* Open: a grey box with a bar down its side, no colour of its own (violet is a module's, blue an action's) */
+/* Open: a bar down its side on a faint grey, square like a quote, no colour of its own (violet is a module's, blue an
+   action's) */
 .root {
   margin-block: var(--mantine-spacing-sm);
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
-  border: 1px solid var(--wp-line);
+  padding: var(--mantine-spacing-sm) var(--mantine-spacing-md);
   border-inline-start: 0.1875rem solid light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
-  border-radius: var(--mantine-radius-md);
-  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+  background: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-5));
   outline: 0.1875rem solid transparent;
   outline-offset: 0.125rem;
   transition: outline-color 200ms ease;
 
   /* Done: teal, the colour of progress */
   &[data-done] {
-    border-color: var(--mantine-color-teal-light);
     border-inline-start-color: var(--mantine-color-teal-filled);
     background: var(--mantine-color-teal-light);
   }
