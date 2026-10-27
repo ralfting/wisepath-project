@@ -90,7 +90,15 @@ export function editorExtensions({
         };
       },
     }).configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: 'noopener noreferrer', target: null } }),
-    Placeholder.configure({ placeholder: () => context().t(variant.placeholder) }),
+    Placeholder.configure({
+      // Into blocks too, for a new question's heading; any other block inside another one asks for nothing
+      includeChildren: true,
+      placeholder: ({ editor, node, pos }) => {
+        const { depth, parent } = editor.state.doc.resolve(pos);
+        if (depth === 0) return context().t(variant.placeholder);
+        return node.type.name === 'heading' && parent.attrs.kind === 'question' ? context().t('editor.callout.question') : '';
+      },
+    }),
     getTaskListExtension(TaskList),
     TaskItem.configure({ nested: true }),
     BulletToChecklist,

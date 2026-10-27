@@ -36,6 +36,24 @@ describe('callouts in markdown', () => {
     expect(markdownOf(e)).toBe('> [!question]\n> Mind the gap.');
   });
 
+  it('keeps a question written as a heading a heading, in the editor and back in markdown', () => {
+    const text = '> [!question]\n> ### Why guard a route?\n>\n> Think of who calls it.';
+    const e = open(text);
+    expect(e.getJSON().content?.[0].content?.map((block) => block.type)).toEqual(['heading', 'paragraph']);
+    expect(markdownOf(e)).toBe(text);
+  });
+
+  it('starts a question made on an empty line as a small heading, and keeps written words as they are', () => {
+    const e = open('');
+    setCallout(e, 'question');
+    e.commands.insertContent('Why guard a route?');
+    expect(markdownOf(e)).toBe('> [!question]\n> ### Why guard a route?');
+
+    const written = open('Why guard a route?');
+    setCallout(written, 'question');
+    expect(markdownOf(written)).toBe('> [!question]\n> Why guard a route?');
+  });
+
   // The editor gives the nth activity block the domain's nth id, so both must find the same blocks
   it.each([
     '> [!activity]\n> One\n\n> [!activity]\n> Two **bold** `code`',

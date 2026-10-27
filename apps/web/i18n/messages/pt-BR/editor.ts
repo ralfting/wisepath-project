@@ -117,6 +117,7 @@ export const editor = {
     change: '{kind}: mudar o destaque',
     remove: 'Tirar a caixa, manter o texto',
     grip: 'Mover ou selecionar o bloco',
+    question: 'Escreva a pergunta…',
   },
   codeBlock: {
     language: 'Linguagem do código',

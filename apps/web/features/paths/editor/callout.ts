@@ -1,5 +1,5 @@
-import { Node, wrappingInputRule } from '@tiptap/react';
-import type { Editor } from '@tiptap/react';
+import { InputRule, Node } from '@tiptap/react';
+import type { ChainedCommands, Editor } from '@tiptap/react';
 import type { Node as DocNode } from '@tiptap/pm/model';
 import { NodeSelection, Plugin, TextSelection } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
@@ -42,10 +42,13 @@ export const CalloutBlock = Node.create({
   // [!warning] and a space at the start of a line, as > makes a quote
   addInputRules() {
     return [
-      wrappingInputRule({
+      new InputRule({
         find: new RegExp(String.raw`^\[!(${CALLOUT_KINDS.join('|')})\]\s$`, 'i'),
-        type: this.type,
-        getAttributes: (match) => ({ kind: match[1].toLowerCase() }),
+        handler: ({ state, range, match, chain }) => {
+          const kind = match[1].toLowerCase() as CalloutKind;
+          const { parent } = state.doc.resolve(range.from);
+          wrapInCallout(chain().deleteRange(range), kind, parent.type.name === 'paragraph' && parent.content.size === range.to - range.from);
+        },
       }),
     ];
   },
@@ -122,10 +125,19 @@ export const CalloutBlock = Node.create({
   },
 });
 
+/**
+ * Wraps the blocks under the cursor in a callout. A question started on an empty line is a small heading, so it reads
+ * as the page's own heading would; words already written keep their form
+ */
+function wrapInCallout(chain: ChainedCommands, kind: CalloutKind, emptyLine: boolean) {
+  (kind === 'question' && emptyLine ? chain.setNode('heading', { level: 3 }) : chain).wrapIn('callout', { kind }).run();
+}
+
 /** Puts the blocks under the cursor in a callout of this kind, or turns the callout they are in into this kind */
 export function setCallout(editor: Editor, kind: CalloutKind) {
+  const { empty, $from } = editor.state.selection;
   if (editor.isActive('callout')) editor.chain().focus().updateAttributes('callout', { kind }).run();
-  else editor.chain().focus().wrapIn('callout', { kind }).run();
+  else wrapInCallout(editor.chain().focus(), kind, empty && $from.parent.type.name === 'paragraph' && $from.parent.content.size === 0);
 }
 
 /**

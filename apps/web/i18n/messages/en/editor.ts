@@ -114,6 +114,7 @@ export const editor = {
     change: '{kind}: change the callout',
     remove: 'Remove the box, keep the text',
     grip: 'Move or select the block',
+    question: 'Write the question…',
   },
   codeBlock: {
     language: 'Code language',

@@ -291,7 +291,8 @@
   outline-offset: 2px;
 }
 
-.content :global(p.is-empty::before) {
+.content :global(p.is-empty::before),
+.content :global(h3.is-empty::before) {
   content: attr(data-placeholder);
   float: left;
   height: 0;
