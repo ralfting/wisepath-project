@@ -12,6 +12,16 @@ const nextConfig = {
     if (!process.env.API_ORIGIN) return [];
     return [{ source: "/api/:path*", destination: `${process.env.API_ORIGIN}/api/:path*` }];
   },
+  // webpack's cache trusts node_modules by version, which a pnpm patch keeps; the lockfile holds the patch's hash (BUG-012)
+  webpack(config) {
+    if (config.cache && config.cache.type === "filesystem") {
+      config.cache.buildDependencies = {
+        ...config.cache.buildDependencies,
+        lockfile: [`${__dirname}/../../pnpm-lock.yaml`],
+      };
+    }
+    return config;
+  },
 };
 
 module.exports = nextConfig;
