@@ -6,7 +6,7 @@ import "@mantine/core/styles.layer.css";
 import "@mantine/notifications/styles.layer.css";
 import "@mantine/tiptap/styles.layer.css";
 import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
-import { Inter } from "next/font/google";
+import { Inter, Source_Serif_4 } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { Providers } from "./providers";
 import { LOCALE_COOKIE, fromAcceptLanguage, isLocale } from "@/i18n/locales";
@@ -27,6 +27,13 @@ const inter = Inter({
   variable: "--font-sans",
 });
 
+const answerSerif = Source_Serif_4({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-answer",
+  // Only answer fields use it: pages without a question don't download it
+  preload: false,
+});
+
 export default async function RootLayout({
   children,
 }: {
@@ -38,7 +45,7 @@ export default async function RootLayout({
   const locale = choice ?? fromAcceptLanguage((await headers()).get("accept-language"));
   return (
     // Font variables sit on <html> so the theme's :root font stacks can use them
-    <html lang={locale} className={inter.variable} {...mantineHtmlProps}>
+    <html lang={locale} className={`${inter.variable} ${answerSerif.variable}`} {...mantineHtmlProps}>
       <head>
         <ColorSchemeScript defaultColorScheme={defaultColorScheme} />
       </head>

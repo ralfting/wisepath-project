@@ -4,8 +4,9 @@ import type { CSSVariablesResolver, MantineColorScheme } from '@mantine/core';
 /**
  * WisePath theme on Mantine's own tokens: blue for actions and the current
  * topic, teal to cyan for progress, and Mantine's named colours for modules
- * (a module's `color` is one of those names). Inter sets everything; cards are
- * white on a near-white ground with soft shadows and generous radii.
+ * (a module's `color` is one of those names). Inter sets everything but the
+ * reader's answers, which have a serif of their own (`--wp-font-answer`);
+ * cards are white on a near-white ground with soft shadows and generous radii.
  */
 
 /** The browser's colour scheme until the learner picks one in the account menu (Appearance), which Mantine keeps in local storage */
@@ -48,6 +49,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (t) => ({
     '--wp-page-width': '40rem',
     // The same column made wider, for a large screen, when the reader asks for it
     '--wp-page-width-wide': '56rem',
+    // The reader's own writing (a question's answer): a text serif, so it reads as theirs beside the page's Inter
+    '--wp-font-answer': 'var(--font-answer), ui-serif, Georgia, serif',
   },
   light: {
     // The ground behind cards: a touch cooler than white

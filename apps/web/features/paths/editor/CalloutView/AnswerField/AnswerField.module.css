@@ -1,5 +1,6 @@
-/* The reader's own words, as legible as the page's: its text size and colour. With no box round the question, the
-   field is what says it is one, so it keeps a border that reads as a place to write */
+/* The reader's own words, in a voice of their own (the answer serif) but as legible as the page's: its colour, its
+   x-height and its line spacing. With no box round the question, the field is what says it is one, so it keeps a
+   border that reads as a place to write */
 .label {
   display: inline-flex;
   align-items: center;
@@ -11,8 +12,11 @@
 }
 
 .input {
-  font-size: inherit;
-  line-height: inherit;
+  font-family: var(--wp-font-answer);
+  /* The serif's x-height is about a tenth under Inter's: a tenth larger brings it level with the body's, and 1.5 of
+     that is the body's line spacing */
+  font-size: 1.1em;
+  line-height: 1.5;
   color: var(--mantine-color-text);
   background: var(--mantine-color-body);
   border-color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
