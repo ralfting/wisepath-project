@@ -5,7 +5,8 @@ import { NodeSelection, Plugin, TextSelection } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { CALLOUT_KINDS, calloutMarker, readCalloutMarker } from '@wisepath/domain/paths';
 import type { CalloutKind } from '@wisepath/domain/paths';
-import type { MarkdownState } from './markdown';
+import { withQuoteBlocksBack } from './markdown';
+import type { MarkdownReader, MarkdownState } from './markdown';
 
 /**
  * Callouts in the editor: a block holding other blocks, written to markdown as
@@ -96,6 +97,12 @@ export const CalloutBlock = Node.create({
           });
         },
         parse: {
+          // Before markdown-it reads the text, so pages saved with a block fallen out of its callout open whole
+          setup(markdownit: MarkdownReader) {
+            markdownit.core.ruler.before('normalize', 'quoteBlocksBack', (state) => {
+              state.src = withQuoteBlocksBack(state.src);
+            });
+          },
           // A quote opening with a marker becomes a callout; its other quotes stay quotes
           updateDOM(element: HTMLElement) {
             element.querySelectorAll('blockquote').forEach((quote) => {
