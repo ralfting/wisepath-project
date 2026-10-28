@@ -97,6 +97,8 @@ export const Path = Schema.Struct({
   visibility: PathVisibility,
   /** What whoever reads it may do with it; its pages' studied marks, ticks, answers and notes are that reader's too */
   access: PathAccess,
+  /** The owner's name, for a signed-in reader who is not the owner; absent for the owner, a visitor with no account, or an owner with no name */
+  ownerName: Schema.optional(Schema.String),
   /** Who the path is for, in one line, as the owner told the catalog */
   audience: Schema.optional(Schema.String),
   language: Schema.optional(PathLanguage),

@@ -216,8 +216,8 @@ describe('a public path', () => {
 
       const read = yield* visitor.publicPaths.get({ params });
       assert.deepStrictEqual(
-        [read.title, read.access, read.pages.some((p) => p.studied)],
-        ['Rust', 'viewer', false],
+        [read.title, read.access, read.pages.some((p) => p.studied), read.ownerName],
+        ['Rust', 'viewer', false, undefined],
       );
       // The signed-in endpoints still need a session
       assert.deepStrictEqual(yield* outcomes([visitor.paths.get({ params })]), ['NotAuthenticated']);

@@ -46,6 +46,8 @@ const toDomain = (row: PathRow, reader: UserId | null) => {
     rootPageId: row.rootPageId,
     visibility: row.visibility,
     access,
+    // Named to a signed-in reader only, so a public link or the catalog never hands out the owner's name
+    ...(access !== 'owner' && reader !== null && row.project.owner.name ? { ownerName: row.project.owner.name } : {}),
     ...(row.audience !== null ? { audience: row.audience } : {}),
     ...(row.language !== null ? { language: row.language } : {}),
     ...(row.slug !== null ? { slug: row.slug } : {}),

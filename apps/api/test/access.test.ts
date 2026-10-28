@@ -62,6 +62,8 @@ describe('paths API access', () => {
         [theirs.access, theirs.pages.find((p) => p.id === map.pageId)?.studied, owners.pages.find((p) => p.id === map.pageId)?.studied],
         ['viewer', true, false],
       );
+      // The reader is told whose path it is; the owner is not told their own name
+      assert.deepStrictEqual([theirs.ownerName, owners.ownerName], ['Ada', undefined]);
 
       assert.deepStrictEqual(yield* outcomes(writes(reader, map)), Array(5).fill('PathNotFound'));
       // A mark sent with an edit is refused whole
