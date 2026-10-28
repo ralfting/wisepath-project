@@ -17,5 +17,10 @@
   },
   "devDependencies": {
     "turbo": "^1.11.3"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "tiptap-markdown@0.8.10": "patches/tiptap-markdown@0.8.10.patch"
+    }
   }
 }

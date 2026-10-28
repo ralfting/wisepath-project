@@ -1,0 +1,39 @@
+diff --git a/dist/tiptap-markdown.es.js b/dist/tiptap-markdown.es.js
+index 9e79cafeca5ccbde32b27fb39db880b379e5f85a..8966293df69cf4665d7ba3514ceaa5ad77638f4f 100644
+--- a/dist/tiptap-markdown.es.js
++++ b/dist/tiptap-markdown.es.js
+@@ -137,6 +137,8 @@ class MarkdownSerializerState extends MarkdownSerializerState$1 {
+     const info = this.marks[mark.type.name];
+     if (info.expelEnclosingWhitespace) {
+       if (open) {
++        // Close the block before and write the line's prefix ("> " in a quote) first, so start is where the mark opens
++        this.write();
+         this.inlines.push({
+           start: this.out.length,
+           delimiter: info.open
+diff --git a/dist/tiptap-markdown.umd.js b/dist/tiptap-markdown.umd.js
+index 44f94bc0af08e61fabde3dd02de9a5079e1800d4..c7c14ee4c145346295dde5b46b7042b3cd2cd4e9 100644
+--- a/dist/tiptap-markdown.umd.js
++++ b/dist/tiptap-markdown.umd.js
+@@ -135,6 +135,8 @@ var __publicField = (obj, key, value) => {
+       const info = this.marks[mark.type.name];
+       if (info.expelEnclosingWhitespace) {
+         if (open) {
++          // Close the block before and write the line's prefix ("> " in a quote) first, so start is where the mark opens
++          this.write();
+           this.inlines.push({
+             start: this.out.length,
+             delimiter: info.open
+diff --git a/src/serialize/state.js b/src/serialize/state.js
+index d8374a2f23adee1bc2bdb7b4f05d4837114100c6..3f53c3682df40f12c312a87dc3c4dcdc3ff1e81c 100644
+--- a/src/serialize/state.js
++++ b/src/serialize/state.js
+@@ -29,6 +29,8 @@ export class MarkdownSerializerState extends BaseMarkdownSerializerState {
+         const info = this.marks[mark.type.name]
+         if(info.expelEnclosingWhitespace) {
+             if(open) {
++                // Close the block before and write the line's prefix ("> " in a quote) first, so start is where the mark opens
++                this.write();
+                 this.inlines.push({
+                     start: this.out.length,
+                     delimiter: info.open,

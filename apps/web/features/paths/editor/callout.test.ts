@@ -60,7 +60,7 @@ describe('callouts in markdown', () => {
     CALLOUT_KINDS.flatMap((kind) => [
       `> [!${kind}]\n> ### Why guard a route?\n>\n> *Think of who calls it.*`,
       `> [!${kind}]\n> First the setup.\n>\n> **Then** the guard, ***twice***.`,
-      `> [!${kind}]\n> ### Steps\n>\n> - *one*\n> - two\n>\n> _Done._`,
+      `> [!${kind}]\n> ### Steps\n>\n> - *one*\n> - two\n>\n> *Done.*`,
     ]),
   )('keeps every block of %j inside its callout, read and written back the same', (text) => {
     const e = open(text);
