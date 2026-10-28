@@ -11,5 +11,9 @@ export interface FetchedPage {
 /** Fetches pages someone linked to, refusing anything that isn't a public http(s) page */
 export class PageFetcher extends Context.Service<
   PageFetcher,
-  { readonly fetch: (url: string) => Effect.Effect<FetchedPage, LinkNotPreviewable> }
+  {
+    readonly fetch: (url: string) => Effect.Effect<FetchedPage, LinkNotPreviewable>;
+    /** A JSON answer about a page (an oEmbed endpoint), under the same checks; parsed but not yet decoded */
+    readonly fetchJson: (url: string) => Effect.Effect<unknown, LinkNotPreviewable>;
+  }
 >()('@wisepath/api/links/application/PageFetcher') {}

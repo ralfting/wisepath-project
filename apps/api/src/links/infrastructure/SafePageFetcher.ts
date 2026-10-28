@@ -64,8 +64,8 @@ const publicUrl = Effect.fn('PageFetcher.publicUrl')(function* (raw: string, bas
   return url;
 });
 
-/** Reads at most MAX_BYTES of the body; the <head> is all we need */
-const readHead = (response: Response) =>
+/** Reads at most MAX_BYTES of the body: a page's <head> or a small JSON answer is all we need */
+const readStart = (response: Response) =>
   Effect.tryPromise({
     try: async () => {
       const reader = response.body?.getReader();
@@ -86,7 +86,8 @@ const readHead = (response: Response) =>
     catch: () => new LinkNotPreviewable({ reason: 'Body unreadable' }),
   });
 
-const fetchPage = Effect.fn('PageFetcher.fetch')(function* (start: string) {
+/** Requests a public address with these headers, checking again at every redirect */
+const send = Effect.fn('PageFetcher.send')(function* (start: string, accept: string) {
   let url = yield* publicUrl(start);
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
@@ -96,7 +97,7 @@ const fetchPage = Effect.fn('PageFetcher.fetch')(function* (start: string) {
         fetch(target, {
           redirect: 'manual',
           signal: AbortSignal.any([signal, AbortSignal.timeout(TIMEOUT_MS)]),
-          headers: { 'user-agent': 'WisePathLinkPreview/1.0', accept: 'text/html' },
+          headers: { 'user-agent': 'WisePathLinkPreview/1.0', accept },
         }),
       catch: () => new LinkNotPreviewable({ reason: 'Fetch failed' }),
     });
@@ -111,12 +112,28 @@ const fetchPage = Effect.fn('PageFetcher.fetch')(function* (start: string) {
     }
 
     if (!response.ok) return yield* fail(`Status ${response.status}`);
-    if (!(response.headers.get('content-type') ?? '').includes('text/html')) return yield* fail('Not HTML');
-
-    return { html: yield* readHead(response), url };
+    return { response, url };
   }
 
   return yield* fail('Too many redirects');
 });
 
-export const SafePageFetcher = Layer.succeed(PageFetcher, PageFetcher.of({ fetch: fetchPage }));
+const fetchPage = Effect.fn('PageFetcher.fetch')(function* (start: string) {
+  const { response, url } = yield* send(start, 'text/html');
+  if (!(response.headers.get('content-type') ?? '').includes('text/html')) return yield* fail('Not HTML');
+
+  return { html: yield* readStart(response), url };
+});
+
+const fetchJson = Effect.fn('PageFetcher.fetchJson')(function* (start: string) {
+  const { response } = yield* send(start, 'application/json');
+  if (!(response.headers.get('content-type') ?? '').includes('application/json')) return yield* fail('Not JSON');
+
+  const body = yield* readStart(response);
+  return yield* Effect.try({
+    try: (): unknown => JSON.parse(body),
+    catch: () => new LinkNotPreviewable({ reason: 'Invalid JSON' }),
+  });
+});
+
+export const SafePageFetcher = Layer.succeed(PageFetcher, PageFetcher.of({ fetch: fetchPage, fetchJson }));
