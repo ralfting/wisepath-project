@@ -5,3 +5,4 @@ export { PageGlyph, shade } from './look';
 export { RELATED_HOVER_EVENT, pointAtRelated, relatedFromEvent } from './relatedHover';
 export { ShareDialog } from './ShareDialog/ShareDialog';
 export { AccessNotices } from './AccessNotices';
+export { PathOwner } from './PathOwner/PathOwner';

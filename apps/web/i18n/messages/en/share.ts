@@ -65,6 +65,14 @@ export const share = {
     left: 'You left “{title}”.',
     leaveFailed: "Couldn't leave “{title}”.",
   },
+  /** Whose a path from others is, and what the reader may do with it */
+  owner: {
+    of: '{name}’s path',
+    someone: 'Someone else’s path',
+    editor: 'You can edit its pages',
+    viewer: 'You can read and study it',
+    label: '{whose}. {can}',
+  },
   /** A public path, read by anyone with its link */
   public: {
     meta: '{title} | WisePath',

@@ -1,17 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { ActionIcon, Box, Button, Group, Menu, ThemeIcon, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Button, Group, Menu, Text, ThemeIcon, Title, Tooltip } from '@mantine/core';
 import { IconDots, IconShare } from '@tabler/icons-react';
 import type { Page, PageColor, PageIcon, Path } from '@wisepath/domain/paths';
 import { canManage } from '@wisepath/domain/paths';
 import type { PathActions, SaveState } from '@/useCases/paths';
-import { KindSwitchItem, PageGlyph, SaveStatus, ShareDialog } from '@/features/paths/path';
+import { KindSwitchItem, PageGlyph, PathOwner, SaveStatus, ShareDialog } from '@/features/paths/path';
 import { useT } from '@/i18n/I18nProvider';
 import { ContinueButton } from '../ContinueButton/ContinueButton';
 import classes from './PathMap.module.css';
 
-/** The map's top bar: its title and look, its menu and Share (the owner's), what is still being saved, and a learning path's way on */
+/** The map's top bar: its title and look, its menu and Share (the owner's) or whose it is (for anyone else), what is still being saved, and a learning path's way on */
 export function MapHeader({
   path,
   actions,
@@ -47,6 +47,17 @@ export function MapHeader({
             {path.title}
           </Title>
         </Tooltip>
+        {/* Whose it is, where the owner has Share; on a phone the avatar alone */}
+        {!canManage(path.access) && (
+          <Group gap="xs" wrap="nowrap" miw={0} style={{ flexShrink: 0 }}>
+            <PathOwner name={path.ownerName} access={path.access} size={26} />
+            {path.ownerName && (
+              <Text visibleFrom="sm" size="sm" c="dimmed" truncate maw={160}>
+                {path.ownerName}
+              </Text>
+            )}
+          </Group>
+        )}
         {/* What can be done to the path itself, by its owner */}
         {canManage(path.access) && (
           <Menu position="bottom-start">

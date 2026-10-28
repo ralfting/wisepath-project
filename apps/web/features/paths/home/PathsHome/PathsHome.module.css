@@ -29,6 +29,23 @@
   outline-offset: 2px;
 }
 
+.glyph {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* A path from others: its owner, as a badge on the glyph, above the card-wide link so it can be hovered and focused */
+.owner {
+  position: absolute;
+  right: -0.25em;
+  bottom: -0.25em;
+  z-index: 1;
+  display: flex;
+  /* The card's own background, so the ring cuts the avatar out of the glyph in both schemes */
+  border: 2px solid light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
+  border-radius: 50%;
+}
+
 /* Above the card-wide link */
 .action {
   position: relative;

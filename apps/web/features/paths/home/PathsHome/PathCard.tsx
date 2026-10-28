@@ -3,11 +3,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import type { DragEvent } from 'react';
-import { Button, Card, Group, Progress, Stack, Text, ThemeIcon } from '@mantine/core';
+import { Box, Button, Card, Group, Progress, Stack, Text, ThemeIcon } from '@mantine/core';
 import { IconPlayerPlayFilled } from '@tabler/icons-react';
 import type { PathSummary } from '@wisepath/domain/paths';
 import type { Project } from '@wisepath/domain/projects';
-import { PageGlyph } from '@/features/paths/path';
+import { PageGlyph, PathOwner } from '@/features/paths/path';
 import { mapHref, mapWithPageHref } from '@/shared/routes';
 import { useT } from '@/i18n/I18nProvider';
 import classes from './PathsHome.module.css';
@@ -52,9 +52,16 @@ export function PathCard({ path, owned }: { path: PathSummary; owned?: OwnedCard
     >
       <Stack gap="md" h="100%">
         <Group gap="md" wrap="nowrap">
-          <ThemeIcon size={52} radius="xl" variant="light" color={path.color}>
-            <PageGlyph icon={path.icon} size={27} />
-          </ThemeIcon>
+          <Box className={classes.glyph}>
+            <ThemeIcon size={52} radius="xl" variant="light" color={path.color}>
+              <PageGlyph icon={path.icon} size={27} />
+            </ThemeIcon>
+            {!owned && (
+              <Box className={classes.owner}>
+                <PathOwner name={path.ownerName} access={path.access} size={22} />
+              </Box>
+            )}
+          </Box>
           <Stack gap={0} miw={0} style={{ flex: 1 }}>
             <Text component={Link} href={href} fw={800} fz={20} className={classes.title} lineClamp={2}>
               {path.title}

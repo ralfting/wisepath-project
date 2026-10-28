@@ -68,6 +68,13 @@ export const share = {
     left: 'Você saiu de “{title}”.',
     leaveFailed: 'Não foi possível sair de “{title}”.',
   },
+  owner: {
+    of: 'Trilha de {name}',
+    someone: 'Trilha de outra pessoa',
+    editor: 'Você pode editar as páginas',
+    viewer: 'Você pode ler e estudar',
+    label: '{whose}. {can}',
+  },
   public: {
     meta: '{title} | WisePath',
     badge: 'Trilha pública',

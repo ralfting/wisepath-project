@@ -25,6 +25,7 @@ A **path** is one subject being learned. Its centre page carries the subject's n
 - **Progress is each learner's own**, on their paths and on anyone else's: studied marks, the progress bar and Continue follow the person reading, and nobody sees another's, the owner included.
 - **Reading and editing someone else's path.** A reader sees the map and pages without the editor (no +, no N, no menus, no toolbar) and still marks pages studied. An editor edits pages like the owner, but only the owner renames the path, changes its kind or its look's description, shares it, moves it or deletes it.
 - **From others** on My paths, after the projects: the paths shared with you and the public ones you took, each with its owner's name. Their menu has **Leave** only, which takes your marks on it too.
+- **Whose path it is.** A path from others carries its owner's avatar (their initials, in the same colour everywhere): on the corner of its card's icon, and beside the map's title, where the owner has Share (with the name too on a wide screen). Hovering, focusing or tapping it says whose path it is and whether you can read and study it or edit its pages.
 - **Study this path** on a public path's page adds it to your paths, to study with your own progress. It is never a copy: the content stays the owner's and follows their edits, and it goes away if they make it private or delete it.
 - **Sidebar:** every path, with its progress for Learning paths. Collapses to an icon rail that floats open on hover; on the rail a Learning path's icon has a thin progress ring.
 

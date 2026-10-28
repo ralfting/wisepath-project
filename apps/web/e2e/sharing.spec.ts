@@ -35,7 +35,9 @@ test('a path shared to read is studied with your own marks, and once you may edi
   await bob.page.goto('/paths');
   const fromOthers = bob.page.getByRole('region', { name: 'From others' });
   await expect(fromOthers.getByText('By Ada')).toBeVisible();
+  await expect(fromOthers.getByRole('img', { name: "Ada’s path. You can read and study it" })).toBeVisible();
   await fromOthers.getByRole('link', { name: 'Rust' }).click();
+  await expect(bob.page.getByRole('img', { name: "Ada’s path. You can read and study it" })).toBeVisible();
 
   // He reads it: no Share, no way to change the text; marking a page studied is his alone
   await expect(bob.page.getByRole('treeitem', { name: /Borrowing/ })).toBeVisible();
