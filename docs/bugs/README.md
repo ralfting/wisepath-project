@@ -20,6 +20,7 @@ Skip it for typos and bugs whose cause is obvious from the diff.
 
 | Id | Title | Area | Date |
 |---|---|---|---|
+| [BUG-012](BUG-012-patched-package-left-out-of-the-build.md) | A question's description still drops out of it in production after BUG-010's fix shipped | web/build | 2026-10-28 |
 | [BUG-011](BUG-011-youtube-preview-without-title.md) | A YouTube video's link preview has no title, so the outline lists it as "Video" | api/links | 2026-10-28 |
 | [BUG-010](BUG-010-callout-block-falls-out.md) | A question's italic line under its heading drops out of the question after a reload | web/editor | 2026-10-28 |
 | [BUG-009](BUG-009-editor-toolbar-behind-blocks.md) | The editor's toolbar goes behind a question, a callout, a code block or a video scrolled under it | web/editor | 2026-10-28 |

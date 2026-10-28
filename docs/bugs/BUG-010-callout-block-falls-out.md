@@ -47,10 +47,14 @@ only where a line prefix holds something other than spaces: quotes and callouts.
 - The patch calls `this.write()` in `markString` before recording an opening mark's start, so the pending close and
   the `> ` prefix are written first and `start` is where the mark opens. `text()` calls the same `write()` right after,
   so the output is otherwise unchanged.
-- A dev server started before the patch keeps the unpatched module in its webpack cache: stop it and remove
-  `apps/web/.next/cache/webpack` once.
+- The patch did not reach production: Vercel restored a webpack cache built before it, which kept the unpatched
+  module (BUG-012). A dev server started before the patch kept it the same way. The lockfile is now a build
+  dependency of that cache.
 
 ### Pages already saved in the broken form
+
+Since BUG-012, the editor puts these blocks back when it reads a page, and the next edit saves the page whole. What
+follows is how they looked before that.
 
 The editor reads them back with the block outside the callout, and the domain reads the question's words from the
 heading alone, so their answers stay attached to that question. They are recognisable: a line starting with `*> ` or
