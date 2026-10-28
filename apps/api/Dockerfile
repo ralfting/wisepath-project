@@ -9,6 +9,8 @@ WORKDIR /repo
 
 # Install dependencies first so they are cached until a manifest or the lockfile changes
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# pnpm reads every patch package.json declares, even for packages the filter leaves out
+COPY patches patches
 COPY apps/api/package.json apps/api/
 # The workspace packages the API bundles (domain rules, HTTP contract)
 COPY packages/domain/package.json packages/domain/
