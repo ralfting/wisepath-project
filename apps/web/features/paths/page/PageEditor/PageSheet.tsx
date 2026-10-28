@@ -76,6 +76,19 @@ export function PageSheet({
               onShowText={() => operations.showTab('content')}
             />
           )}
+          <Tooltip label={t(state.wide ? 'page.menu.narrow' : 'page.menu.wide')}>
+            {/* On a phone the page is the screen's width already */}
+            <ActionIcon
+              visibleFrom="sm"
+              onClick={operations.toggleWide}
+              variant="default"
+              size="lg"
+              radius="md"
+              aria-label={t(state.wide ? 'page.menu.narrow' : 'page.menu.wide')}
+            >
+              {state.wide ? <IconViewportNarrow size={18} /> : <IconViewportWide size={18} />}
+            </ActionIcon>
+          </Tooltip>
           <Tooltip label={t('page.seeOnMap')}>
             {'href' in showOnMap ? (
               <ActionIcon component={Link} href={showOnMap.href} variant="default" size="lg" radius="md" aria-label={t('page.seeOnMap')}>
@@ -87,34 +100,24 @@ export function PageSheet({
               </ActionIcon>
             )}
           </Tooltip>
-          <Menu position="bottom-end">
-            <Menu.Target>
-              <ActionIcon variant="default" size="lg" radius="md" aria-label={t('page.menu.more')}>
-                <IconDotsVertical size={18} />
-              </ActionIcon>
-            </Menu.Target>
-            <Menu.Dropdown>
-              {/* On a phone the page is the screen's width already */}
-              <Menu.Item
-                visibleFrom="sm"
-                leftSection={state.wide ? <IconViewportNarrow size={15} /> : <IconViewportWide size={15} />}
-                onClick={operations.toggleWide}
-              >
-                {t(state.wide ? 'page.menu.narrow' : 'page.menu.wide')}
-              </Menu.Item>
-              {!isRoot && canEdit(path.access) && (
-                <>
-                  <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(path, page, !page.module))}>
-                    {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
-                  </Menu.Item>
-                  <Menu.Divider />
-                  <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={operations.confirmDelete}>
-                    {t('page.menu.delete')}
-                  </Menu.Item>
-                </>
-              )}
-            </Menu.Dropdown>
-          </Menu>
+          {!isRoot && canEdit(path.access) && (
+            <Menu position="bottom-end">
+              <Menu.Target>
+                <ActionIcon variant="default" size="lg" radius="md" aria-label={t('page.menu.more')}>
+                  <IconDotsVertical size={18} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item leftSection={<IconBox size={15} />} onClick={() => store.setLook(page.id, moduleLook(path, page, !page.module))}>
+                  {t(page.module ? 'page.menu.showAsPage' : 'page.menu.showAsModule')}
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item color="red" leftSection={<IconTrash size={15} />} onClick={operations.confirmDelete}>
+                  {t('page.menu.delete')}
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          )}
         </Group>
       </Group>
       <DeletePageModal
