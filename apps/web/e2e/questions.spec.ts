@@ -80,3 +80,28 @@ test('a question is written with /question, answered by each reader for themselv
   await expect(visitor.getByRole('note', { name: 'Question' })).toContainText(QUESTION);
   await expect(visitor.getByRole('textbox', { name: 'Your answer' })).toHaveCount(0);
 });
+
+test('the editor toolbar stays above a question the page scrolls under it', async ({ browser }) => {
+  const ada = await someone(browser, 'Ada');
+  const map = await learningPath(ada.page);
+  const filler = 'A paragraph that makes the page long enough to scroll.\n\n'.repeat(30);
+  const content = `${filler}> [!question]\n> ${QUESTION}\n\n${filler}`;
+  await expect(await ada.page.request.patch(`${API}/paths/${map.pathId}/pages/${map.pageId}`, { data: { content } })).toBeOK();
+
+  await ada.page.goto(`/paths/${map.pathId}/pages/${map.pageId}`);
+  await expect(ada.page.getByRole('note', { name: 'Question' })).toContainText(QUESTION);
+  const heading = ada.page.getByRole('button', { name: 'Heading', exact: true });
+  // Twice: the first scroll is what makes the toolbar stick, which moves it
+  await ada.page.getByRole('note', { name: 'Question' }).evaluate((question) => {
+    for (let pass = 0; pass < 2; pass++) {
+      const toolbar = document.querySelector('.mantine-RichTextEditor-toolbar')!.getBoundingClientRect();
+      window.scrollBy(0, question.getBoundingClientRect().top - toolbar.top - 4);
+    }
+  });
+  const onTop = () =>
+    heading.evaluate((button) => {
+      const box = button.getBoundingClientRect();
+      return button.contains(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2));
+    });
+  await expect.poll(onTop).toBe(true);
+});
