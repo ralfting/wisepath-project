@@ -65,4 +65,14 @@ describe('MarkdownText', () => {
     expect(screen.queryByText('Question')).toBeNull();
     expect(screen.queryByRole('textbox')).toBeNull();
   });
+
+  it('draws every block of a callout inside it, and the text after it outside', () => {
+    const content = '> [!question]\n> ### Why guard a route?\n>\n> *Think of who calls it.*\n\n> [!info]\n> One.\n>\n> **Two.**\n\nAfter.';
+    renderWithLayers(<MarkdownText content={content} hrefOf={hrefOf} t={t} />, Layer.empty);
+    const question = screen.getByRole('note', { name: 'Question' });
+    expect(within(question).getByRole('heading', { level: 3, name: 'Why guard a route?' })).toBeTruthy();
+    expect(within(question).getByText('Think of who calls it.').tagName).toBe('EM');
+    expect(within(screen.getByRole('note', { name: 'Info' })).getByText('Two.').tagName).toBe('STRONG');
+    expect(screen.getByText('After.').closest('[role="note"]')).toBeNull();
+  });
 });

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Markdown } from 'tiptap-markdown';
-import { PageId, PathId, activitiesIn } from '@wisepath/domain/paths';
+import { CALLOUT_KINDS, PageId, PathId, activitiesIn, questionsIn } from '@wisepath/domain/paths';
 import { CalloutBlock, setCallout } from './callout';
 
 // Headless: the markdown a page saves, without the editor component's menus around it
@@ -52,6 +52,41 @@ describe('callouts in markdown', () => {
     const written = open('Why guard a route?');
     setCallout(written, 'question');
     expect(markdownOf(written)).toBe('> [!question]\n> Why guard a route?');
+  });
+
+  // A mark opening a block that follows another inside a quote used to swallow the quote's > and drop the block out
+  // of it on the next load (docs/bugs/BUG-010-callout-block-falls-out.md)
+  it.each(
+    CALLOUT_KINDS.flatMap((kind) => [
+      `> [!${kind}]\n> ### Why guard a route?\n>\n> *Think of who calls it.*`,
+      `> [!${kind}]\n> First the setup.\n>\n> **Then** the guard, ***twice***.`,
+      `> [!${kind}]\n> ### Steps\n>\n> - *one*\n> - two\n>\n> _Done._`,
+    ]),
+  )('keeps every block of %j inside its callout, read and written back the same', (text) => {
+    const e = open(text);
+    const [callout, ...after] = e.getJSON().content ?? [];
+    expect([callout.type, after]).toEqual(['callout', []]);
+    expect(markdownOf(e)).toBe(text);
+  });
+
+  it('keeps a plain quote whole when its second paragraph opens with a mark', () => {
+    const text = '> Said once.\n>\n> *Said twice.*';
+    expect(markdownOf(open(text))).toBe(text);
+  });
+
+  it('writes a question typed as a heading and an italic line under it as one question, read the same by the domain', () => {
+    const e = open('');
+    setCallout(e, 'question');
+    e.commands.insertContent('Why guard a route?');
+    e.commands.splitBlock();
+    e.chain().toggleItalic().insertContent('Think of who calls it.').run();
+    const saved = markdownOf(e);
+    expect(saved).toBe('> [!question]\n> ### Why guard a route?\n>\n> *Think of who calls it.*');
+
+    const page = { id: PageId.make('page'), content: saved };
+    const reloaded = { ...page, content: markdownOf(open(saved)) };
+    expect(questionsIn(PathId.make('p'), reloaded)).toEqual(questionsIn(PathId.make('p'), page));
+    expect(questionsIn(PathId.make('p'), page).map((question) => question.text)).toEqual(['### Why guard a route? *Think of who calls it.*']);
   });
 
   // The editor gives the nth activity block the domain's nth id, so both must find the same blocks

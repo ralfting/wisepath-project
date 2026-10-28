@@ -33,6 +33,13 @@ describe("questionsIn", () => {
     assert.deepStrictEqual(texts(content), ["Why **this** `one`?"])
   })
 
+  it("reads a heading and the line under it as one question, its words both blocks', under one name", () => {
+    const content = "> [!question]\n> ### Why guard a route?\n>\n> *Think of who calls it.*\n\nAfter the question."
+    assert.deepStrictEqual(texts(content), ["### Why guard a route? *Think of who calls it.*"])
+    assert.deepStrictEqual(ids(content), ids(content.replace("\n\nAfter the question.", "")))
+    assert.notStrictEqual(ids(content)[0], ids("> [!question]\n> ### Why guard a route?")[0])
+  })
+
   it("tells the same words twice apart, and never names a question as the activity with its words", () => {
     const [a, b] = ids(`${question("Why?")}\n\n${question("Why?")}`)
     assert.notStrictEqual(a, b)
