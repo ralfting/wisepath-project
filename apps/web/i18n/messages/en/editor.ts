@@ -108,6 +108,7 @@ export const editor = {
   outline: {
     label: 'Contents',
     title: 'On this page',
+    kinds: { question: 'Question', answered: 'Answered question', video: 'Video' },
   },
   callout: {
     kinds: { info: 'Info', warning: 'Warning', danger: 'Danger', activity: 'Activity', question: 'Question' },

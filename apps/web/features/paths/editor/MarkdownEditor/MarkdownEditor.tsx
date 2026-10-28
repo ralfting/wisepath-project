@@ -84,7 +84,7 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
   const { editor, wrapper, card, state, operations } = useMarkdownEditor(props);
   const room = useFrameRoom(wrapper);
   const canNote = !!props.notes;
-  const { headings, picker, slash, prompt, inboxPrompt } = state;
+  const { outline, picker, slash, prompt, inboxPrompt } = state;
 
   return (
     <div
@@ -94,7 +94,9 @@ export function MarkdownEditor(props: MarkdownEditorProps) {
       onMouseOver={card.over}
       onMouseOut={card.out}
     >
-      {editor && !lean && headings.length >= 2 && <Outline editor={editor} headings={headings} room={room?.right ?? null} noteOpen={!!props.notes?.openId} />}
+      {editor && !lean && outline.length >= 2 && (
+        <Outline editor={editor} entries={outline} questions={props.questions ?? null} room={room?.right ?? null} noteOpen={!!props.notes?.openId} />
+      )}
       <RichTextEditor
         editor={editor}
         variant="subtle"

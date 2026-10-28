@@ -40,6 +40,8 @@
   cursor: pointer;
   max-height: 60vh;
   overflow: hidden;
+  /* Set here and not on each mark, so the one being read can override it (BUG-008) */
+  --outline-mark: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
 }
 
 .outlineDash {
@@ -47,7 +49,7 @@
   height: 2px;
   width: 16px;
   border-radius: 2px;
-  background: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+  background: var(--outline-mark);
   transition: background 120ms ease;
 
   &[data-level='1'] {
@@ -59,7 +61,33 @@
   }
 
   &[data-active] {
-    background: var(--mantine-color-blue-6);
+    --outline-mark: var(--mantine-color-blue-6);
+  }
+
+  /* A question is a dot, a video a small play triangle. Drawn over a dash's height, so the rail keeps its rhythm */
+  &[data-kind='question'],
+  &[data-kind='video'] {
+    position: relative;
+    width: rem(6px);
+    background: none;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      top: 50%;
+      height: rem(6px);
+      translate: 0 -50%;
+      background: var(--outline-mark);
+    }
+  }
+
+  &[data-kind='question']::before {
+    border-radius: 50%;
+  }
+
+  &[data-kind='video']::before {
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
   }
 }
 
@@ -141,6 +169,19 @@
     font-size: 13px;
   }
 
+  /* A question or a video one step under a deepest heading */
+  &[data-level='3'] {
+    padding-left: calc(var(--mantine-spacing-xl) + var(--mantine-spacing-md));
+  }
+
+  /* A question or a video: its icon, then its text */
+  &[data-kind='question'],
+  &[data-kind='video'] {
+    display: flex;
+    align-items: flex-start;
+    gap: calc(var(--mantine-spacing-xs) / 2);
+  }
+
   &::before {
     content: '';
     position: absolute;
@@ -169,6 +210,18 @@
     &::before {
       background: var(--mantine-color-blue-6);
     }
+  }
+}
+
+/* Level with the text's first line */
+.outlineIcon {
+  flex: none;
+  width: var(--mantine-font-size-sm);
+  height: var(--mantine-font-size-sm);
+  margin-top: calc((1lh - var(--mantine-font-size-sm)) / 2);
+
+  [data-answered] > & {
+    color: var(--mantine-color-teal-light-color);
   }
 }
 

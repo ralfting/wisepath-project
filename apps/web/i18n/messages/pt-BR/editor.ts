@@ -111,6 +111,7 @@ export const editor = {
   outline: {
     label: 'Sumário',
     title: 'Nesta página',
+    kinds: { question: 'Pergunta', answered: 'Pergunta respondida', video: 'Vídeo' },
   },
   callout: {
     kinds: { info: 'Informação', warning: 'Atenção', danger: 'Perigo', activity: 'Atividade', question: 'Pergunta' },

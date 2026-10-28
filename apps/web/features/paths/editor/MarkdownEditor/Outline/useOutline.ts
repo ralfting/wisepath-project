@@ -1,23 +1,31 @@
 'use client';
 
-import type { Editor } from '@tiptap/react';
+import type { ChainedCommands, Editor } from '@tiptap/react';
+import type { Node as DocNode } from '@tiptap/pm/model';
 import { useEffect, useRef, useState } from 'react';
 import type { FocusEvent, KeyboardEvent, MouseEvent } from 'react';
 import { scrollerOf } from './Outline.helpers';
-import type { Heading } from './Outline.helpers';
+import type { OutlineEntry } from './Outline.helpers';
+
+/** Where going to an entry puts the cursor: a heading's or a question's end of text, a video picked whole */
+const PLACE: Record<OutlineEntry['kind'], (chain: ChainedCommands, node: DocNode, pos: number) => ChainedCommands> = {
+  heading: (chain, node, pos) => chain.focus(pos + node.nodeSize - 1, { scrollIntoView: false }),
+  question: (chain, node, pos) => chain.focus(pos + (node.firstChild?.nodeSize ?? 1), { scrollIntoView: false }),
+  video: (chain, _node, pos) => chain.focus(undefined, { scrollIntoView: false }).setNodeSelection(pos),
+};
 
 /**
- * The outline's view model: whether its panel is open, the heading being read (the last whose top has passed below
- * the toolbar), the keys that move through it, and going to a heading
+ * The outline's view model: whether its panel is open, the entry being read (the last whose top has passed below
+ * the toolbar), the keys that move through it, and going to an entry
  */
-export function useOutline({ editor, headings }: { editor: Editor; headings: ReadonlyArray<Heading> }) {
+export function useOutline({ editor, entries }: { editor: Editor; entries: ReadonlyArray<OutlineEntry> }) {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const railRef = useRef<HTMLElement>(null);
   const dashesRef = useRef<HTMLButtonElement>(null);
   const openBefore = useRef(false);
 
-  // The heading being read: the last one whose top has passed below the toolbar
+  // The entry being read: the last one whose top has passed below the toolbar
   useEffect(() => {
     const rail = railRef.current;
     if (!rail) return;
@@ -25,11 +33,11 @@ export function useOutline({ editor, headings }: { editor: Editor; headings: Rea
     let frame = 0;
     const update = () => {
       frame = 0;
-      const edge = (scroller instanceof Window ? 0 : scroller.getBoundingClientRect().top) + 80;
+      const edge = (scroller instanceof HTMLElement ? scroller.getBoundingClientRect().top : 0) + 80;
       let current = 0;
-      headings.forEach((h, i) => {
-        // Read between a change to the text and the headings that follow it, a position can land on something else
-        const dom = editor.view.nodeDOM(h.pos);
+      entries.forEach((entry, i) => {
+        // Read between a change to the text and the entries that follow it, a position can land on something else
+        const dom = editor.view.nodeDOM(entry.pos);
         if (dom instanceof HTMLElement && dom.getBoundingClientRect().top <= edge) current = i;
       });
       setActive(current);
@@ -43,9 +51,9 @@ export function useOutline({ editor, headings }: { editor: Editor; headings: Rea
       scroller.removeEventListener('scroll', onScroll);
       cancelAnimationFrame(frame);
     };
-  }, [editor, headings]);
+  }, [editor, entries]);
 
-  // From the keyboard: Enter or ↓ on the dashes goes into the list, at the heading being read; ↑ ↓ Home End move
+  // From the keyboard: Enter or ↓ on the dashes goes into the list, at the entry being read; ↑ ↓ Home End move
   // through it, Esc closes it and leaves the focus on the dashes
   const items = () => [...(railRef.current?.querySelectorAll<HTMLElement>('[data-outline-item]') ?? [])];
   const enterList = () => {
@@ -80,18 +88,18 @@ export function useOutline({ editor, headings }: { editor: Editor; headings: Rea
     event.preventDefault();
   };
 
-  const go = (heading: Heading) => {
-    const node = editor.state.doc.nodeAt(heading.pos);
+  const go = (entry: OutlineEntry) => {
+    const node = editor.state.doc.nodeAt(entry.pos);
     if (!node) return;
     setOpen(false);
-    editor.chain().focus(heading.pos + node.nodeSize - 1, { scrollIntoView: false }).run();
-    (editor.view.nodeDOM(heading.pos) as HTMLElement | null)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    PLACE[entry.kind](editor.chain(), node, entry.pos).run();
+    (editor.view.nodeDOM(entry.pos) as HTMLElement | null)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return {
     railRef,
     dashesRef,
-    state: { open, active, top: Math.min(...headings.map((h) => h.level)) },
+    state: { open, active },
     operations: {
       open: () => setOpen(true),
       close: () => setOpen(false),

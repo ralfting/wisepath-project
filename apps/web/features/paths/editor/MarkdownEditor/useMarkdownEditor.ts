@@ -12,8 +12,8 @@ import { chipOfElement, toggleCitation } from '../wikiLink';
 import { noteSelection, refreshNoteHighlights } from '../noteHighlights';
 import type { PageLinkPickerState, SlashMenuState } from '../menus';
 import type { PreviewPage } from '../LinkPreview/LinkPreview';
-import { headingsOf, sameHeadings } from './Outline/Outline.helpers';
-import type { Heading } from './Outline/Outline.helpers';
+import { entriesOf, sameEntries } from './Outline/Outline.helpers';
+import type { OutlineEntry } from './Outline/Outline.helpers';
 import type { PagePrompt } from './PageNamePrompt';
 import { editorExtensions } from './editorExtensions';
 import type { EditorContext } from './editorExtensions';
@@ -24,14 +24,14 @@ import type { MarkdownEditorProps } from './MarkdownEditor';
 
 /**
  * The markdown editor's view model: the Tiptap editor (created once, reading the latest props through a ref), the
- * page's headings for the outline, the [[ picker and / menu while they are open, the page name and Inbox item
+ * page's outline entries, the [[ picker and / menu while they are open, the page name and Inbox item
  * prompts, the link card, and putting the cursor in the text when asked
  */
 export function useMarkdownEditor(props: MarkdownEditorProps) {
   const { content, pages, focusSignal = 0, focusOnOpen = null, readOnly = false, inbox, notes } = props;
   const t = useT();
   const [picker, setPicker] = useState<PageLinkPickerState | null>(null);
-  const [headings, setHeadings] = useState<ReadonlyArray<Heading>>([]);
+  const [outline, setOutline] = useState<ReadonlyArray<OutlineEntry>>([]);
   const [slash, setSlash] = useState<SlashMenuState | null>(null);
   const [prompt, setPrompt] = useState<PagePrompt | null>(null);
   const [inboxPrompt, setInboxPrompt] = useState<InboxPrompt | null>(null);
@@ -103,9 +103,9 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
         },
       },
     },
-    onCreate: ({ editor: e }) => setHeadings(headingsOf(e)),
+    onCreate: ({ editor: e }) => setOutline(entriesOf(e.state.doc)),
     onUpdate: ({ editor: e }) => {
-      setHeadings((current) => sameHeadings(current, headingsOf(e)));
+      setOutline((current) => sameEntries(current, entriesOf(e.state.doc)));
       latest.current.props.onChange(savedMarkdown(e.storage.markdown.getMarkdown()));
     },
     onSelectionUpdate: ({ editor: e }) => latest.current.props.onCursor?.(e.state.selection.from),
@@ -175,7 +175,7 @@ export function useMarkdownEditor(props: MarkdownEditorProps) {
     editor,
     wrapper,
     card,
-    state: { headings, picker, slash, prompt, inboxPrompt },
+    state: { outline, picker, slash, prompt, inboxPrompt },
     operations: { submitPageName, cancelPageName, pickInboxItem, cancelInboxItem, noteSelection: noteSelectionNow },
   };
 }

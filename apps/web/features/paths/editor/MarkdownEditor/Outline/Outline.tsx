@@ -1,26 +1,41 @@
 'use client';
 
 import type { Editor } from '@tiptap/react';
-import { Paper, Text, Transition, UnstyledButton } from '@mantine/core';
+import { Paper, Text, Transition } from '@mantine/core';
 import { useReducedMotion } from '@mantine/hooks';
 import classes from './Outline.module.css';
 import { useT } from '@/i18n/I18nProvider';
-import { outlinePlace, unfold } from './Outline.helpers';
-import type { Heading } from './Outline.helpers';
+import type { EditorQuestions } from '../../questions';
+import { depthsOf, outlinePlace, unfold } from './Outline.helpers';
+import type { OutlineEntry } from './Outline.helpers';
+import { OutlineItem } from './OutlineItem';
 import { useOutline } from './useOutline';
 
+interface OutlineProps {
+  editor: Editor;
+  entries: ReadonlyArray<OutlineEntry>;
+  /** The reader's answers, to tell an answered question from an open one */
+  questions: EditorQuestions | null;
+  room: number | null;
+  noteOpen: boolean;
+}
+
 /**
- * The page's headings. Beside a full page with room on its right they are listed there, by name, and stay in view
- * while the text scrolls. Elsewhere they are a quiet rail of dashes on the right edge, like Notion's: one dash per
- * heading, longer for higher levels, the one being read in blue; hovering (or a tap) opens the headings by name.
- * A click on a name scrolls to its heading and puts the cursor at its end. From the keyboard, Enter or ↓ on the
- * dashes goes into the list.
+ * The page's headings, questions and videos. Beside a full page with room on its right they are listed there, by
+ * name, a question or a video with its icon under the heading it follows, and stay in view while the text scrolls.
+ * Elsewhere they are a quiet rail on the right edge, like Notion's: a dash per heading, longer for higher levels, a
+ * dot per question and a small triangle per video, the one being read in blue; hovering (or a tap) opens them by
+ * name. A click on a name scrolls to it and puts the cursor there. From the keyboard, Enter or ↓ on the rail goes
+ * into the list.
  */
-export function Outline({ editor, headings, room, noteOpen }: { editor: Editor; headings: ReadonlyArray<Heading>; room: number | null; noteOpen: boolean }) {
+export function Outline({ editor, entries, questions, room, noteOpen }: OutlineProps) {
   const t = useT();
   const reduceMotion = useReducedMotion();
   const place = outlinePlace(room, noteOpen);
-  const { railRef, dashesRef, state, operations } = useOutline({ editor, headings });
+  const { railRef, dashesRef, state, operations } = useOutline({ editor, entries });
+  const depths = depthsOf(entries);
+  const answered = (entry: OutlineEntry) =>
+    entry.kind === 'question' && !!questions?.answers.some((answer) => answer.question === questions.ids[entry.index]);
   const listed = place === 'list';
 
   const list = (
@@ -29,22 +44,16 @@ export function Outline({ editor, headings, room, noteOpen }: { editor: Editor; 
         {t('editor.outline.title')}
       </Text>
       <ul className={classes.outlineList}>
-        {headings.map((h, i) => (
-          <li key={h.pos}>
-            <UnstyledButton
-              data-outline-item
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => operations.go(h)}
-              className={classes.outlineItem}
-              data-level={Math.min(h.level - state.top, 2)}
-              data-active={i === state.active || undefined}
-              aria-current={i === state.active ? 'location' : undefined}
-              // Listed, the headings are one stop for Tab, at the one being read; ↑ ↓ move between them
-              tabIndex={listed && i !== state.active ? -1 : 0}
-              title={h.text}
-            >
-              <span className={classes.outlineText}>{h.text}</span>
-            </UnstyledButton>
+        {entries.map((entry, i) => (
+          <li key={entry.pos}>
+            <OutlineItem
+              entry={entry}
+              depth={depths[i]}
+              active={i === state.active}
+              answered={answered(entry)}
+              tabbable={!listed || i === state.active}
+              onGo={operations.go}
+            />
           </li>
         ))}
       </ul>
@@ -78,11 +87,12 @@ export function Outline({ editor, headings, room, noteOpen }: { editor: Editor; 
             aria-label={t('editor.outline.label')}
             aria-expanded={state.open}
           >
-            {headings.map((h, i) => (
+            {entries.map((entry, i) => (
               <span
-                key={h.pos}
+                key={entry.pos}
                 className={classes.outlineDash}
-                data-level={Math.min(h.level - state.top, 2)}
+                data-kind={entry.kind}
+                data-level={depths[i]}
                 data-active={i === state.active || undefined}
               />
             ))}

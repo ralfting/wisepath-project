@@ -257,8 +257,8 @@
   border-top: 1px solid var(--mantine-color-default-border);
 }
 
-/* Headings land below the sticky toolbar when the outline scrolls to them */
-.content :global(:is(h1, h2, h3)) {
+/* Headings, questions and videos land below the sticky toolbar when the outline scrolls to them */
+.content :global(:is(h1, h2, h3, .node-callout, .node-youtube)) {
   scroll-margin-top: 64px;
 }
 
