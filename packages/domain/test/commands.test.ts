@@ -110,7 +110,7 @@ describe("paths", () => {
   })
 
   it("summarizes a map for its card", () => {
-    const s = summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general"), null)
+    const s = summarize(editPath(samplePath, { kind: "learningPath" }), ProjectId.make("general"))
     assert.deepStrictEqual([s.kind, s.studied, s.total, s.modules, s.orphans, s.next?.title, s.color], ["learningPath", 8, 42, 8, 0, "NestJS", "red"])
   })
 

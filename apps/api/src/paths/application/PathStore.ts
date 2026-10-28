@@ -13,11 +13,9 @@ export class PathStore extends Context.Service<
   {
     /**
      * The learner's maps, oldest first, with their marks: their own, with the project each is in, and those from
-     * others (shared with them or taken), with their owner's name. A public map they never took is not listed.
+     * others (shared with them or taken), whose owner's name is on the map. A public map they never took is not listed.
      */
-    readonly listFor: (learnerId: UserId) => Effect.Effect<
-      ReadonlyArray<{ readonly path: Path; readonly projectId: ProjectId | null; readonly ownerName: string | null }>
-    >;
+    readonly listFor: (learnerId: UserId) => Effect.Effect<ReadonlyArray<{ readonly path: Path; readonly projectId: ProjectId | null }>>;
 
     /**
      * A map as the reader may use it (its `access`), with their marks; none when they may not read it, as if it did

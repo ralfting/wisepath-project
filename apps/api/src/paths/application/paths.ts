@@ -42,7 +42,7 @@ export const listPaths = Effect.fn('paths.list')(function* () {
   const store = yield* PathStore;
 
   const paths = yield* store.listFor(user.id);
-  return paths.map(({ path, projectId, ownerName }) => summarize(path, projectId, ownerName));
+  return paths.map(({ path, projectId }) => summarize(path, projectId));
 });
 
 /** The map when the user's access allows what is asked of it */

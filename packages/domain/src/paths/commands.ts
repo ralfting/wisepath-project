@@ -223,7 +223,7 @@ export function removeNote(path: Path, command: RemoveNote): Path {
 }
 
 /** The map as its card and the sidebar show it */
-export function summarize(path: Path, projectId: ProjectId | null, ownerName: string | null): PathSummary {
+export function summarize(path: Path, projectId: ProjectId | null): PathSummary {
   const tree = mapTree(path)
   const look = lookOf(path, path.rootPageId, tree)
   // A study has nothing to continue
@@ -231,7 +231,7 @@ export function summarize(path: Path, projectId: ProjectId | null, ownerName: st
   return {
     id: path.id,
     projectId,
-    ownerName,
+    ownerName: path.ownerName ?? null,
     visibility: path.visibility,
     access: path.access,
     title: path.title,

@@ -4,7 +4,7 @@ import type { Path } from '@wisepath/domain/paths';
 import { ProjectId } from '@wisepath/domain/projects';
 import { pagesFor, pathsFor } from './PagePicker.helpers';
 
-const summary = (title: string) => summarize({ ...samplePath, id: PathId.make(title.toLowerCase()), title }, ProjectId.make('general'), null);
+const summary = (title: string) => summarize({ ...samplePath, id: PathId.make(title.toLowerCase()), title }, ProjectId.make('general'));
 
 describe('pathsFor', () => {
   it('offers the path last opened first, and only those whose title matches what is typed', () => {

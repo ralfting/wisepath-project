@@ -134,9 +134,7 @@ export const DrizzlePathStore = Layer.effect(
       return yield* Effect.forEach(rows, (row) =>
         toDomain(row, learnerId).pipe(
           Effect.map((path) =>
-            path.access === 'owner'
-              ? { path, projectId: ProjectId.make(row.projectId), ownerName: null }
-              : { path, projectId: null, ownerName: row.project.owner.name },
+            path.access === 'owner' ? { path, projectId: ProjectId.make(row.projectId) } : { path, projectId: null },
           ),
         ),
       );
