@@ -20,6 +20,7 @@ Skip it for typos and bugs whose cause is obvious from the diff.
 
 | Id | Title | Area | Date |
 |---|---|---|---|
+| [BUG-010](BUG-010-callout-block-falls-out.md) | A question's italic line under its heading drops out of the question after a reload | web/editor | 2026-10-28 |
 | [BUG-009](BUG-009-editor-toolbar-behind-blocks.md) | The editor's toolbar goes behind a question, a callout, a code block or a video scrolled under it | web/editor | 2026-10-28 |
 | [BUG-008](BUG-008-light-dark-outranks-a-modifier.md) | A citation chip, and a link to a missing page, show in the link's blue instead of dimmed | web/editor | 2026-10-27 |
 | [BUG-007](BUG-007-two-approvals-take-the-same-address.md) | Approving two paths of the same title at once fails one of them | api/paths | 2026-10-23 |
