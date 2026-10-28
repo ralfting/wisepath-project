@@ -23,8 +23,11 @@
   }
 }
 
+/* Its own stacking context, so no z-index inside the text (Mantine's 2 on every div, a callout's 3) can rise above
+   the sticky toolbar's 1 as the page scrolls under it */
 .content {
   position: relative;
+  isolation: isolate;
   background: transparent;
 
   & :global(.ProseMirror) {
