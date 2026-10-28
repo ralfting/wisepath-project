@@ -89,6 +89,26 @@ describe('callouts in markdown', () => {
     expect(questionsIn(PathId.make('p'), page).map((question) => question.text)).toEqual(['### Why guard a route? *Think of who calls it.*']);
   });
 
+  // Saved by the unpatched serializer: first as written right after typing, then as that page saved again
+  // (docs/bugs/BUG-012-patched-package-left-out-of-the-build.md)
+  it.each([
+    ['> [!question]\n> ### Title\n\n*> *Description.*\n>\n> Third block.', '> [!question]\n> ### Title\n>\n> *Description.*\n>\n> Third block.'],
+    ['> [!question]\n> ### Title\n\n\\*&gt; *Description.*\n\n> Third block.', '> [!question]\n> ### Title\n>\n> *Description.*\n>\n> Third block.'],
+    ['> [!question]\n> ### Title\n\n\\*&gt; *Desc* and more.\n\n> Third block.', '> [!question]\n> ### Title\n>\n> *Desc* and more.\n>\n> Third block.'],
+    ['> [!question]\n> ### Title\n>\n> Description.\n\n\\*&gt; *Third block.*', '> [!question]\n> ### Title\n>\n> Description.\n>\n> *Third block.*'],
+    ['> [!question]\n> ### Title\n\n*> *Desc.*\n\n*> *Third.*\n>\n> Fourth.', '> [!question]\n> ### Title\n>\n> *Desc.*\n>\n> *Third.*\n>\n> Fourth.'],
+    ['> [!question]\n> ### Title\n\n\\*&gt; *Desc.*\n\n\\*&gt; *Third.*\n\n> Fourth.', '> [!question]\n> ### Title\n>\n> *Desc.*\n>\n> *Third.*\n>\n> Fourth.'],
+    ['> [!warning]\n> ### Steps\n>\n> - *one*\n> - two\n\n\\*&gt; *Done.*', '> [!warning]\n> ### Steps\n>\n> - *one*\n> - two\n>\n> *Done.*'],
+    ['> [!question]\n> ### Title\n\n\\*&gt; *Desc.*\n\n> [!info]\n> Next callout.', '> [!question]\n> ### Title\n>\n> *Desc.*\n\n> [!info]\n> Next callout.'],
+    ['> Plain quote.\n\n*> *Second.*\n\nAfter.', '> Plain quote.\n>\n> *Second.*\n\nAfter.'],
+    ['> [!question]\n> ### Title\n> ****Bold desc.**\n>\n> Third block.', '> [!question]\n> ### Title\n>\n> **Bold desc.**\n>\n> Third block.'],
+    ['> [!question]\n> ### Title\n>\n> \\*\\***Bold desc.**\n>\n> Third block.', '> [!question]\n> ### Title\n>\n> **Bold desc.**\n>\n> Third block.'],
+    ['> [!info]\n> First.\n> ****Then** the guard.\n>\n> Last.', '> [!info]\n> First.\n>\n> **Then** the guard.\n>\n> Last.'],
+    ['> [!info]\n> First. \\*\\***Then** the guard.\n>\n> Last.', '> [!info]\n> First.\n>\n> **Then** the guard.\n>\n> Last.'],
+  ])('reads %j, saved with a block fallen out of its quote, whole again', (saved, written) => {
+    expect(markdownOf(open(saved))).toBe(written);
+  });
+
   // The editor gives the nth activity block the domain's nth id, so both must find the same blocks
   it.each([
     '> [!activity]\n> One\n\n> [!activity]\n> Two **bold** `code`',
