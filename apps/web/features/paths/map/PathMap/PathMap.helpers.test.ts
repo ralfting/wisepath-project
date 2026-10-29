@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PageId } from '@wisepath/domain/paths';
 import type { Path } from '@wisepath/domain/paths';
-import { samplePath } from '@wisepath/domain/paths';
-import { findInMap } from './PathMap.helpers';
+import { samplePath, updatePage } from '@wisepath/domain/paths';
+import { drawnAlike, findInMap } from './PathMap.helpers';
 
 const page = (id: string, title: string, content = '') => ({ id: PageId.make(id), title, content, studied: false, updatedAt: '' });
 // root links Fibers, which links Fiber pools; Scheduling fibers is linked from nowhere
@@ -21,5 +21,24 @@ describe('findInMap', () => {
 
   it('marks nothing while nothing is typed', () => {
     expect(findInMap(path, '   ')).toEqual({ ids: null, results: [] });
+  });
+});
+
+describe('drawnAlike', () => {
+  const fibers = PageId.make('fibers');
+
+  it('draws the map the same while words are typed in a page, around its links', () => {
+    expect(drawnAlike(path, updatePage(path, fibers, { content: 'Cheap threads: [[Fiber pools]] reuse them' }))).toBe(true);
+  });
+
+  it('draws it again for a link, citation or activity written in a page, and for a new title or studied mark', () => {
+    const edits = [
+      updatePage(path, fibers, { content: '[[Fiber pools]] [[Scheduling fibers]]' }),
+      updatePage(path, fibers, { content: '[[Fiber pools]] @[[Scheduling fibers]]' }),
+      updatePage(path, fibers, { content: '[[Fiber pools]]\n\n> [!activity]\n> Fork two fibers.' }),
+      updatePage(path, fibers, { title: 'Fibres' }),
+      updatePage(path, fibers, { studied: true }),
+    ];
+    expect(edits.map((edited) => drawnAlike(path, edited))).toEqual([false, false, false, false, false]);
   });
 });

@@ -1,5 +1,6 @@
 'use client';
 
+import { memo, useState } from 'react';
 import { Group, Stack } from '@mantine/core';
 import type { Path } from '@wisepath/domain/paths';
 import { canEdit } from '@wisepath/domain/paths';
@@ -15,9 +16,26 @@ import { MapHeader } from './MapHeader';
 import { MapSearch } from './MapSearch';
 import { ViewSwitch } from './ViewSwitch';
 import { useMapView } from './useMapView';
+import { drawnAlike } from './PathMap.helpers';
 
-/** A loaded map: its toolbar, search, and mind map or list; selecting a page opens it in the drawer beside it */
-export function MapView({ path, actions, save }: { path: Path; actions: PathActions; save: SaveState }) {
+interface MapViewProps {
+  path: Path;
+  actions: PathActions;
+  save: SaveState;
+}
+
+/**
+ * A loaded map: its toolbar, search, and mind map or list; selecting a page opens it in the drawer beside it. Drawn
+ * again only when what it shows changes, not on every key typed in the page open beside it
+ */
+export const MapView = memo(function MapView({ path: given, actions, save }: MapViewProps) {
+  // The path last drawn, kept while edits change nothing drawn: drawn again for its save status, the map reuses what
+  // it worked out from it
+  const [drawn, setDrawn] = useState(given);
+  const alike = drawnAlike(drawn, given);
+  if (!alike) setDrawn(given);
+  const path = alike ? drawn : given;
+
   const { search, branch, state, operations } = useMapView({ path, actions });
   const currentId = state.next?.id ?? null;
   // A reader studies the map: no + to add pages, no N
@@ -98,4 +116,8 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
       </div>
     </AppFrame>
   );
+}, sameMap);
+
+function sameMap(before: MapViewProps, after: MapViewProps) {
+  return before.actions === after.actions && before.save === after.save && drawnAlike(before.path, after.path);
 }

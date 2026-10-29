@@ -3,6 +3,7 @@
 import { useContext, useEffect, useMemo } from "react"
 import { Cause, Effect, Exit, Option } from "effect"
 import { AsyncResult, Atom } from "effect/reactivity"
+import type { AtomRegistry } from "effect/reactivity"
 import { RegistryContext, useAtomValue } from "@effect/atom-react"
 import { PageId, PathId, addBranch, findPageByTitle, moveBranch, renameLinks, unlinkPages } from "@wisepath/domain/paths"
 import type { ActivityId, NoteId, QuestionId, NoteText, Page, PageColor, PageIcon, Path, PathKind } from "@wisepath/domain/paths"
@@ -10,7 +11,7 @@ import { useT } from "@/i18n/I18nProvider"
 import { useHydrated } from "../useHydrated"
 import * as programs from "./programs"
 import { openedAtom, sessionAtom, stateAtomOf } from "./sessions"
-import type { Command, SyncState } from "./sync"
+import type { Command, PathSession, SyncState } from "./sync"
 
 /**
  * The open map, for the map, the page panel and the editor. An open map is a
@@ -90,28 +91,12 @@ export interface SaveState {
   readonly notice: string | null
 }
 
-/** One map for editing: its current state, whether it is saved, and the actions that change it */
-export function usePath(pathId: string): { state: PathState; save: SaveState; actions: PathActions } {
-  const id = PathId.make(pathId)
-  const registry = useContext(RegistryContext)
-  const hydrated = useHydrated()
-  const session = useAtomValue(sessionAtom(id))
-  const ready = hydrated && AsyncResult.isSuccess(session) ? session.value : null
-  const sync = useAtomValue(ready ? stateAtomOf(ready) : loadingState)
-  const renaming = useAtomValue(renamingAtom(id))
-  const path = useMemo(() => sync.path && withRename(sync.path, renaming), [sync.path, renaming])
-
-  // Count this map as open, so the list of maps reflects its edits
-  useEffect(() => {
-    if (!ready) return
-    const opened = registry.get(openedAtom)
-    if (!opened.has(id)) registry.set(openedAtom, new Set([...opened, id]))
-  }, [ready, registry, id])
-
+/** What can be done to the open map: each action reads the map as it is when called */
+function pathActions(id: PathId, registry: AtomRegistry.AtomRegistry, ready: PathSession | null): PathActions {
   const dispatch = (command: Command) => ready?.dispatch(command) ?? false
   const current = () => (ready ? registry.get(stateAtomOf(ready)).path : undefined)
 
-  const actions: PathActions = {
+  return {
     updatePage: (pageId, patch) => dispatch({ _tag: "UpdatePage", pageId: PageId.make(pageId), edit: patch }),
     writeNote: (pageId, noteId, text) => dispatch({ _tag: "WriteNote", pageId: PageId.make(pageId), note: { id: noteId, ...text } }),
     removeNote: (pageId, noteId) => dispatch({ _tag: "RemoveNote", pageId: PageId.make(pageId), noteId }),
@@ -178,6 +163,28 @@ export function usePath(pathId: string): { state: PathState; save: SaveState; ac
     setDescription: (description) => dispatch({ _tag: "UpdatePath", edit: { description } }),
     setKind: (kind) => dispatch({ _tag: "UpdatePath", edit: { kind } })
   }
+}
+
+/** One map for editing: its current state, whether it is saved, and the actions that change it */
+export function usePath(pathId: string): { state: PathState; save: SaveState; actions: PathActions } {
+  const id = PathId.make(pathId)
+  const registry = useContext(RegistryContext)
+  const hydrated = useHydrated()
+  const session = useAtomValue(sessionAtom(id))
+  const ready = hydrated && AsyncResult.isSuccess(session) ? session.value : null
+  const sync = useAtomValue(ready ? stateAtomOf(ready) : loadingState)
+  const renaming = useAtomValue(renamingAtom(id))
+  const path = useMemo(() => sync.path && withRename(sync.path, renaming), [sync.path, renaming])
+
+  // Count this map as open, so the list of maps reflects its edits
+  useEffect(() => {
+    if (!ready) return
+    const opened = registry.get(openedAtom)
+    if (!opened.has(id)) registry.set(openedAtom, new Set([...opened, id]))
+  }, [ready, registry, id])
+
+  // One set of actions per session, so what they are handed to is not drawn again for a new copy of them
+  const actions = useMemo(() => pathActions(id, registry, ready), [id, registry, ready])
 
   // The same object until what it says changes: lists built from it (a picker's pages) keep their marked row
   const state = useMemo((): PathState => {
@@ -203,5 +210,9 @@ export function usePath(pathId: string): { state: PathState; save: SaveState; ac
   }, [unsaved])
 
   const t = useT()
-  return { state, save: { status: sync.status, notice: sync.notice && t(`home.save.notice.${sync.notice}`) }, actions }
+  const save = useMemo(
+    (): SaveState => ({ status: sync.status, notice: sync.notice && t(`home.save.notice.${sync.notice}`) }),
+    [sync.status, sync.notice, t]
+  )
+  return { state, save, actions }
 }
