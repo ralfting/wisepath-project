@@ -133,6 +133,7 @@ export const page = {
     effectWithProgress: "Studied pages count toward {map}'s progress: {studied} of {total} so far.",
     unmark: '{effect} Click to mark it as not studied yet.',
     mark: "Tick it once you've learned what this page covers. {effect}",
+    changed: 'This page changed after you marked it studied, and asks something new. This takes you to it.',
   },
   notes: {
     private: 'Only you see these',

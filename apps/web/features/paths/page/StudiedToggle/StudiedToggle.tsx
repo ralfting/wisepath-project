@@ -1,10 +1,11 @@
 'use client';
 
-import { Button, Tooltip } from '@mantine/core';
+import { Button, Group, Tooltip } from '@mantine/core';
 import { IconClipboardText, IconMessageQuestion, IconSquare, IconSquareCheckFilled } from '@tabler/icons-react';
 import { pathProgress } from '@wisepath/domain/paths';
 import type { Page, Path, Task } from '@wisepath/domain/paths';
 import { useT } from '@/i18n/I18nProvider';
+import type { TranslationKey } from '@/i18n/I18nProvider';
 import { showFirstOpenTask } from '../pageTasks';
 
 /** What is left, worded by what it is: only activities, only questions, or both */
@@ -36,13 +37,14 @@ interface StudiedToggleProps {
  * says what it changes, so the map's progress never feels arbitrary. While
  * the page's activities or questions are open it says how many are left
  * instead, and takes the learner to the next one: never a disabled button
- * that can't say why.
+ * that can't say why. A page studied before its author added or reworded
+ * one keeps its mark, with what is new beside it.
  */
 export function StudiedToggle({ path, page, open, onChange, onShowText }: StudiedToggleProps) {
   const t = useT();
 
-  if (!page.studied && open.length > 0) {
-    const { label, hint, icon: Mark } = LEFT[leftKind(open)];
+  const pointer = (hint: TranslationKey) => {
+    const { label, icon: Mark } = LEFT[leftKind(open)];
     const showTask = () => {
       onShowText();
       // Once the text's tab shows
@@ -55,10 +57,12 @@ export function StudiedToggle({ path, page, open, onChange, onShowText }: Studie
         </Button>
       </Tooltip>
     );
-  }
+  };
+
+  if (!page.studied && open.length > 0) return pointer(LEFT[leftKind(open)].hint);
 
   const progress = { map: path.title, ...pathProgress(path) };
-  return (
+  const studied = (
     <Tooltip
       label={t(page.studied ? 'page.studied.unmark' : 'page.studied.mark', { effect: t('page.studied.effectWithProgress', progress) })}
       multiline
@@ -77,5 +81,12 @@ export function StudiedToggle({ path, page, open, onChange, onShowText }: Studie
         {t(page.studied ? 'page.studied.on' : 'page.studied.off')}
       </Button>
     </Tooltip>
+  );
+  if (open.length === 0) return studied;
+  return (
+    <Group gap="xs" wrap="nowrap">
+      {studied}
+      {pointer('page.studied.changed')}
+    </Group>
   );
 }

@@ -134,6 +134,7 @@ export const page = {
     effectWithProgress: 'Páginas estudadas contam para o progresso de {map}: {studied} de {total} até agora.',
     unmark: '{effect} Clique para marcar como ainda não estudada.',
     mark: 'Marque quando tiver aprendido o que esta página cobre. {effect}',
+    changed: 'Esta página mudou depois que você a marcou como estudada e pede algo novo. Isto leva você até lá.',
   },
   notes: {
     private: 'Só você vê',

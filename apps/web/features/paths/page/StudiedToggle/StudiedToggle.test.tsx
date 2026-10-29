@@ -62,4 +62,14 @@ describe('the studied control on a page with activities', () => {
     expect(screen.getByRole('switch', { name: "I've studied this", checked: false })).toBeTruthy();
     expect(screen.getByRole('switch', { name: 'Studied', checked: true })).toBeTruthy();
   });
+
+  it('keeps a studied page studied when its author adds an activity, and points to what is new', async () => {
+    const user = userEvent.setup();
+    const onShowText = vi.fn();
+    toggle(aPath('learningPath', { studied: true, done: [first] }), onShowText);
+
+    expect(screen.getByRole('switch', { name: 'Studied', checked: true })).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: '1 activity left' }));
+    expect(onShowText).toHaveBeenCalled();
+  });
 });
