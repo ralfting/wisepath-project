@@ -69,5 +69,11 @@ export const loginHref = (next: string) => `/login?next=${encodeURIComponent(nex
 /** The signup page, coming back the same way once the account exists */
 export const signupHref = (next: string) => `/signup?next=${encodeURIComponent(next)}`;
 
+/** Marks an address a visitor left to sign up or log in in order to study the path read there */
+export const STUDY_INTENT = 'study';
+
+/** A path's reading address that, once the visitor is back with an account, takes the path for them */
+export const withStudyIntent = (href: string) => `${href}${href.includes('?') ? '&' : '?'}${STUDY_INTENT}`;
+
 /** Where to go after logging in: the address asked for, only when it is one of the app's own (not //other.site) */
 export const afterLogin = (next: string | null | undefined) => (next && /^\/(?![/\\])/.test(next) ? next : HOME);

@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
   if (pathname.startsWith('/dashboard')) return redirect(hasAccessToken ? HOME : '/login');
 
   // Paths and the Inbox need an account
-  if ((pathname.startsWith('/paths') || pathname === '/inbox') && !hasAccessToken) return redirect('/login');
+  if ((pathname.startsWith('/paths') || pathname === '/inbox') && !hasAccessToken) return redirect(loginHref(pathname + search));
 
   // Capturing from the web (a popup), settings and the review of publications come back, filled in, once logged in
   if ((pathname === '/capture' || pathname.startsWith('/settings') || pathname.startsWith('/admin')) && !hasAccessToken) return redirect(loginHref(pathname + search));
