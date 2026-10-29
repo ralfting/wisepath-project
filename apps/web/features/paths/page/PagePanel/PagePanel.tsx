@@ -1,7 +1,7 @@
 'use client';
 
-import { ActionIcon, Anchor, Box, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
-import { IconArrowLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
+import { ActionIcon, Anchor, Box, Breadcrumbs, Button, Card, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
+import { IconArrowLeft, IconArrowRight, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { canEdit, openTasks } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
@@ -24,8 +24,8 @@ import { usePagePanel } from './usePagePanel';
 import type { PanelTab } from './usePagePanel';
 
 /**
- * The selected page beside the map: where it sits, whether its edits are saved, its title and markdown, the pages
- * related to it, the reader's own notes on it, and how it shows on the map.
+ * The selected page beside the map: where it sits, whether its edits are saved, its title and markdown, in a learning
+ * path the page to study next, the pages related to it, the reader's own notes on it, and how it shows on the map.
  */
 
 interface PagePanelProps {
@@ -52,7 +52,7 @@ interface PagePanelProps {
 export function PagePanel({ path, page, store, save, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const t = useT();
   const { state, operations } = usePagePanel({ path, page, store, onSelect });
-  const { isRoot, isOrphan, tree, trail, below, progress, related, subtitle } = state;
+  const { isRoot, isOrphan, tree, trail, below, progress, related, subtitle, next } = state;
   const notes = usePageNotes(page, state.actions, () => operations.showTab('content'));
 
   return (
@@ -168,14 +168,29 @@ export function PagePanel({ path, page, store, save, onSelect, onExpand, onClose
         </Group>
 
         {progress && (
-          <Group gap="xs" px="lg" pt="md">
-            <StudiedToggle
-              path={path}
-              page={page}
-              open={openTasks(path, page)}
-              onChange={(studied) => store.updatePage(page.id, { studied })}
-              onShowText={() => operations.showTab('content')}
-            />
+          <Group gap="xs" px="lg" pt="md" wrap="nowrap">
+            <Box className={classes.studied}>
+              <StudiedToggle
+                path={path}
+                page={page}
+                open={openTasks(path, page)}
+                onChange={(studied) => store.updatePage(page.id, { studied })}
+                onShowText={() => operations.showTab('content')}
+              />
+            </Box>
+            {next && (
+              <Button
+                variant="subtle"
+                size="xs"
+                miw={0}
+                rightSection={<IconArrowRight size={14} />}
+                onClick={() => onSelect(next.id)}
+              >
+                <Text span inherit truncate>
+                  {t('page.pager.nextPage', { title: displayTitle(next) })}
+                </Text>
+              </Button>
+            )}
           </Group>
         )}
       </div>

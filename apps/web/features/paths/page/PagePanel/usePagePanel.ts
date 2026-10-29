@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { UIEvent } from 'react';
-import { branchProgress, mapTree, relatedPages, trailTo } from '@wisepath/domain/paths';
+import { branchProgress, mapTree, nextPage, relatedPages, trailTo } from '@wisepath/domain/paths';
 import type { Page, Path } from '@wisepath/domain/paths';
 import type { PathActions } from '@/useCases/paths';
 import { useRememberOpened } from '@/useCases/search';
@@ -21,9 +21,9 @@ const COMPACT_ROOM = 160;
 
 /**
  * The page panel's view model: where the page sits on the map (its trail, what it is, what is below it), the pages
- * related to it, the open tab, its delete dialog, Enter in the title moving to the text, and the header folded while
- * the text is scrolled down (only a phone shows it folded). Opening it puts the page among the recent ones the search
- * palette offers.
+ * related to it, the page to study next once this one is studied, the open tab, its delete dialog, Enter in the title
+ * moving to the text, and the header folded while the text is scrolled down (only a phone shows it folded). Opening it
+ * puts the page among the recent ones the search palette offers.
  */
 export function usePagePanel({ path, page, store, onSelect }: { path: Path; page: Page; store: PathActions; onSelect: (pageId: string, alternate?: boolean) => void }) {
   const t = useT();
@@ -67,6 +67,8 @@ export function usePagePanel({ path, page, store, onSelect }: { path: Path; page
       trail,
       below,
       progress,
+      // Where Continue studying goes, so the drawer and the map's top bar never disagree on the way on
+      next: progress && page.studied ? nextPage(path) : undefined,
       related: relatedPages(path, page.id),
       subtitle: [kind, belowText].filter(Boolean).join(' · '),
       actions: pageActionsFor(store, onSelect),

@@ -59,6 +59,7 @@ export const page = {
     label: 'Página anterior e próxima',
     previous: 'Anterior',
     next: 'Próxima',
+    nextPage: 'Próxima: {title}',
   },
   related: {
     empty: 'Nada relacionado ainda. Digite [[ no conteúdo para criar um link para outra página.',

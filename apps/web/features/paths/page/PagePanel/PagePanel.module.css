@@ -11,6 +11,11 @@
   flex-wrap: nowrap;
 }
 
+/* The studied mark keeps its words; a long title in the next page's button gives way, in an ellipsis */
+.studied {
+  flex-shrink: 0;
+}
+
 .icon {
   flex-shrink: 0;
 }

@@ -58,6 +58,8 @@ export const page = {
     label: 'Previous and next page',
     previous: 'Previous',
     next: 'Next',
+    /** In the drawer's header, once the page is studied: the first page not studied yet, as Continue studying opens */
+    nextPage: 'Next: {title}',
   },
   related: {
     empty: 'Nothing related yet. Type [[ in the content to link another page.',

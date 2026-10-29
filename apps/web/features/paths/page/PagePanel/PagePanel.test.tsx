@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { samplePath, updatePage } from '@wisepath/domain/paths';
+import { PageId, samplePath, updatePage } from '@wisepath/domain/paths';
 import type { Path } from '@wisepath/domain/paths';
 import type { PathActions, SaveState } from '@/useCases/paths';
 import { renderWithLayers } from '@/test/render';
@@ -46,5 +47,25 @@ describe('the drawer header', () => {
 
     rerender(<Drawer path={learningPath} pageId="modules" save={{ status: 'offline', notice: null }} />);
     expect(screen.getByRole('status').textContent).toBe('Offline · retrying');
+  });
+
+  it('offers a studied page of a learning path the first page not studied yet, and opens it there', async () => {
+    const user = userEvent.setup();
+    renderWithLayers(<Drawer path={learningPath} pageId="cli-and-commands" />);
+
+    await user.click(screen.getByRole('button', { name: 'Next: Modules' }));
+
+    expect(screen.getByDisplayValue('Modules')).toBeTruthy();
+    // Modules is not studied yet: nothing to move on to until it is
+    expect(screen.queryByRole('button', { name: /^Next:/ })).toBeNull();
+  });
+
+  it('offers no next page in a study, nor once every page is studied', () => {
+    const { rerender } = renderWithLayers(<Drawer path={{ ...learningPath, kind: 'study' }} pageId="cli-and-commands" />);
+    expect(screen.queryByRole('button', { name: /^Next:/ })).toBeNull();
+
+    const allStudied = learningPath.pages.reduce((path, page) => updatePage(path, PageId.make(page.id), { studied: true }), learningPath);
+    rerender(<Drawer path={allStudied} pageId="cli-and-commands" />);
+    expect(screen.queryByRole('button', { name: /^Next:/ })).toBeNull();
   });
 });
