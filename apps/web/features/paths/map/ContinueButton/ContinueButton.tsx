@@ -25,14 +25,14 @@ export function ContinueButton({
   studied: number;
   total: number;
   onContinue: () => void;
-  /** The ring without its count, for a phone: the path's title needs the room */
+  /** The ring without its count, for a narrow top bar (a phone, or beside the drawer): the path's title needs the room */
   compact?: boolean;
 }) {
   const t = useT();
   const percent = total ? Math.round((studied / total) * 100) : 0;
   const done = total > 0 && !next;
   const summary = t('map.continue.summary', { studied, count: total });
-  // Worded as on the home's cards; a phone has room for the verb only
+  // Worded as on the home's cards; a narrow bar has room for the verb only
   const starting = studied === 0;
   const label = compact
     ? t(starting ? 'map.continue.start' : 'map.continue.continue')

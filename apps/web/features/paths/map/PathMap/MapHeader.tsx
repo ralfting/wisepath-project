@@ -36,7 +36,7 @@ export function MapHeader({
   const t = useT();
   const [sharing, setSharing] = useState(false);
   return (
-    <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }}>
+    <Group gap="md" wrap="nowrap" miw={0} style={{ flex: 1 }} className={classes.header}>
       <Group gap="sm" wrap="nowrap" miw={0} style={{ flex: 1 }}>
         {/* On a phone the title needs the room more than the icon does */}
         <ThemeIcon visibleFrom="sm" size={36} radius="xl" variant="light" color={look.color} style={{ flexShrink: 0 }}>
@@ -97,10 +97,10 @@ export function MapHeader({
       {/* Progress and the way on, as one control; a study's top bar keeps just its title */}
       {progress && (
         <>
-          <Box visibleFrom="sm">
+          <Box className={classes.continueFull}>
             <ContinueButton next={next} studied={studied} total={total} onContinue={onContinue} />
           </Box>
-          <Box hiddenFrom="sm">
+          <Box className={classes.continueCompact}>
             <ContinueButton next={next} studied={studied} total={total} onContinue={onContinue} compact />
           </Box>
         </>

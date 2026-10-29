@@ -23,8 +23,31 @@
   overflow: hidden;
 }
 
+/* The top bar's content stops where the page drawer starts (--wp-covered-right, set by the drawer while it sits beside
+   the map), less the bar's own padding, so nothing in it is under the drawer. A phone's drawer covers the whole screen */
+.header {
+  container-type: inline-size;
 
+  @media (min-width: $mantine-breakpoint-sm) {
+    margin-inline-end: max(0px, var(--wp-covered-right, 0px) - var(--mantine-spacing-xl));
+  }
+}
 
+/* Progress and the way on in full only where the bar holds them beside a readable title (45em: about 160px of it);
+   narrower, on a phone or beside the drawer, the ring and the verb */
+.continueFull {
+  display: none;
+}
+
+@container (min-width: 45em) {
+  .continueFull {
+    display: block;
+  }
+
+  .continueCompact {
+    display: none;
+  }
+}
 
 /* One line beside the tools; on a phone two, a size down, so a long title is read in the same top bar */
 .title {
