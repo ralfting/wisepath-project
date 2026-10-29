@@ -78,6 +78,7 @@ export function PageDrawer({ pathId, pageId: routePageId }: { pathId: string; pa
             path={path}
             page={page}
             store={store}
+            save={save}
             onSelect={go}
             focusEditor={cursor}
             onCursor={(pos) => operations.rememberCursor(page.id, pos)}

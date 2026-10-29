@@ -51,6 +51,7 @@ export function MapView({ path, actions, save }: { path: Path; actions: PathActi
       path={path}
       actions={actions}
       save={save}
+      pageOpen={state.selectedId !== null}
       look={state.look}
       progress={state.progress}
       next={state.next}

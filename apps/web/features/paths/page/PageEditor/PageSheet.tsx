@@ -6,15 +6,14 @@ import Link from 'next/link';
 import { branchProgress, canEdit, openTasks } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
 import { useT } from '@/i18n/I18nProvider';
-import { SaveStatus } from '@/features/paths/path';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
 import { DeletePageModal } from '../DeletePageModal';
+import { PageSaveStatus } from '../PageSaveStatus';
 import { StudiedToggle } from '../StudiedToggle/StudiedToggle';
 import { PageLook } from '../PageLook/PageLook';
 import { moduleLook } from '../PageLook/PageLook.helpers';
 import classes from './PageEditor.module.css';
 import { PageSheetTabs } from './PageSheetTabs';
-import { SavedAt } from './SavedAt';
 import type { PageSheetProps } from './PageEditor.helpers';
 import { usePageSheet } from './usePageSheet';
 
@@ -65,7 +64,7 @@ export function PageSheet({
           </Box>
         </Group>
         <Group gap="sm" wrap="nowrap" className={classes.headerActions}>
-          {save.status === 'saved' && !save.notice ? <SavedAt updatedAt={page.updatedAt} /> : <SaveStatus save={save} />}
+          <PageSaveStatus save={save} updatedAt={page.updatedAt} />
           {/* A study has nothing to mark as studied */}
           {path.kind === 'learningPath' && (
             <StudiedToggle

@@ -1,11 +1,11 @@
 'use client';
 
-import { ActionIcon, Anchor, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
+import { ActionIcon, Anchor, Box, Breadcrumbs, Card, Group, Menu, Stack, Tabs, Text, Tooltip } from '@mantine/core';
 import { IconArrowLeft, IconArrowsDiagonal, IconBox, IconChevronRight, IconDotsVertical, IconTrash, IconX } from '@tabler/icons-react';
 import type { Page, Path } from '@wisepath/domain/paths';
 import { canEdit, openTasks } from '@wisepath/domain/paths';
 import { displayTitle } from '@/i18n/title';
-import type { PathActions } from '@/useCases/paths';
+import type { PathActions, SaveState } from '@/useCases/paths';
 import { PageContent } from '../PageContent/PageContent';
 import { NotesTab } from '../PageNotes/NotesTab';
 import { PageNotes } from '../PageNotes/PageNotes';
@@ -13,6 +13,7 @@ import { usePageNotes } from '../PageNotes/usePageNotes';
 import { PageTitleInput } from '../PageContent/PageTitleInput';
 import type { EditorFocus } from '@/features/paths/editor';
 import { DeletePageModal } from '../DeletePageModal';
+import { PageSaveStatus } from '../PageSaveStatus';
 import { StudiedToggle } from '../StudiedToggle/StudiedToggle';
 import { PageLook } from '../PageLook/PageLook';
 import { moduleLook } from '../PageLook/PageLook.helpers';
@@ -23,14 +24,16 @@ import { usePagePanel } from './usePagePanel';
 import type { PanelTab } from './usePagePanel';
 
 /**
- * The selected page beside the map: where it sits, its title and markdown,
- * the pages related to it, the reader's own notes on it, and how it shows on the map.
+ * The selected page beside the map: where it sits, whether its edits are saved, its title and markdown, the pages
+ * related to it, the reader's own notes on it, and how it shows on the map.
  */
 
 interface PagePanelProps {
   path: Path;
   page: Page;
   store: PathActions;
+  /** Whether the path's edits are saved, shown beside the page being edited */
+  save: SaveState;
   /** `alternate`: opened with Cmd/Ctrl, as a full page */
   onSelect: (pageId: string, alternate?: boolean) => void;
   /** Grows the drawer into the full page, in place */
@@ -46,7 +49,7 @@ interface PagePanelProps {
   onCursor?: (pos: number) => void;
 }
 
-export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
+export function PagePanel({ path, page, store, save, onSelect, onExpand, onClose, flat = false, back, focusEditor = null, onCursor }: PagePanelProps) {
   const t = useT();
   const { state, operations } = usePagePanel({ path, page, store, onSelect });
   const { isRoot, isOrphan, tree, trail, below, progress, related, subtitle } = state;
@@ -100,6 +103,9 @@ export function PagePanel({ path, page, store, onSelect, onExpand, onClose, flat
         </Text>
         </Group>
         <Group gap={2} wrap="nowrap">
+          <Box pe="xs">
+            <PageSaveStatus save={save} updatedAt={page.updatedAt} />
+          </Box>
           {onExpand && (
             <Tooltip label={t('page.panel.expandHint')}>
               <ActionIcon variant="subtle" color="gray" onClick={onExpand} aria-label={t('page.panel.expand')}>

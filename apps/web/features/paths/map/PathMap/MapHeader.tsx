@@ -16,6 +16,7 @@ export function MapHeader({
   path,
   actions,
   save,
+  pageOpen,
   look,
   progress,
   next,
@@ -26,6 +27,8 @@ export function MapHeader({
   path: Path;
   actions: PathActions;
   save: SaveState;
+  /** A page is open in the drawer beside the map */
+  pageOpen: boolean;
   look: { readonly color: PageColor; readonly icon: PageIcon };
   progress: boolean;
   next: Page | undefined;
@@ -89,10 +92,12 @@ export function MapHeader({
           </Button>
         )}
         <ShareDialog path={path} opened={sharing} onClose={() => setSharing(false)} />
-        {/* Only while something is on its way, or was undone */}
-        <Box visibleFrom="sm" style={{ flexShrink: 0 }}>
-          <SaveStatus save={save} hideSaved />
-        </Box>
+        {/* Only while something is on its way, or was undone; with a page open beside the map, its drawer says it */}
+        {!pageOpen && (
+          <Box visibleFrom="sm" style={{ flexShrink: 0 }}>
+            <SaveStatus save={save} hideSaved />
+          </Box>
+        )}
       </Group>
       {/* Progress and the way on, as one control; a study's top bar keeps just its title */}
       {progress && (

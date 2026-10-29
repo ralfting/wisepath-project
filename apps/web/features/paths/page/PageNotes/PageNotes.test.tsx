@@ -72,7 +72,7 @@ function Reading({ notes, surface, spies }: { notes: ReadonlyArray<PageNote>; su
   const path = aReadPath(page);
   const store = notesStore(setPage, spies);
   return surface === 'drawer' ? (
-    <PagePanel path={path} page={page} store={store} onSelect={() => {}} flat />
+    <PagePanel path={path} page={page} store={store} save={{ status: 'saved', notice: null }} onSelect={() => {}} flat />
   ) : (
     <PageSheet path={path} page={page} store={store} save={{ status: 'saved', notice: null }} onOpenPage={() => {}} showOnMap={{ onClick: () => {} }} onDeleted={() => {}} />
   );
