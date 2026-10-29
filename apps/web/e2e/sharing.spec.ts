@@ -93,8 +93,9 @@ test('a public path is read by its link without an account, taken to study, and 
   await bob.page.goto('/paths');
   await expect(bob.page.getByRole('region', { name: 'From others' }).getByRole('link', { name: 'Rust' })).toBeVisible();
 
-  // Private again: the link and Bob's copy of the way in are gone
+  // Private again, once Ada confirms who loses it: the link and Bob's copy of the way in are gone
   await shareDialog(ada.page).getByRole('switch', { name: /^anyone with the link can read/i }).click();
+  await ada.page.getByRole('dialog', { name: 'Make the path private?' }).getByRole('button', { name: 'Make it private' }).click();
   await expect(shareDialog(ada.page).getByRole('button', { name: 'Copy link' })).toHaveCount(0);
   await visitor.reload();
   await expect(visitor.getByRole('heading', { name: 'Path not found' })).toBeVisible();
