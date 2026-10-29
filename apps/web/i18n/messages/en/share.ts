@@ -60,10 +60,17 @@ export const share = {
     hint: 'Paths shared with you, and public paths you took to study. They stay their owner’s.',
     by: 'By {name}',
     bySomeone: 'Shared with you',
-    leave: 'Leave',
-    leaveFor: 'Leave {title}',
-    left: 'You left “{title}”.',
-    leaveFailed: "Couldn't leave “{title}”.",
+    leave: 'Remove from my paths',
+    leaveFor: 'Remove {title} from my paths',
+    leaveTitle: 'Remove this path?',
+    leaveBody:
+      '“{title}” leaves your paths, and with it what is yours alone on it: pages marked studied, activities done, answers and notes. This can’t be undone.',
+    leaveAgainPublic: 'You can take it again from its link, but you start over.',
+    leaveAgainInvited: 'To come back to it, its owner will have to invite you again.',
+    leaveKeep: 'Keep it',
+    leaveConfirm: 'Remove',
+    left: 'You removed “{title}” from your paths.',
+    leaveFailed: "Couldn't remove “{title}”.",
   },
   /** Whose a path from others is, and what the reader may do with it */
   owner: {
