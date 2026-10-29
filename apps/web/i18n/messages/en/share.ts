@@ -11,6 +11,13 @@ export const share = {
     publicHint: 'Anyone with the link reads it and can study it with their own progress. It is never listed or searchable.',
     copy: 'Copy link',
     copied: 'Link copied',
+    privateTitle: 'Make the path private?',
+    privateBody:
+      'Its link stops opening the path, and anyone who took it from the link to study loses it, with what they did on it. The people you added keep their access.',
+    privateWithdraws: 'The request to publish it in the catalog is withdrawn. What you wrote for the catalog stays saved for a new request.',
+    privateUnpublishes: 'It leaves the catalog. What you wrote for the catalog stays saved.',
+    privateKeep: 'Keep it public',
+    privateConfirm: 'Make it private',
   },
   catalog: {
     label: 'Catalog',

@@ -14,6 +14,13 @@ export const share = {
     publicHint: 'Quem tiver o link lê a trilha e pode estudá-la com o próprio progresso. Ela nunca aparece em listas ou buscas.',
     copy: 'Copiar link',
     copied: 'Link copiado',
+    privateTitle: 'Tornar a trilha privada?',
+    privateBody:
+      'O link deixa de abrir a trilha, e quem a pegou pelo link para estudar deixa de tê-la, com o que fez nela. As pessoas que você adicionou continuam com acesso.',
+    privateWithdraws: 'O pedido para publicar no catálogo é retirado. O que você escreveu para o catálogo fica guardado para um novo pedido.',
+    privateUnpublishes: 'Ela sai do catálogo. O que você escreveu para o catálogo fica guardado.',
+    privateKeep: 'Manter pública',
+    privateConfirm: 'Tornar privada',
   },
   catalog: {
     label: 'Catálogo',

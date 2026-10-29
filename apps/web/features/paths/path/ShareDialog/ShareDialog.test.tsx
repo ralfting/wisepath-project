@@ -75,8 +75,24 @@ describe('ShareDialog', () => {
     expect(await screen.findByRole('button', { name: 'Copy link' })).toBeTruthy();
 
     await user.click(toggle);
+    const confirm = await screen.findByRole('dialog', { name: 'Make the path private?' });
+    expect(confirm.textContent).toContain('anyone who took it from the link to study loses it');
+    await user.click(screen.getByRole('button', { name: 'Make it private' }));
     await waitFor(() => expect(actions.setPathVisibility).toHaveBeenLastCalledWith(path.id, 'private'));
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Copy link' })).toBeNull());
+  });
+
+  it('keeps a path waiting for the catalog public unless the owner confirms its request goes with it', async () => {
+    const user = userEvent.setup();
+    renderWithLayers(<ShareDialog path={{ ...path, visibility: 'public', publication: 'pending' }} opened onClose={() => {}} />, layers);
+
+    await user.click(await screen.findByRole('switch', { name: /^anyone with the link can read/i }));
+    const confirm = await screen.findByRole('dialog', { name: 'Make the path private?' });
+    expect(confirm.textContent).toContain('The request to publish it in the catalog is withdrawn');
+    await user.click(screen.getByRole('button', { name: 'Keep it public' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Make the path private?' })).toBeNull());
+    expect(actions.setPathVisibility).not.toHaveBeenCalledWith(path.id, 'private');
+    expect(screen.getByRole('button', { name: 'Copy link' })).toBeTruthy();
   });
 
   it('asks to publish the path with what it teaches, who it is for and its language, then withdraws', async () => {
